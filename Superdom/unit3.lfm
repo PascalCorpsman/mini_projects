@@ -1,14 +1,14 @@
 object Form3: TForm3
-  Left = 250
+  Left = 330
   Height = 329
-  Top = 120
+  Top = 116
   Width = 198
   Caption = 'Form3'
   ClientHeight = 329
   ClientWidth = 198
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '2.3.0.0'
   object Button1: TButton
     Left = 8
     Height = 55
@@ -163,4 +163,4 @@ object Form3: TForm3
     OnClick = Button14Click
     TabOrder = 14
   end
-end
+end

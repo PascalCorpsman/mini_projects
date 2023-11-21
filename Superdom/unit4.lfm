@@ -1,7 +1,7 @@
 object Form4: TForm4
-  Left = 250
+  Left = 330
   Height = 219
-  Top = 120
+  Top = 117
   Width = 141
   BorderIcons = [biSystemMenu]
   Caption = 'Form4'
@@ -9,7 +9,7 @@ object Form4: TForm4
   ClientWidth = 141
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.1.0.0'
+  LCLVersion = '2.3.0.0'
   object Button1: TButton
     Left = 8
     Height = 25
@@ -22,9 +22,9 @@ object Form4: TForm4
   end
   object Label1: TLabel
     Left = 8
-    Height = 17
+    Height = 15
     Top = 8
-    Width = 37
+    Width = 34
     Caption = 'Label1'
     ParentColor = False
   end

@@ -65,7 +65,7 @@ Begin
     '  enough food available, the men die.' + LineEnding +
     '- money on the bank get each round a invest.' + LineEnding + LineEnding +
     'Rounds:' + LineEnding +
-    '  buy -> move units -> (feed units) -> war'
+    '  (farm and industry production) -> buy -> move units -> (feed units) -> war'
     ;
 End;
 

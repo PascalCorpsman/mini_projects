@@ -1,9 +1,9 @@
 object Form5: TForm5
-  Left = 240
+  Left = 332
   Height = 366
-  Top = 120
+  Top = 116
   Width = 406
   Caption = 'Form5'
   OnCreate = FormCreate
-  LCLVersion = '2.1.0.0'
+  LCLVersion = '2.3.0.0'
 end

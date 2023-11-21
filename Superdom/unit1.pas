@@ -529,7 +529,7 @@ Begin
     'strategy game where the aim is' + LineEnding +
     'to overcome the computer.' + LineEnding + LineEnding +
     'How to Play' + LineEnding +
-    'Eay year you are allocated an amount of cash' + LineEnding +
+    'Every year you are allocated an amount of cash' + LineEnding +
     'and food depending on how many farms and' + LineEnding +
     'factories you control.' + LineEnding + LineEnding +
     'Use this cash and food to build and feed your' + LineEnding +
