@@ -1,0 +1,316 @@
+object Form1: TForm1
+  Left = 329
+  Height = 656
+  Top = 117
+  Width = 657
+  Caption = 'Form1'
+  ClientHeight = 656
+  ClientWidth = 657
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object PaintBox1: TPaintBox
+    Left = 8
+    Height = 529
+    Top = 8
+    Width = 641
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    OnMouseDown = PaintBox1MouseDown
+    OnPaint = PaintBox1Paint
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 81
+    Top = 543
+    Width = 641
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = ' Info '
+    ClientHeight = 61
+    ClientWidth = 637
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 14
+      Height = 15
+      Top = 8
+      Width = 66
+      Caption = 'Your power :'
+    end
+    object Label2: TLabel
+      Left = 14
+      Height = 15
+      Top = 32
+      Width = 75
+      Caption = 'Comp power :'
+    end
+    object Label3: TLabel
+      Left = 534
+      Height = 15
+      Top = 8
+      Width = 32
+      Anchors = [akTop, akRight]
+      Caption = 'Cash :'
+    end
+    object Label4: TLabel
+      Left = 533
+      Height = 15
+      Top = 24
+      Width = 33
+      Anchors = [akTop, akRight]
+      Caption = 'Food :'
+    end
+    object Label5: TLabel
+      Left = 97
+      Height = 15
+      Top = 5
+      Width = 34
+      Caption = 'Label5'
+    end
+    object Label6: TLabel
+      Left = 97
+      Height = 15
+      Top = 32
+      Width = 34
+      Caption = 'Label6'
+    end
+    object Label7: TLabel
+      Left = 588
+      Height = 15
+      Top = 8
+      Width = 34
+      Anchors = [akTop, akRight]
+      Caption = 'Label7'
+    end
+    object Label8: TLabel
+      Left = 588
+      Height = 15
+      Top = 24
+      Width = 34
+      Anchors = [akTop, akRight]
+      Caption = 'Label8'
+    end
+    object Label9: TLabel
+      Left = 166
+      Height = 45
+      Top = 8
+      Width = 95
+      Caption = 'Label9'
+      Font.Height = -33
+      ParentFont = False
+    end
+    object Label10: TLabel
+      Left = 534
+      Height = 15
+      Top = 40
+      Width = 32
+      Anchors = [akTop, akRight]
+      Caption = 'Bank :'
+    end
+    object Label11: TLabel
+      Left = 582
+      Height = 15
+      Top = 40
+      Width = 40
+      Anchors = [akTop, akRight]
+      Caption = 'Label11'
+    end
+    object Label12: TLabel
+      Left = 150
+      Height = 30
+      Top = 5
+      Width = 71
+      Caption = 'Label12'
+      Font.Height = -21
+      ParentFont = False
+    end
+  end
+  object TrackBar1: TTrackBar
+    Left = 8
+    Height = 25
+    Top = 628
+    Width = 641
+    Max = 15
+    Min = -15
+    OnChange = TrackBar1Change
+    Position = 0
+    Anchors = [akLeft, akRight, akBottom]
+    ParentShowHint = False
+    TabOrder = 1
+  end
+  object MainMenu1: TMainMenu
+    Left = 32
+    Top = 24
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem2: TMenuItem
+        Caption = 'New Game'
+        ShortCut = 16462
+        OnClick = MenuItem2Click
+      end
+      object MenuItem6: TMenuItem
+        Caption = 'Load game'
+        ShortCut = 16460
+        OnClick = MenuItem6Click
+      end
+      object MenuItem7: TMenuItem
+        Caption = 'Save game'
+        ShortCut = 16467
+        OnClick = MenuItem7Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Close'
+        ShortCut = 32883
+        OnClick = MenuItem3Click
+      end
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Options'
+      object MenuItem5: TMenuItem
+        Caption = 'Settings'
+        OnClick = MenuItem5Click
+      end
+      object MenuItem37: TMenuItem
+        Caption = 'Show popups as windows'
+        Checked = True
+        OnClick = MenuItem37Click
+      end
+    end
+    object MenuItem35: TMenuItem
+      Caption = '?'
+      object MenuItem36: TMenuItem
+        Caption = 'Help'
+        OnClick = MenuItem36Click
+      end
+      object MenuItem38: TMenuItem
+        Caption = 'Gameplay'
+        OnClick = MenuItem38Click
+      end
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 104
+    Top = 24
+    object MenuItem20: TMenuItem
+      Caption = 'Invest money'
+      OnClick = MenuItem20Click
+    end
+    object MenuItem21: TMenuItem
+      Caption = 'Withdraw money'
+      OnClick = MenuItem21Click
+    end
+    object MenuItem19: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem8: TMenuItem
+      Caption = 'Buy Men'
+      OnClick = MenuItem8Click
+    end
+    object MenuItem9: TMenuItem
+      Caption = 'Buy Tank'
+      OnClick = MenuItem9Click
+    end
+    object MenuItem10: TMenuItem
+      Caption = 'Buy Plane'
+      OnClick = MenuItem10Click
+    end
+    object MenuItem11: TMenuItem
+      Caption = 'Buy Farm'
+      OnClick = MenuItem11Click
+    end
+    object MenuItem12: TMenuItem
+      Caption = 'Buy Industry'
+      OnClick = MenuItem12Click
+    end
+    object MenuItem13: TMenuItem
+      Caption = 'Buy Nuke'
+      OnClick = MenuItem13Click
+    end
+    object MenuItem22: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem18: TMenuItem
+      Caption = 'Finish buying'
+      OnClick = MenuItem18Click
+    end
+    object MenuItem29: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem30: TMenuItem
+      Caption = 'Show inventory'
+      OnClick = MenuItem34Click
+    end
+  end
+  object PopupMenu2: TPopupMenu
+    Left = 185
+    Top = 24
+    object MenuItem23: TMenuItem
+      Caption = 'Buy movements (100)'
+      OnClick = MenuItem23Click
+    end
+    object MenuItem24: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem14: TMenuItem
+      Caption = 'Move Men'
+      OnClick = MenuItem14Click
+    end
+    object MenuItem15: TMenuItem
+      Caption = 'Move Tank'
+      OnClick = MenuItem15Click
+    end
+    object MenuItem16: TMenuItem
+      Caption = 'Move Plane'
+      OnClick = MenuItem16Click
+    end
+    object MenuItem17: TMenuItem
+      Caption = 'Launch Nuke'
+      OnClick = MenuItem17Click
+    end
+    object MenuItem25: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem26: TMenuItem
+      Caption = 'Finish moving'
+      OnClick = MenuItem26Click
+    end
+    object MenuItem31: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem32: TMenuItem
+      Caption = 'Show inventory'
+      OnClick = MenuItem34Click
+    end
+  end
+  object PopupMenu3: TPopupMenu
+    Left = 264
+    Top = 24
+    object MenuItem27: TMenuItem
+      Caption = 'Attack territory'
+      OnClick = MenuItem27Click
+    end
+    object MenuItem28: TMenuItem
+      Caption = 'Finish turn'
+      OnClick = MenuItem28Click
+    end
+    object MenuItem33: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem34: TMenuItem
+      Caption = 'Show Inventory'
+      OnClick = MenuItem34Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.ssd'
+    Filter = 'Superdom savegame|*.ssd|All|*.*'
+    Left = 32
+    Top = 88
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.ssd'
+    Filter = 'Superdom savegame|*.ssd|All|*.*'
+    Left = 104
+    Top = 88
+  end
+end

@@ -1,0 +1,31 @@
+object Form4: TForm4
+  Left = 250
+  Height = 219
+  Top = 120
+  Width = 141
+  BorderIcons = [biSystemMenu]
+  Caption = 'Form4'
+  ClientHeight = 219
+  ClientWidth = 141
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.1.0.0'
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 179
+    Width = 118
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Hide'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 17
+    Top = 8
+    Width = 37
+    Caption = 'Label1'
+    ParentColor = False
+  end
+end

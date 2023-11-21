@@ -1,0 +1,166 @@
+object Form3: TForm3
+  Left = 250
+  Height = 329
+  Top = 120
+  Width = 198
+  Caption = 'Form3'
+  ClientHeight = 329
+  ClientWidth = 198
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.1'
+  object Button1: TButton
+    Left = 8
+    Height = 55
+    Top = 264
+    Width = 55
+    Caption = 'OK'
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 136
+    Height = 55
+    Top = 264
+    Width = 55
+    Caption = 'Cancel'
+    OnClick = Button2Click
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 8
+    Height = 55
+    Top = 72
+    Width = 55
+    Caption = '1'
+    Font.Height = -33
+    OnClick = Button3Click
+    ParentFont = False
+    TabOrder = 2
+  end
+  object Button4: TButton
+    Left = 72
+    Height = 55
+    Top = 72
+    Width = 55
+    Caption = '2'
+    Font.Height = -33
+    OnClick = Button4Click
+    ParentFont = False
+    TabOrder = 3
+  end
+  object Button5: TButton
+    Left = 136
+    Height = 55
+    Top = 72
+    Width = 55
+    Caption = '3'
+    Font.Height = -33
+    OnClick = Button5Click
+    ParentFont = False
+    TabOrder = 4
+  end
+  object Button6: TButton
+    Left = 8
+    Height = 55
+    Top = 136
+    Width = 55
+    Caption = '4'
+    Font.Height = -33
+    OnClick = Button6Click
+    ParentFont = False
+    TabOrder = 5
+  end
+  object Button7: TButton
+    Left = 72
+    Height = 55
+    Top = 136
+    Width = 55
+    Caption = '5'
+    Font.Height = -33
+    OnClick = Button7Click
+    ParentFont = False
+    TabOrder = 6
+  end
+  object Button8: TButton
+    Left = 136
+    Height = 55
+    Top = 136
+    Width = 55
+    Caption = '6'
+    Font.Height = -33
+    OnClick = Button8Click
+    ParentFont = False
+    TabOrder = 7
+  end
+  object Button9: TButton
+    Left = 8
+    Height = 55
+    Top = 200
+    Width = 55
+    Caption = '7'
+    Font.Height = -33
+    OnClick = Button9Click
+    ParentFont = False
+    TabOrder = 8
+  end
+  object Button10: TButton
+    Left = 72
+    Height = 55
+    Top = 200
+    Width = 55
+    Caption = '8'
+    Font.Height = -33
+    OnClick = Button10Click
+    ParentFont = False
+    TabOrder = 9
+  end
+  object Button11: TButton
+    Left = 136
+    Height = 55
+    Top = 200
+    Width = 55
+    Caption = '9'
+    Font.Height = -33
+    OnClick = Button11Click
+    ParentFont = False
+    TabOrder = 10
+  end
+  object Button12: TButton
+    Left = 72
+    Height = 25
+    Top = 40
+    Width = 55
+    Caption = 'Clear'
+    OnClick = Button12Click
+    TabOrder = 11
+  end
+  object Edit1: TEdit
+    Left = 8
+    Height = 23
+    Top = 8
+    Width = 183
+    TabOrder = 12
+    Text = 'Edit1'
+  end
+  object Button13: TButton
+    Left = 72
+    Height = 55
+    Top = 264
+    Width = 55
+    Caption = '0'
+    Font.Height = -33
+    OnClick = Button13Click
+    ParentFont = False
+    TabOrder = 13
+  end
+  object Button14: TButton
+    Left = 136
+    Height = 25
+    Top = 40
+    Width = 55
+    Caption = '<--'
+    OnClick = Button14Click
+    TabOrder = 14
+  end
+end
