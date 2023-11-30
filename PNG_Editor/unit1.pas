@@ -1,3 +1,33 @@
+(******************************************************************************)
+(* PNG Editor                                                      ??.??.???? *)
+(*                                                                            *)
+(* Version     : 0.03                                                         *)
+(*                                                                            *)
+(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(*                                                                            *)
+(* Support     : www.Corpsman.de                                              *)
+(*                                                                            *)
+(* Description : Split and merge alpha channel of .png Images                 *)
+(*                                                                            *)
+(* License     : See the file license.md, located under:                      *)
+(*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
+(*  for details about the license.                                            *)
+(*                                                                            *)
+(*               It is not allowed to change or remove this text from any     *)
+(*               source file of the project.                                  *)
+(*                                                                            *)
+(* Warranty    : There is no warranty, neither in correctness of the          *)
+(*               implementation, nor anything other that could happen         *)
+(*               or go wrong, use at your own risk.                           *)
+(*                                                                            *)
+(* Known Issues: none                                                         *)
+(*                                                                            *)
+(* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Anzeige der Bild Dimensionen, wenn vorhanden          *)
+(*               0.03 - Checkbox beim Laden der Transparenz zum Binarisieren  *)
+(*                      via clFuchsia                                         *)
+(******************************************************************************)
+
 Unit Unit1;
 
 {$MODE objfpc}{$H+}
@@ -257,11 +287,6 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  (*
-   * Historie: 0.01 = Initialversion
-   *           0.02 = Anzeige der Bild Dimensionen, wenn vorhanden
-   *           0.03 = Checkbox beim Laden der Transparenz zum Binarisieren via clFuchsia
-   *)
   Label2.Caption := '';
   caption := 'PNG-Editor ver. 0.03 by Corpsman';
   Application.Title := caption;

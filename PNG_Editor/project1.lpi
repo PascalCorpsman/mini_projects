@@ -49,10 +49,6 @@
         <Filename Value="uvectormath.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit>
-      <Unit>
-        <Filename Value="../../DatenSteuerung/ufifo.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
