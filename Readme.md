@@ -12,6 +12,7 @@ Following is a short description of all listed projects
 
 | Project | Description |
 | --- | ---|
+| CRC_Calculator | Calculate CRC checksums of arbiture data |
 | Parken | Demo for trectric curves |
 | Pentago | Implementation of the board game Pentago |
 | PNG_Editor | Split and merge alpha channel of .png images |
