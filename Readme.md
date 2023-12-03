@@ -14,9 +14,9 @@ Following is a short description of all listed projects
 | --- | ---|
 | CPU_Load | Application to create a defined CPU-Load |
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
+| PNG_Editor | Split and merge alpha channel of .png images |
 | Parken | Demo for trectric curves |
 | Pentago | Implementation of the board game Pentago |
-| PNG_Editor | Split and merge alpha channel of .png images |
 | SFXR | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
 | Superdom | FPC-Port of the Super domination game which is part of [Rockbox](https://www.rockbox.org/) |
 
