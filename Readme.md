@@ -12,6 +12,7 @@ Following is a short description of all listed projects
 
 | Project | Description |
 | --- | ---|
+| CPU_Load | Application to create a defined CPU-Load |
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
 | Parken | Demo for trectric curves |
 | Pentago | Implementation of the board game Pentago |

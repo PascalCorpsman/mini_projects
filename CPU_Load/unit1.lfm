@@ -1,0 +1,79 @@
+object Form1: TForm1
+  Left = 347
+  Height = 240
+  Top = 107
+  Width = 320
+  Caption = 'Form1'
+  ClientHeight = 240
+  ClientWidth = 320
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  LCLVersion = '2.3.0.0'
+  object Label1: TLabel
+    Left = 24
+    Height = 16
+    Top = 8
+    Width = 272
+    Caption = 'With this program you can produce CPU load.'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 16
+    Hint = 'Typically you should use twice'#13#10'as much threads as your CPU '#13#10'has cores.'
+    Top = 47
+    Width = 114
+    Caption = 'Number of threads'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 112
+    Height = 26
+    Top = 39
+    Width = 80
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 16
+    Top = 72
+    Width = 87
+    Caption = 'Impact time [s]'
+    ParentColor = False
+  end
+  object Edit2: TEdit
+    Left = 112
+    Height = 26
+    Top = 64
+    Width = 80
+    TabOrder = 1
+    Text = 'Edit2'
+  end
+  object Button1: TButton
+    Left = 112
+    Height = 25
+    Top = 96
+    Width = 80
+    Caption = 'Start'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+  object Label4: TLabel
+    Left = 8
+    Height = 16
+    Top = 136
+    Width = 41
+    Caption = 'Label4'
+    ParentColor = False
+  end
+  object Button2: TButton
+    Left = 112
+    Height = 25
+    Top = 176
+    Width = 75
+    Caption = 'Close'
+    OnClick = Button2Click
+    TabOrder = 3
+  end
+end
