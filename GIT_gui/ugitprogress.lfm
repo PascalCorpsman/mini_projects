@@ -1,0 +1,66 @@
+object GitProgress: TGitProgress
+  Left = 1622
+  Height = 480
+  Top = 111
+  Width = 870
+  Caption = 'GitProgress'
+  ClientHeight = 480
+  ClientWidth = 870
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Height = 24
+    Top = 120
+    Width = 853
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 0
+  end
+  object Memo1: TMemo
+    Left = 8
+    Height = 273
+    Top = 160
+    Width = 853
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Font.Name = 'Courier New'
+    Lines.Strings = (
+      'Memo1'
+    )
+    ParentFont = False
+    ScrollBars = ssAutoBoth
+    TabOrder = 1
+    WordWrap = False
+  end
+  object Button1: TButton
+    Left = 786
+    Height = 25
+    Top = 441
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Abort'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+  object Button2: TButton
+    Left = 693
+    Height = 25
+    Top = 441
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Close'
+    ModalResult = 1
+    TabOrder = 3
+  end
+  object Button3: TButton
+    Left = 8
+    Height = 25
+    Top = 441
+    Width = 216
+    Anchors = [akLeft, akBottom]
+    Caption = 'Button3'
+    ModalResult = 1
+    OnClick = Button3Click
+    TabOrder = 4
+  end
+end
