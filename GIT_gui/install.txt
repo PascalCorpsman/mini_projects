@@ -2,10 +2,6 @@ This is a installation introduction / help not to be complete:
 
 For Mint / Mate :
 
-1. compile and test all components if they fit your needs
-
-Integration into caja:
-
 1. Edit the files in /caja/* and set the paths according to your settins
 
 2. Make shure the scripts are executable (chmod +x <script name>)

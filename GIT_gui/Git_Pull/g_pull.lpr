@@ -1,3 +1,17 @@
+(******************************************************************************)
+(*                                                                            *)
+(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(*                                                                            *)
+(* This file is part of GIT gui                                               *)
+(*                                                                            *)
+(*  See the file license.md, located under:                                   *)
+(*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
+(*  for details about the license.                                            *)
+(*                                                                            *)
+(*               It is not allowed to change or remove this text from any     *)
+(*               source file of the project.                                  *)
+(*                                                                            *)
+(******************************************************************************)
 Program g_pull;
 
 {$MODE objfpc}{$H+}
@@ -10,7 +24,7 @@ Uses
   athreads,
 {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, Unit1, uGITOptions, ugitprogress
+  Forms, Unit1
   { you can add units after this };
 
 {$R *.res}

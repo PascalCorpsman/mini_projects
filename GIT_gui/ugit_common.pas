@@ -1,16 +1,36 @@
-
-(*
- * Datum: 26.11.2023
- *)
+(******************************************************************************)
+(* GIT gui                                                         26.11.2023 *)
+(*                                                                            *)
+(* Version     : 0.01                                                         *)
+(*                                                                            *)
+(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(*                                                                            *)
+(* Support     : www.Corpsman.de                                              *)
+(*                                                                            *)
+(* Description : Tortoise GIT like gui for the GIT application                *)
+(*                                                                            *)
+(* License     : See the file license.md, located under:                      *)
+(*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
+(*  for details about the license.                                            *)
+(*                                                                            *)
+(*               It is not allowed to change or remove this text from any     *)
+(*               source file of the project.                                  *)
+(*                                                                            *)
+(* Warranty    : There is no warranty, neither in correctness of the          *)
+(*               implementation, nor anything other that could happen         *)
+(*               or go wrong, use at your own risk.                           *)
+(*                                                                            *)
+(* Known Issues: none                                                         *)
+(*                                                                            *)
+(* History     : 0.01 - Initial version                                       *)
+(*                                                                            *)
+(******************************************************************************)
 Unit ugit_common;
 
 {$MODE ObjFPC}{$H+}
 
 Interface
-
-
 (*
-
 
 https://til.simonwillison.net/jq/git-log-json
 
@@ -19,7 +39,6 @@ https://git-scm.com/docs/pretty-formats
 https://stackoverflow.com/questions/4600445/git-log-output-to-xml-json-or-yaml
 
 https://stackoverflow.com/questions/51228892/get-json-from-git-commands-such-as-git-status
-
 *)
 
 Uses

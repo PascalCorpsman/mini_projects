@@ -26,6 +26,17 @@ All dialogs have a additional "Options" button, which will give access to some r
 
 Following the preview of the different tools:
 
+## Git add
+
+Add files which are given as parameters to the actual repositories staging area
+
+![](add_preview.png)
+
+Capabilities:
+
+Call from within a GIT repository and pass one ore more files / folders, they will be added to the staging area of the repository.
+
+
 ## Git pull
 
 Pull the actual branch of a repository
