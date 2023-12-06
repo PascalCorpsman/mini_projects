@@ -36,6 +36,18 @@ Capabilities:
 
 Call from within a GIT repository and pass one ore more files / folders, they will be added to the staging area of the repository.
 
+## Git commit
+
+Enter your commit text, select which files should be committed
+
+![](commit_preview.png)
+
+Capabilities:
+- add files
+- revert
+- add to ignore list
+- explore to
+- amend last commit (only text, not files)
 
 ## Git pull
 

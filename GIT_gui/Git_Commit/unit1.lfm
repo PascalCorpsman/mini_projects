@@ -1,0 +1,620 @@
+object Form1: TForm1
+  Left = 334
+  Height = 717
+  Top = 114
+  Width = 926
+  Caption = 'Form1'
+  ClientHeight = 717
+  ClientWidth = 926
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Label1: TLabel
+    Left = 8
+    Height = 15
+    Top = 12
+    Width = 61
+    Caption = 'Commit to:'
+  end
+  object Edit1: TEdit
+    Left = 80
+    Height = 23
+    Top = 8
+    Width = 640
+    Anchors = [akTop, akLeft, akRight]
+    ReadOnly = True
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object CheckBox1: TCheckBox
+    Left = 736
+    Height = 19
+    Top = 12
+    Width = 80
+    Anchors = [akTop, akRight]
+    Caption = 'new branch'
+    OnClick = CheckBox1Click
+    TabOrder = 1
+  end
+  object PairSplitter1: TPairSplitter
+    Cursor = crVSplit
+    Left = 8
+    Height = 621
+    Top = 38
+    Width = 904
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Position = 250
+    SplitterType = pstVertical
+    object PairSplitterSide1: TPairSplitterSide
+      Cursor = crArrow
+      Left = 0
+      Height = 250
+      Top = 0
+      Width = 904
+      ClientWidth = 904
+      ClientHeight = 250
+      Constraints.MinHeight = 150
+      object GroupBox1: TGroupBox
+        Left = 0
+        Height = 250
+        Top = 0
+        Width = 904
+        Align = alClient
+        Caption = ' Message: '
+        ClientHeight = 230
+        ClientWidth = 900
+        TabOrder = 0
+        object Memo1: TMemo
+          Left = 8
+          Height = 148
+          Top = 0
+          Width = 882
+          Anchors = [akTop, akLeft, akRight, akBottom]
+          Font.Name = 'Courier New'
+          Lines.Strings = (
+            'Memo1'
+          )
+          OnChange = Memo1Change
+          ParentFont = False
+          PopupMenu = PopupMenu2
+          ScrollBars = ssAutoBoth
+          TabOrder = 0
+          WordWrap = False
+        end
+        object CheckBox4: TCheckBox
+          Left = 8
+          Height = 19
+          Top = 154
+          Width = 128
+          Anchors = [akLeft, akBottom]
+          Caption = 'Amend Last Commit'
+          OnClick = CheckBox4Click
+          TabOrder = 1
+        end
+        object CheckBox5: TCheckBox
+          Left = 8
+          Height = 19
+          Top = 178
+          Width = 98
+          Anchors = [akLeft, akBottom]
+          Caption = 'Set author date'
+          TabOrder = 2
+        end
+        object CheckBox6: TCheckBox
+          Left = 8
+          Height = 19
+          Top = 202
+          Width = 72
+          Anchors = [akLeft, akBottom]
+          Caption = 'Set author'
+          TabOrder = 3
+        end
+        object Label2: TLabel
+          Left = 856
+          Height = 15
+          Top = 154
+          Width = 34
+          Anchors = [akRight, akBottom]
+          Caption = 'Label2'
+        end
+      end
+    end
+    object PairSplitterSide2: TPairSplitterSide
+      Cursor = crArrow
+      Left = 0
+      Height = 366
+      Top = 255
+      Width = 904
+      ClientWidth = 904
+      ClientHeight = 366
+      object GroupBox2: TGroupBox
+        Left = 0
+        Height = 366
+        Top = 0
+        Width = 904
+        Align = alClient
+        Caption = ' Changes made (double-click on file for diff): '
+        ClientHeight = 346
+        ClientWidth = 900
+        TabOrder = 0
+        object Label3: TLabel
+          Left = 8
+          Height = 15
+          Top = 0
+          Width = 36
+          Caption = 'Check:'
+        end
+        object Label4: TLabel
+          Left = 56
+          Height = 15
+          Top = 0
+          Width = 14
+          Caption = 'All'
+          Font.Style = [fsBold]
+          ParentFont = False
+          OnClick = Label4Click
+        end
+        object Label5: TLabel
+          Left = 84
+          Height = 15
+          Top = 0
+          Width = 30
+          Caption = 'None'
+          Font.Style = [fsBold]
+          ParentFont = False
+          OnClick = Label5Click
+        end
+        object Label6: TLabel
+          Left = 128
+          Height = 15
+          Top = 0
+          Width = 71
+          Caption = 'Unversioned'
+          Font.Style = [fsBold]
+          ParentFont = False
+          OnClick = Label6Click
+        end
+        object Label7: TLabel
+          Left = 216
+          Height = 15
+          Top = 0
+          Width = 55
+          Caption = 'Versioned'
+          Font.Style = [fsBold]
+          ParentFont = False
+          OnClick = Label7Click
+        end
+        object Label8: TLabel
+          Left = 288
+          Height = 15
+          Top = 0
+          Width = 36
+          Caption = 'Added'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label9: TLabel
+          Left = 344
+          Height = 15
+          Top = 0
+          Width = 45
+          Caption = 'Deleted'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label10: TLabel
+          Left = 408
+          Height = 15
+          Top = 0
+          Width = 50
+          Caption = 'Modified'
+          Font.Style = [fsBold]
+          ParentFont = False
+          OnClick = Label10Click
+        end
+        object Label11: TLabel
+          Left = 472
+          Height = 15
+          Top = 0
+          Width = 24
+          Caption = 'Files'
+          Enabled = False
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label12: TLabel
+          Left = 512
+          Height = 15
+          Top = 0
+          Width = 68
+          Caption = 'Submodules'
+          Enabled = False
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object CheckBox7: TCheckBox
+          Left = 8
+          Height = 19
+          Top = 283
+          Width = 195
+          Anchors = [akLeft, akBottom]
+          Caption = 'Staging support (EXPERIMENTAL)'
+          TabOrder = 0
+        end
+        object CheckBox8: TCheckBox
+          Left = 8
+          Height = 19
+          Top = 304
+          Width = 141
+          Anchors = [akLeft, akBottom]
+          Caption = 'Show unversioned Files'
+          Checked = True
+          OnClick = CheckBox8Click
+          State = cbChecked
+          TabOrder = 1
+        end
+        object CheckBox9: TCheckBox
+          Left = 8
+          Height = 19
+          Top = 328
+          Width = 179
+          Anchors = [akLeft, akBottom]
+          Caption = 'Do not autoselect submodules'
+          TabOrder = 2
+        end
+        object Label13: TLabel
+          Left = 680
+          Height = 32
+          Top = 283
+          Width = 208
+          Alignment = taRightJustify
+          Anchors = [akRight, akBottom]
+          AutoSize = False
+          Caption = 'Label13'
+        end
+        object Label14: TLabel
+          Left = 813
+          Height = 15
+          Top = 315
+          Width = 77
+          Anchors = [akRight, akBottom]
+          Caption = 'View Patch >>'
+          Font.Color = clBlue
+          ParentFont = False
+        end
+        object StringGrid1: TStringGrid
+          Left = 8
+          Height = 257
+          Top = 24
+          Width = 882
+          Anchors = [akTop, akLeft, akRight, akBottom]
+          AutoFillColumns = True
+          ColCount = 7
+          ColumnClickSorts = True
+          Columns = <          
+            item
+              ButtonStyle = cbsCheckboxColumn
+              SizePriority = 0
+              Title.Caption = ''
+              Width = 126
+            end          
+            item
+              ReadOnly = True
+              SizePriority = 0
+              Title.Caption = 'Path'
+              Width = 126
+            end          
+            item
+              ReadOnly = True
+              SizePriority = 0
+              Title.Caption = 'Extension'
+              Width = 126
+            end          
+            item
+              Alignment = taCenter
+              ReadOnly = True
+              SizePriority = 0
+              Title.Caption = 'Status'
+              Width = 125
+            end          
+            item
+              Alignment = taRightJustify
+              ReadOnly = True
+              SizePriority = 0
+              Title.Caption = 'Lines added'
+              Width = 125
+            end          
+            item
+              Alignment = taRightJustify
+              ReadOnly = True
+              SizePriority = 0
+              Title.Caption = 'Lines removed'
+              Width = 125
+            end          
+            item
+              ReadOnly = True
+              Title.Caption = ''
+              Width = 125
+            end>
+          FixedCols = 0
+          Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goRangeSelect, goColSizing, goEditing, goRowSelect, goSmoothScroll]
+          PopupMenu = PopupMenu1
+          TabOrder = 3
+          OnCheckboxToggled = StringGrid1CheckboxToggled
+          OnCompareCells = StringGrid1CompareCells
+          OnDblClick = StringGrid1DblClick
+          OnKeyDown = StringGrid1KeyDown
+          OnKeyPress = StringGrid1KeyPress
+          OnPrepareCanvas = StringGrid1PrepareCanvas
+          ColWidths = (
+            126
+            126
+            126
+            125
+            125
+            125
+            125
+          )
+        end
+      end
+    end
+  end
+  object Button1: TButton
+    Left = 640
+    Height = 25
+    Top = 681
+    Width = 100
+    Anchors = [akRight, akBottom]
+    Caption = 'Commit'
+    Enabled = False
+    OnClick = Button1Click
+    TabOrder = 3
+  end
+  object Button2: TButton
+    Left = 752
+    Height = 25
+    Top = 681
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Cancel'
+    OnClick = Button2Click
+    TabOrder = 4
+  end
+  object Button3: TButton
+    Left = 837
+    Height = 25
+    Top = 681
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Help'
+    TabOrder = 5
+  end
+  object CheckBox2: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 667
+    Width = 124
+    Anchors = [akLeft, akBottom]
+    Caption = 'Show Whole Project'
+    Enabled = False
+    TabOrder = 6
+  end
+  object CheckBox3: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 687
+    Width = 90
+    Anchors = [akLeft, akBottom]
+    Caption = 'Message only'
+    TabOrder = 7
+  end
+  object Button4: TButton
+    Left = 837
+    Height = 25
+    Top = 8
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = 'Options'
+    OnClick = Button4Click
+    TabOrder = 8
+  end
+  object Label15: TLabel
+    Left = 80
+    Height = 15
+    Top = 12
+    Width = 40
+    Caption = 'Label15'
+  end
+  object PopupMenu1: TPopupMenu
+    Images = ImageList1
+    OnPopup = PopupMenu1Popup
+    Left = 172
+    Top = 384
+    object MenuItem3: TMenuItem
+      Caption = 'Compare with base'
+      ImageIndex = 5
+      OnClick = MenuItem3Click
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Add'
+      ImageIndex = 6
+      OnClick = MenuItem1Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Revert...'
+      ImageIndex = 7
+      OnClick = MenuItem2Click
+    end
+    object MenuItem6: TMenuItem
+      Caption = 'Add to ignore list'
+      object MenuItem9: TMenuItem
+        Caption = 'MenuItem9'
+        OnClick = MenuItem9Click
+      end
+      object MenuItem10: TMenuItem
+        Caption = 'MenuItem10'
+        OnClick = MenuItem9Click
+      end
+    end
+    object Separator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem8: TMenuItem
+      Caption = 'Explore to'
+      ImageIndex = 4
+      OnClick = MenuItem8Click
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'Delete'
+      ImageIndex = 1
+      OnClick = MenuItem7Click
+    end
+  end
+  object PopupMenu2: TPopupMenu
+    Left = 56
+    Top = 88
+    object MenuItem4: TMenuItem
+      Caption = 'Paste last commit message'
+      OnClick = MenuItem4Click
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Paste recent message...'
+      OnClick = MenuItem5Click
+    end
+  end
+  object ImageList1: TImageList
+    Left = 269
+    Top = 233
+    Bitmap = {
+      4C7A080000001000000010000000E80F00000000000078DACD9909505457BAC7
+      5333EF55316FA62A5333539957A292E044A3881A360541053520A0228DD8C826
+      8B20ABCDAAA00D22220A2E0111F785A088604403B2A924A2806C6A0065695064
+      E9C80EBD77D3DDFF77EE9DD042004D52997AE9AA7FDD0B7D7EDF76CEFD38F700
+      E003FC865A55E93E6779990BDBB0D491F3F97D3BBEF65D5BBE56912D47ABC096
+      FD59DE8639EF624D2AB6310C4A1DB80EA5A1486D4CC7D5D69BB44EBE48834D91
+      2F34B2CDB81AD7CD1853B1C42743EFBBCD82E8275F22E77501929B2E60D79358
+      5AD4FDCDD777B0FB7122665DD011CCBA6030C18661A993A65EC9E66E8AA5C605
+      D444C2B72A1C3B1E0713851285C1AF3202375EE521FCD161CC4CD5EE9E99A2AD
+      39C6EB9538446DF99645FBA5588ADB5EC182475920DC1F05C2E35110F23B4BB0
+      B3228AD8B8038BEB2E98797C6ED418AF7DD78E73B2310D498DE7E053190ECFF2
+      9D70239CDB43722DDD89A2AEEF407D3A055C247E7F06894F2E60E6A18F3963FC
+      DC3C2BD1B5B6DB08AED907AF8A10DC2271D40DBE80C703160A3BBFA5D951851C
+      479E9D81CF8328A435DE847AF46CD118AFF1B59928A33507ACAA688454EDC3B0
+      748466FAC4032AF6506D2A1C8B82E05DC2C6E5C61CA8478EE3AF9B7192EA2EE1
+      68C359783E0C4544653C783201CD2A940A1CAC4EC5968200C20723AEE614E22B
+      CE427DB7862AFED9574CA2AC6F7922AB2D0F9E0F22E05A1284B0B23834F43723
+      A1F60CECF3FDC1BC1308A7825064B4E4C1F4DC06A8EFD250D56FD63903CD99A9
+      8BBB834BE391C9F906DBEEED825371081C0A5970B8B393B03BE148D8ABCDB9F0
+      298CC68CA0D9DDEA411A9AE3D7C0CC242D867AC2C78280925862E30EE26B4EC3
+      EB1E1B9EC57B49FCA7099B07AF023666F8CF121076CA353833E113867AAC06D7
+      ECB22DE2ABCEE25C7D36CED56523B6221526A7AC31237036579D3535ABB211A3
+      31473D4A83AD1EA9C19911329B3F83359B4FFC7188D8EAFE1A73F01B3FAFBFB5
+      3EF800FD44782BC578F5BF87ED9BAB0538F9008E3B80ADDE4A30B72B61EFA184
+      9D9B129AF3E464D028EF5DACB32FB0DA1CD0D35342474789254B14D0D6566099
+      B11C1B9DE5D0F85446068BFBA663998EC0D3A780ADAD128B172BB070A1025656
+      72D4D42861613D8A755B46316B8E9440C2BE713C1DEF6A7325CDF2F9C0007974
+      ACADE5B0B494A39F64CD2351575529B160B10C669BA818F818CF53B9EAEA2A61
+      63A3A0D9311B9428B6BF5F89152B64F8E73F2558B981F23F328E57608BE7DB5C
+      A978C7B87FB3808989141F7D24C1DFFF2E86B1956412BFD95D49E73A7FBE1C16
+      163FE595303292E26F7F13E3C30F4558663199B77555E0B3CFE430377F9B2F75
+      A5D81132B4B75749E6448C3FFF5908FDB5143F348E1F2573A380CED25154572B
+      69B6AF4F89E5CBA5303494D0ECC8881265650AFCEF2C1174578B7FC24BFBA979
+      B5648EC2CC7C1495950A9AA572FDEB5FC9785D31CD2ED117436F8D18FF50E711
+      68E0CDC43520EEA7E6750D43867FCD7F9BEB5FFE22C49FFE24C447EA42DAEF3F
+      D44726B16F6D08FB677C2C84B1B51446EB2458662EA173D5239C8ED9BBD9B736
+      46FAA9DABED5D08F1AA034F0FFFD7C7B6C93FCCF74DFED0A850691D674DFBBBB
+      4AB49C1DC53B1DEC852BA66223770111E14A04EF544CB2E1E622D1F27493C077
+      8714769BF8991BD7F3E6FF948D89A2A444689002FE3EA32A1BDB9CC55AC43776
+      068C226A2F40DD5B9A0FEF5C6B36F807EAFBF010A885062915EC482512E281BD
+      11340F0F37A996AB93588BF846A0BF0CEC48C0CD558C755F0CCBD7980EFEF7F8
+      F88202156A817E72F9AE50F2F76E3F101E2287A7BB04C437027C65D81301FADE
+      62ED907CB5E9A0DA54F5F1F11E55F3F290CA5924CE7D2497A83D542CA4262437
+      172731CCD70CC9CD564DCD8EAB939AF35691824D3817D2CB1C99249650E08BD5
+      430AD395036AEF9B5F2707113547641E00077B608B1D10CC022CBE1886B1619F
+      D6BB5847A648CB69AB08DE9E328406032184630582D48ED8D92CC64A9341E82C
+      7933A58DAD5B845A8E0E227879103688F443A608A44EF215C6FD0A9BF502ECF0
+      066C360861A0D78705F3BA27D820EB498BF8C6767719825854DC22903AC9572C
+      EF57335CDAA7A6AFD323375FCB83873B606921C062ED1E687EDCA9B241D69329
+      D35E48E65B06E66611489DE42646FDAA5A2DD1FE416DE102AEDC74E508AC2D45
+      F87C712F346675988E8F81AC27D38DD63CAC5A31A020759A54E7799F76ABFD4B
+      B34B3E153BA6952603A6CB97F54D3B479F6874AACD9E3935FB7B514040C71C3F
+      DFD7EC1DBE6D1C0FCF56BE9B670BDFD9A399E3E8F182CD746F78E7FE25C0BF93
+      E1EBFB8A7BECC4004A1E4A50532FC5A36A29B2F204F0627580E1F23DD7C6F909
+      635AD6A75D90F5350F4DAD0ADC2C9621295D86C40B329CBF3E8AE20A39587B7A
+      60ED5823B060564DB0E1EFFF5A93B0DDE9D7F868E028107F5686E8A461441E1B
+      41748A0451C952841F9120335F028FC04EACDD52D16D6A5FA6DA3F12368A1DDB
+      8BDA0639ED2FEA8418610983F03F209A208F083EAEE448B062E333ACB02B55ED
+      5FBD7D5F72AEE60871215B865D478661E7DA3FA53C76F110734C80DDD13D3062
+      7CA7DA3F7BFA7044394552449F908115378CE93EEB1D7AE0E23B88D40B2330D8
+      58A2DABFBB7AB488D2B2C5601D9460C77ED13B7927AF5EA49E1F818ECD3D15EF
+      E4DEC889393288A824319C43F8F4B8A9B4D1B1077B628711B6A7038BAC8A55F1
+      33B7354459D973F055B608F69EC3B0F51A9CC45A33B9B0DDCAC5A57421F46C1E
+      618165A1AA7E76AE759A0CB7A7DD6E7E9D48BB21A46B65E3D44B731B1CB8B0B6
+      E7C286E8E25702D86D7B41B1DDF3ADEE4CD8FFAFDF5ACB58E7502D70DADE8EB4
+      0C21A20E0EC1D1A3070ECE3F807D6010172F0BB0C9B9115A960502C24EB906BF
+      603E66986D2EE71ADBD6202CF20D8E270FD20ADADD05DDF50F28963B1DABEA01
+      760FE718D994B297314A38FA9BEEF39758DDE32FDA50C8D1B22E60CFB3B8F3BB
+      DBFFEBE5353F73297D2DDBF6B043255722E37C4EDBC26F9A3E22FA70827269FD
+      D7186F90DB2251289550921FC885BC2F82BEEF158FC2AFA24BEA57D129195344
+      2D571C5AD5FD5AE776B3FD18AF9FD3322C962B71AC4B82A497425C6A17E2C66B
+      118646951010637CF2DD0811F5F320914C01A9414E4B83CA7F560B6F84FC3285
+      B0275A058879CE23EFFE03F0AFEE455CFD10F6D50D21F2D910C29F0E2298A887
+      C4A577B385AFF29FDD227B231A454AC3100E3D1944C8831E54F688C093FFDB37
+      751D1EE79FCACD20BB453CC62FCD689151BF9328001191500E9A6B12C971922B
+      C1F586063C2ECF45FBFD8BE87E740D1D4F8B617EAD41A28A3FAD452A22E31FF3
+      E4281A1AC58D7ED2EFDE4891D829467A5D3D7A6AF320FC810349FF2BF0DA2AD1
+      F7AC10D772BF91ABF8B32D121EC93F7740862B3D52DA675C8718E12F45E09667
+      81DFF502A2F62A085F96139541C2AD477B69A66AEFAD9FD2221E2219A41136A9
+      5B8298D7620413D6A34548C72CE96D85A0AD1C82D647E037DD87A4A3165D0FAE
+      A878DD63CDDCD661D9F0B53681E22247805452DA634D7C1C6CE4937C3321EC7E
+      0141CB039AA5F9CE1A34E79F55F10B0F36B1B40F356568C737F592AB78BC3273
+      EEC879AD95847902717B05F15D0DFEF7B9F826FD8C724D54A1EBFBD6767BFE89
+      4FDA8BCF4673CBB3C12DBB8E57C5E714F9E9A794E70BEBE172F2314FCB3F83F9
+      4B9F17CBE8DBDBDD4F570E2517BDC4BAD87CE1AF79E6E6F9A633ED8EDC13D924
+      14E33FF71EFFC16C227D22831FB574DCFDC7447F780FAF2F93C9A472B91CE325
+      914890929292F43E1B941F6ABC582C26EFC27C0C0D0D91F7C05EDA864824C2E9
+      D3A7691BEFE3297FD4781E79A9ECEBEB9B100B35E67DFCE8E8286D432814D236
+      06C82BD8581CD498E9FADFA2C46B5D637EC66C50718CE532C64FD7FF0A1F964F
+      8895B221954A691B028140C54FD7FFEE953FC64F6B4FE683B641D554E59FF4BF
+      61A91C27DA0448E6F0115A3B089BBC2E189D7D8EB5696D30BBDC0AE3F31C1811
+      5966B4C1FC6A1B1CF2DADFFA9FA2FFB50C4BC11708E93D8392CAED478D7D6CAE
+      BF52F1D3F53FB7461EBC3842BA8F8CC99D88B2B331F32595079FF0BAD3F53FBF
+      FA3E783CE1C2F5C91B38136D25DA52C34557FF10744FD629299668D674FDCFBF
+      55084FE2CFA559088726B26F681460E3733E7AA40AE89F6F91FD9CFE4731E6F5
+      7C183EE36151ED08E6560FE3354954FF748BF4E7F4BFE8061E22EA7908AE1B81
+      FFB311F83C1DC1F311995237B999F773FADF24C5D3D711C29CF84FF58DD0BB89
+      73828A0EB103F30F707C73F7F1BD6FEFE57BDCDCC5D9961DC276CA0C7CE7FE25
+      E46E2223A8309E9BF2E40A1E72ABF1B4AF81FC2D7D829CB6420414458379D587
+      6B97B69D311DCB2A8C17E4B4DE452BAF1DF95DF7718E7315A9CD9771F5550EBE
+      7B538688D204D85C7415589F739C6023A4384193B0DD592D05681A69A5FF5F70
+      A8F6040ED41C4362432A121A4E22B6EE1872DA0BE057C486C569FBEE35299B54
+      FB47C246C5559C42DD60234E127F09F529887E7C58B5DE236AE3E0F770AFEAFC
+      7FEDC52D589564ADDABF06DC89E5DC68CB47068933A6FA08F6561E44E0FD0815
+      EF78C35775A64D9DFFEF2B4B86F13173D5FED9E79B28517E4709129F9F422461
+      A7FB50E7E1D4F9FF85862C2C4B3453EDDFB7E7448AAEB7E582FD3401613531EF
+      E4A9F3FFF30DD9D03B64A2E2DD6E8471126A4EE3707D2AFCCA23E9FF3B6CCEDE
+      3E81A33476FEBFA7E42896C419AAE277BECE8A6264EF9870FE4FE53B9E1F7FFE
+      BFECF86A2CDCAFA7AA9F43869FA67DBA57B72F999BF79DFF6FCDF2A7D8EEF9D1
+      4B26ECFF375D7263AC3FEF2CF0CCDB3DEDF93F33CB0F0B63F404849D720DAE3B
+      C364AC4D65704DCFD8805D7A1CA9CF3290FA3403BB4B0EC3E0A819C572A763C7
+      649ABC618EC9F1756CA3236B38068757F175E28DF98B0F2CE52C8CD1657F16BD
+      E4777FFEFF6BE5F528189EA52CB87F1B48E6CF0FCE853BE078673B98B7DD159B
+      6FB8F6DA663A166C4C67B2AC2ED9CD9A8AF7246B2E83738BAC8F1CA4377F8DAF
+      9AB271A93113E79F5F45CAB30B882D3B02FFBC50989FB1B9B526C5DA70D2D964
+      4900AEB6DC24DC0DA43565E1E28B6B347BA6E12B9CAABB8423B52791F4F40C42
+      0AF760D571F35BC609AB27C4E15AEC0BA77C6F38E47AC2FEE63630B29C6193E1
+      80F569F6D8719B85438FBFC4D19A9348AC4E86F3554F2C8B5BC9FAB9B5F9E2D4
+      86E366C9961D310F0F81FD280E81B961D08F5E5EF04BEABBE2E8DAE39ED97E88
+      7E7410112531F83CD2A0F7A763488DFF486ABC672ADE28DEF4B85BA637F694EE
+      47F8BDBDD00ED399C46F48DF72C9EA22A36E127B70D5718318E38EB0BB7BC0BA
+      BF0B1ED93E58C05A3421FEF55FD99FF0BEBD139E5FFB61758A155563901AC330
+      6E15EC2E6C45687124221E4463D7B76C58266DC45C3F2D55FD488D13BC6E0522
+      A12A1987ABBEC4C1C747115B9E40FA643CA21E1E2031C720E06E28C24BF6C2E1
+      B2336117DC9AE33D4F357FEBCE6F3AE04E7A6C1CE1E22A12B1BFFC105DA7BD24
+      D78807FB1054B41BAE99DBB12E69033EF525ACD7BC49EBC72C69DD975BAFB883
+      99E682A5B12BA0176544D5188BC274A115B4B8F7B38085059FFACC67697ACD9D
+      35DD1C911A9F5FBADFA4EED73E43A4C67FD4651BEEFE25CCFF0144BE6F99
+    }
+  end
+end
