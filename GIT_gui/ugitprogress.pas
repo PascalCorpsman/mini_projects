@@ -41,8 +41,7 @@ Type
 
   public
     Function RunVisualCommand(aDir, aCommand: String; params: Array Of String): boolean;
-    Procedure SetContinueButtonTo(aCaption: String);
-
+    Procedure SetContinueButtonTo(aCaption: String);  // TODO: um die Popup Einträge Erweitern ...
   End;
 
 Var

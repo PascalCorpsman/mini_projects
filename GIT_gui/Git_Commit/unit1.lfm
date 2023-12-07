@@ -361,14 +361,14 @@ object Form1: TForm1
     end
   end
   object Button1: TButton
-    Left = 640
+    Left = 616
     Height = 25
     Top = 681
-    Width = 100
+    Width = 124
     Anchors = [akRight, akBottom]
-    Caption = 'Commit'
+    Caption = 'Button1'
     Enabled = False
-    OnClick = Button1Click
+    OnMouseDown = Button1MouseDown
     TabOrder = 3
   end
   object Button2: TButton
@@ -616,5 +616,21 @@ object Form1: TForm1
       99E682A5B12BA0176544D5188BC274A115B4B8F7B38085059FFACC67697ACD9D
       35DD1C911A9F5FBADFA4EED73E43A4C67FD4651BEEFE25CCFF0144BE6F99
     }
+  end
+  object PopupMenu3: TPopupMenu
+    Left = 680
+    Top = 632
+    object MenuItem11: TMenuItem
+      Caption = 'Commit'
+      OnClick = MenuItem11Click
+    end
+    object MenuItem12: TMenuItem
+      Caption = 'ReCommit'
+      OnClick = MenuItem12Click
+    end
+    object MenuItem13: TMenuItem
+      Caption = 'Commit & Push'
+      OnClick = MenuItem13Click
+    end
   end
 end

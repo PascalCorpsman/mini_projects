@@ -58,3 +58,13 @@ Pull the actual branch of a repository
 Capabilities:
 
 Only thing that is working is the Remote branch selector, all other elements are only "dummy" and not working.
+
+## Git push
+
+Push the actual commits of a repository
+
+![](push_preview.png)
+
+Capabilities:
+
+only thing that is working is the "force" and "Include Tags" checkbox as also the branch selecting

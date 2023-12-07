@@ -26,10 +26,14 @@ Const
 
   (*
    * History: 0.01 = Initialversion (26.11.2023)
+   *          0.02 = Added Psoudo Popup Menu to Button1
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.01';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.02';
+  CommitText = 'Commit               | ▼';
+  ReCommitText = 'ReCommit           | ▼';
+  CommitAndPushText = 'Commit && Push | ▼';
 
 Type
   TBufferListItem = Record
@@ -77,6 +81,9 @@ Type
     Memo1: TMemo;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    MenuItem13: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
@@ -90,9 +97,11 @@ Type
     PairSplitterSide2: TPairSplitterSide;
     PopupMenu1: TPopupMenu;
     PopupMenu2: TPopupMenu;
+    PopupMenu3: TPopupMenu;
     Separator1: TMenuItem;
     StringGrid1: TStringGrid;
-    Procedure Button1Click(Sender: TObject);
+    Procedure Button1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     Procedure Button2Click(Sender: TObject);
     Procedure Button4Click(Sender: TObject);
     Procedure CheckBox1Click(Sender: TObject);
@@ -106,6 +115,9 @@ Type
     Procedure Label6Click(Sender: TObject);
     Procedure Label7Click(Sender: TObject);
     Procedure Memo1Change(Sender: TObject);
+    Procedure MenuItem11Click(Sender: TObject);
+    Procedure MenuItem12Click(Sender: TObject);
+    Procedure MenuItem13Click(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
@@ -134,6 +146,7 @@ Type
 
     Function GetSelection(): TBufferList;
     Function GetIndexOfBufferItem(Const Item: TBufferListItem): Integer;
+    Procedure Commit();
   public
     Procedure LoadCommitInformations();
   End;
@@ -184,6 +197,7 @@ Begin
     halt;
   End;
   LoadCommitInformations();
+  button1.caption := CommitText;
 End;
 
 Procedure TForm1.FormShow(Sender: TObject);
@@ -247,6 +261,21 @@ End;
 Procedure TForm1.Memo1Change(Sender: TObject);
 Begin
   CheckEnableCommitButton();
+End;
+
+Procedure TForm1.MenuItem11Click(Sender: TObject);
+Begin
+  button1.caption := CommitText;
+End;
+
+Procedure TForm1.MenuItem12Click(Sender: TObject);
+Begin
+  button1.caption := ReCommitText;
+End;
+
+Procedure TForm1.MenuItem13Click(Sender: TObject);
+Begin
+  button1.caption := CommitAndPushText;
 End;
 
 Procedure TForm1.MenuItem1Click(Sender: TObject);
@@ -727,6 +756,26 @@ Begin
   close;
 End;
 
+Procedure TForm1.Button1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+Var
+  p: TPoint;
+Begin
+  If Not Button1.Enabled Then exit;
+  // Entweder der "Button" oder das Popup
+  If x > button1.Width - Button1.Height Then Begin
+    p := Button1.ClientToScreen(point(0, button1.Height));
+    PopupMenu3.PopUp(p.x, p.y);
+  End
+  Else Begin
+    Case Button1.Caption Of
+      CommitText: Commit();
+      ReCommitText: showmessage('Todo.');
+      CommitAndPushText: showmessage('Todo.');
+    End;
+  End;
+End;
+
 Procedure TForm1.Button4Click(Sender: TObject);
 Begin
   // Options
@@ -734,7 +783,7 @@ Begin
   GitOptions.Showmodal;
 End;
 
-Procedure TForm1.Button1Click(Sender: TObject);
+Procedure TForm1.Commit();
 Var
   cnt, i: integer;
   sl, res: TStringList;
