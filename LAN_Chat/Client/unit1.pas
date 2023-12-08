@@ -919,10 +919,18 @@ Begin
       File_Transfer_No_Receiver_does_not_want: Begin
         showmessage('Error, file transfer aborted: ' + ErrorcodeToString(aReason));
         FileSendData.State := 0; // Back to Idle
+        If assigned(FileSendData.FileStream) Then Begin
+          FileSendData.FileStream.free;
+        End;
+        FileSendData.FileStream := Nil;
       End;
   Else Begin
       showmessage('Error, ' + ErrorcodeToString(aReason) + ' for filetransfer -> abort.');
       FileSendData.State := 0; // Back to Idle
+      If assigned(FileSendData.FileStream) Then Begin
+        FileSendData.FileStream.free;
+      End;
+      FileSendData.FileStream := Nil;
     End;
   End;
 End;
@@ -993,11 +1001,11 @@ Begin
     aReason := $FFFF;
     Chunk.Data.Read(aReason, sizeof(aReason));
     showmessage('Abort file transfer: ' + ErrorcodeToString(aReason));
+    FileSendData.State := 0;
     If assigned(FileSendData.FileStream) Then Begin
       FileSendData.FileStream.free;
     End;
     FileSendData.FileStream := Nil;
-    FileSendData.State := 0;
     If form3.Visible Then form3.Hide;
   End;
 End;
@@ -1246,6 +1254,8 @@ Begin
         data.WriteAnsiString(IniPropStorage1.ReadString('UserName', ''));
         fconnection.SendChunk(MSG_File_Transfer_FileComplete, data);
         FileSendData.State := 0;
+        FileSendData.FileStream.free;
+        FileSendData.FileStream := Nil;
         AppendLog(FileSendData.FileReceiver, pRight, 'transfer finished.');
         form3.Hide; // Fertig -> Anzeigen
         break;
@@ -1279,11 +1289,11 @@ Begin
     data.Write(aReason, sizeof(aReason));
     fconnection.SendChunk(MSG_File_Transfer_File_Abort, data);
     // Sauberer Teardown
+    FileSendData.State := 0;
     If assigned(FileSendData.FileStream) Then Begin // Bei State = 1 kann der Stream noch NIL sein !
       FileSendData.FileStream.free;
     End;
     FileSendData.FileStream := Nil;
-    FileSendData.State := 0;
     If form3.Visible Then form3.Hide;
   End;
 End;
