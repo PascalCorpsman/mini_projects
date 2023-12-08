@@ -2,9 +2,9 @@
 
 This is plattform independand GIT gui that tries to look as close as possible to the Tortoise GIT toolchain.
 
-! Attention !
-
-As the aim is to "look" as close as possible, this does not mean, that the functionality is the same (or complete).
+## ! Attention !
+* This is a work in Progress project
+* As the aim is to "look" as close as possible, this does not mean, that the functionality is the same (or complete).
 
 ### Whats the goal of this gui if it is not a fully working toolchain ?
 

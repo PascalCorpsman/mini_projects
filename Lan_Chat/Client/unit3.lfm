@@ -1,0 +1,37 @@
+object Form3: TForm3
+  Left = 353
+  Height = 103
+  Top = 124
+  Width = 537
+  BorderIcons = [biSystemMenu]
+  Caption = 'Form3'
+  ClientHeight = 103
+  ClientWidth = 537
+  FormStyle = fsStayOnTop
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Height = 20
+    Top = 32
+    Width = 520
+    TabOrder = 0
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 15
+    Top = 8
+    Width = 34
+    Caption = 'Label1'
+  end
+  object Button1: TButton
+    Left = 453
+    Height = 25
+    Top = 64
+    Width = 75
+    Caption = 'Abort'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+end
