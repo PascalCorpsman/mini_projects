@@ -569,6 +569,12 @@ Begin
       fconnection.SendChunk(MSG_File_Transfer_Request, data);
       AppendLog(ListBox1.Items[ListBox1.ItemIndex], pRight, 'Initiated file transfer: ' + ExtractFileName(FileSendData.Filename));
       ListBox1.Click; // Auch Anzeigen dass wir was senden ..
+      // Das muss jetzt schon angezeigt werden, sonst kommt der Sender nur durch neustart in ein Resend
+      If Not form3.Visible Then Begin
+        form3.Label1.Caption := FileSendData.Filename;
+        form3.ProgressBar1.Position := 0;
+        form3.Show;
+      End;
     End
     Else Begin
       showmessage('Error, its not allowed to send file of size = 0');
@@ -1233,11 +1239,6 @@ Var
 Begin
   If FileSendData.State <> 3 Then exit; // Wenn wir nicht senden, dann sind das noch irgendwelche Teardown altlasten -> Ignorieren
   If FileSendData.aPosition < FileSendData.aSize Then Begin
-    If Not form3.Visible Then Begin
-      form3.Label1.Caption := FileSendData.Filename;
-      form3.ProgressBar1.Position := 0;
-      form3.Show;
-    End;
     // 1 Packet versenden
     For i := 0 To PacketSize - 1 Do Begin
       data := TMemoryStream.Create;
