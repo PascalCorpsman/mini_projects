@@ -236,6 +236,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
+  //- Via UDP-Broadcast nen Server suchen und dessen IP dann vorschlagen in den Einstellungen !
   //- Löschen Alter Nachrichten  (1 Tag und älter)
   //- Auto Update
   //- CI/CD in GIT
