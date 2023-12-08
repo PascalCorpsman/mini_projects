@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.04                                                         *)
+(* Version     : 0.05                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -31,6 +31,7 @@
 (*                    - Abort file transfer                                   *)
 (*                    - Auto reconnect                                        *)
 (*               0.04 - Fix Wrong coloring on received messages               *)
+(*               0.05 - Minor file transfer control flow fixes                *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -239,7 +240,7 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.02';
+  defcaption := 'Lan chat ver. 0.05';
   // TODO: Ist das so clever, das jeder user seine Farbe selbst bestimmen darf und die bei den Anderen auch so angezeigt wird ?
   (*
    * Die Linux Version von Lazarus tickt komplett aus, wenn diese Komponente auf dem Formular ist
@@ -347,9 +348,8 @@ Begin
   data.WriteAnsiString(aMsg);
   fconnection.SendChunk(Msg_Message, data);
   aMsg := ' <font color="' + ColorAsHTMLColor(IniPropStorage1.ReadInteger('TimeColor', $808080)) + '"> ' + formatdatetime('DD.MM.YYY HH:MM:SS', now) + ' </font> <br> ' + Edit1.Text + ' ';
-  AppendLog(ListBox1.Items[ListBox1.ItemIndex], pRight, aMsg);
   edit1.text := '';
-  ListBox1.Click;
+  AppendLog(ListBox1.Items[ListBox1.ItemIndex], pRight, aMsg);
 End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
@@ -568,7 +568,6 @@ Begin
       data.Write(aSize, sizeof(aSize));
       fconnection.SendChunk(MSG_File_Transfer_Request, data);
       AppendLog(ListBox1.Items[ListBox1.ItemIndex], pRight, 'Initiated file transfer: ' + ExtractFileName(FileSendData.Filename));
-      ListBox1.Click; // Auch Anzeigen dass wir was senden ..
       // Das muss jetzt schon angezeigt werden, sonst kommt der Sender nur durch neustart in ein Resend
       If Not form3.Visible Then Begin
         form3.Label1.Caption := FileSendData.Filename;
@@ -834,7 +833,7 @@ Begin
       break;
     End;
   End;
-  ListBox1.Click;
+  //  ListBox1.Click;
   PlayInfoSound();
   If IniPropStorage1.ReadBoolean('Show_on_new_message', false) Then Begin
 {$IFDEF Linux}
@@ -875,10 +874,12 @@ Begin
   End;
   // Akustisch den Empfänger "erinnern"
   PlayInfoSound();
+  FileSendData.State := 2; // Wir sind ab jetzt auf empfangen
   If ID_YES = Application.MessageBox(pchar(format('%s want to send you the file %s of size %s do you want to accept this request?', [aSender, aFilename, FileSizeToString(aFileSize)])), 'File transfer request', MB_ICONQUESTION Or MB_YESNO) Then Begin
     SaveDialog1.FileName := aFilename;
+    If FileSendData.State <> 2 Then exit; // Der Sender hat inzwischen abgebrochen
     If SaveDialog1.Execute Then Begin
-      FileSendData.State := 2; // Wir sind ab jetzt auf empfangen
+      If FileSendData.State <> 2 Then exit; // Der Sender hat inzwischen abgebrochen
       FileSendData.ChunkCounter := 0;
       FileSendData.Filename := SaveDialog1.FileName;
       FileSendData.FileStream := TFileStream.Create(FileSendData.Filename, fmCreate Or fmOpenWrite);
@@ -895,6 +896,7 @@ Begin
   Else Begin
     aReason := File_Transfer_No_Receiver_does_not_want;
   End;
+  If FileSendData.State <> 2 Then exit; // Der Sender hat inzwischen abgebrochen
   data := TMemoryStream.Create;
   data.WriteAnsiString(aSender);
   data.WriteAnsiString(aReceiver);
@@ -1006,6 +1008,12 @@ Begin
     Chunk.Data.ReadAnsiString;
     aReason := $FFFF;
     Chunk.Data.Read(aReason, sizeof(aReason));
+    If IniPropStorage1.ReadString('UserName', '') = FileSendData.FileSender Then Begin
+      AppendLog(FileSendData.FileReceiver, pRight, 'transfer aborted.');
+    End
+    Else Begin
+      AppendLog(FileSendData.FileSender, pRight, 'transfer aborted.');
+    End;
     showmessage('Abort file transfer: ' + ErrorcodeToString(aReason));
     FileSendData.State := 0;
     If assigned(FileSendData.FileStream) Then Begin
@@ -1145,6 +1153,10 @@ Begin
   End;
   sl.SaveToFile(lowercase(aParticipant) + '.chat');
   sl.free;
+  // Wir haben einen Chat Aktualisiert der gerade angewählt war, also Refresh
+  If lowercase(ListBox1.items[ListBox1.ItemIndex]) = lowercase(aParticipant) Then Begin
+    ListBox1.Click;
+  End;
 End;
 
 Procedure TForm1.SetColorForChat(aChatName: String; aColor: TColor;
@@ -1280,12 +1292,14 @@ Begin
       data.WriteAnsiString(FileSendData.FileReceiver);
       data.WriteAnsiString(FileSendData.FileSender);
       aReason := File_Transfer_Abort_by_Sender;
+      AppendLog(FileSendData.FileReceiver, pRight, 'transfer aborted.');
     End
     Else Begin
       // Empfänger Bricht ab
       data.WriteAnsiString(FileSendData.FileSender);
       data.WriteAnsiString(FileSendData.FileReceiver);
       aReason := File_Transfer_Abort_by_Receiver;
+      AppendLog(FileSendData.FileSender, pRight, 'transfer aborted.');
     End;
     data.Write(aReason, sizeof(aReason));
     fconnection.SendChunk(MSG_File_Transfer_File_Abort, data);
