@@ -27,9 +27,6 @@
         <PackageName Value="TurboPowerIPro"/>
       </Item>
       <Item>
-        <PackageName Value="FrameViewer09"/>
-      </Item>
-      <Item>
         <PackageName Value="lnetvisual"/>
       </Item>
       <Item>
@@ -99,6 +96,9 @@
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>

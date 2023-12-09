@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.05                                                         *)
+(* Version     : 0.06                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -32,6 +32,9 @@
 (*                    - Auto reconnect                                        *)
 (*               0.04 - Fix Wrong coloring on received messages               *)
 (*               0.05 - Minor file transfer control flow fixes                *)
+(*               0.06 - Improve Gui, support for Hot Links                    *)
+(*                      Filedrop support                                      *)
+(*                      improve error messages on file transfer reject        *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -49,26 +52,10 @@ Unit Unit1;
 
 Interface
 
-(*
- * Choose the HTML-Viewer you prefer the most, at least on Windows it seems
- * to make no difference..
- *
- * If you still get a error, remove the dependend Requirement in the ProjectInstpector settings.
- *)
-
-{.$DEFINE USE_HTMLView}
-{$DEFINE USE_IpHtmlPanel}
-
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, IniPropStorage,
   StdCtrls, ExtCtrls, PairSplitter, Buttons, Menus, lNetComponents,
-  lNet, uChunkmanager, Types, BASS
-{$IFDEF USE_HTMLView}
-  , HtmlView
-{$ENDIF}
-{$IFDEF USE_IpHtmlPanel}
-  , IpHtml
-{$ENDIF}
+  lNet, uChunkmanager, Types, BASS, IpHtml
   ;
 
 
@@ -144,6 +131,7 @@ Type
     PopupMenu1: TPopupMenu;
     SaveDialog1: TSaveDialog;
     SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
     Timer1: TTimer;
     TrayIcon1: TTrayIcon;
     Procedure Button1Click(Sender: TObject);
@@ -152,9 +140,9 @@ Type
     Procedure Edit1KeyPress(Sender: TObject; Var Key: char);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
     Procedure FormShow(Sender: TObject);
-    Procedure HtmlViewer1KeyDown(Sender: TObject; Var Key: Word;
-      Shift: TShiftState);
+    Procedure IpHtmlPanel1HotClick(Sender: TObject);
     Procedure ListBox1Click(Sender: TObject);
     Procedure ListBox1DrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
@@ -163,16 +151,13 @@ Type
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure SpeedButton1Click(Sender: TObject);
+    Procedure SpeedButton2Click(Sender: TObject);
     Procedure Timer1Timer(Sender: TObject);
     Procedure TrayIcon1Click(Sender: TObject);
   public
-{$IFDEF USE_HTMLView}
-    HtmlViewer1: THtmlViewer;
-{$ENDIF}
-{$IFDEF USE_IpHtmlPanel}
     HtmlViewer1: TIpHtmlPanel;
-{$ENDIF}
   private
+    fUrl: String;
     defcaption: String;
     fconnection: TChunkManager;
     fParticipants: Array Of TParticipant;
@@ -199,6 +184,7 @@ Type
 
     Procedure OpenOptions();
     Procedure AppendLog(aParticipant: String; aPos: TPosition; aMessage: String);
+    Procedure SendFile(Const Filename: String);
 
     Procedure SetColorForChat(aChatName: String; aColor: TColor; aDest: TColorDest);
     Procedure SetNotConnected;
@@ -220,7 +206,7 @@ Uses
   Unit2 // Settings
   , unit3 // File Transfer progress
   , math
-  , ulanchatcommon, md5, LCLType, Clipbrd, FileUtil, LazFileUtils;
+  , ulanchatcommon, md5, LCLType, Clipbrd, FileUtil, LazFileUtils, LCLIntf, strutils;
 
 Function ColorAsHTMLColor(aColor: TColor): String;
 Var
@@ -236,43 +222,30 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
+  Constraints.MinHeight := Height;
+  Constraints.MinWidth := Width;
   //- Via UDP-Broadcast nen Server suchen und dessen IP dann vorschlagen in den Einstellungen !
   //- Löschen Alter Nachrichten  (1 Tag und älter)
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.05';
+  defcaption := 'Lan chat ver. 0.06';
   // TODO: Ist das so clever, das jeder user seine Farbe selbst bestimmen darf und die bei den Anderen auch so angezeigt wird ?
   (*
    * Die Linux Version von Lazarus tickt komplett aus, wenn diese Komponente auf dem Formular ist
    * -> Also erzeugen wir sie zur Laufzeit ;)
    *)
-{$IFDEF USE_HTMLView}
-  HtmlViewer1 := THtmlViewer.Create(PairSplitter1.Sides[1]);
-{$ENDIF}
-{$IFDEF USE_IpHtmlPanel}
   HtmlViewer1 := TIpHtmlPanel.Create(PairSplitter1.Sides[1]);
-{$ENDIF}
+  HtmlViewer1.OnHotClick := @IpHtmlPanel1HotClick;
   HtmlViewer1.Name := 'HtmlViewer1';
   HtmlViewer1.Parent := PairSplitter1.Sides[1];
   HtmlViewer1.Left := 8;
   HtmlViewer1.Height := 480;
   HtmlViewer1.Top := 0;
   HtmlViewer1.Width := 515;
-{$IFDEF USE_HTMLView}
-  HtmlViewer1.BorderStyle := htFocused;
-  HtmlViewer1.HistoryMaxCount := 0;
-  HtmlViewer1.NoSelect := False;
-  HtmlViewer1.PrintMarginBottom := 2;
-  HtmlViewer1.PrintMarginLeft := 2;
-  HtmlViewer1.PrintMarginRight := 2;
-  HtmlViewer1.PrintMarginTop := 2;
-  HtmlViewer1.PrintScale := 1;
-{$ENDIF}
   HtmlViewer1.Anchors := [akTop, akLeft, akRight, akBottom];
   HtmlViewer1.PopupMenu := PopupMenu1;
   HtmlViewer1.TabOrder := 2;
-  HtmlViewer1.OnKeyDown := @HtmlViewer1KeyDown;
 
   IniPropStorage1.IniFileName := 'f_client.settings';
   fconnection := TChunkManager.create;
@@ -294,6 +267,12 @@ Begin
   ListBox1.Color := IniPropStorage1.ReadInteger('BackColor', clwhite);
   SetNotConnected;
   Timer1.Enabled := false;
+End;
+
+Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
+  );
+Begin
+  SendFile(FileNames[0]);
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -325,8 +304,37 @@ Begin
 End;
 
 Procedure TForm1.Button1Click(Sender: TObject);
+  Function EncapsulateURLsWithHRef(value: String): String;
+  Var
+    i, j: integer;
+    pre, suff, url: String;
+  Begin
+    // TODO: Bei mehr wie einem Link knallt dass
+    i := pos('http', value);
+    If i = 0 Then Begin
+      result := value;
+    End
+    Else Begin
+      pre := copy(value, 1, i - 1);
+      url := '';
+      For j := i To length(value) Do Begin
+        If value[j] = ' ' Then Begin
+          url := copy(value, i + 1, j - i);
+          suff := copy(value, j, length(value));
+          break;
+        End;
+      End;
+      If url = '' Then Begin
+        url := copy(value, i, length(value));
+        suff := '';
+      End;
+      result := pre + ' <a href="' + url + '"> ' + url + ' </a> ' + suff;
+      result := trim(result);
+    End;
+  End;
+
 Var
-  aMsg: String;
+  aText, aMsg: String;
   data: TMemoryStream;
 Begin
   // Send
@@ -342,14 +350,22 @@ Begin
   If trim(Edit1.Text) = '' Then Begin
     exit;
   End;
-  aMsg := ' <font color="TimeColor"> ' + formatdatetime('DD.MM.YYY HH:MM:SS', now) + ' </font> <br> ' + Edit1.Text + ' ';
+  (*
+   * Wenn Nachricht enthält  http<Irgendwas> aber ohne href
+   *
+   * <a href="http<Irgendwas>">http<Irgendwas><\a>
+   *
+   *)
+  aText := EncapsulateURLsWithHRef(Edit1.Text);
+  edit1.text := '';
+  aMsg := ' <font color="TimeColor"> ' + formatdatetime('DD.MM.YYY HH:MM:SS', now) + ' </font> <br> ' + aText + ' ';
   data := TMemoryStream.Create;
   data.WriteAnsiString(ListBox1.Items[ListBox1.ItemIndex]);
   data.WriteAnsiString(IniPropStorage1.ReadString('UserName', ''));
   data.WriteAnsiString(aMsg);
   fconnection.SendChunk(Msg_Message, data);
-  aMsg := ' <font color="' + ColorAsHTMLColor(IniPropStorage1.ReadInteger('TimeColor', $808080)) + '"> ' + formatdatetime('DD.MM.YYY HH:MM:SS', now) + ' </font> <br> ' + Edit1.Text + ' ';
-  edit1.text := '';
+  aMsg := ' <font color="' + ColorAsHTMLColor(IniPropStorage1.ReadInteger('TimeColor', $808080)) + '"> ' + formatdatetime('DD.MM.YYY HH:MM:SS', now) + ' </font> <br> ' + aText + ' ';
+
   AppendLog(ListBox1.Items[ListBox1.ItemIndex], pRight, aMsg);
 End;
 
@@ -392,18 +408,9 @@ Begin
   End;
 End;
 
-Procedure TForm1.HtmlViewer1KeyDown(Sender: TObject; Var Key: Word;
-  Shift: TShiftState);
+Procedure TForm1.IpHtmlPanel1HotClick(Sender: TObject);
 Begin
-  If (ssCtrl In shift) And (key = vk_C) Then Begin
-    If Not assigned(HtmlViewer1) Then exit;
-{$IFDEF USE_HTMLView}
-    Clipboard.AsText := HtmlViewer1.SelText;
-{$ENDIF}
-{$IFDEF USE_IpHtmlPanel}
-    // TODO: Implementieren ?
-{$ENDIF}
-  End;
+  If HtmlViewer1.HotURL <> '' Then openurl(HtmlViewer1.HotURL);
 End;
 
 Procedure TForm1.ListBox1Click(Sender: TObject);
@@ -537,48 +544,11 @@ Begin
 End;
 
 Procedure TForm1.MenuItem2Click(Sender: TObject);
-Var
-  data: TMemoryStream;
-  aSize: int64;
 Begin
   // Send a file
-  If Not fconnection.Connected Then Begin
-    ShowMessage('Error, not connected.');
-    exit;
-  End;
-  If ListBox1.ItemIndex = -1 Then Begin
-    ShowMessage('Error, no one to send data.');
-    exit;
-  End;
-  If FileSendData.State <> 0 Then Begin
-    ShowMessage('Error, you are not allowed to send more than one file at once.');
-    exit;
-  End;
+
   If OpenDialog1.Execute Then Begin
-    aSize := GetFileSize(OpenDialog1.Filename);
-    If aSize <> 0 Then Begin
-      FileSendData.State := 1;
-      FileSendData.Filename := OpenDialog1.FileName;
-      FileSendData.FileReceiver := ListBox1.Items[ListBox1.ItemIndex];
-      FileSendData.FileSender := IniPropStorage1.ReadString('UserName', '');
-      FileSendData.aSize := aSize;
-      data := TMemoryStream.Create;
-      data.WriteAnsiString(ListBox1.Items[ListBox1.ItemIndex]);
-      data.WriteAnsiString(IniPropStorage1.ReadString('UserName', ''));
-      data.WriteAnsiString(ExtractFileName(FileSendData.Filename));
-      data.Write(aSize, sizeof(aSize));
-      fconnection.SendChunk(MSG_File_Transfer_Request, data);
-      AppendLog(ListBox1.Items[ListBox1.ItemIndex], pRight, 'Initiated file transfer: ' + ExtractFileName(FileSendData.Filename));
-      // Das muss jetzt schon angezeigt werden, sonst kommt der Sender nur durch neustart in ein Resend
-      If Not form3.Visible Then Begin
-        form3.Label1.Caption := FileSendData.Filename;
-        form3.ProgressBar1.Position := 0;
-        form3.Show;
-      End;
-    End
-    Else Begin
-      showmessage('Error, its not allowed to send file of size = 0');
-    End;
+    SendFile(OpenDialog1.FileName);
   End;
 End;
 
@@ -586,6 +556,11 @@ Procedure TForm1.SpeedButton1Click(Sender: TObject);
 Begin
   // Optionen
   OpenOptions();
+End;
+
+Procedure TForm1.SpeedButton2Click(Sender: TObject);
+Begin
+  MenuItem2Click(Nil);
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);
@@ -608,24 +583,9 @@ End;
 
 Procedure TForm1.LoadTextToHTMLView(Const aText: String);
 Var
-{$IFDEF USE_HTMLView}
-  delta: TSize;
-{$ENDIF}
-{$IFDEF USE_IpHtmlPanel}
   fs: TStringStream;
   pHTML: TIpHtml;
-{$ENDIF}
 Begin
-{$IFDEF USE_HTMLView}
-  HtmlViewer1.LoadFromString(atext);
-  // Sonst stimmen die rechts ausgerichteten Elemente nicht ..
-  HtmlViewer1.Reformat;
-  // Scroll to Bottom
-  delta.cx := 0;
-  delta.cy := high(integer);
-  HtmlViewer1.ScrollXY(delta);
-{$ENDIF}
-{$IFDEF USE_IpHtmlPanel}
   Try
     fs := TStringStream.Create(aText);
     Try
@@ -642,7 +602,6 @@ Begin
       MessageDlg('TForm1.LoadTextToHTMLView: ' + E.Message, mtError, [mbCancel], 0);
     End;
   End;
-{$ENDIF}
   PairSplitter1.Invalidate;
 End;
 
@@ -926,20 +885,22 @@ Begin
     File_Transfer_No_due_to_Receiver_not_Online,
       File_Transfer_No_due_to_Receiver_occupied,
       File_Transfer_No_Receiver_does_not_want: Begin
-        showmessage('Error, file transfer aborted: ' + ErrorcodeToString(aReason));
         FileSendData.State := 0; // Back to Idle
         If assigned(FileSendData.FileStream) Then Begin
           FileSendData.FileStream.free;
         End;
         FileSendData.FileStream := Nil;
+        If form3.Visible Then form3.Hide;
+        AppendLog(FileSendData.FileReceiver, pRight, 'Error, file transfer aborted: ' + ErrorcodeToString(aReason));
       End;
   Else Begin
-      showmessage('Error, ' + ErrorcodeToString(aReason) + ' for filetransfer -> abort.');
       FileSendData.State := 0; // Back to Idle
       If assigned(FileSendData.FileStream) Then Begin
         FileSendData.FileStream.free;
       End;
       FileSendData.FileStream := Nil;
+      If form3.Visible Then form3.Hide;
+      AppendLog(FileSendData.FileReceiver, pRight, 'Error, file transfer aborted: ' + ErrorcodeToString(aReason));
     End;
   End;
 End;
@@ -1015,14 +976,13 @@ Begin
     Else Begin
       AppendLog(FileSendData.FileSender, pRight, 'transfer aborted.');
     End;
-    showmessage('Abort file transfer: ' + ErrorcodeToString(aReason));
     FileSendData.State := 0;
     If assigned(FileSendData.FileStream) Then Begin
       FileSendData.FileStream.free;
     End;
     FileSendData.FileStream := Nil;
-    If form3.Visible Then form3.Hide;
   End;
+  If form3.Visible Then form3.Hide;
 End;
 
 Procedure TForm1.OpenOptions;
@@ -1157,6 +1117,50 @@ Begin
   // Wir haben einen Chat Aktualisiert der gerade angewählt war, also Refresh
   If lowercase(ListBox1.items[ListBox1.ItemIndex]) = lowercase(aParticipant) Then Begin
     ListBox1.Click;
+  End;
+End;
+
+Procedure TForm1.SendFile(Const Filename: String);
+Var
+  aSize: int64;
+  data: TMemoryStream;
+Begin
+  If Not fconnection.Connected Then Begin
+    ShowMessage('Error, not connected.');
+    exit;
+  End;
+  If ListBox1.ItemIndex = -1 Then Begin
+    ShowMessage('Error, no one to send data.');
+    exit;
+  End;
+  If FileSendData.State <> 0 Then Begin
+    ShowMessage('Error, you are not allowed to send more than one file at once.');
+    exit;
+  End;
+  aSize := GetFileSize(Filename);
+  If aSize <> 0 Then Begin
+    FileSendData.State := 1;
+    FileSendData.Filename := FileName;
+    FileSendData.FileReceiver := ListBox1.Items[ListBox1.ItemIndex];
+    FileSendData.FileSender := IniPropStorage1.ReadString('UserName', '');
+    FileSendData.aSize := aSize;
+    data := TMemoryStream.Create;
+    data.WriteAnsiString(ListBox1.Items[ListBox1.ItemIndex]);
+    data.WriteAnsiString(IniPropStorage1.ReadString('UserName', ''));
+    data.WriteAnsiString(ExtractFileName(FileSendData.Filename));
+    data.Write(aSize, sizeof(aSize));
+    fconnection.SendChunk(MSG_File_Transfer_Request, data);
+    AppendLog(ListBox1.Items[ListBox1.ItemIndex], pRight, 'Initiated file '
+      + 'transfer: ' + ExtractFileName(FileSendData.Filename));
+    // Das muss jetzt schon angezeigt werden, sonst kommt der Sender nur durch neustart in ein Resend
+    If Not form3.Visible Then Begin
+      form3.Label1.Caption := FileSendData.Filename;
+      form3.ProgressBar1.Position := 0;
+      form3.Show;
+    End;
+  End
+  Else Begin
+    showmessage('Error, its not allowed to send file of size = 0');
   End;
 End;
 
