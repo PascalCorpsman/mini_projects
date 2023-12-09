@@ -1,0 +1,74 @@
+object Form1: TForm1
+  Left = 345
+  Height = 152
+  Top = 107
+  Width = 263
+  BorderIcons = [biSystemMenu, biMinimize]
+  Caption = 'Form1'
+  ClientHeight = 152
+  ClientWidth = 263
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Edit1: TEdit
+    Left = 8
+    Height = 26
+    Top = 8
+    Width = 112
+    OnKeyPress = Edit1KeyPress
+    TabOrder = 1
+    Text = 'Edit1'
+  end
+  object Edit2: TEdit
+    Left = 8
+    Height = 26
+    Top = 44
+    Width = 112
+    OnKeyPress = Edit1KeyPress
+    TabOrder = 2
+    Text = 'Edit2'
+  end
+  object Edit3: TEdit
+    Left = 144
+    Height = 26
+    Top = 8
+    Width = 112
+    OnKeyPress = Edit1KeyPress
+    TabOrder = 3
+    Text = 'Edit3'
+  end
+  object Edit4: TEdit
+    Left = 144
+    Height = 26
+    Top = 44
+    Width = 112
+    OnKeyPress = Edit1KeyPress
+    TabOrder = 4
+    Text = 'Edit4'
+  end
+  object Button1: TButton
+    Left = 24
+    Height = 25
+    Top = 80
+    Width = 216
+    Caption = 'Calc'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Edit5: TEdit
+    Left = 144
+    Height = 26
+    Top = 112
+    Width = 112
+    TabOrder = 5
+    Text = 'Edit5'
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 122
+    Width = 38
+    Caption = 'Result'
+    ParentColor = False
+  end
+end

@@ -15,6 +15,7 @@ Following is a short description of all listed projects
 | CPU_Load | Application to create a defined CPU-Load |
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
 | GIT_gui | Plattform independand Tortoise Git like GIT-Gui |
+| Intercept theorem | Demo application to calculate the intercept theorem |
 | LAN_Chat | Simple chat program for LAN (and WAN if ports are forwared) |
 | PNG_Editor | Split and merge alpha channel of .png images |
 | Parken | Demo for trectric curves |
