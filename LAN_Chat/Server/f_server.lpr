@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.03                                                         *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -26,6 +26,7 @@
 (* History     : 0.01 - Initialversion                                        *)
 (*               0.02 - Support Passwords                                     *)
 (*               0.03 - File transfer support                                 *)
+(*               0.04 - Settings for Server                                   *)
 (*                                                                            *)
 (******************************************************************************)
 Program f_server;
@@ -70,7 +71,7 @@ Begin
 {$IFDEF LINUX}
   InstallSigHandler;
 {$ENDIF}
-  writeln('LAN chat server ver. 0.03');
+  writeln('LAN chat server ver. 0.04');
   server := TLANChatServer.Create();
   Try
     server.Execute();

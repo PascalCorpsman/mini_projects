@@ -25,19 +25,27 @@ Const
   (*
    * History: 1 = Initial version
    *          2 = Abort File Transfer
+   *          3 = Server Administration..
    *)
-  ProtokollVersion = 2;
+  ProtokollVersion = 3;
 
   (*
    * Nachrichten von Clients an den Server
    *)
   MSG_New_Participant = 1;
+  MSG_Change_Password = 2;
+  MSG_Login_to_server_settings = 3;
+  MSG_Remove_Known_Participant = 4;
 
   (*
    * Nachrichten vom Server an die Clients
    *)
   MSG_New_Participant_Result = 100;
   MSG_Known_Participant_List = 101;
+  MSG_Change_Password_Result = 102;
+  MSG_Login_to_server_settings_Result = 103;
+  MSG_Remove_Known_Participant_Result = 104;
+
 
   (*
    * Nachrichten die sowohl Client als auch Server Versenden
@@ -67,6 +75,8 @@ Const
   File_Transfer_Abort_by_Sender = $F008;
   File_Transfer_Abort_Missing_Endpoint = $F009;
 
+  Error_Not_Allowed_to_Delet_Online_User = $F00A;
+
 Function ErrorcodeToString(aValue: uint16): String;
 
 Function GetFileSize(Const Filename: String): int64;
@@ -91,6 +101,8 @@ Begin
     File_Transfer_Abort_by_Receiver: result := 'Receiver abort file transfer';
     File_Transfer_Abort_by_Sender: result := 'Sender abort file transfer';
     File_Transfer_Abort_Missing_Endpoint: result := 'Endpoint disconnected';
+
+    Error_Not_Allowed_to_Delet_Online_User: result := 'It''s not allowed to a user that is online';
   End;
 End;
 

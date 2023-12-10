@@ -35,6 +35,7 @@
 (*               0.06 - Improve Gui, support for Hot Links                    *)
 (*                      Filedrop support                                      *)
 (*                      improve error messages on file transfer reject        *)
+(*               0.07 - Trayicon for Linux and autofocus on Edit field        *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -124,14 +125,19 @@ Type
     LTCPComponent1: TLTCPComponent;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
     OpenDialog1: TOpenDialog;
     PairSplitter1: TPairSplitter;
     PairSplitterSide1: TPairSplitterSide;
     PairSplitterSide2: TPairSplitterSide;
     PopupMenu1: TPopupMenu;
+    PopupMenu2: TPopupMenu;
     SaveDialog1: TSaveDialog;
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
     Timer1: TTimer;
     TrayIcon1: TTrayIcon;
     Procedure Button1Click(Sender: TObject);
@@ -150,14 +156,17 @@ Type
     Procedure LTCPComponent1Disconnect(aSocket: TLSocket);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
+    Procedure MenuItem3Click(Sender: TObject);
+    Procedure MenuItem4Click(Sender: TObject);
+    Procedure MenuItem5Click(Sender: TObject);
     Procedure SpeedButton1Click(Sender: TObject);
     Procedure SpeedButton2Click(Sender: TObject);
+    Procedure SpeedButton3Click(Sender: TObject);
     Procedure Timer1Timer(Sender: TObject);
     Procedure TrayIcon1Click(Sender: TObject);
   public
     HtmlViewer1: TIpHtmlPanel;
   private
-    fUrl: String;
     defcaption: String;
     fconnection: TChunkManager;
     fParticipants: Array Of TParticipant;
@@ -181,6 +190,9 @@ Type
     Procedure HandleTransferNextPacket(Const Chunk: TChunk);
     Procedure HandleTransferFileComplete(Const Chunk: TChunk);
     Procedure HandleAbortFile(Const Chunk: TChunk);
+    Procedure HandleLoginToServerSettingsResult(Const Chunk: TChunk);
+    Procedure HandlePasswordChangeResult(Const Chunk: TChunk);
+    Procedure HandleRemoveKnownParticipantResult(Const Chunk: TChunk);
 
     Procedure OpenOptions();
     Procedure AppendLog(aParticipant: String; aPos: TPosition; aMessage: String);
@@ -205,6 +217,7 @@ Implementation
 Uses
   Unit2 // Settings
   , unit3 // File Transfer progress
+  , unit4 // Server Settings
   , math
   , ulanchatcommon, md5, LCLType, Clipbrd, FileUtil, LazFileUtils, LCLIntf, strutils;
 
@@ -371,14 +384,8 @@ End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
 Begin
-{$IFDEF Linux}
-  // TODO: Warum geht das TrayIcon unter Linux Mint nicht ?
-  WindowState := wsMinimized;
-{$ELSE}
-  // Hide
-  TrayIcon1.Visible := true;
-  hide;
-{$ENDIF}
+  TrayIcon1.Show;
+  visible := false;
 End;
 
 Procedure TForm1.Edit1KeyPress(Sender: TObject; Var Key: char);
@@ -393,7 +400,6 @@ Begin
   If Form1ShowOnce Then Begin
     Form1ShowOnce := false;
     form3.RegisterAbortCallback(@AbortFileTransfer);
-    Edit1.SetFocus;
     fServerIP := IniPropStorage1.ReadString('ServerIP', '');
     If fServerIP = '' Then Begin
       showmessage('Error, no server set, please edit settings, first.');
@@ -406,6 +412,7 @@ Begin
       End;
     End;
   End;
+  If visible Then Edit1.SetFocus;
 End;
 
 Procedure TForm1.IpHtmlPanel1HotClick(Sender: TObject);
@@ -426,7 +433,8 @@ Begin
     aParticipant := ListBox1.Items[ListBox1.ItemIndex];
   End
   Else Begin
-    aParticipant := '';
+    // Es gibt keine Chats
+    exit;
   End;
   sl := TStringList.Create;
   If FileExists(lowercase(aParticipant) + '.chat') Then Begin
@@ -552,6 +560,21 @@ Begin
   End;
 End;
 
+Procedure TForm1.MenuItem3Click(Sender: TObject);
+Begin
+  TrayIcon1Click(Nil);
+End;
+
+Procedure TForm1.MenuItem4Click(Sender: TObject);
+Begin
+  close;
+End;
+
+Procedure TForm1.MenuItem5Click(Sender: TObject);
+Begin
+  SpeedButton1.Click;
+End;
+
 Procedure TForm1.SpeedButton1Click(Sender: TObject);
 Begin
   // Optionen
@@ -561,6 +584,19 @@ End;
 Procedure TForm1.SpeedButton2Click(Sender: TObject);
 Begin
   MenuItem2Click(Nil);
+End;
+
+Procedure TForm1.SpeedButton3Click(Sender: TObject);
+Var
+  pw, pwhash: String;
+  data: TMemoryStream;
+Begin
+  // Server Settings
+  pw := PasswordBox('Action', 'Please enter server password to access server settings');
+  pwhash := MD5Print(MD5String(pw));
+  data := TMemoryStream.Create;
+  data.WriteAnsiString(pwhash);
+  fconnection.SendChunk(MSG_Login_to_server_settings, data);
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);
@@ -573,11 +609,7 @@ Procedure TForm1.TrayIcon1Click(Sender: TObject);
 Begin
   // Show
   TrayIcon1.Visible := false;
-{$IFDEF Linux}
-  WindowState := wsNormal;
-{$ELSE}
   Visible := true;
-{$ENDIF}
   BringToFront;
 End;
 
@@ -596,6 +628,7 @@ Begin
     End;
     HtmlViewer1.SetHtml(pHTML);
     Application.ProcessMessages;
+    // TODO: Warum geht das unter Linux nicht ?
     HtmlViewer1.VScrollPos := high(integer);
   Except
     On E: Exception Do Begin
@@ -651,6 +684,9 @@ Begin
     MSG_File_Transfer_File_Next_Packet: HandleTransferNextPacket(chunk);
     MSG_File_Transfer_FileComplete: HandleTransferFileComplete(chunk);
     MSG_File_Transfer_File_Abort: HandleAbortFile(chunk);
+    MSG_Login_to_server_settings_Result: HandleLoginToServerSettingsResult(Chunk);
+    MSG_Change_Password_Result: HandlePasswordChangeResult(Chunk);
+    MSG_Remove_Known_Participant_Result: HandleRemoveKnownParticipantResult(Chunk);
   Else Begin
       showmessage('Error, got unknown message id: ' + inttostr(Chunk.UserDefinedID));
     End;
@@ -768,6 +804,7 @@ Begin
       ListBox1.Click;
     End;
   End;
+  // TODO: Suchen aller .chat Dateien und Löschen derer die nicht mehr in der Listbox sind !
 End;
 
 Procedure TForm1.HandleGetMessage(Const Chunk: TChunk);
@@ -796,11 +833,7 @@ Begin
   //  ListBox1.Click;
   PlayInfoSound();
   If IniPropStorage1.ReadBoolean('Show_on_new_message', false) Then Begin
-{$IFDEF Linux}
-    If WindowState = wsMinimized Then Begin
-{$ELSE}
     If Not visible Then Begin
-{$ENDIF}
       // Wir sollen Hoch popen, dann wählen wir auch gleich den Richtigen an ..
       For i := 0 To ListBox1.Items.Count - 1 Do Begin
         If lowercase(ListBox1.Items[i]) = LowerCase(aSender) Then Begin
@@ -983,6 +1016,60 @@ Begin
     FileSendData.FileStream := Nil;
   End;
   If form3.Visible Then form3.Hide;
+End;
+
+Procedure TForm1.HandleLoginToServerSettingsResult(Const Chunk: TChunk);
+Var
+  aResult: uint16;
+  p: Array Of String;
+  i: Integer;
+Begin
+  aResult := $FFFF;
+  Chunk.Data.Read(aResult, sizeof(aResult));
+  If aResult = Error_No_Error Then Begin
+    p := Nil;
+    setlength(p, ListBox1.Items.Count);
+    For i := 0 To high(p) Do Begin
+      p[i] := ListBox1.Items[i];
+    End;
+    form4.Init(fconnection, p);
+    form4.Show;
+  End
+  Else Begin
+    ShowMessage(ErrorcodeToString(aResult));
+  End;
+End;
+
+Procedure TForm1.HandlePasswordChangeResult(Const Chunk: TChunk);
+Var
+  aResult: uint16;
+Begin
+  aResult := $FFFF;
+  Chunk.Data.Read(aResult, sizeof(aResult));
+  If aResult = Error_No_Error Then Begin
+    form4.Edit1.Text := '';
+    form4.Edit2.Text := '';
+    form4.Edit3.Text := '';
+    showmessage('Done.');
+  End
+  Else Begin
+    ShowMessage(ErrorcodeToString(aResult));
+  End;
+End;
+
+Procedure TForm1.HandleRemoveKnownParticipantResult(Const Chunk: TChunk);
+Var
+  aResult: uint16;
+Begin
+  aResult := $FFFF;
+  Chunk.Data.Read(aResult, sizeof(aResult));
+  If aResult = Error_No_Error Then Begin
+    form4.ListBox1.Items.Delete(form4.ListBox1.ItemIndex);
+    showmessage('Done.');
+  End
+  Else Begin
+    ShowMessage(ErrorcodeToString(aResult));
+  End;
 End;
 
 Procedure TForm1.OpenOptions;

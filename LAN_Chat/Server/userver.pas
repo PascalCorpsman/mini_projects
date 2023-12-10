@@ -19,10 +19,17 @@ Type
     PWHash: String; // Passwort Hash zur Login Prüfung
   End;
 
+  TSettings = Record
+    Port: Integer;
+    PasswordHash: String;
+  End;
+
   { TLANChatServer }
 
   TLANChatServer = Class
   private
+    fSettings: TSettings;
+
     fParticipants: Array Of TParticipant;
     fKnownParticipants: Array Of TKnownParticipant;
     fConnection: TChunkManager;
@@ -44,6 +51,9 @@ Type
     Procedure HandleTransferFileFinished(Const aChunk: TChunk);
     Procedure HandleTransferFileRequestNextPacket(Const aChunk: TChunk);
     Procedure HandleTransferFileAbort(Const aChunk: TChunk);
+    Procedure HandleChangePassword(Const aChunk: TChunk);
+    Procedure HandleLogin(Const aChunk: TChunk);
+    Procedure HandleRemoveKnownParticipant(Const aChunk: TChunk);
 
     Procedure SendKnownParticipantList();
     Function GetParticipantIndex(aName: String): Integer;
@@ -53,6 +63,9 @@ Type
     Procedure SendMessage(aRecipient, aSender, aMsg: String);
 
     Procedure ReadStoredMessages(aRecipient: String);
+
+    Procedure LoadSettings();
+    Procedure StoreSettings();
   public
     Constructor Create(); virtual;
     Destructor Destroy(); override;
@@ -62,7 +75,7 @@ Type
 
 Implementation
 
-Uses Crt;
+Uses Crt, IniFiles, md5;
 
 { TLANChatServer }
 
@@ -73,6 +86,7 @@ Var
   i: Integer;
 Begin
   Inherited Create();
+  LoadSettings();
   fNeedSendKnownParticipantList := false;
   fConnection := TChunkManager.create;
   fTCPConnection := TLTcp.Create(Nil);
@@ -102,6 +116,7 @@ End;
 
 Destructor TLANChatServer.Destroy;
 Begin
+  StoreSettings();
   fConnection.Disconnect(true);
   fConnection.Free;
 End;
@@ -117,6 +132,9 @@ Begin
     MSG_File_Transfer_FileComplete: HandleTransferFileFinished(Chunk);
     MSG_File_Transfer_File_Next_Packet: HandleTransferFileRequestNextPacket(Chunk);
     MSG_File_Transfer_File_Abort: HandleTransferFileAbort(Chunk);
+    MSG_Change_Password: HandleChangePassword(Chunk);
+    MSG_Login_to_server_settings: HandleLogin(Chunk);
+    MSG_Remove_Known_Participant: HandleRemoveKnownParticipant(Chunk);
   Else Begin
       writeln('Error unknown message id: ' + inttostr(Chunk.UserDefinedID));
     End;
@@ -406,6 +424,98 @@ Begin
   End;
 End;
 
+Procedure TLANChatServer.HandleChangePassword(Const aChunk: TChunk);
+Var
+  aPassword, nPassword: String;
+  data: TMemoryStream;
+  aResult: UInt16;
+Begin
+  aPassword := aChunk.Data.ReadAnsiString;
+  nPassword := aChunk.Data.ReadAnsiString;
+  data := TMemoryStream.Create;
+  If aPassword = fSettings.PasswordHash Then Begin
+    aResult := Error_No_Error;
+    fSettings.PasswordHash := nPassword;
+    StoreSettings();
+  End
+  Else Begin
+    aResult := Error_Invalid_Password;
+  End;
+  data.Write(aResult, sizeof(aResult));
+  fConnection.SendChunk(MSG_Change_Password_Result, data, aChunk.UID);
+End;
+
+Procedure TLANChatServer.HandleLogin(Const aChunk: TChunk);
+Var
+  aPassword: String;
+  data: TMemoryStream;
+  aResult: UInt16;
+Begin
+  aPassword := aChunk.Data.ReadAnsiString;
+  data := TMemoryStream.Create;
+  If aPassword = fSettings.PasswordHash Then Begin
+    aResult := Error_No_Error;
+  End
+  Else Begin
+    aResult := Error_Invalid_Password;
+  End;
+  data.Write(aResult, sizeof(aResult));
+  fConnection.SendChunk(MSG_Login_to_server_settings_Result, data, aChunk.UID);
+End;
+
+Procedure TLANChatServer.HandleRemoveKnownParticipant(Const aChunk: TChunk);
+Var
+  aPassword, aUser: String;
+  data: TMemoryStream;
+  aResult: UInt16;
+  i, j: Integer;
+  sl: TStringList;
+Begin
+  aPassword := aChunk.Data.ReadAnsiString;
+  aUser := aChunk.Data.ReadAnsiString;
+  data := TMemoryStream.Create;
+  If aPassword = fSettings.PasswordHash Then Begin
+    aResult := Error_No_Error;
+    // 1. Ist der User grad Online -> dann darf er nicht gelöscht werden
+    For i := 0 To high(fParticipants) Do Begin
+      If lowercase(trim(aUser)) = lowercase(trim(fParticipants[i].Name)) Then Begin
+        aResult := Error_Not_Allowed_to_Delet_Online_User;
+        break;
+      End;
+    End;
+    // Alles gut, den User Platt machen
+    If aResult = Error_No_Error Then Begin
+      If FileExists(aUser) Then Begin
+        DeleteFile(aUser);
+      End;
+      For i := 0 To high(fKnownParticipants) Do Begin
+        If lowercase(trim(aUser)) = lowercase(trim(fKnownParticipants[i].Name)) Then Begin
+          For j := i To high(fKnownParticipants) - 1 Do Begin
+            fKnownParticipants[j] := fKnownParticipants[j + 1];
+          End;
+          setlength(fKnownParticipants, high(fKnownParticipants));
+          sl := TStringList.Create;
+          For j := 0 To high(fKnownParticipants) Do Begin
+            sl.add(fKnownParticipants[j].Name + ';' + fKnownParticipants[j].PWHash);
+          End;
+          sl.SaveToFile('known.txt');
+          sl.free;
+          break;
+        End;
+      End;
+    End;
+  End
+  Else Begin
+    aResult := Error_Invalid_Password;
+  End;
+  data.Write(aResult, sizeof(aResult));
+  fConnection.SendChunk(MSG_Remove_Known_Participant_Result, data, aChunk.UID);
+  // Alle über die Änderungen informieren
+  If aResult = Error_No_Error Then Begin
+    SendKnownParticipantList();
+  End;
+End;
+
 Procedure TLANChatServer.SendKnownParticipantList;
 Var
   data: TMemoryStream;
@@ -496,13 +606,40 @@ Begin
   End;
 End;
 
+Procedure TLANChatServer.LoadSettings;
+Var
+  ini: TIniFile;
+  PWHash, f: String;
+Begin
+  f := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'settings.ini';
+  ini := TIniFile.Create(f);
+  fSettings.Port := ini.ReadInteger('Settings', 'Port', 1234);
+  PWHash := MD5Print(MD5String('Default'));
+  fSettings.PasswordHash := ini.ReadString('Settings', 'Passwordhash', PWHash);
+  // TODO: Add more Settings if needed
+
+End;
+
+Procedure TLANChatServer.StoreSettings;
+Var
+  ini: TIniFile;
+  f: String;
+Begin
+  f := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'settings.ini';
+  ini := TIniFile.Create(f);
+  ini.WriteInteger('Settings', 'Port', fSettings.Port);
+  ini.WriteString('Settings', 'Passwordhash', fSettings.PasswordHash);
+  // TODO: Add more Settings if needed
+
+End;
+
 Procedure TLANChatServer.Execute;
 Var
   c: Char;
 Begin
   // TODO: Make Configurable
-  If Not fConnection.Listen(1234) Then Begin
-    writeln('Error, could not listen on port: 1234');
+  If Not fConnection.Listen(fSettings.Port) Then Begin
+    writeln('Error, could not listen on port: ' + inttostr(fSettings.Port));
     exit;
   End;
   frunning := true;

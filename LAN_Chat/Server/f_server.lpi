@@ -69,6 +69,11 @@
       <OtherUnitFiles Value="../../Sample/TCP_IP;../../Sample/DatenSteuerung;.."/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions>

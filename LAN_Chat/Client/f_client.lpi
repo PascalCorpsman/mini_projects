@@ -83,6 +83,13 @@
         <Filename Value="nm.wav"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="unit4.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form4"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit4"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
