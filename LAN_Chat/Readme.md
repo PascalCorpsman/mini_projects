@@ -23,7 +23,9 @@ This is a work in Progress project
 ### How to install
 
 #### Server: 
-Compile and run the code on a machine that is always on
+- Compile and run the code on a machine that is always on
+- The initial password for server administration is "**Default**" <br>
+(Attention, its highly recommended to change this password, so that not every participant of the Chat group can access the server settings).
 
 #### Client:
 When starting the application the first time, the options dialog will pop up. You will need to set up at least the username, password, server ip and server port. Then click OK.
