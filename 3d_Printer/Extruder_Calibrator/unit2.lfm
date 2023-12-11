@@ -1,0 +1,45 @@
+object Form2: TForm2
+  Left = 347
+  Height = 154
+  Top = 107
+  Width = 227
+  Caption = 'Form2'
+  ClientHeight = 154
+  ClientWidth = 227
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Label1: TLabel
+    Left = 8
+    Height = 64
+    Top = 8
+    Width = 211
+    Caption = 'Wait until printer finised extruding.'#10'    '#10'Enter the measured length in '#10'mm in the text field below'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 72
+    Height = 26
+    Top = 80
+    Width = 80
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Button1: TButton
+    Left = 128
+    Height = 25
+    Top = 120
+    Width = 75
+    Caption = 'OK'
+    ModalResult = 1
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 120
+    Width = 75
+    Caption = 'Cancel'
+    TabOrder = 2
+  end
+end

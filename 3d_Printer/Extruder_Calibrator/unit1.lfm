@@ -1,0 +1,160 @@
+object Form1: TForm1
+  Left = 347
+  Height = 295
+  Top = 107
+  Width = 689
+  Caption = 'Form1'
+  ClientHeight = 295
+  ClientWidth = 689
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Button1: TButton
+    Left = 229
+    Height = 25
+    Top = 80
+    Width = 75
+    Caption = 'Calculate'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Edit1: TEdit
+    Left = 72
+    Height = 26
+    Top = 40
+    Width = 80
+    TabOrder = 1
+    Text = 'Edit1'
+  end
+  object Edit2: TEdit
+    Left = 224
+    Height = 26
+    Top = 40
+    Width = 80
+    TabOrder = 2
+    Text = 'Edit2'
+  end
+  object Label1: TLabel
+    Left = 72
+    Height = 16
+    Top = 16
+    Width = 52
+    Caption = 'Distance'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 224
+    Height = 16
+    Top = 16
+    Width = 44
+    Caption = 'E-steps'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 72
+    Height = 16
+    Top = 88
+    Width = 41
+    Caption = 'Label3'
+    ParentColor = False
+  end
+  object Memo1: TMemo
+    Left = 320
+    Height = 106
+    Top = 32
+    Width = 360
+    Font.Name = 'Courier New'
+    Lines.Strings = (
+      'Switch to relative mode: M83'
+      'Extrude 100mm:           G1 E100 F100'
+      'Read old e-steps:        M503'
+      ''
+      'Set new e-steps:         M92 E###.#'
+      'Store to eeprom:         M500'
+    )
+    ParentFont = False
+    ScrollBars = ssAutoBoth
+    TabOrder = 3
+    WantReturns = False
+    WordWrap = False
+  end
+  object Label4: TLabel
+    Left = 320
+    Height = 16
+    Top = 8
+    Width = 46
+    Caption = 'GCodes'
+    ParentColor = False
+  end
+  object Edit3: TEdit
+    Left = 72
+    Height = 26
+    Top = 112
+    Width = 232
+    TabOrder = 4
+    Text = 'Edit3'
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 152
+    Width = 80
+    Caption = 'Wizard'
+    OnClick = Button2Click
+    TabOrder = 5
+  end
+  object Label5: TLabel
+    Left = 101
+    Height = 16
+    Top = 160
+    Width = 127
+    Caption = 'Enter Port for Wizard'
+    ParentColor = False
+  end
+  object Edit4: TEdit
+    Left = 101
+    Height = 26
+    Top = 184
+    Width = 123
+    TabOrder = 6
+    Text = 'Edit4'
+  end
+  object Memo2: TMemo
+    Left = 320
+    Height = 136
+    Top = 152
+    Width = 361
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      'Memo2'
+    )
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 7
+    WordWrap = False
+  end
+  object Label6: TLabel
+    Left = 288
+    Height = 16
+    Top = 152
+    Width = 23
+    Caption = 'Log'
+    ParentColor = False
+  end
+  object Label7: TLabel
+    Left = 101
+    Height = 16
+    Top = 224
+    Width = 195
+    Caption = 'Nozzle temperatur for extruding'
+    ParentColor = False
+  end
+  object Edit5: TEdit
+    Left = 101
+    Height = 26
+    Top = 248
+    Width = 123
+    TabOrder = 8
+    Text = 'Edit5'
+  end
+end
