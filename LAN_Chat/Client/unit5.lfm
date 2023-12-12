@@ -1,0 +1,516 @@
+object Form5: TForm5
+  Left = 347
+  Height = 145
+  Top = 107
+  Width = 310
+  BorderIcons = []
+  BorderStyle = bsNone
+  Caption = 'Form5'
+  ClientHeight = 145
+  ClientWidth = 310
+  LCLVersion = '2.3.0.0'
+  object Button1: TButton
+    Left = 280
+    Height = 25
+    Top = 0
+    Width = 25
+    Caption = 'X'
+    ModalResult = 2
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '🙂️'
+    OnClick = Button2Click
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 32
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '😁️'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object Button4: TButton
+    Left = 56
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '😅️'
+    OnClick = Button2Click
+    TabOrder = 3
+  end
+  object Button5: TButton
+    Left = 80
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '🤣️'
+    OnClick = Button2Click
+    TabOrder = 4
+  end
+  object Button6: TButton
+    Left = 104
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '😇️'
+    OnClick = Button2Click
+    TabOrder = 5
+  end
+  object Button7: TButton
+    Left = 128
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '🥰️'
+    OnClick = Button2Click
+    TabOrder = 6
+  end
+  object Button8: TButton
+    Left = 176
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '😘️'
+    OnClick = Button2Click
+    TabOrder = 7
+  end
+  object Button9: TButton
+    Left = 152
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '😍️'
+    OnClick = Button2Click
+    TabOrder = 8
+  end
+  object Button10: TButton
+    Left = 224
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '😋️'
+    OnClick = Button2Click
+    TabOrder = 9
+  end
+  object Button11: TButton
+    Left = 200
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '😗️'
+    OnClick = Button2Click
+    TabOrder = 10
+  end
+  object Button12: TButton
+    Left = 248
+    Height = 25
+    Top = 16
+    Width = 25
+    Caption = '😛️'
+    OnClick = Button2Click
+    TabOrder = 11
+  end
+  object Button13: TButton
+    Left = 8
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🤪️'
+    OnClick = Button2Click
+    TabOrder = 12
+  end
+  object Button14: TButton
+    Left = 32
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🤗️'
+    OnClick = Button2Click
+    TabOrder = 13
+  end
+  object Button15: TButton
+    Left = 56
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🤭️'
+    OnClick = Button2Click
+    TabOrder = 14
+  end
+  object Button16: TButton
+    Left = 80
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🤫️'
+    OnClick = Button2Click
+    TabOrder = 15
+  end
+  object Button17: TButton
+    Left = 104
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🤔️'
+    OnClick = Button2Click
+    TabOrder = 16
+  end
+  object Button18: TButton
+    Left = 128
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🤐️'
+    OnClick = Button2Click
+    TabOrder = 17
+  end
+  object Button19: TButton
+    Left = 176
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '😴️'
+    OnClick = Button2Click
+    TabOrder = 18
+  end
+  object Button20: TButton
+    Left = 152
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '😬️'
+    OnClick = Button2Click
+    TabOrder = 19
+  end
+  object Button21: TButton
+    Left = 224
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🤮️'
+    OnClick = Button2Click
+    TabOrder = 20
+  end
+  object Button22: TButton
+    Left = 200
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🤢️'
+    OnClick = Button2Click
+    TabOrder = 21
+  end
+  object Button23: TButton
+    Left = 248
+    Height = 25
+    Top = 40
+    Width = 25
+    Caption = '🥵️'
+    OnClick = Button2Click
+    TabOrder = 22
+  end
+  object Button24: TButton
+    Left = 8
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '🥶️'
+    OnClick = Button2Click
+    TabOrder = 23
+  end
+  object Button25: TButton
+    Left = 32
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '🤯️'
+    OnClick = Button2Click
+    TabOrder = 24
+  end
+  object Button26: TButton
+    Left = 56
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '🥳️'
+    OnClick = Button2Click
+    TabOrder = 25
+  end
+  object Button27: TButton
+    Left = 80
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '😎️'
+    OnClick = Button2Click
+    TabOrder = 26
+  end
+  object Button28: TButton
+    Left = 104
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '🤓️'
+    OnClick = Button2Click
+    TabOrder = 27
+  end
+  object Button29: TButton
+    Left = 128
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '😭️'
+    OnClick = Button2Click
+    TabOrder = 28
+  end
+  object Button30: TButton
+    Left = 176
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '🤬️'
+    OnClick = Button2Click
+    TabOrder = 29
+  end
+  object Button31: TButton
+    Left = 152
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '😱️'
+    OnClick = Button2Click
+    TabOrder = 30
+  end
+  object Button32: TButton
+    Left = 224
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '👌️'
+    OnClick = Button2Click
+    TabOrder = 31
+  end
+  object Button33: TButton
+    Left = 200
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '👋️'
+    OnClick = Button2Click
+    TabOrder = 32
+  end
+  object Button34: TButton
+    Left = 248
+    Height = 25
+    Top = 64
+    Width = 25
+    Caption = '☝️'
+    OnClick = Button2Click
+    TabOrder = 33
+  end
+  object Button35: TButton
+    Left = 8
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '👍️'
+    OnClick = Button2Click
+    TabOrder = 34
+  end
+  object Button36: TButton
+    Left = 32
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '👎️'
+    OnClick = Button2Click
+    TabOrder = 35
+  end
+  object Button37: TButton
+    Left = 56
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '👏️'
+    OnClick = Button2Click
+    TabOrder = 36
+  end
+  object Button38: TButton
+    Left = 80
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '🙏️'
+    OnClick = Button2Click
+    TabOrder = 37
+  end
+  object Button39: TButton
+    Left = 104
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '💪️'
+    OnClick = Button2Click
+    TabOrder = 38
+  end
+  object Button40: TButton
+    Left = 128
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '👀️'
+    OnClick = Button2Click
+    TabOrder = 39
+  end
+  object Button41: TButton
+    Left = 176
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '💑️'
+    OnClick = Button2Click
+    TabOrder = 40
+  end
+  object Button42: TButton
+    Left = 152
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '🙋‍♂️️'
+    OnClick = Button2Click
+    TabOrder = 41
+  end
+  object Button43: TButton
+    Left = 224
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '🐫️'
+    OnClick = Button2Click
+    TabOrder = 42
+  end
+  object Button44: TButton
+    Left = 200
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '🐪️'
+    OnClick = Button2Click
+    TabOrder = 43
+  end
+  object Button45: TButton
+    Left = 248
+    Height = 25
+    Top = 88
+    Width = 25
+    Caption = '🦙️'
+    OnClick = Button2Click
+    TabOrder = 44
+  end
+  object Button46: TButton
+    Left = 8
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '🥩️'
+    OnClick = Button2Click
+    TabOrder = 45
+  end
+  object Button47: TButton
+    Left = 32
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '🥓️'
+    OnClick = Button2Click
+    TabOrder = 46
+  end
+  object Button48: TButton
+    Left = 56
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '🍕️'
+    OnClick = Button2Click
+    TabOrder = 47
+  end
+  object Button49: TButton
+    Left = 80
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '🎂️'
+    OnClick = Button2Click
+    TabOrder = 48
+  end
+  object Button50: TButton
+    Left = 104
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '🍫️'
+    OnClick = Button2Click
+    TabOrder = 49
+  end
+  object Button51: TButton
+    Left = 128
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '🥂️'
+    OnClick = Button2Click
+    TabOrder = 50
+  end
+  object Button52: TButton
+    Left = 176
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '✈️'
+    OnClick = Button2Click
+    TabOrder = 51
+  end
+  object Button53: TButton
+    Left = 152
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '🏖️'
+    OnClick = Button2Click
+    TabOrder = 52
+  end
+  object Button54: TButton
+    Left = 224
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '⚽️'
+    OnClick = Button2Click
+    TabOrder = 53
+  end
+  object Button55: TButton
+    Left = 200
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '🚀️'
+    OnClick = Button2Click
+    TabOrder = 54
+  end
+  object Button56: TButton
+    Left = 248
+    Height = 25
+    Top = 112
+    Width = 25
+    Caption = '💩️'
+    OnClick = Button2Click
+    TabOrder = 55
+  end
+end

@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.06                                                         *)
+(* Version     : 0.08                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -36,6 +36,8 @@
 (*                      Filedrop support                                      *)
 (*                      improve error messages on file transfer reject        *)
 (*               0.07 - Trayicon for Linux and autofocus on Edit field        *)
+(*               0.08 - Emoji shortcuts                                       *)
+(*                      DND Button - unterdrückung von Show on New Message    *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -66,6 +68,12 @@ Const
   ILOffline = 2;
   ILOnline = 3;
   ILNewMessage = 4;
+  ILUploadFile = 5;
+  ILServerSetup = 6;
+  ILUserDND = 7; // -- Not yet used
+  ILDND = 8;
+  ILChats = 9;
+  ILDNDCHats = 10;
 
   (*
    * Laut Chunkmanager Dokumentation darf man nicht mehr als 64KB auf 1 mal senden (=> die Paketgröße muss also unter 64KB bleiben)
@@ -117,6 +125,7 @@ Type
     Button1: TButton;
     Button2: TButton;
     Button3: TButton;
+    Button4: TButton;
     Edit1: TEdit;
     ImageList1: TImageList;
     IniPropStorage1: TIniPropStorage;
@@ -128,6 +137,7 @@ Type
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     OpenDialog1: TOpenDialog;
     PairSplitter1: TPairSplitter;
     PairSplitterSide1: TPairSplitterSide;
@@ -143,6 +153,7 @@ Type
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
+    Procedure Button4Click(Sender: TObject);
     Procedure Edit1KeyPress(Sender: TObject; Var Key: char);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
@@ -159,6 +170,7 @@ Type
     Procedure MenuItem3Click(Sender: TObject);
     Procedure MenuItem4Click(Sender: TObject);
     Procedure MenuItem5Click(Sender: TObject);
+    Procedure MenuItem6Click(Sender: TObject);
     Procedure SpeedButton1Click(Sender: TObject);
     Procedure SpeedButton2Click(Sender: TObject);
     Procedure SpeedButton3Click(Sender: TObject);
@@ -218,6 +230,7 @@ Uses
   Unit2 // Settings
   , unit3 // File Transfer progress
   , unit4 // Server Settings
+  , unit5 // Emoji's
   , math
   , ulanchatcommon, md5, LCLType, Clipbrd, FileUtil, LazFileUtils, LCLIntf, strutils;
 
@@ -242,7 +255,7 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.06';
+  defcaption := 'Lan chat ver. 0.08';
   // TODO: Ist das so clever, das jeder user seine Farbe selbst bestimmen darf und die bei den Anderen auch so angezeigt wird ?
   (*
    * Die Linux Version von Lazarus tickt komplett aus, wenn diese Komponente auf dem Formular ist
@@ -384,8 +397,19 @@ End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
 Begin
+  MenuItem6Click(Nil);
   TrayIcon1.Show;
   visible := false;
+End;
+
+Procedure TForm1.Button4Click(Sender: TObject);
+Var
+  p: TPoint;
+Begin
+  p := ControlToScreen(point(button4.left, button4.Top + button4.Height));
+  form5.Top := p.Y + Scale96ToForm(10);
+  form5.left := p.x + Scale96ToForm(165);
+  form5.ShowModal;
 End;
 
 Procedure TForm1.Edit1KeyPress(Sender: TObject; Var Key: char);
@@ -575,6 +599,39 @@ Begin
   SpeedButton1.Click;
 End;
 
+Procedure TForm1.MenuItem6Click(Sender: TObject);
+Var
+  b: TBitmap;
+  index, i: integer;
+Begin
+  b := TBitmap.Create;
+  b.Width := ImageList1.Width;
+  b.Height := ImageList1.Height;
+  If MenuItem6.Checked Then Begin
+    index := ILDND;
+    // Wenn irgend ein Chat eine Ungelesene Nachricht hat, passen wir das Icon entsprechend an ..
+    For i := 0 To High(fParticipants) Do Begin
+      If fParticipants[i].nm Then Begin
+        index := ILDNDCHats;
+        break;
+      End;
+    End;
+  End
+  Else Begin
+    index := ILChats;
+  End;
+  b.canvas.Brush.Color := clWhite;
+  b.canvas.Rectangle(-1, -1, 17, 17);
+  b.TransparentColor := clWhite;
+  b.Transparent := true;
+  ImageList1.Draw(b.Canvas, 0, 0, index);
+  TrayIcon1.Icon.Assign(b);
+  TrayIcon1.InternalUpdate;
+  TrayIcon1.Show;
+  //  Form1.Invalidate;
+  b.free;
+End;
+
 Procedure TForm1.SpeedButton1Click(Sender: TObject);
 Begin
   // Optionen
@@ -593,6 +650,7 @@ Var
 Begin
   // Server Settings
   pw := PasswordBox('Action', 'Please enter server password to access server settings');
+  If trim(pw) = '' Then exit;
   pwhash := MD5Print(MD5String(pw));
   data := TMemoryStream.Create;
   data.WriteAnsiString(pwhash);
@@ -610,6 +668,7 @@ Begin
   // Show
   TrayIcon1.Visible := false;
   Visible := true;
+  MenuItem6.Checked := false; // Das DND nehmen wir automatisch weg, weil der User nun ja definitiv wieder was sehen will..
   BringToFront;
 End;
 
@@ -832,18 +891,25 @@ Begin
   End;
   //  ListBox1.Click;
   PlayInfoSound();
-  If IniPropStorage1.ReadBoolean('Show_on_new_message', false) Then Begin
-    If Not visible Then Begin
-      // Wir sollen Hoch popen, dann wählen wir auch gleich den Richtigen an ..
-      For i := 0 To ListBox1.Items.Count - 1 Do Begin
-        If lowercase(ListBox1.Items[i]) = LowerCase(aSender) Then Begin
-          ListBox1.ItemIndex := i;
-          break;
+  If (MenuItem6.Checked) Then Begin
+    If TrayIcon1.Visible Then Begin
+      MenuItem6Click(Nil); // Update the Tray Icon ;)
+    End;
+  End
+  Else Begin
+    If IniPropStorage1.ReadBoolean('Show_on_new_message', false) Then Begin
+      If Not visible Then Begin
+        // Wir sollen Hoch popen, dann wählen wir auch gleich den Richtigen an ..
+        For i := 0 To ListBox1.Items.Count - 1 Do Begin
+          If lowercase(ListBox1.Items[i]) = LowerCase(aSender) Then Begin
+            ListBox1.ItemIndex := i;
+            break;
+          End;
         End;
+        ListBox1.Click;
+        ListBox1.Invalidate;
+        TrayIcon1.OnClick(Nil);
       End;
-      ListBox1.Click;
-      ListBox1.Invalidate;
-      TrayIcon1.OnClick(Nil);
     End;
   End;
 End;
@@ -1332,6 +1398,11 @@ Begin
     '</html>';
   LoadTextToHTMLView(sl.text);
   sl.free;
+  ListBox1.Clear;
+  setlength(fParticipants, 0);
+  FileSendData.State := 0;
+  If assigned(FileSendData.FileStream) Then FileSendData.FileStream.Free;
+  FileSendData.FileStream := Nil;
   timer1.enabled := true;
 End;
 
