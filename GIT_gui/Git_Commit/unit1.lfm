@@ -6,20 +6,20 @@ object Form1: TForm1
   Caption = 'Form1'
   ClientHeight = 717
   ClientWidth = 926
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
-  Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
   object Label1: TLabel
     Left = 8
-    Height = 15
+    Height = 16
     Top = 12
-    Width = 61
+    Width = 65
     Caption = 'Commit to:'
   end
   object Edit1: TEdit
     Left = 80
-    Height = 23
+    Height = 26
     Top = 8
     Width = 640
     Anchors = [akTop, akLeft, akRight]
@@ -28,14 +28,14 @@ object Form1: TForm1
     Text = 'Edit1'
   end
   object CheckBox1: TCheckBox
-    Left = 736
-    Height = 19
+    Left = 722
+    Height = 22
     Top = 12
-    Width = 80
+    Width = 94
     Anchors = [akTop, akRight]
     Caption = 'new branch'
-    OnClick = CheckBox1Click
     TabOrder = 1
+    OnClick = CheckBox1Click
   end
   object PairSplitter1: TPairSplitter
     Cursor = crVSplit
@@ -62,59 +62,59 @@ object Form1: TForm1
         Width = 904
         Align = alClient
         Caption = ' Message: '
-        ClientHeight = 230
-        ClientWidth = 900
+        ClientHeight = 233
+        ClientWidth = 902
         TabOrder = 0
         object Memo1: TMemo
           Left = 8
-          Height = 148
+          Height = 151
           Top = 0
-          Width = 882
+          Width = 884
           Anchors = [akTop, akLeft, akRight, akBottom]
           Font.Name = 'Courier New'
           Lines.Strings = (
             'Memo1'
           )
-          OnChange = Memo1Change
           ParentFont = False
           PopupMenu = PopupMenu2
           ScrollBars = ssAutoBoth
           TabOrder = 0
           WordWrap = False
+          OnChange = Memo1Change
         end
         object CheckBox4: TCheckBox
           Left = 8
-          Height = 19
+          Height = 22
           Top = 154
-          Width = 128
+          Width = 144
           Anchors = [akLeft, akBottom]
           Caption = 'Amend Last Commit'
-          OnClick = CheckBox4Click
           TabOrder = 1
+          OnClick = CheckBox4Click
         end
         object CheckBox5: TCheckBox
           Left = 8
-          Height = 19
+          Height = 22
           Top = 178
-          Width = 98
+          Width = 117
           Anchors = [akLeft, akBottom]
           Caption = 'Set author date'
           TabOrder = 2
         end
         object CheckBox6: TCheckBox
           Left = 8
-          Height = 19
+          Height = 22
           Top = 202
-          Width = 72
+          Width = 87
           Anchors = [akLeft, akBottom]
           Caption = 'Set author'
           TabOrder = 3
         end
         object Label2: TLabel
-          Left = 856
-          Height = 15
-          Top = 154
-          Width = 34
+          Left = 851
+          Height = 16
+          Top = 156
+          Width = 41
           Anchors = [akRight, akBottom]
           Caption = 'Label2'
         end
@@ -135,21 +135,21 @@ object Form1: TForm1
         Width = 904
         Align = alClient
         Caption = ' Changes made (double-click on file for diff): '
-        ClientHeight = 346
-        ClientWidth = 900
+        ClientHeight = 349
+        ClientWidth = 902
         TabOrder = 0
         object Label3: TLabel
           Left = 8
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 36
+          Width = 39
           Caption = 'Check:'
         end
         object Label4: TLabel
           Left = 56
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 14
+          Width = 18
           Caption = 'All'
           Font.Style = [fsBold]
           ParentFont = False
@@ -157,9 +157,9 @@ object Form1: TForm1
         end
         object Label5: TLabel
           Left = 84
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 30
+          Width = 34
           Caption = 'None'
           Font.Style = [fsBold]
           ParentFont = False
@@ -167,9 +167,9 @@ object Form1: TForm1
         end
         object Label6: TLabel
           Left = 128
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 71
+          Width = 80
           Caption = 'Unversioned'
           Font.Style = [fsBold]
           ParentFont = False
@@ -177,9 +177,9 @@ object Form1: TForm1
         end
         object Label7: TLabel
           Left = 216
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 55
+          Width = 65
           Caption = 'Versioned'
           Font.Style = [fsBold]
           ParentFont = False
@@ -187,27 +187,27 @@ object Form1: TForm1
         end
         object Label8: TLabel
           Left = 288
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 36
+          Width = 41
           Caption = 'Added'
           Font.Style = [fsBold]
           ParentFont = False
         end
         object Label9: TLabel
           Left = 344
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 45
+          Width = 52
           Caption = 'Deleted'
           Font.Style = [fsBold]
           ParentFont = False
         end
         object Label10: TLabel
           Left = 408
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 50
+          Width = 57
           Caption = 'Modified'
           Font.Style = [fsBold]
           ParentFont = False
@@ -215,9 +215,9 @@ object Form1: TForm1
         end
         object Label11: TLabel
           Left = 472
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 24
+          Width = 30
           Caption = 'Files'
           Enabled = False
           Font.Style = [fsBold]
@@ -225,9 +225,9 @@ object Form1: TForm1
         end
         object Label12: TLabel
           Left = 512
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 68
+          Width = 77
           Caption = 'Submodules'
           Enabled = False
           Font.Style = [fsBold]
@@ -235,38 +235,38 @@ object Form1: TForm1
         end
         object CheckBox7: TCheckBox
           Left = 8
-          Height = 19
+          Height = 22
           Top = 283
-          Width = 195
+          Width = 229
           Anchors = [akLeft, akBottom]
           Caption = 'Staging support (EXPERIMENTAL)'
           TabOrder = 0
         end
         object CheckBox8: TCheckBox
           Left = 8
-          Height = 19
+          Height = 22
           Top = 304
-          Width = 141
+          Width = 164
           Anchors = [akLeft, akBottom]
           Caption = 'Show unversioned Files'
           Checked = True
-          OnClick = CheckBox8Click
           State = cbChecked
           TabOrder = 1
+          OnClick = CheckBox8Click
         end
         object CheckBox9: TCheckBox
           Left = 8
-          Height = 19
+          Height = 22
           Top = 328
-          Width = 179
+          Width = 209
           Anchors = [akLeft, akBottom]
           Caption = 'Do not autoselect submodules'
           TabOrder = 2
         end
         object Label13: TLabel
-          Left = 680
+          Left = 682
           Height = 32
-          Top = 283
+          Top = 286
           Width = 208
           Alignment = taRightJustify
           Anchors = [akRight, akBottom]
@@ -274,10 +274,10 @@ object Form1: TForm1
           Caption = 'Label13'
         end
         object Label14: TLabel
-          Left = 813
-          Height = 15
-          Top = 315
-          Width = 77
+          Left = 807
+          Height = 16
+          Top = 317
+          Width = 85
           Anchors = [akRight, akBottom]
           Caption = 'View Patch >>'
           Font.Color = clBlue
@@ -285,9 +285,9 @@ object Form1: TForm1
         end
         object StringGrid1: TStringGrid
           Left = 8
-          Height = 257
+          Height = 260
           Top = 24
-          Width = 882
+          Width = 884
           Anchors = [akTop, akLeft, akRight, akBottom]
           AutoFillColumns = True
           ColCount = 7
@@ -335,7 +335,7 @@ object Form1: TForm1
             item
               ReadOnly = True
               Title.Caption = ''
-              Width = 125
+              Width = 129
             end>
           FixedCols = 0
           Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goRangeSelect, goColSizing, goEditing, goRowSelect, goSmoothScroll]
@@ -354,7 +354,7 @@ object Form1: TForm1
             125
             125
             125
-            125
+            129
           )
         end
       end
@@ -368,8 +368,9 @@ object Form1: TForm1
     Anchors = [akRight, akBottom]
     Caption = 'Button1'
     Enabled = False
-    OnMouseDown = Button1MouseDown
     TabOrder = 3
+    OnClick = Button1Click
+    OnMouseDown = Button1MouseDown
   end
   object Button2: TButton
     Left = 752
@@ -378,8 +379,8 @@ object Form1: TForm1
     Width = 75
     Anchors = [akRight, akBottom]
     Caption = 'Cancel'
-    OnClick = Button2Click
     TabOrder = 4
+    OnClick = Button2Click
   end
   object Button3: TButton
     Left = 837
@@ -392,9 +393,9 @@ object Form1: TForm1
   end
   object CheckBox2: TCheckBox
     Left = 8
-    Height = 19
-    Top = 667
-    Width = 124
+    Height = 22
+    Top = 664
+    Width = 144
     Anchors = [akLeft, akBottom]
     Caption = 'Show Whole Project'
     Enabled = False
@@ -402,9 +403,9 @@ object Form1: TForm1
   end
   object CheckBox3: TCheckBox
     Left = 8
-    Height = 19
-    Top = 687
-    Width = 90
+    Height = 22
+    Top = 684
+    Width = 107
     Anchors = [akLeft, akBottom]
     Caption = 'Message only'
     TabOrder = 7
@@ -416,14 +417,14 @@ object Form1: TForm1
     Width = 75
     Anchors = [akTop, akRight]
     Caption = 'Options'
-    OnClick = Button4Click
     TabOrder = 8
+    OnClick = Button4Click
   end
   object Label15: TLabel
     Left = 80
-    Height = 15
+    Height = 16
     Top = 12
-    Width = 40
+    Width = 49
     Caption = 'Label15'
   end
   object PopupMenu1: TPopupMenu

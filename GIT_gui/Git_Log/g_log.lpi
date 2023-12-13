@@ -5,7 +5,7 @@
     <PathDelim Value="\"/>
     <General>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="g_commit"/>
+      <Title Value="g_log"/>
       <Scaled Value="True"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -30,7 +30,7 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="g_commit.lpr"/>
+        <Filename Value="g_log.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -49,16 +49,8 @@
         <Filename Value="..\ugitoptions.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="GitOptions"/>
-        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uGITOptions"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\ugitprogress.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="GitProgress"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -66,7 +58,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\g_commit"/>
+      <Filename Value="..\g_log"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

@@ -49,6 +49,18 @@ Capabilities:
 - explore to
 - amend last commit (only text, not files)
 
+## Git Show log
+
+Browse through your commit history
+
+!! Attention !!
+This is extremly work in progress, git graph is still missing.
+
+![](log_preview.png)
+
+Capabilities:
+- see what was changes on a specific commit hash
+
 ## Git pull
 
 Pull the actual branch of a repository

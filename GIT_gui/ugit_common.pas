@@ -77,6 +77,7 @@ Type
   End;
 
   TCommitInformations = Record
+    LogMessage: String;
     BranchSelector: TBranchSelector;
     RepoRoot: String;
     CommitFileInfo: Array Of TCommitFileInfo;
@@ -100,7 +101,7 @@ Type
    * Für den Commit Dialog
    * - Liste aller hinzugefügten / Modifizierten Dateien...
    *)
-Function GetCommitInformations(Const aDir: String): TCommitInformations;
+Function GetCommitInformations(Const aDir, Hash: String): TCommitInformations;
 
 (*
  * Für die Optionen Username, E-mail ....
@@ -130,9 +131,13 @@ Function StatusToString(Const Value: TCommitStatus): String;
  *)
 Function RunCommand(WorkDir: String; Command: String; Params: Array Of String): TStringlist;
 
+Procedure Nop(); // Debugging only
+
 Implementation
 
-Uses UTF8Process, process;
+Uses UTF8Process, process
+  , dialogs // Debug remove !
+  ;
 
 Procedure Nop();
 Begin
@@ -141,24 +146,60 @@ End;
 
 Function RunCommand(WorkDir: String; Command: String; Params: Array Of String
   ): TStringlist;
+Const
+  BUF_SIZE = 2048; // Buffer size for reading the output in chunks
 Var
-  AD: String;
   P: TProcessUTF8;
   i: Integer;
+  Buffer: Array[0..BUF_SIZE] Of char;
+  BytesRead: LongInt;
+  t, s, cd: String;
+  InBuffer: String;
+  index: Integer;
 Begin
   result := TStringList.Create;
-  ad := GetCurrentDir;
-  SetCurrentDir(WorkDir);
-  p := TProcessUTF8.Create(Nil);
-  p.Options := [poUsePipes, poStderrToOutPut, poNoConsole, poWaitOnExit];
-  p.Executable := Command;
-  For i := 0 To high(Params) Do Begin
-    p.Parameters.Add(Params[i]);
+  cd := GetCurrentDir;
+  Try
+    SetCurrentDir(Workdir);
+    p := TProcessUTF8.Create(Nil);
+    p.Options := [poUsePipes, poStderrToOutPut, poNoConsole];
+    p.Executable := Command;
+    For i := 0 To high(Params) Do Begin
+      p.Parameters.Add(Params[i]);
+    End;
+    p.execute;
+    s := '';
+    InBuffer := '';
+    Buffer[0] := #0; // Compilerwarnung platt machen
+    (*
+     * Loop until Programm is finished and all buffers are empty
+     *)
+    While p.Running Or (p.Output.NumBytesAvailable > 0) Do Begin
+      While (p.Output.NumBytesAvailable > 0) Do Begin
+        BytesRead := p.Output.Read(Buffer, BUF_SIZE);
+        setlength(s, BytesRead);
+        For i := 1 To BytesRead Do Begin
+          s[i] := Buffer[i - 1];
+        End;
+        InBuffer := InBuffer + s;
+        // Zeilenweises Auslesen
+        index := pos(#10, InBuffer); // Git nutzt immer #10 als CRT ;)
+        While index <> 0 Do Begin
+          t := copy(InBuffer, 1, index - 1);
+          Result.Append(t);
+          delete(InBuffer, 1, index);
+          index := pos(#10, InBuffer);
+        End;
+      End;
+      sleep(1); // ka ob das Sinnvoll ist, aber eine While schleife ohne kommt einem irgendwie komisch vor ..
+    End;
+    If InBuffer <> '' Then Begin
+      result.Append(InBuffer);
+    End;
+    p.free;
+  Finally
+    SetCurrentDir(cd);
   End;
-  p.Execute;
-  result.LoadFromStream(p.Output);
-  p.free;
-  SetCurrentDir(ad);
 End;
 
 Function ExtractBranchSelector(value: String): TBranchSelector;
@@ -258,12 +299,18 @@ Begin
   End;
 End;
 
-Function ExtractCommitFileInfo(value: String): TCommitFileInfo;
+Function ExtractCommitFileInfo(value: String; Separator: Char): TCommitFileInfo;
 Begin
   result.LinesAdded := 0;
   result.LinesRemoved := 0;
-  result.Status := StrToStatus(copy(value, 1, 2));
-  result.FileName := copy(value, 4, length(value));
+  If Separator = #32 Then Begin
+    result.Status := StrToStatus(copy(value, 1, 2));
+    result.FileName := copy(value, 4, length(value));
+  End
+  Else Begin
+    result.Status := StrToStatus(copy(value, 1, pos(Separator, value) - 1));
+    result.FileName := copy(value, pos(Separator, value) + 1, length(value));
+  End;
   If pos('"', result.FileName) = 1 Then Begin
     delete(result.FileName, 1, 1);
     delete(result.FileName, length(Result.FileName), 1);
@@ -280,19 +327,37 @@ Begin
   End;
 End;
 
-Function GetCommitInformations(Const aDir: String): TCommitInformations;
+Function GetCommitInformations(Const aDir, Hash: String): TCommitInformations;
 Var
   Res: TStringlist;
-  i: Integer;
+  i, StartIndex: Integer;
+  Separator: Char;
   fn, s: String;
 Begin
   result.RepoRoot := aDir;
   // 1. Liste der Geänderten Dateien und des Aktuellen Branchs auslesen
-  res := RunCommand(aDir, 'git', ['status', '-sb', '--porcelain']);
-  result.BranchSelector := ExtractBranchSelector(res[0]);
-  setlength(result.CommitFileInfo, Res.Count - 1);
-  For i := 1 To Res.Count - 1 Do Begin
-    result.CommitFileInfo[i - 1] := ExtractCommitFileInfo(Res[i]);
+  If lowercase(trim(hash)) = '0000000000000000000000000000000000000000' Then Begin
+    // Working Tree Changes
+    res := RunCommand(aDir, 'git', ['status', '-sb', '--porcelain']);
+    result.BranchSelector := ExtractBranchSelector(res[0]);
+    result.LogMessage := ''; // Gibt es ja keine
+    StartIndex := 1;
+    Separator := #32;
+  End
+  Else Begin
+    res := RunCommand(aDir, 'git', ['log', '--format=%B', '-n', '1', Hash]);
+    result.LogMessage := res.text;
+    res.free;
+    // Infos zu einem Bestimmten Commit
+    res := RunCommand(aDir, 'git', ['show', '--pretty=format:""', '--name-status', Hash]);
+    result.BranchSelector.Local := 'todo..';
+    result.BranchSelector.Remote := 'todo..';
+    StartIndex := 1;
+    Separator := #9;
+  End;
+  setlength(result.CommitFileInfo, Res.Count - StartIndex);
+  For i := StartIndex To Res.Count - 1 Do Begin
+    result.CommitFileInfo[i - StartIndex] := ExtractCommitFileInfo(Res[i], Separator);
   End;
   res.free;
   // 2. Die "Diffs" nachladen

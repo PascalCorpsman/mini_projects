@@ -41,7 +41,7 @@ Type
 
   public
     Function RunVisualCommand(aDir, aCommand: String; params: Array Of String): boolean;
-    Procedure SetContinueButtonTo(aCaption: String);  // TODO: um die Popup Einträge Erweitern ...
+    Procedure SetContinueButtonTo(aCaption: String); // TODO: um die Popup Einträge Erweitern ...
   End;
 
 Var
@@ -74,6 +74,7 @@ Begin
 {$IFDEF Windows}
         fn := fn + '.exe';
 {$ENDIF}
+        p.Options := [poWaitOnExit, poNoConsole];
         p.Executable := fn;
         p.Parameters.Add(ProjectRoot);
         p.Execute;
@@ -89,6 +90,7 @@ Begin
 {$IFDEF Windows}
         fn := fn + '.exe';
 {$ENDIF}
+        p.Options := [poWaitOnExit, poNoConsole];
         p.Executable := fn;
         p.Parameters.Add(ProjectRoot);
         p.Execute;

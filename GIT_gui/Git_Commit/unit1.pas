@@ -100,6 +100,7 @@ Type
     PopupMenu3: TPopupMenu;
     Separator1: TMenuItem;
     StringGrid1: TStringGrid;
+    Procedure Button1Click(Sender: TObject);
     Procedure Button1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     Procedure Button2Click(Sender: TObject);
@@ -609,7 +610,7 @@ Var
   i: Integer;
   bUnversioned, bVersioned, bAdded, bDeleted, bModified: Boolean;
 Begin
-  r := GetCommitInformations(ProjectRoot);
+  r := GetCommitInformations(ProjectRoot, '0000000000000000000000000000000000000000');
   caption := r.RepoRoot + DefCaption;
   Label15.caption := r.BranchSelector.Local;
   StringGrid1.RowCount := length(r.CommitFileInfo) + 1;
@@ -754,6 +755,11 @@ End;
 Procedure TForm1.Button2Click(Sender: TObject);
 Begin
   close;
+End;
+
+Procedure TForm1.Button1Click(Sender: TObject);
+Begin
+  // Nichts der Code Steht im Mouse Down !
 End;
 
 Procedure TForm1.Button1MouseDown(Sender: TObject; Button: TMouseButton;

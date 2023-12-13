@@ -12,7 +12,7 @@
 (*               source file of the project.                                  *)
 (*                                                                            *)
 (******************************************************************************)
-Program g_commit;
+Program g_log;
 
 {$MODE objfpc}{$H+}
 
@@ -24,18 +24,17 @@ Uses
   athreads,
 {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, Unit1, uGITOptions, ugitprogress
+  Forms, Unit1, uGITOptions
   { you can add units after this };
 
 {$R *.res}
 
 Begin
   RequireDerivedFormResource := True;
-  Application.Scaled:=True;
+  Application.Scaled := True;
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TGitOptions, GitOptions);
-  Application.CreateForm(TGitProgress, GitProgress);
   Application.Run;
 End.
 
