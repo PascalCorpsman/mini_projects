@@ -137,6 +137,7 @@ Implementation
 
 Uses UTF8Process, process
   , dialogs // Debug remove !
+  , math
   ;
 
 Procedure Nop();
@@ -355,7 +356,7 @@ Begin
     StartIndex := 1;
     Separator := #9;
   End;
-  setlength(result.CommitFileInfo, Res.Count - StartIndex);
+  setlength(result.CommitFileInfo, max(0, Res.Count - StartIndex));
   For i := StartIndex To Res.Count - 1 Do Begin
     result.CommitFileInfo[i - StartIndex] := ExtractCommitFileInfo(Res[i], Separator);
   End;

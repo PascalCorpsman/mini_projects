@@ -28,12 +28,13 @@ Uses
 
  (*
   * History: 0.01 = Initialversion (26.11.2023)
+  *          0.02 = Activate Git graph
   *
   * Icons geladen von: https://peacocksoftware.com/silk
   *)
 
 Const
-  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.01';
+  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.02';
 
   IndexActionFileModified = 0; // If a revision modified a file or directory, the modified icon is shown in the first column.
   IndexActionFileAdded = 1; // If a revision added a File Or directory, the added icon Is shown In the second column.
@@ -45,7 +46,13 @@ Const
   BitFileDeleted = 4;
   BitFileRenamed = 8;
 
-  GrapColors: Array[0..7] Of TColor = (clBlack, clRed, clLime, clBlue, $00808080, $00008080, $00808000, $00808000);
+  (*
+   * Maximum number of Branches that can be Displayed at the same time
+   * This is a more or less "random" number. So if you have projects with more
+   * active branches, feel free to increase.
+   *)
+  MaxBranches = 32;
+  BranchColors: Array[0..7] Of TColor = (clBlack, clRed, clLime, clBlue, $00808080, $00008080, $00808000, $00808000);
 
 Type
   (*
@@ -72,9 +79,11 @@ Type
     Elements: TFieldElements;
     PrimColor: TColor; // Farbe aller Linien, Kreise, Rechtecke und des Bogenstücks welcher die Innere Senkrechte berührt
     SecColor: TColor; // Die 2. Farbe des Bogenstücks
+    Hash: String;
+    Active: Boolean; // True = diese "Swimlane" wird gerade genutzt, false = Frei
   End;
 
-  TFieldRow = Array Of TField;
+  TFieldRow = Array[0..MaxBranches - 1] Of TField;
 
   TGraph = Array Of TFieldRow;
 
@@ -280,22 +289,18 @@ Var
   Begin
     StringGrid1.Canvas.Brush.Color := aElement.PrimColor;
     StringGrid1.Canvas.Pen.Color := aElement.PrimColor;
-
     If feHalfVLineUp In aElement.Elements Then Begin
       StringGrid1.Canvas.Line(r.Left + wh, r.Top + wh, r.Left + wh, r.Top - 1);
     End;
-
     If feHalfVLineDown In aElement.Elements Then Begin
       StringGrid1.Canvas.Line(r.Left + wh, r.Top + wh, r.Left + wh, r.Bottom);
     End;
-
     If feHalfLeftHLine In aElement.Elements Then Begin
       StringGrid1.Canvas.Line(r.Left + wh, r.Top + wh, r.Left, r.Top + wh);
     End;
     If feHalfRightHLine In aElement.Elements Then Begin
       StringGrid1.Canvas.Line(r.Left + wh, r.Top + wh, r.Right, r.Top + wh);
     End;
-
     (*
      * Die Bögen sind doof, eigentlich sollte man das Pixelbasiert machen
      * aber Pixelweiser zugriff ist Langsamer als Linien malen
@@ -316,7 +321,6 @@ Var
       End;
       StringGrid1.Canvas.Line(ox, oy, x - 1, y);
     End;
-
     If feArcLU In aElement.Elements Then Begin
       i := 0;
       sincos(pi * i / (2 * Steps), s, c);
@@ -333,8 +337,6 @@ Var
       End;
       StringGrid1.Canvas.Line(ox, oy, x - 1, y);
     End;
-
-
     If feArcRU In aElement.Elements Then Begin
       i := 0;
       sincos(pi * i / (2 * Steps), s, c);
@@ -351,7 +353,6 @@ Var
       End;
       StringGrid1.Canvas.Line(ox, oy, x - 1, y);
     End;
-
     If feArcUR In aElement.Elements Then Begin
       i := 0;
       sincos(pi * i / (2 * Steps), s, c);
@@ -368,7 +369,6 @@ Var
       End;
       StringGrid1.Canvas.Line(ox, oy, x - 1, y);
     End;
-
     If feCircle In aElement.Elements Then Begin
       StringGrid1.Canvas.Ellipse(r.Left + wf, r.Top + wf, r.Right - wf, r.Bottom - wf);
     End;
@@ -431,7 +431,9 @@ Begin
     r.Right := aRect.Left + w;
     r.Bottom := aRect.Bottom;
     For i := 0 To high(Graph[aRow - 1]) Do Begin
-      drawElement(Graph[aRow - 1, i], r);
+      If Graph[aRow - 1, i].Active Then Begin
+        drawElement(Graph[aRow - 1, i], r);
+      End;
       r.Left := r.Left + w;
       r.Right := r.Right + w;
     End;
@@ -472,31 +474,181 @@ Procedure TForm1.LoadLCL;
 
 Type
   TGraphInfo = Record
-    hash, ParentHash: String;
+    hash: String;
+    ParentsHash: Array Of String;
+  End;
+Var
+  GraphInfo: Array Of TGraphInfo;
+
+  Procedure CalcGraph();
+
+    Function GetEmptySwimLane(Index: Integer): Integer;
+    Var
+      i: Integer;
+    Begin
+      result := -1;
+      For i := 0 To MaxBranches - 1 Do Begin
+        If Not Graph[index, i].Active Then Begin
+          result := i;
+          exit;
+        End;
+      End;
+      Raise exception.create('Error, to much simultanous branches, recompile with a bigger MaxBranches constant.');
+    End;
+
+    Function GetSwimLane(Index: integer; Hash: String): integer;
+    Var
+      i: Integer;
+    Begin
+      result := -1; // Nicht gefunden
+      For i := 0 To MaxBranches - 1 Do Begin
+        If Graph[index, i].Hash = Hash Then Begin
+          result := i;
+          exit;
+        End;
+      End;
+    End;
+
+  Var
+    j, i, index, k, newindex, l: Integer;
+  Begin
+    Graph := Nil;
+    setlength(Graph, length(GraphInfo) + 1);
+    For j := 0 To high(Graph) Do Begin
+      For i := 0 To MaxBranches - 1 Do Begin
+        Graph[j, i].Elements := [];
+        Graph[j, i].PrimColor := BranchColors[i Mod length(BranchColors)];
+        Graph[j, i].SecColor := clBlack;
+        Graph[j, i].Hash := '';
+        Graph[j, i].Active := false;
+      End;
+    End;
+    // Befüllen mit Look Ahead 1
+    For j := 0 To high(GraphInfo) Do Begin
+      index := GetSwimLane(j + 1, GraphInfo[j].hash);
+      If index = -1 Then Begin // Hier Startet was neues -> Neuen Index Suchen
+        index := GetEmptySwimLane(j + 1);
+        Graph[j + 1, index].Active := true;
+        Graph[j + 1, index].Hash := GraphInfo[0].hash;
+        Graph[j + 1, index].Elements := [feCircle, feHalfVLineDown];
+      End;
+      Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feCircle];
+      // Die SwimLanes weiter Führen
+      If j < high(GraphInfo) Then Begin
+        For k := 0 To MaxBranches - 1 Do Begin
+          If Graph[j + 1, k].Active Then Begin
+            If (Graph[j, k].Hash <> '') Then Begin
+              Graph[j + 1, k].Elements := Graph[j + 1, k].Elements + [feHalfVLineDown, feHalfVLineUp];
+            End;
+            If k = index Then Begin
+              Case length(GraphInfo[j].ParentsHash) Of
+                0: Begin
+                    // Hier startet ein Branch aus dem Nichts
+                  End;
+                1: Begin
+                    Graph[j + 2, index].Active := true;
+                    Graph[j + 2, index].Hash := GraphInfo[j].ParentsHash[0];
+                  End;
+                2: Begin
+                    // Hier ein Merge von zwei neuen Branches (Quasi Gleich wie Oben Case 2)
+                    newindex := GetEmptySwimLane(j + 1);
+                    Graph[j + 1, index].Elements := Graph[j + 1, index].Elements - [feCircle];
+                    Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feRectangle, feHalfVLineUp];
+                    If index < newindex Then Begin
+                      // Die Neue Swimlane liegt "rechts"
+                      Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feHalfRightHLine];
+                      // Das Waagrechte Teilstück
+                      For l := index + 1 To newindex - 1 Do Begin
+                        Graph[j + 1, l].Active := true; // Kann sein, dass das hier sogar schaden anrichtet !!
+                        Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
+                      End;
+                      // Der Bogen nach Unten
+                      Graph[j + 1, newindex].Elements := Graph[j + 1, newindex].Elements + [feArcUL];
+                      //Graph[j + 1, newindex].Elements := Graph[j + 1, newindex].Elements - [feHalfVLineDown, feHalfVLineUp];
+                      Graph[j + 1, newindex].Hash := GraphInfo[j].ParentsHash[1];
+                      Graph[j + 1, newindex].Active := true;
+                    End
+                    Else Begin
+                      // Die Neue Swimlane liegt "Links"
+                      Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feHalfLeftHLine];
+                      // Das Waagrechte Teilstück
+                      For l := newindex + 1 To index - 1 Do Begin
+                        Graph[j + 1, l].Active := true; // Kann sein, dass das hier sogar schaden anrichtet !!
+                        Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
+                      End;
+                      // Der Bogen nach unten
+                      Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feArcUR];
+                      //Graph[j + 1, index].Elements := Graph[j + 1, index].Elements - [feHalfVLineDown, feHalfVLineUp];
+                      Graph[j + 1, index].Hash := GraphInfo[j].ParentsHash[0];
+                      Graph[j + 1, index].Active := true;
+                    End;
+                    Graph[j + 2, index].Active := true;
+                    Graph[j + 2, index].Hash := GraphInfo[j].ParentsHash[0];
+                    Graph[j + 2, newindex].Active := true;
+                    Graph[j + 2, newindex].Hash := GraphInfo[j].ParentsHash[1];
+                  End;
+              End;
+            End
+            Else Begin
+              // LookaHead auf einen ggf Merge
+              Graph[j + 2, k].Active := true;
+              Graph[j + 2, k].Hash := Graph[j + 1, k].Hash;
+            End;
+          End;
+        End;
+      End
+      Else Begin
+        // Der aller letzte Knoten, oder auch der 1. Kommit überhaupt
+        Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feHalfVLineUp];
+      End;
+      // Mergen der Swimlanes
+      For i := 0 To MaxBranches - 1 Do Begin
+        For k := i + 1 To MaxBranches - 1 Do Begin
+          If (Graph[j + 1, i].Active) And (Graph[j + 1, k].Active) And
+            (Graph[j + 1, i].Hash = Graph[j + 1, k].Hash) Then Begin
+            // Ist der Merge nach Links oder nach Rechts ?
+            If feCircle In Graph[j + 1, i].Elements Then Begin
+              // Der Merge geht von Rechts nach Links
+              // Den "Rechten" Platt machen
+              Graph[j + 1, k].Elements := [feArcLU];
+              Graph[j + 2, k].hash := '';
+              Graph[j + 2, k].Active := false;
+
+              Graph[j + 1, i].Elements := Graph[j + 1, i].Elements - [feCircle];
+              Graph[j + 1, i].Elements := Graph[j + 1, i].Elements + [feRectangle, feHalfRightHLine];
+            End
+            Else Begin
+              // Der Merge geht von Links nach Rechts
+              // Den "Linken" Platt machen
+              Graph[j + 1, i].Elements := [feArcRU];
+              Graph[j + 2, i].hash := '';
+              Graph[j + 2, i].Active := false;
+
+              Graph[j + 1, k].Elements := Graph[j + 1, k].Elements - [feCircle];
+              Graph[j + 1, k].Elements := Graph[j + 1, k].Elements + [feRectangle, feHalfLeftHLine];
+            End;
+            // Der Waagrechte Strich zwischen den beiden "Mergenden"
+            For l := i + 1 To k - 1 Do Begin
+              //Graph[j + 1, l].Active := true; -- Fehlt das hier noch ?
+              Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
+            End;
+          End;
+        End;
+      End;
+    End;
   End;
 
 Var
   sl: TStringList;
   aParams: Array Of String;
-  GraphInfo: Array Of TGraphInfo;
-  sa: TStringArray;
+  sa, sa2: TStringArray;
   aActions, i, j: Integer;
   s: String;
   d, FromDate, ToDate: TDateTime;
   first: Boolean;
 Begin
-  (*
-   * Das hier geht eigentlich 1a, es fehlt nur noch der Git Graph :/
-   *)
-
-  //  Hier die Parents raus werfen und dann
-  //  in einem 2. Pass machen wie hier beschrieben: https://stackoverflow.com/questions/4739683/how-does-git-log-graph-or-hg-graphlog-work
-
-  //  git rev-list head
-  //  git log --graph --pretty=format:"%H"
-
+  // TODO: Es fehlt noch die Info wo Head / Origin/Master und all die dinger stehen ..
   caption := ProjectRoot + DefCaption;
-  Graph := Nil;
   StringGrid1.RowCount := 2;
   StringGrid1.Cells[2, 1] := 'Working tree changes';
   StringGrid1.Cells[5, 1] := '0000000000000000000000000000000000000000';
@@ -507,14 +659,6 @@ Begin
   aParams[2] := '--date=format:"%d.%m.%Y %H:%M:%S"';
   aParams[3] := '--pretty=format:"%H;%P;%an;%ad;%s"';
   aParams[4] := '--name-status';
-  (*
-  aParams[0] := '--no-pager';
-  aParams[1] := 'log';
-  aParams[2] := '--graph';
-  aParams[3] := '--date=format:"%d.%m.%Y %H:%M:%S"';
-  aParams[4] := '--pretty=format:"%H;%P;%an;%ad;%s"';
-  aParams[5] := '--name-status';
-  *)
   If CheckBox2.Checked Then Begin
     setlength(aParams, high(aParams) + 2);
     aParams[high(aParams)] := '--all';
@@ -551,7 +695,16 @@ Begin
       StringGrid1.RowCount := StringGrid1.RowCount + 1;
       setlength(GraphInfo, high(GraphInfo) + 2);
       GraphInfo[high(GraphInfo)].hash := sa[0];
-      GraphInfo[high(GraphInfo)].ParentHash := sa[1];
+      If trim(sa[1]) <> '' Then Begin
+        sa2 := trim(sa[1]).Split(' ');
+        setlength(GraphInfo[high(GraphInfo)].ParentsHash, length(sa2));
+        For j := 0 To high(sa2) Do Begin
+          GraphInfo[high(GraphInfo)].ParentsHash[j] := sa2[j];
+        End;
+      End
+      Else Begin
+        GraphInfo[high(GraphInfo)].ParentsHash := Nil;
+      End;
       StringGrid1.Cells[5, StringGrid1.RowCount - 1] := sa[0]; // Der hash des Commits, so dass wir den nachher auch laden können
       StringGrid1.Cells[3, StringGrid1.RowCount - 1] := sa[2];
       StringGrid1.Cells[4, StringGrid1.RowCount - 1] := sa[3];
@@ -577,6 +730,8 @@ Begin
       inc(i);
     End;
   End;
+  CalcGraph();
+  // TODO: Sammeln der Actions eines Branches damit die auch alle Richtig angezeigt werden können
   DateEdit1.Date := FromDate;
   DateEdit2.Date := ToDate;
   sl.free;
