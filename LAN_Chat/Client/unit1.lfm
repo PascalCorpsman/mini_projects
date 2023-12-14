@@ -425,4 +425,11 @@ object Form1: TForm1
       OnClick = MenuItem4Click
     end
   end
+  object UniqueInstance1: TUniqueInstance
+    Enabled = True
+    Identifier = 'LAN_Chat'
+    OnOtherInstance = UniqueInstance1OtherInstance
+    Left = 288
+    Top = 187
+  end
 end

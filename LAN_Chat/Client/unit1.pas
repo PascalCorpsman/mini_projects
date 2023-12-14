@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.08                                                         *)
+(* Version     : 0.09                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -38,6 +38,7 @@
 (*               0.07 - Trayicon for Linux and autofocus on Edit field        *)
 (*               0.08 - Emoji shortcuts                                       *)
 (*                      DND Button - unterdrückung von Show on New Message    *)
+(*               0.09 - UniqueInstance                                        *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -57,8 +58,8 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, IniPropStorage,
-  StdCtrls, ExtCtrls, PairSplitter, Buttons, Menus, lNetComponents,
-  lNet, uChunkmanager, Types, BASS, IpHtml
+  StdCtrls, ExtCtrls, PairSplitter, Buttons, Menus, UniqueInstance,
+  lNetComponents, lNet, uChunkmanager, Types, BASS, IpHtml
   ;
 
 
@@ -150,6 +151,7 @@ Type
     SpeedButton3: TSpeedButton;
     Timer1: TTimer;
     TrayIcon1: TTrayIcon;
+    UniqueInstance1: TUniqueInstance;
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
@@ -176,6 +178,8 @@ Type
     Procedure SpeedButton3Click(Sender: TObject);
     Procedure Timer1Timer(Sender: TObject);
     Procedure TrayIcon1Click(Sender: TObject);
+    Procedure UniqueInstance1OtherInstance(Sender: TObject;
+      ParamCount: Integer; Const Parameters: Array Of String);
   public
     HtmlViewer1: TIpHtmlPanel;
   private
@@ -255,7 +259,10 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.08';
+  defcaption := 'Lan chat ver. 0.09';
+  (*
+   * Know Bug: das ding scrollt nicht immer sauber nach unten..
+   *)
   // TODO: Ist das so clever, das jeder user seine Farbe selbst bestimmen darf und die bei den Anderen auch so angezeigt wird ?
   (*
    * Die Linux Version von Lazarus tickt komplett aus, wenn diese Komponente auf dem Formular ist
@@ -578,7 +585,6 @@ End;
 Procedure TForm1.MenuItem2Click(Sender: TObject);
 Begin
   // Send a file
-
   If OpenDialog1.Execute Then Begin
     SendFile(OpenDialog1.FileName);
   End;
@@ -670,6 +676,17 @@ Begin
   Visible := true;
   MenuItem6.Checked := false; // Das DND nehmen wir automatisch weg, weil der User nun ja definitiv wieder was sehen will..
   BringToFront;
+End;
+
+Procedure TForm1.UniqueInstance1OtherInstance(Sender: TObject;
+  ParamCount: Integer; Const Parameters: Array Of String);
+Begin
+  If Visible Then Begin
+    form1.BringToFront;
+  End
+  Else Begin
+    MenuItem3Click(Nil);
+  End;
 End;
 
 Procedure TForm1.LoadTextToHTMLView(Const aText: String);
