@@ -22,6 +22,16 @@ This is a work in Progress project
 
 ### How to install
 
+Dependencies:
+
+- Bass ( https://www.un4seen.com/ )
+- Lnet ( https://github.com/almindor/lnet )
+  
+Needed Lazarus Packages:
+
+- UniqueInstance
+- TurboPowerIPro
+
 #### Server: 
 - Compile and run the code on a machine that is always on
 - The initial password for server administration is "**Default**" <br>
@@ -29,3 +39,5 @@ This is a work in Progress project
 
 #### Client:
 When starting the application the first time, the options dialog will pop up. You will need to set up at least the username, password, server ip and server port. Then click OK.
+
+
