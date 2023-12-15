@@ -54,7 +54,7 @@ Capabilities:
 Browse through your commit history
 
 !! Attention !!
-This is extremly work in progress, git graph is still missing.
+This is extremly work in progress, git graph is still not working properly.
 
 ![](log_preview.png)
 
