@@ -87,6 +87,11 @@ Type
 
   TGraph = Array Of TFieldRow;
 
+  TAdditional = Record
+    BranchName: String;
+    tags: Array Of String;
+  End;
+
   { TForm1 }
 
   TForm1 = Class(TForm)
@@ -153,9 +158,9 @@ Type
   private
     ProjectRoot: String;
     Graph: TGraph;
+    Additionals: Array Of TAdditional;
   public
     Procedure LoadLCL;
-
   End;
 
 Var
@@ -381,7 +386,8 @@ Var
   i: integer;
   aValue: Integer;
   r: TRect;
-  h: integer;
+  offset, h, j: integer;
+  bc, fc: TColor;
 Begin
   If (aCol = 1) And (aRow > 0) Then Begin // Spalte "Actions"
     // Hintergrund Löschen
@@ -431,11 +437,40 @@ Begin
     r.Right := aRect.Left + w;
     r.Bottom := aRect.Bottom;
     For i := 0 To high(Graph[aRow - 1]) Do Begin
-      If Graph[aRow - 1, i].Active Then Begin
+      If Graph[aRow - 1, i].Elements <> [] Then Begin
         drawElement(Graph[aRow - 1, i], r);
       End;
       r.Left := r.Left + w;
       r.Right := r.Right + w;
+    End;
+  End;
+  If (aCol = 2) Then Begin
+    If (Additionals[aRow].BranchName <> '') Or (Additionals[aRow].tags <> Nil) Then Begin
+      offset := 0;
+      bc := StringGrid1.canvas.Brush.Color;
+      fc := StringGrid1.canvas.Font.Color;
+      // Die Zelle "Löschen"
+      StringGrid1.canvas.Pen.Color := StringGrid1.canvas.Brush.Color;
+      StringGrid1.canvas.Rectangle(aRect.Left + 1, aRect.Top + 1, aRect.Right - 1, aRect.Bottom - 1);
+
+      If Additionals[aRow].BranchName <> '' Then Begin
+        StringGrid1.canvas.Brush.Color := clRed;
+        // StringGrid1.canvas.Font.Color := clBlack; -- In or not in, thats the question ;)
+        StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, Additionals[aRow].BranchName);
+        offset := offset + StringGrid1.canvas.TextWidth(Additionals[aRow].BranchName) + Scale96ToForm(2);
+      End;
+      If (Additionals[aRow].tags <> Nil) Then Begin
+        StringGrid1.canvas.Brush.Color := clYellow;
+        StringGrid1.canvas.Font.Color := clBlack;
+        For j := 0 To high(Additionals[aRow].tags) Do Begin
+          StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, Additionals[aRow].tags[j]);
+          offset := offset + StringGrid1.canvas.TextWidth(Additionals[aRow].tags[j]) + Scale96ToForm(2);
+        End;
+      End;
+      // Den eigentlichen Text der Zelle anfügen
+      StringGrid1.canvas.Brush.Color := bc;
+      StringGrid1.canvas.Font.Color := fc;
+      StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, StringGrid1.Cells[aCol, aRow]);
     End;
   End;
 End;
@@ -559,7 +594,7 @@ Var
                       Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feHalfRightHLine];
                       // Das Waagrechte Teilstück
                       For l := index + 1 To newindex - 1 Do Begin
-                        Graph[j + 1, l].Active := true; // Kann sein, dass das hier sogar schaden anrichtet !!
+                        //                        Graph[j + 1, l].Active := true; // Kann sein, dass das hier sogar schaden anrichtet !!   <-- Nu müsste es gehen
                         Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
                       End;
                       // Der Bogen nach Unten
@@ -573,7 +608,7 @@ Var
                       Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feHalfLeftHLine];
                       // Das Waagrechte Teilstück
                       For l := newindex + 1 To index - 1 Do Begin
-                        Graph[j + 1, l].Active := true; // Kann sein, dass das hier sogar schaden anrichtet !!
+                        //                        Graph[j + 1, l].Active := true; // Kann sein, dass das hier sogar schaden anrichtet !!  <-- Nu müsste es gehen
                         Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
                       End;
                       // Der Bogen nach unten
@@ -629,13 +664,51 @@ Var
             End;
             // Der Waagrechte Strich zwischen den beiden "Mergenden"
             For l := i + 1 To k - 1 Do Begin
-              //Graph[j + 1, l].Active := true; -- Fehlt das hier noch ?
+              //     Graph[j + 1, l].Active := true; -- Fehlt das hier noch ? <-- Nu müsste es gehen
               Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
             End;
           End;
         End;
       End;
     End;
+  End;
+
+  Procedure CalcAdditionals();
+  Var
+    res: TStringList;
+    i, j: Integer;
+    sa: TStringArray;
+    p: String;
+  Begin
+    Additionals := Nil;
+    setlength(Additionals, StringGrid1.RowCount);
+    For i := 0 To high(Additionals) Do Begin
+      Additionals[i].tags := Nil;
+      Additionals[i].BranchName := '';
+    End;
+    res := RunCommand(ProjectRoot, 'git', ['show-ref', '--heads', '--tags', '--dereference']);
+    For i := 0 To res.Count - 1 Do Begin
+      If trim(res[i]) <> '' Then Begin
+        sa := trim(res[i]).Split(' ');
+        p := sa[1];
+        For j := 2 To StringGrid1.RowCount - 1 Do Begin
+          If StringGrid1.Cells[5, j] = sa[0] Then Begin
+            If pos('refs/heads/', p) = 1 Then Begin
+              Additionals[j].BranchName := copy(p, length('refs/heads/') + 1, length(p));
+            End;
+            If pos('refs/remotes/', p) = 1 Then Begin
+              // TODO: Implement Remotes ..
+            End;
+            If pos('refs/tags/', p) = 1 Then Begin
+              setlength(Additionals[i].tags, high(Additionals[i].tags) + 2);
+              Additionals[i].tags[high(Additionals[i].tags)] := copy(p, length('refs/tags/') + 1, length(p));
+            End;
+            break;
+          End;
+        End;
+      End;
+    End;
+    res.free;
   End;
 
 Var
@@ -731,6 +804,7 @@ Begin
     End;
   End;
   CalcGraph();
+  CalcAdditionals();
   // TODO: Sammeln der Actions eines Branches damit die auch alle Richtig angezeigt werden können
   DateEdit1.Date := FromDate;
   DateEdit2.Date := ToDate;
