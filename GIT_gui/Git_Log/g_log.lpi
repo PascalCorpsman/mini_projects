@@ -52,6 +52,10 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uGITOptions"/>
       </Unit>
+      <Unit>
+        <Filename Value="ugitgraph.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

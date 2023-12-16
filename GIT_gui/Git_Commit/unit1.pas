@@ -27,10 +27,11 @@ Const
   (*
    * History: 0.01 = Initialversion (26.11.2023)
    *          0.02 = Added Psoudo Popup Menu to Button1
+   *          0.03 = Fix: Lines added / removed was calculated wrong
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.02';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.03';
   CommitText = 'Commit               | ▼';
   ReCommitText = 'ReCommit           | ▼';
   CommitAndPushText = 'Commit && Push | ▼';
