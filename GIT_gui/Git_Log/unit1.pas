@@ -52,6 +52,7 @@ Type
 
   TAdditional = Record
     BranchName: String;
+    BranchColor: TColor;
     tags: Array Of String;
   End;
 
@@ -287,7 +288,7 @@ Begin
       StringGrid1.canvas.Rectangle(aRect.Left + 1, aRect.Top + 1, aRect.Right - 1, aRect.Bottom - 1);
 
       If Additionals[aRow].BranchName <> '' Then Begin
-        StringGrid1.canvas.Brush.Color := clRed;
+        StringGrid1.canvas.Brush.Color := Additionals[aRow].BranchColor;
         // StringGrid1.canvas.Font.Color := clBlack; -- In or not in, thats the question ;)
         StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, Additionals[aRow].BranchName);
         offset := offset + StringGrid1.canvas.TextWidth(Additionals[aRow].BranchName) + Scale96ToForm(2);
@@ -361,6 +362,8 @@ Procedure TForm1.LoadLCL;
         For j := 2 To StringGrid1.RowCount - 1 Do Begin
           If StringGrid1.Cells[5, j] = sa[0] Then Begin
             If pos('refs/heads/', p) = 1 Then Begin
+              // TODO: Wie kriegen wir raus, ob der Text Rot oder Grün angezeigt werden soll ?
+              Additionals[j].BranchColor := clred;
               Additionals[j].BranchName := copy(p, length('refs/heads/') + 1, length(p));
             End;
             If pos('refs/remotes/', p) = 1 Then Begin
@@ -388,7 +391,6 @@ Var
   first: Boolean;
   GraphInfo: TGraphInfoArray;
 Begin
-  // TODO: Es fehlt noch die Info wo Head / Origin/Master und all die dinger stehen ..
   caption := ProjectRoot + DefCaption;
   StringGrid1.RowCount := 2;
   StringGrid1.Cells[2, 1] := 'Working tree changes';

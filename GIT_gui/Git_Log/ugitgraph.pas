@@ -28,7 +28,7 @@ Const
    * active branches, feel free to increase.
    *)
   MaxBranches = 32;
-  //MaxBranches = 4; // Debugg
+  //MaxBranches = 4; // Debugg, set the value as small as possible to not disturbe ;)
   BranchColors: Array[0..7] Of TColor = (clBlack, clRed, clLime, clBlue, $00808080, $00008080, $00808000, $00808000);
 
 Type
@@ -317,11 +317,12 @@ Begin
                     Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feHalfRightHLine];
                     // Das Waagrechte Teilstück
                     For l := index + 1 To newindex - 1 Do Begin
-                      // TODO: Farbe 2 einfügen
+                      Graph[j + 1, l].SecColor := Graph[j + 1, index].PrimColor;
                       Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
                     End;
                     // Der Bogen nach Unten
                     Graph[j + 1, newindex].Elements := Graph[j + 1, newindex].Elements + [feArcUL];
+                    Graph[j + 1, newindex].SecColor := Graph[j + 1, index].PrimColor;
                     //Graph[j + 1, newindex].Elements := Graph[j + 1, newindex].Elements - [feHalfVLineDown, feHalfVLineUp];
                   End
                   Else Begin
@@ -329,11 +330,12 @@ Begin
                     Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feHalfLeftHLine];
                     // Das Waagrechte Teilstück
                     For l := newindex + 1 To index - 1 Do Begin
-                      // TODO: Farbe 2 einfügen
+                      Graph[j + 1, l].SecColor := Graph[j + 1, newindex].PrimColor;
                       Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
                     End;
                     // Der Bogen nach unten
                     Graph[j + 1, newindex].Elements := Graph[j + 1, index].Elements + [feArcUR];
+                    Graph[j + 1, newindex].SecColor := Graph[j + 1, newindex].PrimColor;
                     //Graph[j + 1, index].Elements := Graph[j + 1, index].Elements - [feHalfVLineDown, feHalfVLineUp];
                   End;
                   Graph[j + 1, newindex].Hash := GraphInfo[j].ParentsHash[1];
@@ -355,15 +357,15 @@ Begin
           Else Begin
             // Den Aktuellen Hash die Swimlane weiter laufen lassen ...
             Graph[j + 2, k].Active := true;
-            If Graph[j + 2, k].Hash <> '' Then Begin // Debug Remove
-              If Graph[j + 2, k].Hash <> Graph[j + 1, k].Hash Then Begin // Debug Remove
-                Raise exception.create('Logic error, branch will be "killed"'); // Debug Remove
-              End; // Debug Remove
-            End // Debug Remove
-            Else Begin // Debug Remove
-              Graph[j + 2, k].oldHash := Graph[j + 2, k].Hash; // TODO: Braucht man das oder ist das Overkill ?
-              Graph[j + 2, k].Hash := Graph[j + 1, k].Hash;
-            End; // Debug Remove
+            //            If Graph[j + 2, k].Hash <> '' Then Begin // Debug Remove
+            //              If Graph[j + 2, k].Hash <> Graph[j + 1, k].Hash Then Begin // Debug Remove
+            //                Raise exception.create('Logic error, branch will be "killed"'); // Debug Remove
+            //              End; // Debug Remove
+            //            End // Debug Remove
+            //            Else Begin // Debug Remove
+            Graph[j + 2, k].oldHash := Graph[j + 2, k].Hash;
+            Graph[j + 2, k].Hash := Graph[j + 1, k].Hash;
+            //            End; // Debug Remove
           End;
         End;
       End;
@@ -388,6 +390,7 @@ Begin
             // Den "Rechten" Platt machen
             Graph[j + 1, k].Elements := Graph[j + 1, k].Elements - [feHalfVLineUp, feHalfVLineDown];
             Graph[j + 1, k].Elements := Graph[j + 1, k].Elements + [feArcLU];
+            Graph[j + 1, k].SecColor := Graph[j + 1, i].PrimColor;
             Graph[j + 1, k].oldHash := '';
             Graph[j + 1, k].hash := '';
             Graph[j + 1, i].Elements := Graph[j + 1, i].Elements - [feCircle];
@@ -396,12 +399,18 @@ Begin
             Graph[j + 2, k].oldHash := '';
             Graph[j + 2, k].hash := '';
             Graph[j + 2, k].Active := false;
+            // Der Waagrechte Strich zwischen den beiden "Mergenden"
+            For l := i + 1 To k - 1 Do Begin
+              Graph[j + 1, l].SecColor := Graph[j + 1, i].PrimColor;
+              Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
+            End;
           End
           Else Begin
             // Der Merge geht von Links nach Rechts
             // Den "Linken" Platt machen
             Graph[j + 1, i].Elements := Graph[j + 1, i].Elements - [feHalfVLineUp, feHalfVLineDown];
             Graph[j + 1, i].Elements := Graph[j + 1, i].Elements + [feArcRU];
+            Graph[j + 1, i].SecColor := Graph[j + 1, k].PrimColor;
             Graph[j + 1, i].oldHash := '';
             Graph[j + 1, i].hash := '';
             Graph[j + 1, k].Elements := Graph[j + 1, k].Elements - [feCircle];
@@ -410,12 +419,11 @@ Begin
             Graph[j + 2, i].oldHash := '';
             Graph[j + 2, i].hash := '';
             Graph[j + 2, i].Active := false;
-            //
-          End;
-          // Der Waagrechte Strich zwischen den beiden "Mergenden"
-          For l := i + 1 To k - 1 Do Begin
-            // TODO: Farbe 2 einfügen
-            Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
+            // Der Waagrechte Strich zwischen den beiden "Mergenden"
+            For l := i + 1 To k - 1 Do Begin
+              Graph[j + 1, l].SecColor := Graph[j + 1, k].PrimColor;
+              Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
+            End;
           End;
         End;
       End;
