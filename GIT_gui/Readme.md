@@ -4,7 +4,7 @@ This is plattform independand GIT gui that tries to look as close as possible to
 
 ## ! Attention !
 * This is a work in Progress project
-* As the aim is to "look" as close as possible, this does not mean, that the functionality is the same (or complete).
+* As the aim is to "look" as close as possible to Tortoise GIT, this does not mean, that the functionality is the same (or complete).
 
 ### Whats the goal of this gui if it is not a fully working toolchain ?
 
@@ -52,9 +52,6 @@ Capabilities:
 ## Git Show log
 
 Browse through your commit history
-
-!! Attention !!
-This is extremly work in progress, git graph is still not working properly.
 
 ![](log_preview.png)
 
