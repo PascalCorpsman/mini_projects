@@ -30,12 +30,13 @@ Uses
   * History: 0.01 = Initialversion (26.11.2023)
   *          0.02 = Activate Git graph
   *          0.03 = FIX: Git graph could not display Merge and Branch at the same line
+  *          0.04 = FIX: Git graph could not display Merge of a branch without "removing" branch
   *
   * Icons geladen von: https://peacocksoftware.com/silk
   *)
 
 Const
-  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.03';
+  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.04';
 
   IndexActionFileModified = 0; // If a revision modified a file or directory, the modified icon is shown in the first column.
   IndexActionFileAdded = 1; // If a revision added a File Or directory, the added icon Is shown In the second column.

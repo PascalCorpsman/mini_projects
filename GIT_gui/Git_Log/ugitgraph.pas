@@ -78,7 +78,6 @@ Type
    *)
 Function CalcGraph(Const GraphInfo: TGraphInfoArray): TGraph;
 
-
 Procedure DrawGraphRow(Const Canvas: TCanvas; Const aRow: TFieldRow; Const aRect: Trect);
 
 Implementation
@@ -305,8 +304,12 @@ Begin
                   Graph[j + 2, index].Hash := GraphInfo[j].ParentsHash[0];
                 End;
               2: Begin
-                  // Hier ein Merge von zwei neuen Branches -> aus einer Swimlane werden 2
-                  newindex := GetEmptySwimLane(j + 1);
+                  // Hier ein Merge von zwei Branches -> aus einer Swimlane werden 2
+                  newindex := GetSwimLane(j + 1, GraphInfo[j].ParentsHash[1]);
+                  If newindex = -1 Then Begin
+                    // Wenn der Merge nicht auf ein Bestehenden Branch war, dann muss eine Neue Swimlane erstellt werden
+                    newindex := GetEmptySwimLane(j + 1);
+                  End;
                   Graph[j + 1, index].Elements := Graph[j + 1, index].Elements - [feCircle];
                   Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feRectangle, feHalfVLineUp];
                   If index < newindex Then Begin
