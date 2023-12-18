@@ -334,7 +334,7 @@ Begin
                       Graph[j + 1, l].Elements := Graph[j + 1, l].Elements + [feHalfLeftHLine, feHalfRightHLine];
                     End;
                     // Der Bogen nach unten
-                    Graph[j + 1, newindex].Elements := Graph[j + 1, index].Elements + [feArcUR];
+                    Graph[j + 1, newindex].Elements := Graph[j + 1, newindex].Elements + [feArcUR];
                     Graph[j + 1, newindex].SecColor := Graph[j + 1, newindex].PrimColor;
                     //Graph[j + 1, index].Elements := Graph[j + 1, index].Elements - [feHalfVLineDown, feHalfVLineUp];
                   End;
@@ -433,4 +433,3 @@ Begin
 End;
 
 End.
-

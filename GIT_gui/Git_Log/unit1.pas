@@ -176,6 +176,7 @@ Var
   i: Integer;
   aDir: String;
 Begin
+  // TODO: Context Menu completely missing !
   Constraints.MinWidth := Width;
   Constraints.MinHeight := Height;
   (*
