@@ -1,0 +1,107 @@
+object Form7: TForm7
+  Left = 246
+  Height = 327
+  Top = 113
+  Width = 517
+  Caption = 'Form7'
+  ClientHeight = 327
+  ClientWidth = 517
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.1.0.0'
+  object Memo1: TMemo
+    Left = 8
+    Height = 248
+    Top = 0
+    Width = 470
+    Lines.Strings = (
+      'This is the Online Help for the script editor'
+      ''
+      'The Script language is based on the FreePascal language and uses this syntax.'
+      ''
+      'The following functions / procedures are available:'
+      ''
+      'function AbsoluteFromRelativeX(x: Integer; Relative: Boolean): Integer;'
+      '- converts a image x value into a rendercontext x value, relative = true => without scrollinformations'
+      ''
+      'function AbsoluteFromRelativeY(y: Integer; Relative: Boolean): Integer;'
+      '- converts a image y value into a rendercontext y value, relative = true => without scrollinformations'
+      ''
+      'procedure DrawCircle(x1,  y1, x2, y2: Integer);'
+      '-draws a circle in the axis alligned rectangle defined by point(x1,y1) and point(x2,y2)'
+      ''
+      'procedure DrawFilledCircle(x1,  y1, x2, y2: Integer);'
+      '-draws a circle in the axis alligned rectangle defined by point(x1,y1) and point(x2,y2)'
+      ''
+      'procedure DrawFilledRectangle(x1,  y1, x2, y2: Integer);'
+      '-draws a axis alligned rectangle defined by point(x1,y1) and point(x2,y2)'
+      ''
+      'procedure DrawLine(x1,  y1, x2, y2: integer);'
+      '- draws a line from point(x1,y1) to point(x2,y2)'
+      ''
+      'procedure DrawText(x, y: Integer; Text:String);'
+      '- draws a text at the given coordinates'
+      ''
+      'function FloatToStr(Value:Single; Digits: Integer):String;'
+      '- convert a float to a string, Digit = number of digits behind the decimal separator'
+      ''
+      'function getMouseX(): Integer;'
+      '- gives the rendercontext mouse x position'
+      ''
+      'function getMouseY(): Integer;'
+      '- gives the rendercontext mouse y position'
+      ''
+      'function GetScaling(): Single;'
+      '- gives the Scaling of a 100pixel Distanz'
+      ''
+      'function GetTimeStamp(Format:String):String;'
+      '- gives a formated timestap as string for format settings see: https://www.freepascal.org/docs-html/rtl/sysutils/formatchars.html'
+      ''
+      'function GraphicsHeight(): Integer; '
+      '-gives the image height in Pixel'
+      ''
+      'function GraphicsWidth(): Integer;'
+      '- gives the image witdh in Pixel'
+      ''
+      'function RelativeFromAbsoluteX(x: Integer): Integer;'
+      '- converts a rendercontext x value into a image x value, relative = true => without scrollinformations'
+      ''
+      'function RelativeFromAbsoluteY(y: Integer): Integer;'
+      '- converts a rendercontext y value into a image y value, relative = true => without scrollinformations'
+      ''
+      'procedure SetBrushColor(r, g, b: Integer);'
+      '- r,g,b in [0.. 255], sets the brush color to the given rgb value (default 0,0,0)'
+      ''
+      'procedure SetColor(r, g, b: Integer);'
+      '- r,g,b in [0.. 255], sets the pen color to the given rgb value (default 0,0,0)'
+      ''
+      'procedure SetFont(FontName:String; Size:integer);'
+      '- Set Fontname and Size default  (''default'',0)'
+      ''
+      'procedure SetFontColor(r, g, b: Integer);'
+      '- r,g,b in [0.. 255], sets the font color to the given rgb value (default 255,255,255)'
+      ''
+      'procedure SetLineWidth(w: Integer);'
+      '- sets Linewith to w (default 1)'
+      ''
+      'function TextHeight(Text:String): Integer; '
+      '- gives the Textheight in Pixel'
+      ''
+      'function TextWidth(Text:String): Integer; '
+      '- gives the Textwidth in Pixel'
+    )
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 0
+    WordWrap = False
+  end
+  object Button1: TButton
+    Left = 24
+    Height = 25
+    Top = 272
+    Width = 75
+    Caption = 'OK'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+end

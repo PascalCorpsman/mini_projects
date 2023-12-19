@@ -1,0 +1,32 @@
+object Form12: TForm12
+  Left = 247
+  Height = 309
+  Top = 107
+  Width = 567
+  Caption = 'Form12'
+  ClientHeight = 309
+  ClientWidth = 567
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.1.0.0'
+  object Button1: TButton
+    Left = 8
+    Height = 29
+    Top = 272
+    Width = 550
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'OK'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object StringGrid1: TStringGrid
+    Left = 8
+    Height = 260
+    Top = 8
+    Width = 550
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goRowSelect, goDblClickAutoSize, goSmoothScroll]
+    TabOrder = 1
+  end
+end

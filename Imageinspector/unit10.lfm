@@ -1,0 +1,75 @@
+object Form10: TForm10
+  Left = 261
+  Height = 109
+  Top = 135
+  Width = 320
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Form10'
+  ClientHeight = 109
+  ClientWidth = 320
+  FormStyle = fsStayOnTop
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '2.1.0.0'
+  object TrackBar1: TTrackBar
+    Left = 112
+    Height = 25
+    Top = 40
+    Width = 200
+    Max = 128
+    Min = -128
+    OnChange = TrackBar1Change
+    Position = 0
+    ShowSelRange = False
+    TickStyle = tsNone
+    TabOrder = 0
+  end
+  object Label2: TLabel
+    Left = 16
+    Height = 16
+    Top = 50
+    Width = 69
+    Caption = 'Ilumination'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 16
+    Height = 16
+    Top = 82
+    Width = 52
+    Caption = 'Contrast'
+    ParentColor = False
+  end
+  object TrackBar2: TTrackBar
+    Left = 112
+    Height = 25
+    Top = 72
+    Width = 200
+    Max = 128
+    Min = -128
+    OnChange = TrackBar1Change
+    Position = 0
+    ShowSelRange = False
+    TickStyle = tsNone
+    TabOrder = 1
+  end
+  object Label1: TLabel
+    Left = 16
+    Height = 16
+    Top = 16
+    Width = 49
+    Caption = 'Activate'
+    ParentColor = False
+  end
+  object CheckBox1: TCheckBox
+    Left = 112
+    Height = 22
+    Top = 16
+    Width = 22
+    Checked = True
+    OnChange = TrackBar1Change
+    State = cbChecked
+    TabOrder = 2
+  end
+end

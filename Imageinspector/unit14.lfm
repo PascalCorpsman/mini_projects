@@ -1,0 +1,97 @@
+object Form14: TForm14
+  Left = 1635
+  Height = 191
+  Top = 250
+  Width = 345
+  Caption = 'Form14'
+  ClientHeight = 191
+  ClientWidth = 345
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.1.0.0'
+  object CheckBox1: TCheckBox
+    Left = 16
+    Height = 22
+    Top = 16
+    Width = 136
+    Caption = 'Remember last file'
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 112
+    Width = 315
+    Caption = 'Open config folder'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 256
+    Height = 25
+    Top = 152
+    Width = 75
+    Caption = 'OK'
+    ModalResult = 1
+    TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 16
+    Height = 25
+    Top = 152
+    Width = 75
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 3
+  end
+  object Label1: TLabel
+    Left = 96
+    Height = 16
+    Top = 154
+    Width = 41
+    Caption = 'Label1'
+    ParentColor = False
+  end
+  object BitBtn1: TBitBtn
+    Left = 301
+    Height = 30
+    Top = 12
+    Width = 30
+    Images = Form6.ImageList1
+    ImageIndex = 4
+    OnClick = BitBtn1Click
+    TabOrder = 4
+  end
+  object Label2: TLabel
+    Left = 104
+    Height = 16
+    Top = 48
+    Width = 136
+    Caption = 'Max Image undo steps'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 16
+    Height = 25
+    Top = 40
+    Width = 80
+    TabOrder = 5
+    Text = 'Edit1'
+  end
+  object Edit2: TEdit
+    Left = 16
+    Height = 25
+    Top = 72
+    Width = 80
+    TabOrder = 6
+    Text = 'Edit2'
+  end
+  object Label3: TLabel
+    Left = 104
+    Height = 16
+    Top = 81
+    Width = 181
+    Caption = 'Max measurement undo steps'
+    ParentColor = False
+  end
+end
