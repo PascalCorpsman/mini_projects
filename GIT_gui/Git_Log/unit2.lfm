@@ -1,0 +1,231 @@
+object Form2: TForm2
+  Left = 339
+  Height = 398
+  Top = 692
+  Width = 515
+  Caption = 'Form2'
+  ClientHeight = 398
+  ClientWidth = 515
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 57
+    Top = 8
+    Width = 497
+    Anchors = [akTop, akLeft, akRight]
+    Caption = ' Name '
+    ClientHeight = 37
+    ClientWidth = 493
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 24
+      Height = 15
+      Top = 8
+      Width = 37
+      Caption = 'Branch'
+    end
+    object Edit1: TEdit
+      Left = 72
+      Height = 23
+      Top = 0
+      Width = 376
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 0
+      Text = 'Edit1'
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Height = 136
+    Top = 72
+    Width = 497
+    Anchors = [akTop, akLeft, akRight]
+    Caption = ' Base On '
+    ClientHeight = 116
+    ClientWidth = 493
+    TabOrder = 1
+    object RadioButton1: TRadioButton
+      Left = 16
+      Height = 19
+      Top = 0
+      Width = 96
+      Caption = 'HEAD (master)'
+      OnClick = RadioButton4Click
+      TabOrder = 0
+    end
+    object RadioButton2: TRadioButton
+      Left = 16
+      Height = 19
+      Top = 28
+      Width = 55
+      Caption = 'Branch'
+      OnClick = RadioButton4Click
+      TabOrder = 1
+    end
+    object RadioButton3: TRadioButton
+      Left = 16
+      Height = 19
+      Top = 60
+      Width = 37
+      Caption = 'Tag'
+      OnClick = RadioButton4Click
+      TabOrder = 2
+    end
+    object RadioButton4: TRadioButton
+      Left = 16
+      Height = 19
+      Top = 92
+      Width = 62
+      Caption = 'Commit'
+      Checked = True
+      OnClick = RadioButton4Click
+      TabOrder = 3
+      TabStop = True
+    end
+    object ComboBox1: TComboBox
+      Left = 120
+      Height = 23
+      Top = 88
+      Width = 328
+      Anchors = [akTop, akLeft, akRight]
+      ItemHeight = 15
+      TabOrder = 4
+      Text = 'ComboBox1'
+    end
+    object Button1: TButton
+      Left = 456
+      Height = 25
+      Top = 88
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = '...'
+      TabOrder = 5
+    end
+    object ComboBox2: TComboBox
+      Left = 120
+      Height = 23
+      Top = 56
+      Width = 328
+      Anchors = [akTop, akLeft, akRight]
+      Enabled = False
+      ItemHeight = 15
+      TabOrder = 6
+      Text = 'ComboBox2'
+    end
+    object ComboBox3: TComboBox
+      Left = 120
+      Height = 23
+      Top = 24
+      Width = 328
+      Anchors = [akTop, akLeft, akRight]
+      Enabled = False
+      ItemHeight = 15
+      TabOrder = 7
+      Text = 'ComboBox3'
+    end
+    object Button2: TButton
+      Left = 456
+      Height = 25
+      Top = 24
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = '...'
+      Enabled = False
+      TabOrder = 8
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 8
+    Height = 48
+    Top = 216
+    Width = 497
+    Anchors = [akTop, akLeft, akRight]
+    Caption = ' Options '
+    ClientHeight = 28
+    ClientWidth = 493
+    TabOrder = 2
+    object CheckBox1: TCheckBox
+      Left = 16
+      Height = 19
+      Top = 7
+      Width = 46
+      Caption = 'Track'
+      Enabled = False
+      State = cbGrayed
+      TabOrder = 0
+    end
+    object CheckBox2: TCheckBox
+      Left = 120
+      Height = 19
+      Top = 7
+      Width = 47
+      Caption = 'Force'
+      TabOrder = 1
+    end
+    object CheckBox3: TCheckBox
+      Left = 232
+      Height = 19
+      Top = 7
+      Width = 132
+      Caption = 'Switch to new branch'
+      Checked = True
+      State = cbChecked
+      TabOrder = 2
+    end
+  end
+  object GroupBox4: TGroupBox
+    Left = 8
+    Height = 80
+    Top = 272
+    Width = 497
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = ' Description '
+    ClientHeight = 60
+    ClientWidth = 493
+    TabOrder = 3
+    object Memo1: TMemo
+      Left = 16
+      Height = 48
+      Top = 8
+      Width = 465
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Lines.Strings = (
+        'Memo1'
+      )
+      ScrollBars = ssAutoBoth
+      TabOrder = 0
+      WordWrap = False
+    end
+  end
+  object Button3: TButton
+    Left = 256
+    Height = 25
+    Top = 360
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    OnClick = Button3Click
+    TabOrder = 4
+  end
+  object Button4: TButton
+    Left = 344
+    Height = 25
+    Top = 360
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 5
+  end
+  object Button5: TButton
+    Left = 432
+    Height = 25
+    Top = 360
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Help'
+    TabOrder = 6
+  end
+end

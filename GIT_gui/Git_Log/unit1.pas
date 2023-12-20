@@ -88,9 +88,36 @@ Type
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    MenuItem18: TMenuItem;
+    MenuItem19: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem20: TMenuItem;
+    MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
+    MenuItem23: TMenuItem;
+    MenuItem24: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem26: TMenuItem;
+    MenuItem27: TMenuItem;
+    MenuItem28: TMenuItem;
+    MenuItem29: TMenuItem;
     MenuItem3: TMenuItem;
+    MenuItem30: TMenuItem;
+    MenuItem31: TMenuItem;
+    MenuItem32: TMenuItem;
+    MenuItem33: TMenuItem;
+    MenuItem34: TMenuItem;
+    MenuItem35: TMenuItem;
+    MenuItem36: TMenuItem;
+    MenuItem37: TMenuItem;
+    MenuItem38: TMenuItem;
+    MenuItem39: TMenuItem;
     MenuItem4: TMenuItem;
+    MenuItem40: TMenuItem;
+    MenuItem41: TMenuItem;
+    MenuItem42: TMenuItem;
+    MenuItem43: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
@@ -99,10 +126,15 @@ Type
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
     PopupMenu2: TPopupMenu;
+    PopupMenu3: TPopupMenu;
     Separator1: TMenuItem;
     Separator2: TMenuItem;
     Separator3: TMenuItem;
     Separator4: TMenuItem;
+    Separator5: TMenuItem;
+    Separator6: TMenuItem;
+    Separator7: TMenuItem;
+    Separator8: TMenuItem;
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
     Splitter1: TSplitter;
@@ -116,6 +148,9 @@ Type
     Procedure CheckBox2Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure FormShow(Sender: TObject);
+    Procedure MenuItem24Click(Sender: TObject);
+    Procedure MenuItem25Click(Sender: TObject);
+    Procedure PopupMenu3Popup(Sender: TObject);
     Procedure StringGrid1Click(Sender: TObject);
     Procedure StringGrid1DrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
@@ -135,7 +170,9 @@ Implementation
 
 {$R *.lfm}
 
-Uses uGITOptions, ugit_common, LazFileUtils, LazUTF8, math, DateUtils, LCLIntf;
+Uses
+  unit2 // Create Branch Dialog
+  , uGITOptions, ugit_common, LazFileUtils, LazUTF8, math, DateUtils, LCLIntf;
 
 { TForm1 }
 
@@ -205,6 +242,34 @@ End;
 Procedure TForm1.FormShow(Sender: TObject);
 Begin
   StringGrid1.SetFocus;
+End;
+
+Procedure TForm1.MenuItem24Click(Sender: TObject);
+Var
+  li: Integer;
+Begin
+  // Create Branch at this version
+  li := StringGrid1.Selection.Top;
+  If li <= 0 Then exit; // Keine Ahnung nichts ausgewählt
+  form2.Init(ProjectRoot, StringGrid1.Cells[5, li]);
+  form2.showmodal;
+End;
+
+Procedure TForm1.MenuItem25Click(Sender: TObject);
+Begin
+  // Create Tag at this version
+End;
+
+Procedure TForm1.PopupMenu3Popup(Sender: TObject);
+Var
+  li: Integer;
+Begin
+  // Create Branch at this version
+  li := StringGrid1.Selection.Top;
+  If li <= 0 Then exit; // Keine Ahnung nichts ausgewählt
+  // TODO: Anpassen aller möglichen Popup Einträge ...
+  MenuItem24.Visible := li > 1; // Create Branch at this version
+  MenuItem25.Visible := li > 1; // Create Tag at this version
 End;
 
 Procedure TForm1.StringGrid1Click(Sender: TObject);
@@ -366,6 +431,7 @@ Procedure TForm1.LoadLCL;
             If pos('refs/heads/', p) = 1 Then Begin
               // TODO: Wie kriegen wir raus, ob der Text Rot oder Grün angezeigt werden soll ?
               Additionals[j].BranchColor := clred;
+              //Additionals[j].BranchColor := cllime;
               Additionals[j].BranchName := copy(p, length('refs/heads/') + 1, length(p));
             End;
             If pos('refs/remotes/', p) = 1 Then Begin
@@ -486,6 +552,7 @@ Begin
   DateEdit2.Date := ToDate;
   sl.free;
   StringGrid1.AutoSizeColumns;
+  StringGrid1.ColWidths[2] := min(StringGrid1.ColWidths[2], Form1.Width Div 2);
   StringGrid1.ColWidths[0] := Scale96ToForm(120);
   StringGrid1.ColWidths[1] := max(StringGrid1.ColWidths[1], Scale96ToForm(ImageList1.Width * 5));
   StringGrid1.Selection := rect(0, 1, StringGrid1.ColCount - 1, 1); // Die 1. Zeile Anwählen

@@ -34,7 +34,7 @@ Const
 {$ELSE}
   MaxBranches = 32;
 {$ENDIF}
-  BranchColors: Array[0..7] Of TColor = (clBlack, clRed, clLime, clBlue, $00808080, $00008080, $00808000, $00808000);
+  BranchColors: Array[0..7] Of TColor = (clBlack, clRed, clLime, clBlue, $00808080, $00008080, $00808000, $00800080);
 
 Type
   (*

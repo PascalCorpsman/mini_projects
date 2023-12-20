@@ -56,6 +56,13 @@
         <Filename Value="ugitgraph.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="unit2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form2"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit2"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -70,9 +77,6 @@
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
-      <Debugging>
-        <DebugInfoType Value="dsDwarf3"/>
-      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
