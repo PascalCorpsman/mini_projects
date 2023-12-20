@@ -447,6 +447,14 @@ object Form1: TForm1
       ImageIndex = 7
       OnClick = MenuItem2Click
     end
+    object MenuItem15: TMenuItem
+      Caption = 'Unversion file'
+      OnClick = MenuItem15Click
+    end
+    object MenuItem16: TMenuItem
+      Caption = 'Unversion and ignore file'
+      OnClick = MenuItem16Click
+    end
     object MenuItem6: TMenuItem
       Caption = 'Add to ignore list'
       object MenuItem9: TMenuItem

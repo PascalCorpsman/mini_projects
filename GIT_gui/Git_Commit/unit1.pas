@@ -88,6 +88,8 @@ Type
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
+    MenuItem15: TMenuItem;
+    MenuItem16: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
@@ -124,6 +126,8 @@ Type
     Procedure MenuItem12Click(Sender: TObject);
     Procedure MenuItem13Click(Sender: TObject);
     Procedure MenuItem14Click(Sender: TObject);
+    Procedure MenuItem15Click(Sender: TObject);
+    Procedure MenuItem16Click(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
@@ -153,6 +157,7 @@ Type
     Function GetSelection(): TBufferList;
     Function GetIndexOfBufferItem(Const Item: TBufferListItem): Integer;
     Procedure Commit();
+    Function AddFileToGitIgnore(Const entry: String): Boolean; // True if .gitignore was created
   public
     Procedure LoadCommitInformations();
   End;
@@ -294,6 +299,61 @@ Begin
   ReloadStringgridContent();
 End;
 
+Procedure TForm1.MenuItem15Click(Sender: TObject);
+Var
+  j, li: Integer;
+  BufferList: TBufferList;
+  res: TStringList;
+  NeedReload: Boolean;
+Begin
+  // Unversion file
+  BufferList := GetSelection();
+  NeedReload := false;
+  For j := 0 To high(BufferList) Do Begin
+    li := GetIndexOfBufferItem(BufferList[j]);
+    If li = -1 Then Continue;
+    res := RunCommand(ProjectRoot, 'git', ['rm', '--cached', StringGrid1.Cells[IndexPath, li]]);
+    NeedReload := true;
+    res.free;
+  End;
+  If NeedReload Then Begin
+    ReloadStringgridContent();
+  End;
+End;
+
+Procedure TForm1.MenuItem16Click(Sender: TObject);
+Var
+  j, li, i: Integer;
+  BufferList: TBufferList;
+  res: TStringList;
+  Added, NeedReload: Boolean;
+Begin
+  // Unversion and Ignore File
+  BufferList := GetSelection();
+  NeedReload := false;
+  added := false;
+  For j := 0 To high(BufferList) Do Begin
+    li := GetIndexOfBufferItem(BufferList[j]);
+    If li = -1 Then Continue;
+    res := RunCommand(ProjectRoot, 'git', ['rm', '--cached', StringGrid1.Cells[IndexPath, li]]);
+    NeedReload := true;
+    res.free;
+    Added := AddFileToGitIgnore(StringGrid1.Cells[IndexPath, li]) Or added;
+  End;
+  If NeedReload Then Begin
+    ReloadStringgridContent();
+    If added Then Begin
+      For i := 1 To StringGrid1.RowCount - 1 Do Begin
+        If StringGrid1.Cells[IndexPath, i] = '.gitignore' Then Begin
+          StringGrid1.Cells[IndexChecked, i] := '1';
+          break;
+        End;
+      End;
+    End;
+    UpdateInfo();
+  End;
+End;
+
 Procedure TForm1.MenuItem1Click(Sender: TObject);
 Var
   li, i, j: integer;
@@ -356,6 +416,12 @@ Begin
           End;
           res.free;
         End;
+      TextModified: Begin // Revert local Changes
+          res := RunCommand(ProjectRoot, 'git', ['checkout', '--', StringGrid1.Cells[IndexPath, li]]);
+          res.free;
+          ReloadStringgridContent;
+          UpdateInfo();
+        End;
       TextAdded: Begin // Revert Add -> nicht mehr versionieren
           pathbakup := StringGrid1.Cells[IndexPath, li];
           res := RunCommand(ProjectRoot, 'git', ['reset', 'HEAD', StringGrid1.Cells[IndexPath, li]]);
@@ -402,25 +468,27 @@ Var
   li, j: integer;
   fn: String;
   BufferList: TBufferList;
+  needUpdate: Boolean;
 Begin
   // Delete
   BufferList := GetSelection();
+  needUpdate := false;
   For j := 0 To high(BufferList) Do Begin
     li := GetIndexOfBufferItem(BufferList[j]);
     If li = -1 Then Continue;
     fn := IncludeTrailingPathDelimiter(ProjectRoot) + StringGrid1.Cells[IndexPath, li];
     If FileExistsUTF8(fn) Then Begin
       If DeleteFileUTF8(fn) Then Begin
-        ReloadStringgridContent;
-        UpdateInfo();
+        needUpdate := true;
       End
       Else Begin
         showmessage('Error, could not delete: ' + fn);
       End;
-    End
-    Else Begin
-      showmessage('Error, could not find: ' + fn);
     End;
+  End;
+  If needUpdate Then Begin
+    ReloadStringgridContent;
+    UpdateInfo();
   End;
 End;
 
@@ -444,8 +512,6 @@ End;
 Procedure TForm1.MenuItem9Click(Sender: TObject);
 Var
   i, li, j: Integer;
-  entry, fn: String;
-  sl: TStringList;
   added, showWarning: Boolean;
   BufferList: TBufferList;
 Begin
@@ -456,22 +522,9 @@ Begin
     li := GetIndexOfBufferItem(BufferList[j]);
     If li = -1 Then Continue;
     If StringGrid1.Cells[IndexStatus, li] = TextNotVersioned Then Begin
-      fn := IncludeTrailingPathDelimiter(ProjectRoot) + '.gitignore';
-      sl := TStringList.Create;
-      added := false;
-      // 1. Gibt es die Git Ignore schon ?
-      If FileExistsUTF8(fn) Then Begin
-        sl.LoadFromFile(fn);
-      End
-      Else Begin
-        added := true;
-      End;
-      entry := TMenuItem(sender).Caption;
-      sl.Add(entry);
-      sl.SaveToFile(fn);
-      sl.free;
+      added := AddFileToGitIgnore(TMenuItem(sender).Caption);
       ReloadStringgridContent;
-      // Wir wollten ja den Ignore -> Adden
+      // Wir wollten ja den Ignore -> also Adden wir die .gitignore
       If added Then Begin
         For i := 1 To StringGrid1.RowCount - 1 Do Begin
           If StringGrid1.Cells[IndexPath, i] = '.gitignore' Then Begin
@@ -499,6 +552,7 @@ Begin
   li := StringGrid1.Selection.Top;
   MenuItem1.Visible := false; // ADD
   MenuItem2.Visible := false; // Revert
+  MenuItem15.Visible := false; // Unversion file
   MenuItem6.Visible := false; // Add to Git Ignore
   If li <> -1 Then Begin
     If StringGrid1.Selection.Top = StringGrid1.Selection.Bottom Then Begin
@@ -515,7 +569,9 @@ Begin
           MenuItem6.Visible := true;
         End;
       TextAdded: MenuItem2.Visible := true;
+      TextModified: MenuItem2.Visible := true;
     End;
+    If StringGrid1.Cells[IndexStatus, li] <> TextNotVersioned Then MenuItem15.Visible := true;
   End
   Else Begin
     // TODO: Verhindern dass das Popup kommt ?
@@ -809,7 +865,7 @@ Begin
   GitOptions.Showmodal;
 End;
 
-Procedure TForm1.Commit();
+Procedure TForm1.Commit;
 Var
   cnt, i: integer;
   sl, res: TStringList;
@@ -871,6 +927,28 @@ Begin
   Else Begin
     DeleteFile(fn);
   End;
+End;
+
+Function TForm1.AddFileToGitIgnore(Const entry: String): Boolean;
+Var
+  fn: String;
+  sl: TStringList;
+Begin
+  result := false;
+  fn := IncludeTrailingPathDelimiter(ProjectRoot) + '.gitignore';
+  sl := TStringList.Create;
+  // 1. Gibt es die Git Ignore schon ?
+  If FileExistsUTF8(fn) Then Begin
+    sl.LoadFromFile(fn);
+  End
+  Else Begin
+    result := true;
+  End;
+  If pos(entry, sl.text) = 0 Then Begin
+    sl.Add(entry);
+  End;
+  sl.SaveToFile(fn);
+  sl.free;
 End;
 
 Procedure TForm1.CheckEnableCommitButton;
