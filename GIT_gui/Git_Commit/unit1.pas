@@ -28,10 +28,12 @@ Const
    * History: 0.01 = Initialversion (26.11.2023)
    *          0.02 = Added Psoudo Popup Menu to Button1
    *          0.03 = Fix: Lines added / removed was calculated wrong
+   *          0.04 = Fix popup menu entry on add to gitignore
+   *                 Add: "Clear staging area" button
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.03';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.04';
   CommitText = 'Commit               | ▼';
   ReCommitText = 'ReCommit           | ▼';
   CommitAndPushText = 'Commit && Push | ▼';
@@ -85,6 +87,7 @@ Type
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
@@ -120,6 +123,7 @@ Type
     Procedure MenuItem11Click(Sender: TObject);
     Procedure MenuItem12Click(Sender: TObject);
     Procedure MenuItem13Click(Sender: TObject);
+    Procedure MenuItem14Click(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
@@ -278,6 +282,16 @@ End;
 Procedure TForm1.MenuItem13Click(Sender: TObject);
 Begin
   button1.caption := CommitAndPushText;
+End;
+
+Procedure TForm1.MenuItem14Click(Sender: TObject);
+Var
+  res: TStringList;
+Begin
+  // Clear Staging area
+  res := RunCommand(ProjectRoot, 'git', ['reset', 'HEAD', '--', '.']);
+  res.free;
+  ReloadStringgridContent();
 End;
 
 Procedure TForm1.MenuItem1Click(Sender: TObject);
@@ -487,7 +501,12 @@ Begin
   MenuItem2.Visible := false; // Revert
   MenuItem6.Visible := false; // Add to Git Ignore
   If li <> -1 Then Begin
-    MenuItem9.Caption := StringGrid1.Cells[IndexPath, li];
+    If StringGrid1.Selection.Top = StringGrid1.Selection.Bottom Then Begin
+      MenuItem9.Caption := StringGrid1.Cells[IndexPath, li];
+    End
+    Else Begin
+      MenuItem9.Caption := 'By name';
+    End;
     MenuItem10.Caption := '*' + StringGrid1.Cells[IndexFileExt, li];
     Case StringGrid1.Cells[IndexStatus, li] Of
       TextDeleted: MenuItem2.Visible := true;

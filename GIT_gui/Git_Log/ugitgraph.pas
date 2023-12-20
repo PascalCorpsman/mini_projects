@@ -16,6 +16,8 @@ Unit ugitgraph;
 
 {$MODE ObjFPC}{$H+}
 
+{.$DEFINE Debug}
+
 Interface
 
 Uses
@@ -27,8 +29,11 @@ Const
    * This is a more or less "random" number. So if you have projects with more
    * active branches, feel free to increase.
    *)
+{$IFDEF Debug}
+  MaxBranches = 4; // Debugg, set the value as small as possible to not disturbe ;)
+{$ELSE}
   MaxBranches = 32;
-  //MaxBranches = 4; // Debugg, set the value as small as possible to not disturbe ;)
+{$ENDIF}
   BranchColors: Array[0..7] Of TColor = (clBlack, clRed, clLime, clBlue, $00808080, $00008080, $00808000, $00808000);
 
 Type
@@ -74,7 +79,8 @@ Type
   TGraphInfoArray = Array Of TGraphInfo;
 
   (*
-   *
+   * Calculates the TGraph content corresponding to the Graphinfo which was extracted by the command:
+   *  git --no-pager log --pretty=format:"%H;%P;%s" --all > log.txt
    *)
 Function CalcGraph(Const GraphInfo: TGraphInfoArray): TGraph;
 
@@ -82,7 +88,12 @@ Procedure DrawGraphRow(Const Canvas: TCanvas; Const aRow: TFieldRow; Const aRect
 
 Implementation
 
-Uses math;
+Uses math
+{$IFDEF Debug}
+  , unit1
+  , forms
+{$ENDIF}
+  ;
 
 Procedure Nop(); // Debug Only
 Begin
@@ -117,14 +128,6 @@ Var
     s, c: Double;
     ox, oy, x, y, i: Integer;
   Begin
-    Canvas.Brush.Color := aElement.SecColor;
-    Canvas.Pen.Color := aElement.SecColor;
-    If feHalfLeftHLine In aElement.Elements Then Begin
-      Canvas.Line(r.Left + wh, r.Top + wh, r.Left, r.Top + wh);
-    End;
-    If feHalfRightHLine In aElement.Elements Then Begin
-      Canvas.Line(r.Left + wh, r.Top + wh, r.Right + 1, r.Top + wh);
-    End;
     Canvas.Brush.Color := aElement.PrimColor;
     Canvas.Pen.Color := aElement.PrimColor;
     If feHalfVLineUp In aElement.Elements Then Begin
@@ -132,6 +135,15 @@ Var
     End;
     If feHalfVLineDown In aElement.Elements Then Begin
       Canvas.Line(r.Left + wh, r.Top + wh, r.Left + wh, r.Bottom);
+    End;
+    // Always draw the horizontal lines in Front of the vertical ones
+    Canvas.Brush.Color := aElement.SecColor;
+    Canvas.Pen.Color := aElement.SecColor;
+    If feHalfLeftHLine In aElement.Elements Then Begin
+      Canvas.Line(r.Left + wh, r.Top + wh, r.Left, r.Top + wh);
+    End;
+    If feHalfRightHLine In aElement.Elements Then Begin
+      Canvas.Line(r.Left + wh, r.Top + wh, r.Right + 1, r.Top + wh);
     End;
     (*
      * Die Bögen sind doof, eigentlich sollte man das Pixelbasiert machen
@@ -201,6 +213,8 @@ Var
       End;
       Canvas.Line(ox, oy, x - 1, y);
     End;
+    Canvas.Brush.Color := aElement.PrimColor;
+    Canvas.Pen.Color := aElement.PrimColor;
     If feCircle In aElement.Elements Then Begin
       Canvas.Ellipse(r.Left + wf, r.Top + wf, r.Right - wf, r.Bottom - wf);
     End;
@@ -228,6 +242,16 @@ Begin
     r.Right := r.Right + w;
   End;
 End;
+
+{$IFDEF Debug}
+Function toLen(aValue: String; aLen: integer): String;
+Begin
+  result := aValue;
+  While length(result) < aLen Do Begin
+    result := ' ' + Result;
+  End;
+End;
+{$ENDIF}
 
 Function CalcGraph(Const GraphInfo: TGraphInfoArray): TGraph;
 Var
@@ -262,6 +286,9 @@ Var
 
 Var
   j, i, index, k, newindex, l: Integer;
+{$IFDEF Debug}
+  s: String;
+{$ENDIF}
 Begin
   // "Leeren" Graphen initialisieren
   Graph := Nil;
@@ -282,7 +309,7 @@ Begin
     If index = -1 Then Begin // Hier Startet was neues -> Neuen Index Suchen
       index := GetEmptySwimLane(j + 1);
       Graph[j + 1, index].Active := true;
-      Graph[j + 1, index].Hash := GraphInfo[0].hash;
+      Graph[j + 1, index].Hash := GraphInfo[j].hash;
       Graph[j + 1, index].Elements := [feCircle, feHalfVLineDown];
     End;
     Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feCircle];
@@ -305,10 +332,21 @@ Begin
                 End;
               2: Begin
                   // Hier ein Merge von zwei Branches -> aus einer Swimlane werden 2
-                  newindex := GetSwimLane(j + 1, GraphInfo[j].ParentsHash[1]);
-                  If newindex = -1 Then Begin
-                    // Wenn der Merge nicht auf ein Bestehenden Branch war, dann muss eine Neue Swimlane erstellt werden
-                    newindex := GetEmptySwimLane(j + 1);
+                  l := GetSwimLane(j + 1, GraphInfo[j].ParentsHash[0]);
+                  If l = -1 Then Begin
+                    // Parent 0 geht nach Index
+                    // Parent 1 merged oder erstellt eine neue Lane
+                    newindex := GetSwimLane(j + 1, GraphInfo[j].ParentsHash[1]);
+                    If newindex = -1 Then Begin
+                      // Wenn der Merge nicht auf ein Bestehenden Branch war, dann muss eine Neue Swimlane erstellt werden
+                      newindex := GetEmptySwimLane(j + 1);
+                    End;
+                  End
+                  Else Begin
+                    // Parent 0 geht weg
+                    // Parent 1 bleibt
+                    newindex := index;
+                    index := l;
                   End;
                   Graph[j + 1, index].Elements := Graph[j + 1, index].Elements - [feCircle];
                   Graph[j + 1, index].Elements := Graph[j + 1, index].Elements + [feRectangle, feHalfVLineUp];
@@ -323,6 +361,7 @@ Begin
                     // Der Bogen nach Unten
                     Graph[j + 1, newindex].Elements := Graph[j + 1, newindex].Elements + [feArcUL];
                     Graph[j + 1, newindex].SecColor := Graph[j + 1, index].PrimColor;
+                    Graph[j + 1, index].SecColor := Graph[j + 1, index].PrimColor;
                     //Graph[j + 1, newindex].Elements := Graph[j + 1, newindex].Elements - [feHalfVLineDown, feHalfVLineUp];
                   End
                   Else Begin
@@ -336,6 +375,7 @@ Begin
                     // Der Bogen nach unten
                     Graph[j + 1, newindex].Elements := Graph[j + 1, newindex].Elements + [feArcUR];
                     Graph[j + 1, newindex].SecColor := Graph[j + 1, newindex].PrimColor;
+                    Graph[j + 1, index].SecColor := Graph[j + 1, newindex].PrimColor;
                     //Graph[j + 1, index].Elements := Graph[j + 1, index].Elements - [feHalfVLineDown, feHalfVLineUp];
                   End;
                   Graph[j + 1, newindex].Hash := GraphInfo[j].ParentsHash[1];
@@ -357,15 +397,19 @@ Begin
           Else Begin
             // Den Aktuellen Hash die Swimlane weiter laufen lassen ...
             Graph[j + 2, k].Active := true;
-            //            If Graph[j + 2, k].Hash <> '' Then Begin // Debug Remove
-            //              If Graph[j + 2, k].Hash <> Graph[j + 1, k].Hash Then Begin // Debug Remove
-            //                Raise exception.create('Logic error, branch will be "killed"'); // Debug Remove
-            //              End; // Debug Remove
-            //            End // Debug Remove
-            //            Else Begin // Debug Remove
-            Graph[j + 2, k].oldHash := Graph[j + 2, k].Hash;
-            Graph[j + 2, k].Hash := Graph[j + 1, k].Hash;
-            //            End; // Debug Remove
+{$IFDEF Debug}
+            If Graph[j + 2, k].Hash <> '' Then Begin // Debug Remove
+              If Graph[j + 2, k].Hash <> Graph[j + 1, k].Hash Then Begin // Debug Remove
+                Raise exception.create('Logic error, branch will be "killed"'); // Debug Remove
+              End; // Debug Remove
+            End // Debug Remove
+            Else Begin // Debug Remove
+{$ENDIF}
+              Graph[j + 2, k].oldHash := Graph[j + 2, k].Hash;
+              Graph[j + 2, k].Hash := Graph[j + 1, k].Hash;
+{$IFDEF Debug}
+            End; // Debug Remove
+{$ENDIF}
           End;
         End;
       End;
@@ -377,8 +421,13 @@ Begin
     // Mergen der Swimlanes
     For i := 0 To MaxBranches - 1 Do Begin
       For k := i + 1 To MaxBranches - 1 Do Begin
-        If (Graph[j + 1, i].Active) And (Graph[j + 1, k].Active) And (
-          ((Graph[j + 1, i].Hash = Graph[j + 1, k].Hash) And (Graph[j + 1, i].Hash <> '')) // Der Reguläre Branch
+        If (Graph[j + 1, i].Active) And (Graph[j + 1, k].Active) And
+          ( // Ein Merge darf nur gemacht werden, wenn der Knoten der am Merge beteiligt ist, gerade eingefügt wurde.
+          (Graph[j + 1, i].Hash = GraphInfo[j].hash) Or (Graph[j + 1, k].Hash = GraphInfo[j].hash)
+          // Or (Graph[j + 1, i].oldHash = GraphInfo[j].hash) Or (Graph[j + 1, k].oldHash = GraphInfo[j].hash) -- Sieht so aus als braucht man das nicht...
+          )
+          And
+          (((Graph[j + 1, i].Hash = Graph[j + 1, k].Hash) And (Graph[j + 1, i].Hash <> '')) // Der Reguläre Branch
           Or ((Graph[j + 1, i].oldHash = Graph[j + 1, k].Hash) And (Graph[j + 1, i].oldHash <> '')) // Wenn ein Merge und Branch Gleichzeitig sind
           Or ((Graph[j + 1, i].Hash = Graph[j + 1, k].oldHash) And (Graph[j + 1, i].Hash <> '')) // Wenn ein Merge und Branch Gleichzeitig sind
           Or ((Graph[j + 1, i].oldHash = Graph[j + 1, k].oldHash) And (Graph[j + 1, i].oldHash <> '')) // Wenn ein Merge und Branch Gleichzeitig sind
@@ -428,8 +477,17 @@ Begin
         End;
       End;
     End;
+{$IFDEF Debug}
+    s := '';
+    For l := 0 To MaxBranches - 1 Do Begin
+      s := s + toLen(Graph[j + 1, l].Hash, 3);
+    End;
+    Form1.memo1.lines.add(s);
+    Application.ProcessMessages;
+{$ENDIF}
   End;
   result := Graph;
 End;
 
 End.
+

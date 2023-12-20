@@ -31,12 +31,13 @@ Uses
   *          0.02 = Activate Git graph
   *          0.03 = FIX: Git graph could not display Merge and Branch at the same line
   *          0.04 = FIX: Git graph could not display Merge of a branch without "removing" branch
+  *          0.05 = FIX: Git graph sometimes merged the wrong branches
   *
   * Icons geladen von: https://peacocksoftware.com/silk
   *)
 
 Const
-  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.04';
+  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.05';
 
   IndexActionFileModified = 0; // If a revision modified a file or directory, the modified icon is shown in the first column.
   IndexActionFileAdded = 1; // If a revision added a File Or directory, the added icon Is shown In the second column.
@@ -397,6 +398,10 @@ Begin
   StringGrid1.Cells[2, 1] := 'Working tree changes';
   StringGrid1.Cells[5, 1] := '0000000000000000000000000000000000000000';
   aParams := Nil;
+  (*
+   * Command to create debug log streams for Git_Graph test environment:
+   * git --no-pager log --pretty=format:"%H;%P;%s" --all > log.txt
+   *)
   setlength(aParams, 5);
   aParams[0] := '--no-pager';
   aParams[1] := 'log';

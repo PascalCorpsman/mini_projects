@@ -451,12 +451,19 @@ object Form1: TForm1
       Caption = 'Add to ignore list'
       object MenuItem9: TMenuItem
         Caption = 'MenuItem9'
+        ImageIndex = 3
         OnClick = MenuItem9Click
       end
       object MenuItem10: TMenuItem
         Caption = 'MenuItem10'
+        ImageIndex = 3
         OnClick = MenuItem9Click
       end
+    end
+    object MenuItem14: TMenuItem
+      Caption = 'Clear staging area'
+      ImageIndex = 7
+      OnClick = MenuItem14Click
     end
     object Separator1: TMenuItem
       Caption = '-'
