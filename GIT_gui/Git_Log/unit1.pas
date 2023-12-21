@@ -32,12 +32,14 @@ Uses
   *          0.03 = FIX: Git graph could not display Merge and Branch at the same line
   *          0.04 = FIX: Git graph could not display Merge of a branch without "removing" branch
   *          0.05 = FIX: Git graph sometimes merged the wrong branches
+  *          0.06 = ADD: show Branch locations (Red / Green / Brown text in front of commit message)
+  *                 ADD: Ability to create branches / tags
   *
   * Icons geladen von: https://peacocksoftware.com/silk
   *)
 
 Const
-  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.05';
+  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.06';
 
   IndexActionFileModified = 0; // If a revision modified a file or directory, the modified icon is shown in the first column.
   IndexActionFileAdded = 1; // If a revision added a File Or directory, the added icon Is shown In the second column.
@@ -51,10 +53,14 @@ Const
 
 Type
 
+  TBranch = Record
+    Name: String;
+    Color: TColor;
+  End;
+
   TAdditional = Record
-    BranchName: String;
-    BranchColor: TColor;
-    tags: Array Of String;
+    Branchs: Array Of TBranch;
+    Tags: Array Of String;
   End;
 
   { TForm1 }
@@ -118,6 +124,7 @@ Type
     MenuItem41: TMenuItem;
     MenuItem42: TMenuItem;
     MenuItem43: TMenuItem;
+    MenuItem44: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
@@ -135,6 +142,7 @@ Type
     Separator6: TMenuItem;
     Separator7: TMenuItem;
     Separator8: TMenuItem;
+    Separator9: TMenuItem;
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
     Splitter1: TSplitter;
@@ -150,10 +158,13 @@ Type
     Procedure FormShow(Sender: TObject);
     Procedure MenuItem24Click(Sender: TObject);
     Procedure MenuItem25Click(Sender: TObject);
+    Procedure MenuItem44Click(Sender: TObject);
     Procedure PopupMenu3Popup(Sender: TObject);
     Procedure StringGrid1Click(Sender: TObject);
     Procedure StringGrid1DrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
+    Procedure StringGrid1KeyDown(Sender: TObject; Var Key: Word;
+      Shift: TShiftState);
     Procedure StringGrid2DblClick(Sender: TObject);
   private
     ProjectRoot: String;
@@ -164,6 +175,7 @@ Type
   End;
 
 Var
+  FormShowOnce: Boolean = true;
   Form1: TForm1;
 
 Implementation
@@ -172,6 +184,7 @@ Implementation
 
 Uses
   unit2 // Create Branch Dialog
+  , LCLType
   , uGITOptions, ugit_common, LazFileUtils, LazUTF8, math, DateUtils, LCLIntf;
 
 { TForm1 }
@@ -236,12 +249,15 @@ Begin
     showmessage('"' + aDir + '" is not a valid git repository.');
     halt;
   End;
-  LoadLCL;
 End;
 
 Procedure TForm1.FormShow(Sender: TObject);
 Begin
   StringGrid1.SetFocus;
+  If FormShowOnce Then Begin
+    FormShowOnce := false;
+    LoadLCL;
+  End;
 End;
 
 Procedure TForm1.MenuItem24Click(Sender: TObject);
@@ -251,13 +267,41 @@ Begin
   // Create Branch at this version
   li := StringGrid1.Selection.Top;
   If li <= 0 Then exit; // Keine Ahnung nichts ausgewählt
-  form2.Init(ProjectRoot, StringGrid1.Cells[5, li]);
-  form2.showmodal;
+  form2.Init(ProjectRoot, StringGrid1.Cells[5, li], 'Branch');
+  If form2.showmodal = mrOK Then Begin
+    LoadLCL;
+  End;
 End;
 
 Procedure TForm1.MenuItem25Click(Sender: TObject);
+Var
+  li: LongInt;
 Begin
   // Create Tag at this version
+  li := StringGrid1.Selection.Top;
+  If li <= 0 Then exit; // Keine Ahnung nichts ausgewählt
+  form2.Init(ProjectRoot, StringGrid1.Cells[5, li], 'Tag');
+  If form2.showmodal = mrOK Then Begin
+    LoadLCL;
+  End;
+End;
+
+Procedure TForm1.MenuItem44Click(Sender: TObject);
+Var
+  li: LongInt;
+  res: TStringList;
+Begin
+  // Delete Tag
+  // Create Tag at this version
+  li := StringGrid1.Selection.Top;
+  If li <= 0 Then exit; // Keine Ahnung nichts ausgewählt
+  res := RunCommand(ProjectRoot, 'git', ['tag', '-d', copy(MenuItem44.caption, length('Delete refs/tags/') + 1, length(MenuItem44.caption))]);
+  showmessage(res.text);
+  res.free;
+  //form2.Init(ProjectRoot, StringGrid1.Cells[5, li], 'Tag');
+  //If form2.showmodal = mrOK Then Begin
+  LoadLCL;
+  //End;
 End;
 
 Procedure TForm1.PopupMenu3Popup(Sender: TObject);
@@ -270,6 +314,12 @@ Begin
   // TODO: Anpassen aller möglichen Popup Einträge ...
   MenuItem24.Visible := li > 1; // Create Branch at this version
   MenuItem25.Visible := li > 1; // Create Tag at this version
+  MenuItem44.Visible := assigned(Additionals[li].Tags);
+  Separator9.Visible := MenuItem44.Visible;
+  If assigned(Additionals[li].Tags) Then Begin
+    // TODO: Theoretisch sollte hier ermittelt werden auf welchem Tag die Maus steht und dann der Richtige angewählt werden !
+    MenuItem44.Caption := 'Delete refs/tags/' + Additionals[li].Tags[0];
+  End;
 End;
 
 Procedure TForm1.StringGrid1Click(Sender: TObject);
@@ -346,21 +396,23 @@ Begin
     DrawGraphRow(StringGrid1.Canvas, Graph[aRow - 1], aRect);
   End;
   If (aCol = 2) Then Begin
-    If (Additionals[aRow].BranchName <> '') Or (Additionals[aRow].tags <> Nil) Then Begin
-      offset := 0;
+    offset := 0;
+    //  // Die Zelle "Löschen"
+    If assigned(Additionals[aRow].tags) Or Assigned(Additionals[aRow].Branchs) Then Begin
       bc := StringGrid1.canvas.Brush.Color;
       fc := StringGrid1.canvas.Font.Color;
-      // Die Zelle "Löschen"
       StringGrid1.canvas.Pen.Color := StringGrid1.canvas.Brush.Color;
       StringGrid1.canvas.Rectangle(aRect.Left + 1, aRect.Top + 1, aRect.Right - 1, aRect.Bottom - 1);
-
-      If Additionals[aRow].BranchName <> '' Then Begin
-        StringGrid1.canvas.Brush.Color := Additionals[aRow].BranchColor;
-        // StringGrid1.canvas.Font.Color := clBlack; -- In or not in, thats the question ;)
-        StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, Additionals[aRow].BranchName);
-        offset := offset + StringGrid1.canvas.TextWidth(Additionals[aRow].BranchName) + Scale96ToForm(2);
+      offset := 0;
+      If assigned(Additionals[aRow].Branchs) Then Begin
+        For j := 0 To high(Additionals[aRow].Branchs) Do Begin
+          StringGrid1.canvas.Brush.Color := Additionals[aRow].Branchs[j].Color;
+          StringGrid1.canvas.Font.Color := clBlack;
+          StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, Additionals[aRow].Branchs[j].Name);
+          offset := offset + StringGrid1.canvas.TextWidth(Additionals[aRow].Branchs[j].Name) + Scale96ToForm(2);
+        End;
       End;
-      If (Additionals[aRow].tags <> Nil) Then Begin
+      If assigned(Additionals[aRow].tags) Then Begin
         StringGrid1.canvas.Brush.Color := clYellow;
         StringGrid1.canvas.Font.Color := clBlack;
         For j := 0 To high(Additionals[aRow].tags) Do Begin
@@ -374,6 +426,12 @@ Begin
       StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, StringGrid1.Cells[aCol, aRow]);
     End;
   End;
+End;
+
+Procedure TForm1.StringGrid1KeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  If key = vk_F5 Then LoadLCL;
 End;
 
 Procedure TForm1.StringGrid2DblClick(Sender: TObject);
@@ -413,15 +471,23 @@ Procedure TForm1.LoadLCL;
     res: TStringList;
     i, j: Integer;
     sa: TStringArray;
-    p: String;
+    aBranch, p: String;
+
   Begin
+    // First get name of Actual Branch by using "git symbolic-ref --short HEAD" or "git branch --show-current"
+    res := RunCommand(ProjectRoot, 'git', ['symbolic-ref', '--short', 'HEAD']);
+    aBranch := trim(res.Text);
+    res.free;
     Additionals := Nil;
     setlength(Additionals, StringGrid1.RowCount);
     For i := 0 To high(Additionals) Do Begin
       Additionals[i].tags := Nil;
-      Additionals[i].BranchName := '';
+      Additionals[i].Branchs := Nil;
     End;
-    res := RunCommand(ProjectRoot, 'git', ['show-ref', '--heads', '--tags', '--dereference']);
+    form2.ComboBox2.Clear;
+    form2.ComboBox3.Clear;
+    form2.ComboBox3.Items.Add('FETCH_HEAD');
+    res := RunCommand(ProjectRoot, 'git', ['show-ref', '--heads', '--tags' {, '--dereference'}]);
     For i := 0 To res.Count - 1 Do Begin
       If trim(res[i]) <> '' Then Begin
         sa := trim(res[i]).Split(' ');
@@ -429,17 +495,41 @@ Procedure TForm1.LoadLCL;
         For j := 2 To StringGrid1.RowCount - 1 Do Begin
           If StringGrid1.Cells[5, j] = sa[0] Then Begin
             If pos('refs/heads/', p) = 1 Then Begin
-              // TODO: Wie kriegen wir raus, ob der Text Rot oder Grün angezeigt werden soll ?
-              Additionals[j].BranchColor := clred;
-              //Additionals[j].BranchColor := cllime;
-              Additionals[j].BranchName := copy(p, length('refs/heads/') + 1, length(p));
-            End;
-            If pos('refs/remotes/', p) = 1 Then Begin
-              // TODO: Implement Remotes ..
+              setlength(Additionals[j].Branchs, high(Additionals[j].Branchs) + 2);
+              Additionals[j].Branchs[high(Additionals[j].Branchs)].Name := copy(p, length('refs/heads/') + 1, length(p));
+              form2.ComboBox3.Items.Add(Additionals[j].Branchs[high(Additionals[j].Branchs)].Name);
+              If aBranch = Additionals[j].Branchs[high(Additionals[j].Branchs)].Name Then Begin
+                Additionals[j].Branchs[high(Additionals[j].Branchs)].Color := $000000C8; // Rot
+                form2.ComboBox3.ItemIndex := form2.ComboBox3.Items.Count - 1;
+              End
+              Else Begin
+                Additionals[j].Branchs[high(Additionals[j].Branchs)].Color := $0000C300; // Grün
+              End;
             End;
             If pos('refs/tags/', p) = 1 Then Begin
               setlength(Additionals[j].tags, high(Additionals[j].tags) + 2);
               Additionals[j].tags[high(Additionals[j].tags)] := copy(p, length('refs/tags/') + 1, length(p));
+              form2.ComboBox2.Items.Add(Additionals[j].tags[high(Additionals[j].tags)]);
+              form2.ComboBox2.ItemIndex := 0;
+            End;
+            break;
+          End;
+        End;
+      End;
+    End;
+    res.free;
+    res := RunCommand(ProjectRoot, 'git', ['ls-remote', 'origin']);
+    For i := 0 To res.Count - 1 Do Begin
+      If trim(res[i]) <> '' Then Begin
+        sa := trim(res[i]).Split(#9);
+        p := sa[1];
+        For j := 2 To StringGrid1.RowCount - 1 Do Begin
+          If StringGrid1.Cells[5, j] = sa[0] Then Begin
+            If pos('refs/heads/', p) = 1 Then Begin
+              setlength(Additionals[j].Branchs, high(Additionals[j].Branchs) + 2);
+              Additionals[j].Branchs[high(Additionals[j].Branchs)].Name := 'origin/' + copy(p, length('refs/heads/') + 1, length(p));
+              Additionals[j].Branchs[high(Additionals[j].Branchs)].Color := $00AADDFF; // Hellbraun
+              form2.ComboBox3.Items.Add('remotes/' + Additionals[j].Branchs[high(Additionals[j].Branchs)].Name);
             End;
             break;
           End;

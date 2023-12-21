@@ -30,6 +30,8 @@ Const
    *          0.03 = Fix: Lines added / removed was calculated wrong
    *          0.04 = Fix popup menu entry on add to gitignore
    *                 Add: "Clear staging area" button
+   *                 FIX: Caretpos of log was not updated
+   *                 Add: Create Branch during commit, if requested
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
@@ -122,6 +124,8 @@ Type
     Procedure Label6Click(Sender: TObject);
     Procedure Label7Click(Sender: TObject);
     Procedure Memo1Change(Sender: TObject);
+    Procedure Memo1KeyPress(Sender: TObject; Var Key: char);
+    Procedure Memo1KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure MenuItem11Click(Sender: TObject);
     Procedure MenuItem12Click(Sender: TObject);
     Procedure MenuItem13Click(Sender: TObject);
@@ -158,6 +162,7 @@ Type
     Function GetIndexOfBufferItem(Const Item: TBufferListItem): Integer;
     Procedure Commit();
     Function AddFileToGitIgnore(Const entry: String): Boolean; // True if .gitignore was created
+    Procedure UpdateMemoCursor;
   public
     Procedure LoadCommitInformations();
   End;
@@ -272,6 +277,16 @@ End;
 Procedure TForm1.Memo1Change(Sender: TObject);
 Begin
   CheckEnableCommitButton();
+End;
+
+Procedure TForm1.Memo1KeyPress(Sender: TObject; Var Key: char);
+Begin
+  UpdateMemoCursor();
+End;
+
+Procedure TForm1.Memo1KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
+Begin
+  UpdateMemoCursor();
 End;
 
 Procedure TForm1.MenuItem11Click(Sender: TObject);
@@ -884,6 +899,24 @@ Begin
     showmessage('Error, nothing selected.');
     exit;
   End;
+  // Ist das ein Commit und Gleizeitig neuer Branch ?
+  If CheckBox1.Checked Then Begin
+    If Not IsValidBranchName(edit1.text) Then Begin
+      showmessage('Error branch name must not be empty or is invalid.');
+      exit;
+    End;
+    res := RunCommand(ProjectRoot, 'git', ['branch', Edit1.Text]);
+    If trim(res.Text) <> '' Then Begin
+      ShowMessage(res.Text);
+      res.free;
+      exit;
+    End
+    Else Begin
+      res.free;
+    End;
+    res := RunCommand(ProjectRoot, 'git', ['checkout', Edit1.Text]);
+    res.free;
+  End;
   GitProgress.ProgressBar1.Position := 0;
   GitProgress.ProgressBar1.Max := cnt;
   GitProgress.Memo1.Clear;
@@ -951,6 +984,14 @@ Begin
   sl.free;
 End;
 
+Procedure TForm1.UpdateMemoCursor;
+Var
+  p: TPoint;
+Begin
+  p := memo1.CaretPos;
+  label2.caption := format('%d/%d', [p.y + 1, p.x + 1]);
+End;
+
 Procedure TForm1.CheckEnableCommitButton;
 Var
   b: Boolean;
@@ -959,6 +1000,8 @@ Begin
   If StringGrid1.RowCount = 1 Then b := false;
   If trim(memo1.Text) = '' Then b := false;
   button1.enabled := b;
+
+  UpdateMemoCursor;
 End;
 
 Function TForm1.GetSelection: TBufferList;

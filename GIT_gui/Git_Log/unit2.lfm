@@ -1,7 +1,7 @@
 object Form2: TForm2
-  Left = 339
+  Left = 360
   Height = 398
-  Top = 692
+  Top = 682
   Width = 515
   Caption = 'Form2'
   ClientHeight = 398
@@ -23,8 +23,8 @@ object Form2: TForm2
       Left = 24
       Height = 15
       Top = 8
-      Width = 37
-      Caption = 'Branch'
+      Width = 34
+      Caption = 'Label1'
     end
     object Edit1: TEdit
       Left = 72
@@ -111,8 +111,8 @@ object Form2: TForm2
       Anchors = [akTop, akLeft, akRight]
       Enabled = False
       ItemHeight = 15
+      Style = csDropDownList
       TabOrder = 6
-      Text = 'ComboBox2'
     end
     object ComboBox3: TComboBox
       Left = 120
@@ -122,8 +122,8 @@ object Form2: TForm2
       Anchors = [akTop, akLeft, akRight]
       Enabled = False
       ItemHeight = 15
+      Style = csDropDownList
       TabOrder = 7
-      Text = 'ComboBox3'
     end
     object Button2: TButton
       Left = 456

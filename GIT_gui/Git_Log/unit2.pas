@@ -39,8 +39,9 @@ Type
     Procedure RadioButton4Click(Sender: TObject);
   private
     ProjectRoot: String;
+
   public
-    Procedure Init(aProjectRoot, CommitHash: String);
+    Procedure Init(aProjectRoot, CommitHash, aMode: String);
 
   End;
 
@@ -51,8 +52,10 @@ Implementation
 
 {$R *.lfm}
 
+Uses ugit_common;
+
 Const
-  DefCaption = ' - Create Branch - CorpsmanGit';
+  DefCaption = ' - Create %s - CorpsmanGit';
 
   { TForm2 }
 
@@ -63,25 +66,55 @@ Begin
 End;
 
 Procedure TForm2.Button3Click(Sender: TObject);
+Var
+  res: TStringList;
 Begin
+  If Label1.caption = 'Branch' Then Begin
+    If Not IsValidBranchName(edit1.text) Then Begin
+      showmessage('Error branch name must not be empty or is invalid.');
+      exit;
+    End;
+    // Create a Branch
 
-  //git branch <branch-name> <commit-hash>
-  //
-  //Replace <branch-name> with the desired name for your new branch and <commit-hash> with the hash of the commit where you want the branch to start.
-  //
-  //For example, if you want to create a branch named "new-feature" at the commit with hash "abc123":
-  //
-  //bash
-  //
-  //git branch new-feature abc123
-  //
-  //After creating the branch, you can switch to it using:
-  //
-  //bash
-  //
-  //git checkout new-feature
+    If RadioButton4.Checked Then Begin
+      //git branch <branch-name> <commit-hash>
+      res := RunCommand(ProjectRoot, 'git', ['branch', edit1.text, ComboBox1.Text]);
+      If trim(res.text) <> '' Then Begin
+        ShowMessage(res.text);
+      End
+      Else Begin
+        res.free;
+        ModalResult := mrOK;
+      End;
+    End;
 
-  ModalResult := mrOK;
+    If ModalResult = mrOK Then Begin // Bei Erfolg wechseln wir gleich in den neuen Branch
+      If CheckBox3.Checked Then Begin
+        res := RunCommand(ProjectRoot, 'git', ['checkout', edit1.text]);
+        showmessage(res.text);
+        res.free;
+      End;
+    End;
+  End
+  Else Begin
+    // Create a Tag
+    If (trim(edit1.text) = '') Or (Pos('"', Edit1.Text) <> 0) Or (Pos(' ', Edit1.Text) <> 0) Then Begin
+      showmessage('Error tag name mus not be empty or is invalid.');
+      exit;
+    End;
+    If RadioButton4.Checked Then Begin
+      //git branch <branch-name> <commit-hash>
+      // TODO: Wenn die memo einen Inhalt hat, dann: git tag -a <tag-name> -m "Tag message" <commit-hash>
+      res := RunCommand(ProjectRoot, 'git', ['tag', '"' + edit1.text + '"', ComboBox1.Text]);
+      If trim(res.text) <> '' Then Begin
+        ShowMessage(res.text);
+      End
+      Else Begin
+        res.free;
+        ModalResult := mrOK;
+      End;
+    End;
+  End;
 End;
 
 Procedure TForm2.RadioButton4Click(Sender: TObject);
@@ -95,11 +128,12 @@ Begin
   button1.Enabled := RadioButton4.Checked;
 End;
 
-Procedure TForm2.Init(aProjectRoot, CommitHash: String);
+Procedure TForm2.Init(aProjectRoot, CommitHash, aMode: String);
 Begin
   ProjectRoot := aProjectRoot;
-  caption := ProjectRoot + DefCaption;
+  caption := ProjectRoot + format(DefCaption, [amode]);
   Edit1.text := '';
+  Label1.caption := aMode;
   RadioButton4.Checked := true;
   RadioButton4Click(Nil);
   ComboBox1.Text := CommitHash;
