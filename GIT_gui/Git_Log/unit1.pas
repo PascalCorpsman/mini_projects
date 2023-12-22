@@ -170,6 +170,7 @@ Type
     ProjectRoot: String;
     Graph: TGraph;
     Additionals: Array Of TAdditional;
+    FirstLoadLCL: Boolean;
   public
     Procedure LoadLCL;
   End;
@@ -249,6 +250,7 @@ Begin
     showmessage('"' + aDir + '" is not a valid git repository.');
     halt;
   End;
+  FirstLoadLCL := true;
 End;
 
 Procedure TForm1.FormShow(Sender: TObject);
@@ -642,7 +644,10 @@ Begin
   DateEdit1.Date := FromDate;
   DateEdit2.Date := ToDate;
   sl.free;
-  StringGrid1.AutoSizeColumns;
+  If FirstLoadLCL Then Begin
+    FirstLoadLCL := false;
+    StringGrid1.AutoSizeColumns;
+  End;
   StringGrid1.ColWidths[2] := min(StringGrid1.ColWidths[2], Form1.Width Div 2);
   StringGrid1.ColWidths[0] := Scale96ToForm(120);
   StringGrid1.ColWidths[1] := max(StringGrid1.ColWidths[1], Scale96ToForm(ImageList1.Width * 5));

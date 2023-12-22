@@ -105,7 +105,7 @@ Begin
     If RadioButton4.Checked Then Begin
       //git branch <branch-name> <commit-hash>
       // TODO: Wenn die memo einen Inhalt hat, dann: git tag -a <tag-name> -m "Tag message" <commit-hash>
-      res := RunCommand(ProjectRoot, 'git', ['tag', '"' + edit1.text + '"', ComboBox1.Text]);
+      res := RunCommand(ProjectRoot, 'git', ['tag', edit1.text, ComboBox1.Text]);
       If trim(res.text) <> '' Then Begin
         ShowMessage(res.text);
       End
