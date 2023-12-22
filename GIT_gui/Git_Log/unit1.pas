@@ -550,6 +550,7 @@ Var
   GraphInfo: TGraphInfoArray;
 Begin
   caption := ProjectRoot + DefCaption;
+  edit1.text := '';
   StringGrid1.RowCount := 2;
   StringGrid1.Cells[2, 1] := 'Working tree changes';
   StringGrid1.Cells[5, 1] := '0000000000000000000000000000000000000000';
