@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.09                                                         *)
+(* Version     : 0.10                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -39,6 +39,7 @@
 (*               0.08 - Emoji shortcuts                                       *)
 (*                      DND Button - unterdrückung von Show on New Message    *)
 (*               0.09 - UniqueInstance                                        *)
+(*               0.10 - Add some keyboard shortcuts for Emoji'S               *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -259,7 +260,7 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.09';
+  defcaption := 'Lan chat ver. 0.10';
   (*
    * Know Bug: das ding scrollt nicht immer sauber nach unten..
    *)
@@ -390,6 +391,14 @@ Begin
    *
    *)
   aText := EncapsulateURLsWithHRef(Edit1.Text);
+  aText := StringReplace(aText, '(y)', '👍', [rfReplaceAll]);
+  aText := StringReplace(aText, '(n)', '👎', [rfReplaceAll]);
+  aText := StringReplace(aText, ':)', '🙂', [rfReplaceAll]);
+  aText := StringReplace(aText, ';)', '😉', [rfReplaceAll]);
+  aText := StringReplace(aText, ':D', '😁', [rfReplaceAll]);
+  aText := StringReplace(aText, '8|', '😎', [rfReplaceAll]);
+  aText := StringReplace(aText, ':(', '☹️', [rfReplaceAll]);
+  aText := StringReplace(aText, '<3', '❤️', [rfReplaceAll]);
   edit1.text := '';
   aMsg := ' <font color="TimeColor"> ' + formatdatetime('DD.MM.YYY HH:MM:SS', now) + ' </font> <br> ' + aText + ' ';
   data := TMemoryStream.Create;
