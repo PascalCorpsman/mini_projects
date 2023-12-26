@@ -4,8 +4,8 @@ object Form1: TForm1
   Top = 117
   Width = 320
   Caption = 'Form1'
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
-  Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
 end

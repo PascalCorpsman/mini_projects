@@ -91,8 +91,7 @@ Var
   i: Integer;
 Begin
   // OK
-  GitProgress.ProgressBar1.Position := 0;
-  GitProgress.ProgressBar1.Max := 100;
+  GitProgress.InitProgressbar(100);
   GitProgress.Memo1.Clear;
   GitProgress.ModalResult := mrNone;
   GitProgress.SetContinueButtonTo('Pulled Diff');

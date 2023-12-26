@@ -917,8 +917,7 @@ Begin
     res := RunCommand(ProjectRoot, 'git', ['checkout', Edit1.Text]);
     res.free;
   End;
-  GitProgress.ProgressBar1.Position := 0;
-  GitProgress.ProgressBar1.Max := cnt;
+  GitProgress.InitProgressbar(cnt);
   GitProgress.Memo1.Clear;
   GitProgress.ModalResult := mrNone;
   GitProgress.SetContinueButtonTo('Push');

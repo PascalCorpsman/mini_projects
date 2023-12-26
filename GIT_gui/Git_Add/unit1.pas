@@ -74,8 +74,7 @@ End;
 
 Procedure TForm1.FormShow(Sender: TObject);
 Begin
-  GitProgress.ProgressBar1.Position := 0;
-  GitProgress.ProgressBar1.Max := ParamCount;
+  GitProgress.InitProgressbar(ParamCount);
   GitProgress.Memo1.Clear;
   GitProgress.ModalResult := mrNone;
   GitProgress.SetContinueButtonTo('Commit');

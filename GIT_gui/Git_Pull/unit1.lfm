@@ -7,9 +7,9 @@ object Form1: TForm1
   Caption = 'Form1'
   ClientHeight = 417
   ClientWidth = 570
-  OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
   object GroupBox1: TGroupBox
     Left = 8
     Height = 145
@@ -27,9 +27,9 @@ object Form1: TForm1
       Width = 70
       Caption = 'Remote'
       Checked = True
-      OnClick = RadioButton1Click
       TabOrder = 1
       TabStop = True
+      OnClick = RadioButton1Click
     end
     object RadioButton2: TRadioButton
       Left = 8
@@ -37,8 +37,8 @@ object Form1: TForm1
       Top = 52
       Width = 105
       Caption = 'Arbitrary URL'
-      OnClick = RadioButton1Click
       TabOrder = 0
+      OnClick = RadioButton1Click
     end
     object ComboBox1: TComboBox
       Left = 168
@@ -184,8 +184,8 @@ object Form1: TForm1
     Width = 85
     Anchors = [akRight, akBottom]
     Caption = 'OK'
-    OnClick = Button2Click
     TabOrder = 4
+    OnClick = Button2Click
   end
   object Button3: TButton
     Left = 384
@@ -194,8 +194,8 @@ object Form1: TForm1
     Width = 85
     Anchors = [akRight, akBottom]
     Caption = 'Cancel'
-    OnClick = Button3Click
     TabOrder = 5
+    OnClick = Button3Click
   end
   object Button4: TButton
     Left = 475
@@ -212,7 +212,7 @@ object Form1: TForm1
     Top = 384
     Width = 75
     Caption = 'Options'
-    OnClick = Button5Click
     TabOrder = 7
+    OnClick = Button5Click
   end
 end
