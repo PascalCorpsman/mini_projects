@@ -1,20 +1,36 @@
+(******************************************************************************)
+(* uInterpreter                                                    ??.??.???? *)
+(*                                                                            *)
+(* Version     : 0.04                                                         *)
+(*                                                                            *)
+(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(*                                                                            *)
+(* Support     : www.Corpsman.de                                              *)
+(*                                                                            *)
+(* Description : Implements a pascal interpreter                              *)
+(*                                                                            *)
+(* License     : See the file license.md, located under:                      *)
+(*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
+(*  for details about the license.                                            *)
+(*                                                                            *)
+(*               It is not allowed to change or remove this text from any     *)
+(*               source file of the project.                                  *)
+(*                                                                            *)
+(* Warranty    : There is no warranty, neither in correctness of the          *)
+(*               implementation, nor anything other that could happen         *)
+(*               or go wrong, use at your own risk.                           *)
+(*                                                                            *)
+(* Known Issues: none                                                         *)
+(*                                                                            *)
+(* History     : 0.04 - Initial version                                       *)
+(*               0.02 - Hinzufügen Single, TPixel                             *)
+(*                      Abkapseln in tatsächlich eigentständige Klasse        *)
+(*               0.03 - Unterstützen Proceduren / Externe Calls               *)
+(*               0.04 - Strings                                               *)
+(*                                                                            *)
+(******************************************************************************)
+
 (*
- * Historie: 0.01 = initialversion
- *           0.02 = Hinzufügen Single, TPixel
- *                  Abkapseln in tatsächlich eigentständige Klasse
- *           0.03 = Unterstützen Proceduren / Externe Calls
- *           0.04 = Strings
- *
- * Autor : Uwe Schächterle
- *
- * Support: www.Corpsman.de
- *
- * License : postcardware
- *
- * Warranty: there is no warranty!
- *
- * Stellt einen Pascal Interpreter zur Verfügung
- *
  * Usage:
  *
  *  Tinterpreter.create
