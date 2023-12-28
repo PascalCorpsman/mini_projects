@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.10                                                         *)
+(* Version     : 0.11                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -19,7 +19,7 @@
 (* Warranty    : There is no warranty, neither in correctness of the          *)
 (*               implementation, nor anything other that could happen         *)
 (*               or go wrong, use at your own risk.                           *)
-(* Wishlist    : - Filetransfer                                               *)
+(* Wishlist    : - Filetransfer bytes / second measuring                      *)
 (*                                                                            *)
 (* Known Issues: none                                                         *)
 (*                                                                            *)
@@ -40,6 +40,8 @@
 (*                      DND Button - unterdrückung von Show on New Message    *)
 (*               0.09 - UniqueInstance                                        *)
 (*               0.10 - Add some keyboard shortcuts for Emoji'S               *)
+(*               0.11 - UDP- Broadcast to auto detect server                  *)
+(*                      Show Byte progress during transfer                    *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -134,6 +136,7 @@ Type
     Label1: TLabel;
     ListBox1: TListBox;
     LTCPComponent1: TLTCPComponent;
+    LUDPComponent1: TLUDPComponent;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -168,6 +171,7 @@ Type
       ARect: TRect; State: TOwnerDrawState);
     Procedure LTCPComponent1Connect(aSocket: TLSocket);
     Procedure LTCPComponent1Disconnect(aSocket: TLSocket);
+    Procedure LUDPComponent1Receive(aSocket: TLSocket);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
@@ -260,7 +264,7 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.10';
+  defcaption := 'Lan chat ver. 0.11';
   (*
    * Know Bug: das ding scrollt nicht immer sauber nach unten..
    *)
@@ -579,6 +583,39 @@ End;
 Procedure TForm1.LTCPComponent1Disconnect(aSocket: TLSocket);
 Begin
   SetNotConnected;
+End;
+
+Procedure TForm1.LUDPComponent1Receive(aSocket: TLSocket);
+Var
+  Buffer: Array[0..1023] Of byte;
+  cnt: integer;
+  B: Byte;
+  i: Integer;
+  serverIP, ServerInfo, ServerPort: String;
+Begin
+  Repeat
+    cnt := aSocket.Get(buffer, 1024);
+    If cnt <> 0 Then Begin
+      b := UDPRandomChiffre;
+      ServerInfo := '';
+      setlength(ServerInfo, cnt - 1);
+      For i := 0 To cnt - 1 Do Begin
+        b := b Xor buffer[i];
+        If i <> cnt - 1 Then Begin
+          ServerInfo[i + 1] := chr(buffer[i]);
+        End;
+      End;
+      If b = 0 Then Begin // Entschlüsselung geglückt
+        serverIP := aSocket.PeerAddress;
+        If serverIP <> '127.0.0.1' Then Begin // Den Loopback adapter klammern wir aus, da der auch über die IP der Netzwerkkarte rein kommt und sonst doppelt wäre
+          ServerPort := copy(ServerInfo, pos(':', ServerInfo) + 1, length(ServerInfo));
+          form2.Edit1.Text := serverIP;
+          form2.Edit2.Text := ServerPort;
+          form2.Timer1.Enabled := false;
+        End;
+      End;
+    End;
+  Until cnt = 0;
 End;
 
 Procedure TForm1.MenuItem1Click(Sender: TObject);
@@ -1059,6 +1096,7 @@ Begin
       form3.Show;
     End;
     form3.ProgressBar1.Position := round(FileSendData.aPosition * 100 / FileSendData.aSize);
+    form3.Label2.Caption := format('%d KB of %d KB', [FileSendData.aPosition Div 1024, FileSendData.aSize Div 1024]);
   End;
 End;
 
@@ -1247,6 +1285,9 @@ Begin
     End;
     exit;
   End;
+  // Egal wie, nu ist UDP-Technisch schluss..
+  If LUDPComponent1.Connected Then LUDPComponent1.Disconnect(true);
+  form2.timer1.enabled := false;
 End;
 
 Procedure TForm1.AppendLog(aParticipant: String; aPos: TPosition;

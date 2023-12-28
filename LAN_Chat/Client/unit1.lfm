@@ -432,4 +432,11 @@ object Form1: TForm1
     Left = 288
     Top = 187
   end
+  object LUDPComponent1: TLUDPComponent
+    Port = 0
+    OnReceive = LUDPComponent1Receive
+    Timeout = 0
+    Left = 600
+    Top = 160
+  end
 end

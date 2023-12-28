@@ -6,9 +6,10 @@ object Form2: TForm2
   Caption = 'Form2'
   ClientHeight = 461
   ClientWidth = 208
-  OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  OnShow = FormShow
   object GroupBox1: TGroupBox
     Left = 8
     Height = 89
@@ -208,5 +209,12 @@ object Form2: TForm2
     )
     Left = 128
     Top = 80
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = Timer1Timer
+    Left = 128
+    Top = 208
   end
 end

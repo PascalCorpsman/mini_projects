@@ -34,12 +34,15 @@ Type
     fKnownParticipants: Array Of TKnownParticipant;
     fConnection: TChunkManager;
     fTCPConnection: TLTcp;
+    fUDP: TLUdp; // Zum Empfangen und Senden der Aktiven Server Verbindungen
     frunning: Boolean;
     fNeedSendKnownParticipantList: Boolean;
 
     Procedure OnAccept(aSocket: TLSocket);
     Procedure OnDisconnect(aSocket: TLSocket);
     Procedure OnError(Const msg: String; aSocket: TLSocket);
+
+    Procedure OnUDPReceiveEvent(aSocket: TLSocket);
 
     Procedure OnReceivedChunk(Sender: TObject; Const Chunk: TChunk);
 
@@ -88,6 +91,14 @@ Begin
   Inherited Create();
   LoadSettings();
   fNeedSendKnownParticipantList := false;
+
+  fUDP := TLUdp.Create(Nil);
+  fUDP.OnReceive := @OnUDPReceiveEvent;
+  If Not fUDP.Listen(UDPPingPort) Then Begin
+    Writeln('Error could not listen on port: ' + inttostr(UDPPingPort));
+    halt;
+  End;
+
   fConnection := TChunkManager.create;
   fTCPConnection := TLTcp.Create(Nil);
   fTCPConnection.OnAccept := @OnAccept;
@@ -117,6 +128,14 @@ End;
 Destructor TLANChatServer.Destroy;
 Begin
   StoreSettings();
+  // Den UDP auch sauber platt machen
+  If fUDP.Connected Then Begin
+    fUDP.Disconnect(true);
+    While fUDP.Connected Do Begin
+      fUDP.CallAction;
+    End;
+  End;
+  fUDP.free;
   fConnection.Disconnect(true);
   fConnection.Free;
 End;
@@ -171,6 +190,27 @@ End;
 Procedure TLANChatServer.OnError(Const msg: String; aSocket: TLSocket);
 Begin
   writeln('Socket error: ' + msg);
+End;
+
+Procedure TLANChatServer.OnUDPReceiveEvent(aSocket: TLSocket);
+Var
+  MyInfo: String;
+  Buffer: Array[0..1023] Of byte;
+  cnt, i, ReadCnt: Integer;
+  b: Byte;
+Begin
+  Repeat
+    ReadCnt := aSocket.Get(buffer, 1024); // Irgendwas Lesen, sonst initialisierts die Daten nicht Richtig, bzw die Puffer laufen über
+    MyInfo := 'Port:' + inttostr(fSettings.Port);
+    cnt := length(MyInfo);
+    b := UDPRandomChiffre;
+    For i := 0 To cnt - 1 Do Begin
+      buffer[i] := ord(MyInfo[i + 1]);
+      b := b Xor buffer[i];
+    End;
+    Buffer[cnt] := b;
+    aSocket.Send(buffer, cnt + 1);
+  Until ReadCnt = 0;
 End;
 
 Procedure TLANChatServer.HandleNewParticipant(Const aChunk: TChunk);
@@ -645,6 +685,7 @@ Begin
   frunning := true;
   While frunning Do Begin
     fConnection.CallAction();
+    fUDP.CallAction();
     // At least one Participant is lost -> Send new state to all
     If fNeedSendKnownParticipantList Then Begin
       fNeedSendKnownParticipantList := false;

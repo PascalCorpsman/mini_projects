@@ -22,6 +22,8 @@ Uses
   Classes, SysUtils;
 
 Const
+  UDPPingPort = 54321; // Need to be bigger than 1000 on Linux !
+  UDPRandomChiffre = 152; // Random number, fairly choosen by google search ;)
   (*
    * History: 1 = Initial version
    *          2 = Abort File Transfer

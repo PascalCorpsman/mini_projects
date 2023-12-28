@@ -14,6 +14,7 @@ Type
   TForm3 = Class(TForm)
     Button1: TButton;
     Label1: TLabel;
+    Label2: TLabel;
     ProgressBar1: TProgressBar;
     Procedure Button1Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
