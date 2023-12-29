@@ -20,6 +20,7 @@ Following is a short description of all listed projects
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
 | GIT_gui | Plattform independand Tortoise Git like GIT-Gui |
 | Imageinspector | Programm to correct and measure photos of objects |
+| Imageshop | Image manipulation learning program |
 | Intercept_theorem | Demo application to calculate the intercept theorem |
 | LAN_Chat | Simple chat program for LAN (and WAN if ports are forwared) |
 | PNG_Editor | Split and merge alpha channel of .png images |

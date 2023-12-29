@@ -1,0 +1,134 @@
+object Form1: TForm1
+  Left = 315
+  Height = 643
+  Top = 137
+  Width = 876
+  Caption = 'Form1'
+  ClientHeight = 643
+  ClientWidth = 876
+  Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  object ListBox1: TListBox
+    Left = 8
+    Height = 608
+    Top = 8
+    Width = 172
+    Color = clWhite
+    ItemHeight = 0
+    ScrollWidth = 170
+    Style = lbOwnerDrawFixed
+    TabOrder = 0
+    TopIndex = -1
+    OnDrawItem = ListBox1DrawItem
+  end
+  object Panel1: TPanel
+    Left = 200
+    Height = 322
+    Top = 16
+    Width = 352
+    Caption = 'Panel1'
+    ClientHeight = 322
+    ClientWidth = 352
+    TabOrder = 1
+    object OpenGLControl1: TOpenGLControl
+      Left = 72
+      Height = 90
+      Top = 32
+      Width = 160
+      OnMakeCurrent = OpenGLControl1MakeCurrent
+      OnMouseWheelDown = OpenGLControl1MouseWheelDown
+      OnMouseWheelUp = OpenGLControl1MouseWheelUp
+      OnPaint = OpenGLControl1Paint
+      OnResize = OpenGLControl1Resize
+    end
+    object PaintBox1: TPaintBox
+      Left = 96
+      Height = 152
+      Top = 152
+      Width = 105
+      ParentColor = False
+      PopupMenu = PopupMenu1
+      OnMouseDown = PaintBox1MouseDown
+      OnMouseMove = PaintBox1MouseMove
+      OnMouseUp = PaintBox1MouseUp
+      OnPaint = PaintBox1Paint
+      OnResize = PaintBox1Resize
+    end
+    object Splitter1: TSplitter
+      Cursor = crVSplit
+      Left = 40
+      Height = 3
+      Top = 141
+      Width = 196
+      Align = alNone
+      ResizeAnchor = akBottom
+    end
+  end
+  object MainMenu1: TMainMenu
+    Left = 40
+    Top = 24
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem6: TMenuItem
+        Caption = 'Load scene'
+        ShortCut = 16460
+        OnClick = MenuItem6Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = 'Save scene'
+        ShortCut = 16467
+        OnClick = MenuItem4Click
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Save scene as'
+        OnClick = MenuItem5Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItem3Click
+      end
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'Edit'
+      object MenuItem8: TMenuItem
+        Caption = 'Create custom operation'
+        OnClick = MenuItem8Click
+      end
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 424
+    Top = 176
+    object MenuItem2: TMenuItem
+      Caption = 'Clear all'
+      OnClick = MenuItem2Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.scene'
+    Filter = 'Scenefile|*.scene|All|*.*'
+    Left = 208
+    Top = 288
+  end
+  object ImageList1: TImageList
+    Height = 32
+    Width = 32
+    Left = 128
+    Top = 24
+    Bitmap = {
+      4C7A010000002000000020000000310000000000000078DAEDD0C10900000C02
+      B1FD07741E3B44A19F46B877C076B724ABCAE7F3F97C3EFFDCF71F9FCFE7F3F9
+      FFFC010F32F4D3
+    }
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.scene'
+    Filter = 'Scenefile|*.scene|All|*.*'
+    Left = 296
+    Top = 288
+  end
+end
