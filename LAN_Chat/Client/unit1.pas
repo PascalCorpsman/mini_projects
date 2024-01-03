@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.11                                                         *)
+(* Version     : 0.12                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -42,6 +42,7 @@
 (*               0.10 - Add some keyboard shortcuts for Emoji'S               *)
 (*               0.11 - UDP- Broadcast to auto detect server                  *)
 (*                      Show Byte progress during transfer                    *)
+(*               0.12 - FIX: Filesize progress was not shown on server side   *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -264,7 +265,7 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.11';
+  defcaption := 'Lan chat ver. 0.12';
   (*
    * Know Bug: das ding scrollt nicht immer sauber nach unten..
    *)
@@ -1504,6 +1505,7 @@ Begin
         break;
       End;
       form3.ProgressBar1.Position := round(FileSendData.aPosition * 100 / FileSendData.aSize);
+      form3.Label2.Caption := format('%d KB of %d KB', [FileSendData.aPosition Div 1024, FileSendData.aSize Div 1024]);
       fconnection.CallAction();
       Application.ProcessMessages;
     End;
