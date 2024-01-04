@@ -32,10 +32,13 @@ Const
    *                 Add: "Clear staging area" button
    *                 FIX: Caretpos of log was not updated
    *                 Add: Create Branch during commit, if requested
+   *          0.05 = ADD: "Del" also for folders
+   *                 FIX: delete "sort" icon in columncaption after recreate
+   *                 ADD: Missing implementation for "select Added" / "select Deleted"
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.04';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.05';
   CommitText = 'Commit               | ▼';
   ReCommitText = 'ReCommit           | ▼';
   CommitAndPushText = 'Commit && Push | ▼';
@@ -123,6 +126,8 @@ Type
     Procedure Label5Click(Sender: TObject);
     Procedure Label6Click(Sender: TObject);
     Procedure Label7Click(Sender: TObject);
+    Procedure Label8Click(Sender: TObject);
+    Procedure Label9Click(Sender: TObject);
     Procedure Memo1Change(Sender: TObject);
     Procedure Memo1KeyPress(Sender: TObject; Var Key: char);
     Procedure Memo1KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
@@ -175,7 +180,7 @@ Implementation
 
 {$R *.lfm}
 
-Uses ugit_common, LazFileUtils, LazUTF8, uGITOptions, ugitprogress, LCLType, lclintf;
+Uses ugit_common, FileUtil, LazFileUtils, LazUTF8, uGITOptions, ugitprogress, LCLType, lclintf;
 
 Const
   IndexChecked = 0;
@@ -271,6 +276,26 @@ Begin
   // Versioned
   For i := 1 To StringGrid1.RowCount - 1 Do Begin
     StringGrid1.Cells[0, i] := BoolToStr(StringGrid1.Cells[3, i] <> TextNotVersioned, '1', '0');
+  End;
+End;
+
+Procedure TForm1.Label8Click(Sender: TObject);
+Var
+  i: Integer;
+Begin
+  // Added
+  For i := 1 To StringGrid1.RowCount - 1 Do Begin
+    StringGrid1.Cells[0, i] := BoolToStr(StringGrid1.Cells[3, i] = TextAdded, '1', '0');
+  End;
+End;
+
+Procedure TForm1.Label9Click(Sender: TObject);
+Var
+  i: Integer;
+Begin
+  // Deleted
+  For i := 1 To StringGrid1.RowCount - 1 Do Begin
+    StringGrid1.Cells[0, i] := BoolToStr(StringGrid1.Cells[3, i] = TextDeleted, '1', '0');
   End;
 End;
 
@@ -498,6 +523,14 @@ Begin
       End
       Else Begin
         showmessage('Error, could not delete: ' + fn);
+      End;
+    End
+    Else Begin
+      If DirectoryExistsUTF8(fn) Then Begin
+        If DeleteDirectory(fn, True) Then Begin
+          RemoveDirUTF8(fn);
+        End;
+        needUpdate := true;
       End;
     End;
   End;
@@ -765,6 +798,7 @@ Var
   End;
   s: String;
 Begin
+  StringGrid1.HideSortArrow;
   s := Memo1.Text;
   // Speichern des "Checked" und Unchecked Status
   bakup := Nil;

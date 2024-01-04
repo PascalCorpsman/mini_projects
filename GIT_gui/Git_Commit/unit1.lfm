@@ -196,6 +196,7 @@ object Form1: TForm1
           Caption = 'Added'
           Font.Style = [fsBold]
           ParentFont = False
+          OnClick = Label8Click
         end
         object Label9: TLabel
           Left = 344
@@ -205,6 +206,7 @@ object Form1: TForm1
           Caption = 'Deleted'
           Font.Style = [fsBold]
           ParentFont = False
+          OnClick = Label9Click
         end
         object Label10: TLabel
           Left = 408
