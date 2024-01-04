@@ -43,6 +43,7 @@
 (*               0.11 - UDP- Broadcast to auto detect server                  *)
 (*                      Show Byte progress during transfer                    *)
 (*               0.12 - FIX: Filesize progress was not shown on server side   *)
+(*               0.13 - Fix: Crash, when removing multiple users at same time *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -265,7 +266,7 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.12';
+  defcaption := 'Lan chat ver. 0.13';
   (*
    * Know Bug: das ding scrollt nicht immer sauber nach unten..
    *)
@@ -874,7 +875,7 @@ Var
 Begin
   // Merken des bisher ausgewählten Users, falls es einen gibt ..
   s := '';
-  If ListBox1.Items.Count <> 0 Then Begin
+  If (ListBox1.ItemIndex > 0) And (ListBox1.ItemIndex < ListBox1.Items.Count) Then Begin
     s := ListBox1.Items[ListBox1.ItemIndex];
   End;
   ListBox1.Clear;
