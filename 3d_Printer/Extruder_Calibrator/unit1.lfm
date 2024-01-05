@@ -6,17 +6,17 @@ object Form1: TForm1
   Caption = 'Form1'
   ClientHeight = 295
   ClientWidth = 689
-  OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
   object Button1: TButton
     Left = 229
     Height = 25
     Top = 80
     Width = 75
     Caption = 'Calculate'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object Edit1: TEdit
     Left = 72
@@ -100,8 +100,8 @@ object Form1: TForm1
     Top = 152
     Width = 80
     Caption = 'Wizard'
-    OnClick = Button2Click
     TabOrder = 5
+    OnClick = Button2Click
   end
   object Label5: TLabel
     Left = 101

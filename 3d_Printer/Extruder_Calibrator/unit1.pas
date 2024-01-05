@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Extruder calibrator                                             ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -24,6 +24,7 @@
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Integrieren Wizard                                    *)
+(*               0.03 - FIX, did not work with marlin Firmware                *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -102,7 +103,7 @@ Begin
   sl := TStringList.Create;
   sl.Text := s;
   For i := 0 To sl.Count - 2 Do Begin
-    If pos('ECHO:STEPS PER UNIT', uppercase(trim(sl[i]))) = 1 Then Begin
+    If pos('STEPS PER UNIT', uppercase(trim(sl[i]))) <> 0 Then Begin
       t := uppercase(sl[i + 1]);
       t := copy(t, pos(' E', t) + 2, length(t)) + ' ';
       t := copy(t, 1, pos(' ', t) - 1);
@@ -146,6 +147,21 @@ Begin
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
+  Function ResultOK(aValue: String): Boolean;
+  Var
+    sl: TStringList;
+  Begin
+    result := false;
+    sl := TStringList.Create;
+    sl.Text := aValue;
+    If sl.Count <> 0 Then Begin
+      If pos('OK', uppercase(sl[sl.Count - 1])) <> 0 Then Begin
+        result := true;
+      End;
+    End;
+    sl.free;
+  End;
+
 Var
   p: T3D_Printer;
   measuredlength, newsteps, oldsteps: Double;
@@ -167,6 +183,7 @@ Begin
     CheckSynchronize(1);
     sleep(1);
   End;
+  sleep(5000); // Dem Drucker Zeit geben "online" zu kommen
   // Auslesen der alten E-Steps
   s := trim(uppercase(p.ExecGCode('M503')));
   oldsteps := ExtractOldStepsFromPrinterMessage(s);
@@ -176,25 +193,25 @@ Begin
     exit;
   End;
   // Nozzle Aufheizen
-  If trim(uppercase(p.ExecGCode('M109 S' + trim(edit5.text)))) <> 'OK' Then Begin
+  If Not ResultOK(p.ExecGCode('M109 S' + trim(edit5.text))) Then Begin
     showmessage('Could not set Nozzle temperature');
     p.free;
     exit;
   End;
   // Umschalten Relativ Modus
-  If trim(uppercase(p.ExecGCode('M83'))) <> 'OK' Then Begin
+  If Not ResultOK(p.ExecGCode('M83')) Then Begin
     showmessage('Could not set Relative Mode');
     p.free;
     exit;
   End;
   // Geschwindigkeit auf 50% reduzieren
-  If trim(uppercase(p.ExecGCode('M220 S50'))) <> 'OK' Then Begin
+  If Not ResultOK(p.ExecGCode('M220 S50')) Then Begin
     showmessage('Could not set print speed to 50%');
     p.free;
     exit;
   End;
   // 10cm Filament Extrudieren
-  If trim(uppercase(p.ExecGCode('G1 E100 F100'))) <> 'OK' Then Begin
+  If Not ResultOK(p.ExecGCode('G1 E100 F100')) Then Begin
     showmessage('Could not extrude 100mm of filament');
     p.free;
     exit;
@@ -221,12 +238,12 @@ Begin
     p.free;
     exit;
   End;
-  If trim(uppercase(p.ExecGCode('M92 E' + format('%.1f', [newsteps], fformatsettings)))) <> 'OK' Then Begin
+  If Not ResultOK(p.ExecGCode('M92 E' + format('%.1f', [newsteps], fformatsettings))) Then Begin
     showmessage('Could not send new e-steps value to printer.');
     p.free;
     exit;
   End;
-  If pos('ECHO:SETTINGS STORED', trim(uppercase(p.ExecGCode('M500')))) <> 1 Then Begin
+  If pos('ECHO:SETTINGS STORED', trim(uppercase(p.ExecGCode('M500')))) <> 0 Then Begin
     showmessage('Could not store values to printer memory');
     p.free;
     exit;
@@ -238,7 +255,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Extruder calibrator v. 0.02';
+  caption := 'Extruder calibrator v. 0.03';
   Constraints.MinHeight := Height;
   Constraints.MinWidth := Width;
   fformatsettings := DefaultFormatSettings;
