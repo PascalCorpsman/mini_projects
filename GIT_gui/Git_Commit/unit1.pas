@@ -833,8 +833,8 @@ Begin
   If selection <> '' Then Begin
     For i := 0 To StringGrid1.RowCount - 1 Do Begin
       If StringGrid1.Cells[IndexPath, i] = selection Then Begin
-        StringGrid1.Selection := Rect(0, i, StringGrid1.ColCount - 1, i);
         StringGrid1.TopRow := i;
+        StringGrid1.Row := i;
         StringGrid1.Invalidate;
         break;
       End;
