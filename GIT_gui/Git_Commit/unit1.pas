@@ -35,6 +35,7 @@ Const
    *          0.05 = ADD: "Del" also for folders
    *                 FIX: delete "sort" icon in columncaption after recreate
    *                 ADD: Missing implementation for "select Added" / "select Deleted"
+   *                 ADD: Restore manual sorting after Reload
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
@@ -791,14 +792,20 @@ End;
 Procedure TForm1.ReloadStringgridContent;
 Var
   i: Integer;
-  j: Integer;
+  j, sc: Integer;
   bakup: Array Of Record
     Checked: String;
     Path: String;
   End;
-  s: String;
+  s, selection: String;
 Begin
-  StringGrid1.HideSortArrow;
+  sc := StringGrid1.SortColumn;
+  If StringGrid1.Selection.Top > 0 Then Begin
+    selection := StringGrid1.Cells[IndexPath, StringGrid1.Selection.Top];
+  End
+  Else Begin
+    selection := '';
+  End;
   s := Memo1.Text;
   // Speichern des "Checked" und Unchecked Status
   bakup := Nil;
@@ -820,6 +827,19 @@ Begin
   End;
   Memo1.Text := s;
   UpdateInfo();
+  If sc <> -1 Then Begin
+    StringGrid1.SortColRow(true, sc);
+  End;
+  If selection <> '' Then Begin
+    For i := 0 To StringGrid1.RowCount - 1 Do Begin
+      If StringGrid1.Cells[IndexPath, i] = selection Then Begin
+        StringGrid1.Selection := Rect(0, i, StringGrid1.ColCount - 1, i);
+        StringGrid1.TopRow := i;
+        StringGrid1.Invalidate;
+        break;
+      End;
+    End;
+  End;
 End;
 
 Procedure TForm1.CheckBox1Click(Sender: TObject);
