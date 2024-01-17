@@ -54,7 +54,7 @@ Uses
 Const
   LineBufferCount = 1024; // Größe des Speichers der zuletzt gesendeten Befehle
   WaitForOKTimeout = 1500; // Zeit in ms bis das Warten auf ein OK abgrbrochen wird.
-  WaitForG_Timeout = 60000; // Die G* codes dauern auch mal etwas länger
+  WaitForG_Timeout = 120000; // Die G* codes dauern auch mal etwas länger
   TempRefreshInterval = 5000; // Egal wie viele Temperaturanfragen, erst wenn dieses Intervall abgelaufen ist wird eine erneute anfrage gesendet.
   SendIdentifier = 'S:'; // Wird dem Tracer als Präfix fürs Senden mit gegeben
   ReceiveIdentifier = 'R:'; // Wird dem Tracer als Präfix fürs Empfangen mit gegeben
@@ -600,6 +600,7 @@ Begin
               // Länger ..
               If fGCodeFile.SendActive Or
                 (pos('G28', s) = 1) Or
+                (pos('G29', s) = 1) Or
                 (pos('G0', s) = 1) Or
                 (pos('G1', s) = 1) Then Begin
                 If fWaitForOKTimestamp + WaitForG_Timeout <= GetTickCount64 Then Begin
