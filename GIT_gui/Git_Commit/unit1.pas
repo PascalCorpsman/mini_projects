@@ -36,10 +36,11 @@ Const
    *                 FIX: delete "sort" icon in columncaption after recreate
    *                 ADD: Missing implementation for "select Added" / "select Deleted"
    *                 ADD: Restore manual sorting after Reload
+   *          0.06 = ADD: STRG + A in Stringgrid
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.05';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.06';
   CommitText = 'Commit               | ▼';
   ReCommitText = 'ReCommit           | ▼';
   CommitAndPushText = 'Commit && Push | ▼';
@@ -690,6 +691,10 @@ Begin
   // Neu Einlesen des Quellverzeichnisses
   If key = VK_F5 Then Begin
     ReloadStringgridContent;
+  End;
+  If (ssCtrl In Shift) And (key = VK_A) Then Begin
+    StringGrid1.Selection := Rect(0, 1, StringGrid1.ColCount - 1, StringGrid1.RowCount - 1);
+    StringGrid1.Invalidate;
   End;
 End;
 
