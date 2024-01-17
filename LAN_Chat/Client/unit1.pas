@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.12                                                         *)
+(* Version     : 0.13                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -42,8 +42,9 @@
 (*               0.10 - Add some keyboard shortcuts for Emoji'S               *)
 (*               0.11 - UDP- Broadcast to auto detect server                  *)
 (*                      Show Byte progress during transfer                    *)
-(*               0.12 - FIX: Filesize progress was not shown on server side   *)
+(*               0.12 - Fix: Filesize progress was not shown on server side   *)
 (*               0.13 - Fix: Crash, when removing multiple users at same time *)
+(*                      Fix: Label2 was not initialized, on start transmission*)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -1095,6 +1096,7 @@ Begin
     If Not Form3.Visible Then Begin
       form3.Label1.Caption := FileSendData.Filename;
       form3.ProgressBar1.Position := 0;
+      form3.Label2.Caption := '';
       form3.Show;
     End;
     form3.ProgressBar1.Position := round(FileSendData.aPosition * 100 / FileSendData.aSize);
@@ -1378,6 +1380,7 @@ Begin
     If Not form3.Visible Then Begin
       form3.Label1.Caption := FileSendData.Filename;
       form3.ProgressBar1.Position := 0;
+      form3.Label2.caption := '';
       form3.Show;
     End;
   End
