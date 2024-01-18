@@ -1,0 +1,243 @@
+object Form1: TForm1
+  Left = 377
+  Height = 575
+  Top = 194
+  Width = 809
+  Caption = 'Form1'
+  ClientHeight = 575
+  ClientWidth = 809
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object ScrollBox1: TScrollBox
+    Left = 8
+    Height = 496
+    Top = 40
+    Width = 211
+    HorzScrollBar.Page = 170
+    VertScrollBar.Page = 122
+    Anchors = [akTop, akLeft, akBottom]
+    ClientHeight = 494
+    ClientWidth = 209
+    TabOrder = 0
+    object Image1: TImage
+      Left = 64
+      Height = 50
+      Top = 40
+      Width = 50
+      OnClick = Image1Click
+    end
+    object Edit1: TEdit
+      Left = 8
+      Height = 26
+      Top = 56
+      Width = 50
+      TabOrder = 0
+      Text = 'Edit1'
+      OnKeyUp = Edit1KeyUp
+    end
+    object Edit2: TEdit
+      Left = 64
+      Height = 26
+      Top = 8
+      Width = 50
+      TabOrder = 1
+      Text = 'Edit2'
+      OnKeyUp = Edit2KeyUp
+    end
+    object Edit3: TEdit
+      Left = 120
+      Height = 26
+      Top = 56
+      Width = 50
+      TabOrder = 2
+      Text = 'Edit3'
+      OnKeyUp = Edit3KeyUp
+    end
+    object Edit4: TEdit
+      Left = 64
+      Height = 26
+      Top = 96
+      Width = 50
+      TabOrder = 3
+      Text = 'Edit4'
+      OnKeyUp = Edit4KeyUp
+    end
+    object Edit5: TEdit
+      Left = 8
+      Height = 26
+      Top = 8
+      Width = 50
+      TabOrder = 4
+      Text = 'Edit5'
+      OnKeyUp = Edit5KeyUp
+    end
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 7
+    Width = 99
+    Caption = 'Import Images'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 120
+    Height = 25
+    Top = 7
+    Width = 99
+    Caption = 'Load system'
+    TabOrder = 2
+    OnClick = Button2Click
+  end
+  object Image2: TImage
+    Left = 432
+    Height = 50
+    Top = 7
+    Width = 50
+    Center = True
+    Stretch = True
+    OnClick = Image1Click
+  end
+  object Button3: TButton
+    Left = 224
+    Height = 49
+    Top = 8
+    Width = 75
+    Caption = 'Set Dim'
+    TabOrder = 3
+    OnClick = Button3Click
+  end
+  object Edit6: TEdit
+    Left = 304
+    Height = 26
+    Top = 16
+    Width = 50
+    TabOrder = 4
+    Text = 'Edit6'
+  end
+  object Edit7: TEdit
+    Left = 368
+    Height = 26
+    Top = 16
+    Width = 50
+    TabOrder = 5
+    Text = 'Edit7'
+  end
+  object PaintBox1: TPaintBox
+    Left = 224
+    Height = 105
+    Top = 64
+    Width = 105
+    OnMouseDown = PaintBox1MouseDown
+    OnPaint = PaintBox1Paint
+  end
+  object Button4: TButton
+    Left = 120
+    Height = 25
+    Top = 544
+    Width = 99
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save system'
+    TabOrder = 6
+    OnClick = Button4Click
+  end
+  object Button5: TButton
+    Left = 8
+    Height = 25
+    Top = 544
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Close'
+    TabOrder = 7
+    OnClick = Button5Click
+  end
+  object Button6: TButton
+    Left = 488
+    Height = 49
+    Top = 8
+    Width = 75
+    Caption = 'Create'
+    TabOrder = 8
+    OnClick = Button6Click
+  end
+  object CheckBox1: TCheckBox
+    Left = 568
+    Height = 22
+    Top = 10
+    Width = 82
+    Caption = 'Animated'
+    TabOrder = 9
+  end
+  object Button7: TButton
+    Left = 672
+    Height = 49
+    Top = 8
+    Width = 75
+    Caption = 'Reset'
+    TabOrder = 10
+    OnClick = Button7Click
+  end
+  object Button8: TButton
+    Left = 752
+    Height = 49
+    Top = 8
+    Width = 49
+    Anchors = [akTop, akRight]
+    Caption = 'Help'
+    TabOrder = 11
+    OnClick = Button8Click
+  end
+  object Button9: TButton
+    Left = 224
+    Height = 25
+    Top = 544
+    Width = 104
+    Anchors = [akLeft, akBottom]
+    Caption = 'Export image'
+    TabOrder = 12
+    OnClick = Button9Click
+  end
+  object Edit8: TEdit
+    Left = 608
+    Height = 26
+    Top = 32
+    Width = 50
+    TabOrder = 13
+    Text = 'Edit8'
+  end
+  object Label1: TLabel
+    Left = 567
+    Height = 16
+    Top = 41
+    Width = 33
+    Caption = 'delay'
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.bmp'
+    Filter = 'Bitmaps|*.bmp|All|*.*'
+    Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
+    Left = 40
+    Top = 136
+  end
+  object OpenDialog2: TOpenDialog
+    DefaultExt = '.sys'
+    Filter = 'System|*.sys|All|*.*'
+    Left = 160
+    Top = 136
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.sys'
+    Filter = 'System|*.sys|All|*.*'
+    Left = 160
+    Top = 496
+  end
+  object SaveDialog2: TSaveDialog
+    DefaultExt = '.bmp'
+    Filter = 'Bitmap|*.bmp|All|*.*'
+    Left = 264
+    Top = 496
+  end
+end
