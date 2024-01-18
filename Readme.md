@@ -28,6 +28,7 @@ Following is a short description of all listed projects
 | Pentago | Implementation of the board game Pentago |
 | SFXR | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
 | Superdom | FPC-Port of the Super domination game which is part of [Rockbox](https://www.rockbox.org/) |
+| Wave function collaps | different implementations of the wave function collapse algorithms
 
 
 ## License
