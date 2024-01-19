@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse                                          17.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -21,9 +21,10 @@
 (*               implementation, nor anything other that could happen         *)
 (*               or go wrong, use at your own risk.                           *)
 (*                                                                            *)
-(* Known Issues: no backtracking                                              *)
+(* Known Issues:                                                              *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Backjumping (like backtracking but with jumps)        *)
 (*                                                                            *)
 (******************************************************************************)
 // Inspired by https://www.youtube.com/watch?v=rI_y2GAlQFM
@@ -39,7 +40,7 @@ Unit Unit1;
 Interface
 
 Uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ufilo;
 
 Const
 
@@ -69,6 +70,8 @@ Type
   TBoolMatrix = Array Of Array Of Boolean;
 
   TPointList = Array Of TPoint;
+
+  TGridStack = specialize TFilo < TGrid > ;
 
   { TForm1 }
 
@@ -114,6 +117,7 @@ Type
     Procedure Edit3KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit4KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit5KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
+    Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
     Procedure Image1Click(Sender: TObject);
@@ -137,6 +141,7 @@ Type
 
 Var
   Form1: TForm1;
+  cancel: Boolean;
 
 Implementation
 
@@ -317,6 +322,10 @@ End;
 
 Procedure TForm1.Button6Click(Sender: TObject);
 
+Var
+  InvalidResult: Boolean;
+  InvalidPos: TPoint;
+
   Procedure UpdateGrid(i, j, n: Integer; Const M: TBoolMatrix);
   Var
     x, c: Integer;
@@ -353,8 +362,14 @@ Procedure TForm1.Button6Click(Sender: TObject);
     ls := length(Images);
     For i := 0 To high(Grid) Do Begin
       For j := 0 To high(Grid[i]) Do Begin
-        If (Grid[i, j].PSum <> 0) And (Grid[i, j].Index = -1) Then Begin
-          ls := min(ls, Grid[i, j].PSum);
+        If (Grid[i, j].Index = -1) Then Begin
+          If (Grid[i, j].PSum = 0) Then Begin
+            InvalidResult := true; // Das Backtracking anstoßen
+            InvalidPos := point(i, j);
+          End
+          Else Begin
+            ls := min(ls, Grid[i, j].PSum);
+          End;
         End;
       End;
     End;
@@ -369,12 +384,125 @@ Procedure TForm1.Button6Click(Sender: TObject);
     End;
   End;
 
+  Procedure InitGrid();
+  Var
+    w, h, i, j, k: Integer;
+    hasForced: Boolean;
+  Begin
+    w := length(Grid);
+    h := length(Grid[0]);
+    hasForced := false;
+    For i := 0 To w - 1 Do Begin
+      For j := 0 To h - 1 Do Begin
+        If Not Grid[i, j].Forced Then Begin // Die User Gesetzten werden natürlich nicht gelöscht !
+          Grid[i, j].Index := -1;
+        End
+        Else Begin
+          hasForced := true;
+        End;
+        setlength(Grid[i, j].Possibilities, length(Images));
+        For k := 0 To high(Grid[i, j].Possibilities) Do Begin
+          If Images[k].Prop > 0 Then Begin
+            Grid[i, j].Possibilities[k] := true;
+          End
+          Else Begin
+            Grid[i, j].Possibilities[k] := false;
+          End;
+          Grid[i, j].PSum := length(Images);
+        End;
+      End;
+    End;
+    // Setzen des / der ersten Feldes /Felder
+    If hasForced Then Begin
+      // Fall 1: Der User hat eigene Vorgaben gemacht, dann übernehmen wir diese
+      For i := 0 To w - 1 Do Begin
+        For j := 0 To h - 1 Do Begin
+          If Grid[i, j].Forced Then Begin
+            k := Grid[i, j].Index;
+            Grid[i, j].Index := -1;
+            setNum(i, j, k);
+          End;
+        End;
+      End;
+    End
+    Else Begin
+      // Fall 2: Das Feld ist Leer -> Wir setzen ein zufälliges 1. Feld
+      i := random(w);
+      j := random(h);
+      k := -1;
+      While k = -1 Do Begin // Sicherstellen, das wir dieses Eine Teil auch verwenden dürfen !
+        k := random(length(Images));
+        If Images[k].Prop = 0 Then k := -1;
+      End;
+      setNum(i, j, k);
+    End;
+  End;
+
 Var
-  ac, r, w, h, i, j, k, PSum: Integer;
+  gs: TGridStack;
+
+  Procedure PushGrid();
+  Var
+    g: TGrid;
+    i, j: Integer;
+  Begin
+    g := Nil;
+    setlength(g, length(Grid), length(Grid[0]));
+    For i := 0 To high(Grid) Do Begin
+      For j := 0 To high(Grid[0]) Do Begin
+        g[i, j] := Grid[i, j];
+      End;
+    End;
+    gs.Push(g);
+  End;
+
+  Procedure PopGrid();
+  Var
+    g: TGrid;
+    i, j: Integer;
+  Begin
+    If gs.IsEmpty Then Begin
+      // Der Jump ist derart Riesig, dass wir nichts mehr zum "popen" haben
+      InitGrid();
+    End
+    Else Begin
+      g := gs.Pop;
+      For i := 0 To high(Grid) Do Begin
+        For j := 0 To high(Grid[0]) Do Begin
+          Grid[i, j] := g[i, j];
+        End;
+      End;
+      setlength(g, 0, 0);
+    End;
+  End;
+
+  Procedure ClearGridstack();
+  Var
+    g: TGrid;
+  Begin
+    While Not gs.IsEmpty Do Begin
+      g := gs.Pop;
+      setlength(g, 0, 0);
+    End;
+  End;
+
+Var
+  ac, r, i, j, k, PSum: Integer;
   pl: TPointList;
   a: Array Of Integer;
-  hasForced: BOolean;
+  BackJumpCounter: integer;
+  WasInvalid: Boolean;
+  StartTime: QWord;
+  allowed_time: QWord;
+  Triggered: Boolean;
 Begin
+  If button6.caption = 'Cancel' Then Begin
+    Cancel := true;
+    button6.caption := 'Create';
+    Button6.Enabled := false;
+    exit;
+  End;
+  Button6.Enabled := false;
   // Create
   // 1. Connection Matrix Berechnen
   For i := 0 To 3 Do Begin
@@ -392,55 +520,10 @@ Begin
   // 2. Grid Initialisieren
   If Not assigned(Grid) Then button3.Click;
   If Not assigned(Grid) Then exit;
-  w := length(Grid);
-  h := length(Grid[0]);
-  hasForced := false;
-  For i := 0 To w - 1 Do Begin
-    For j := 0 To h - 1 Do Begin
-      If Not Grid[i, j].Forced Then Begin // Die User Gesetzten werden natürlich nicht gelöscht !
-        Grid[i, j].Index := -1;
-      End
-      Else Begin
-        hasForced := true;
-      End;
-      setlength(Grid[i, j].Possibilities, length(Images));
-      For k := 0 To high(Grid[i, j].Possibilities) Do Begin
-        If Images[k].Prop > 0 Then Begin
-          Grid[i, j].Possibilities[k] := true;
-        End
-        Else Begin
-          Grid[i, j].Possibilities[k] := false;
-        End;
-        Grid[i, j].PSum := length(Images);
-      End;
-    End;
-  End;
+  InitGrid();
   a := Nil;
   setlength(a, length(Images));
-  // Setzen des / der ersten Feldes /Felder
-  If hasForced Then Begin
-    // Fall 1: Der User hat eigene Vorgaben gemacht, dann übernehmen wir diese
-    For i := 0 To w - 1 Do Begin
-      For j := 0 To h - 1 Do Begin
-        If Grid[i, j].Forced Then Begin
-          k := Grid[i, j].Index;
-          Grid[i, j].Index := -1;
-          setNum(i, j, k);
-        End;
-      End;
-    End;
-  End
-  Else Begin
-    // Fall 2: Das Feld ist Leer -> Wir setzen ein zufälliges 1. Feld
-    i := random(w);
-    j := random(h);
-    k := -1;
-    While k = -1 Do Begin // Sicherstellen, das wir dieses Eine Teil auch verwenden dürfen !
-      k := random(length(Images));
-      If Images[k].Prop = 0 Then k := -1;
-    End;
-    setNum(i, j, k);
-  End;
+
   (*
    * Die Theorie sagt folgendes
    * - Suchen aller Felder, welche die "Geringsten" Möglichkeiten haben
@@ -449,12 +532,25 @@ Begin
    * Eigentlich brüchte man einen Backtrack algorithmus, um immer alles zu füllen, aber ohne geht es meistens auch !
    *
    *)
+  InvalidResult := false;
+  WasInvalid := false;
+  BackJumpCounter := 1;
+  gs := TGridStack.create;
   pl := GetLeastProbList();
+  StartTime := GetTickCount64;
+  Triggered := false;
+  allowed_time := min(500, length(Grid) * Length(Grid[0]) * 10);
   While assigned(pl) Do Begin
     // Wählen eines Zufälligen Feldes, aus der Liste derer die Noch Frei sind
     r := random(length(pl));
     i := pl[r].X;
     j := pl[r].Y;
+    // Wenn wir ein Teil haben, was "Problematisch" ist dann setzen wir dieses nach dem Backtrack als 1.
+    If WasInvalid Then Begin
+      WasInvalid := false;
+      i := InvalidPos.x;
+      j := InvalidPos.Y;
+    End;
     // Wählen eines Zufälligen Kandidaten aus der Liste der noch freien Kandidaten
     ac := 0;
     For k := 0 To length(Images) - 1 Do Begin
@@ -478,13 +574,53 @@ Begin
       End;
     End;
     pl := GetLeastProbList();
+    If InvalidResult Then Begin
+      If CheckBox1.Checked Then Begin
+        PaintBox1.Invalidate;
+        Application.ProcessMessages;
+        sleep(strtointdef(edit8.text, 10));
+      End;
+      For i := 0 To BackJumpCounter - 1 Do Begin
+        PopGrid();
+      End;
+      InvalidResult := false;
+      WasInvalid := true;
+      pl := GetLeastProbList();
+      BackJumpCounter := BackJumpCounter * 2 + 1;
+    End
+    Else Begin
+      PushGrid();
+      If BackJumpCounter > 1 Then
+        BackJumpCounter := BackJumpCounter - 1;
+    End;
+    If (GetTickCount64 - StartTime > allowed_time) And Not Triggered Then Begin
+      triggered := true;
+      Showmessage(
+        'Activateing preview now, as it seem to be to difficult to create the map.' + LineEnding +
+        'Click on "Cancel" button to skip actual creation'
+        );
+      button6.caption := 'Cancel';
+      CheckBox1.Checked := true;
+      edit8.text := '1';
+      Button6.Enabled := true;
+      cancel := false;
+    End;
     If CheckBox1.Checked Then Begin
       PaintBox1.Invalidate;
-      Application.ProcessMessages;
       sleep(strtointdef(edit8.text, 10));
+      Application.ProcessMessages;
     End;
+    // Wenn der User die Animation wieder Abgeschaltet hat, dann muss er hier die Chance bekommen dennoch Cancel zu drücken
+    If Triggered Then Begin
+      Application.ProcessMessages;
+    End;
+    If cancel Then pl := Nil;
   End;
+  ClearGridstack();
+  gs.free;
   PaintBox1.Invalidate;
+  button6.caption := 'Create';
+  Button6.Enabled := true;
 End;
 
 Procedure TForm1.Button7Click(Sender: TObject);
@@ -510,7 +646,7 @@ Begin
     '3. Click on a image on the left side to "select"' + LineEnding +
     '4. Click on the preview area to set element (right click removes)' + LineEnding +
     LineEnding +
-    'If you get red areas after create, this means that your model is not "connected" enough to fill everything without backtracking.'
+    'If you get red areas after create, this means that your model is not "connected" enough.'
     );
 End;
 
@@ -567,6 +703,11 @@ Var
 Begin
   index := Tedit(sender).Tag;
   Images[index].Prop := strtointdef(Tedit(sender).Text, 0);
+End;
+
+Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
+Begin
+  cancel := true;
 End;
 
 Procedure TForm1.Clear;
