@@ -13,4 +13,4 @@ Features:
 - Create a filled surface with animation
 
 ! Attention !
-at the moment this version does not use backtracking to solve the puzzle, if you see red rectangles within the image, please click create again
+As the program uses a "Backjump" algorithm to do backtracking during creation, this could sometimes leed to very long creation times (see in app warnings).
