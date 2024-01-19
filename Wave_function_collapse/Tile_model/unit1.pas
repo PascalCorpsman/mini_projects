@@ -27,6 +27,11 @@
 (*                                                                            *)
 (******************************************************************************)
 // Inspired by https://www.youtube.com/watch?v=rI_y2GAlQFM
+(*
+ Ideen: Man könnte eine "Beschränkung" einbauen, dass ein Teil Maximal X-Mal generiert werden darf
+        Auf diese weise könnte man z.B. Weggabelungen reglementieren
+
+ *)
 Unit Unit1;
 
 {$MODE objfpc}{$H+}
@@ -502,8 +507,8 @@ Begin
     '1. Load images and set "connectors" or load a system' + LineEnding +
     '2. Set dimension and create' + LineEnding +
     '[Optional]' + LineEnding +
-    '3. Click on a image on the left to "select"' + LineEnding +
-    '4. Click on the preview area to set element (right removes)' + LineEnding +
+    '3. Click on a image on the left side to "select"' + LineEnding +
+    '4. Click on the preview area to set element (right click removes)' + LineEnding +
     LineEnding +
     'If you get red areas after create, this means that your model is not "connected" enough to fill everything without backtracking.'
     );
@@ -595,6 +600,10 @@ Begin
   e.Tag := index;
   e.Text := inttostr(Images[index].Prop);
   e.OnKeyUp := @Edit5KeyUp;
+  e.Hint := 'Propabillity for the image' + LineEnding +
+    '0 = disabled' + LineEnding +
+    'The higher the value, the more higher the propabillity for it to come up.';
+  e.ShowHint := true;
 
   e := TEdit.Create(ScrollBox1);
   e.Name := 'Left' + inttostr(index + 1);
@@ -605,6 +614,8 @@ Begin
   e.Tag := index;
   e.Text := Images[index].Connectors[ConLeft];
   e.OnKeyUp := @Edit1KeyUp;
+  e.Hint := 'Definition of the "left" connector, this has to match the "right" connector of the other images';
+  e.ShowHint := true;
 
   e := TEdit.Create(ScrollBox1);
   e.Name := 'Top' + inttostr(index + 1);
@@ -615,6 +626,8 @@ Begin
   e.Tag := index;
   e.Text := Images[index].Connectors[ConUp];
   e.OnKeyUp := @Edit2KeyUp;
+  e.Hint := 'Definition of the "top" connector, this has to match the "bottom" connector of the other images';
+  e.ShowHint := true;
 
   e := TEdit.Create(ScrollBox1);
   e.Name := 'Right' + inttostr(index + 1);
@@ -625,6 +638,8 @@ Begin
   e.Tag := index;
   e.Text := Images[index].Connectors[ConRight];
   e.OnKeyUp := @Edit3KeyUp;
+  e.Hint := 'Definition of the "right" connector, this has to match the "left" connector of the other images';
+  e.ShowHint := true;
 
   e := TEdit.Create(ScrollBox1);
   e.Name := 'Down' + inttostr(index + 1);
@@ -635,6 +650,8 @@ Begin
   e.Tag := index;
   e.Text := Images[index].Connectors[ConDown];
   e.OnKeyUp := @Edit4KeyUp;
+  e.Hint := 'Definition of the "bottom" connector, this has to match the "top" connector of the other images';
+  e.ShowHint := true;
 
   img := TImage.Create(ScrollBox1);
   img.Name := 'Img' + inttostr(index + 1);
