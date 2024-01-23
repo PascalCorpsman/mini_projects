@@ -26,10 +26,19 @@ Uses
 
 Type
 
+  TInfo = Record
+    TotalCellsToCollapse: integer;
+    CollapsedCells: integer;
+    Backlog: Integer;
+  End;
+
+  TOnUpdatedStep = Procedure(Sender: TObject; Const Info: TInfo) Of Object;
+
   { TWFC }
 
   TWFC = Class
   private
+    fCollapsedCells: Integer; // Already collapsed cells during this run
     fabort: Boolean; // Wenn True, dann wird die Run routine so schnell wie möglich beendet.
     Floored: Boolean;
     Floorwaves: TIntArray; // Alle Hier drin sind "Floor" Waves
@@ -56,7 +65,7 @@ Type
     Function IsDone(): Boolean;
     Function getLowestEntropyLocation(): TPoint;
   public
-    OnUpdatedStep: TNotifyEvent;
+    OnUpdatedStep: TOnUpdatedStep;
 
     Constructor Create();
     Destructor Destroy(); override;
@@ -140,6 +149,7 @@ Begin
     patterns[grid[i][j].ColorTableIndex]
     ];
   affected := getNeighborIndicies(i, j);
+  fCollapsedCells := 1;
 End;
 
 Function TWFC.getNeighborIndicies(i, j: integer): TPointArray;
@@ -179,6 +189,8 @@ Var
   pStates, nStates: TIntArray;
   nStatesLen: SizeInt;
 Begin
+  // TODO: Speedup converting "affected" into a array that's size can only increase
+  //       and storeing real size in a separate variable ..
   If (Not isDone()) Then Begin
     // Collapse one with the smallest entropy
     If Not assigned(affected) Then Begin
@@ -187,6 +199,7 @@ Begin
 
       // Colapse the tile.
       grid[Min.x][Min.y].collapse();
+      inc(fCollapsedCells);
 
       // Add the neighbors of the tile to the affected list to be updated later.
       affected := getNeighborIndicies(Min.x, Min.y);
@@ -244,6 +257,7 @@ Begin
         // Set the color of the tile to the coresponding paterns (0,0) tile
         grid[i][j].color := color_table[patterns[nStates[0]]];
         grid[i][j].SetHasCollapsed;
+        inc(fCollapsedCells);
       End;
 
       // For every neighbor indicies
@@ -473,6 +487,8 @@ Begin
 End;
 
 Procedure TWFC.Run(aw, ah: Integer);
+Var
+  info: TInfo;
 Begin
   w := aw;
   h := ah;
@@ -481,10 +497,15 @@ Begin
   Seed();
   finished := false;
   fabort := false;
+  info.TotalCellsToCollapse := aw * ah;
+  info.CollapsedCells := 0;
   While (Not Finished) And (Not fabort) Do Begin
     updateStep();
-    If assigned(OnUpdatedStep) Then
-      OnUpdatedStep(self);
+    If assigned(OnUpdatedStep) Then Begin
+      info.CollapsedCells := fCollapsedCells;
+      info.Backlog := sizeof(affected);
+      OnUpdatedStep(self, info);
+    End;
   End;
 End;
 

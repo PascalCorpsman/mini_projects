@@ -63,6 +63,7 @@ Type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    Label4: TLabel;
     OpenPictureDialog1: TOpenPictureDialog;
     SaveDialog1: TSaveDialog;
     Procedure Button1Click(Sender: TObject);
@@ -80,7 +81,7 @@ Type
     wfc: TWFC;
     lt: Int64;
     Pattern: TBitmap;
-    Procedure OnUpdatedStep(Sender: TObject);
+    Procedure OnUpdatedStep(Sender: TObject; Const Info: TInfo);
     Procedure LoadPattern(Const Filename: String);
   public
 
@@ -199,6 +200,7 @@ End;
 Procedure TForm1.Button2Click(Sender: TObject);
 Var
   t: int64;
+  Dummy: TInfo;
 Begin
   If Not assigned(wfc) Then exit;
   button1.Enabled := false;
@@ -210,7 +212,7 @@ Begin
   wfc.Run(strtointdef(edit2.text, 40), strtointdef(edit3.text, 40));
   caption := 'Took ' + PrettyTime(GetTickCount64 - t);
   lt := GetTickCount64 - 2 * Refreshrate;
-  OnUpdatedStep(Nil);
+  OnUpdatedStep(Nil, Dummy);
   button5.visible := false;
   button2.Enabled := True;
   button1.Enabled := True;
@@ -287,9 +289,15 @@ Begin
   CheckBox2.Checked := false;
   Pattern := Nil;
   LoadPattern('data' + PathDelim + 'demo-1.png');
+  label4.caption := '';
+  // Debug
+  edit2.text := '100';
+  edit3.text := '100';
+  CheckBox1.Checked := true;
+  // *)
 End;
 
-Procedure TForm1.OnUpdatedStep(Sender: TObject);
+Procedure TForm1.OnUpdatedStep(Sender: TObject; Const Info: TInfo);
 Var
   aTick: Int64;
   b: TBitmap;
@@ -302,6 +310,16 @@ Begin
     Image1.Picture.Assign(b);
     b.free;
     Image1.Invalidate;
+    If assigned(sender) Then Begin
+      label4.caption := format(
+        'Cells total: %d' + LineEnding +
+        'Cells done: %d' + LineEnding +
+        'Backlog: %d',
+        [info.TotalCellsToCollapse, info.CollapsedCells, info.Backlog]);
+    End
+    Else Begin
+      label4.Caption := '';
+    End;
     Application.ProcessMessages;
   End;
 End;
