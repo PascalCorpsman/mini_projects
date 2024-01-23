@@ -24,7 +24,7 @@ Type
     Property ColorTableIndex: TColor read getColorTableIndex;
     Constructor Create(aStates: TIntArray; atotal_states, ax, ay: integer);
 
-    Procedure Collapse(WaveToChoose: integer = -1);
+    Procedure Collapse();
 
     Function hasCollapsed: Boolean;
     Procedure SetHasCollapsed();
@@ -49,18 +49,13 @@ Begin
   result := states[0];
 End;
 
-Procedure TTile.Collapse(WaveToChoose: integer);
+Procedure TTile.Collapse();
 Var
   i, j: Integer;
 Begin
   _hasCollapsed := true;
   // Picks a random state and makes it the only one in the list
-  If WaveToChoose = -1 Then Begin
-    i := Random(length(States));
-  End
-  Else Begin
-    i := WaveToChoose;
-  End;
+  i := Random(length(States));
   j := States[i];
   setlength(States, 1);
   States[0] := j;

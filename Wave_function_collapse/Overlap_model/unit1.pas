@@ -284,10 +284,9 @@ Begin
   edit2.text := '40';
   edit3.text := '40';
   CheckBox1.Checked := false;
-  CheckBox2.Checked := true;
+  CheckBox2.Checked := false;
   Pattern := Nil;
-  //  LoadPattern('data' + PathDelim + 'demo-1.png');
-  LoadPattern('data' + PathDelim + 'Flowers.png');
+  LoadPattern('data' + PathDelim + 'demo-1.png');
 End;
 
 Procedure TForm1.OnUpdatedStep(Sender: TObject);
