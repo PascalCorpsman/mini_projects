@@ -22,60 +22,24 @@ Unit uwfc;
 Interface
 
 Uses
-  Classes, SysUtils, Graphics;
+  Classes, SysUtils, Graphics, uhelper, umatcher, utile;
 
 Type
-  TIntArray = Array Of Integer;
-  TIntArrayArray = Array Of TIntArray;
-  TPattern = TIntArrayArray;
-  TPatternArray = Array Of TPattern;
-  TPointArray = Array Of TPoint;
-
-  { TMatcher }
-
-  TMatcher = Class
-  private
-    patterns: Array Of Array[0..3] Of Array Of integer;
-    pattLen: Integer;
-  public
-    Constructor Create(PatternCount: integer);
-    Destructor Destroy(); override;
-
-    Function tileCompatible(Const a_, b_: TPattern; direction: Integer): Boolean;
-    Procedure AddPattern(Pattern, neighbor, direction: integer);
-    Function match(pStates: TIntArray; neighbor_states: TIntArrayArray): TIntArray;
-  End;
-
-  { TTile }
-
-  TTile = Class
-  private
-    States: TIntArray;
-    pLen, total_states, x, y: integer;
-    _hasCollapsed: Boolean;
-  public
-    color: TColor;
-    Constructor Create(aStates: TIntArray; atotal_states, ax, ay: integer);
-
-    Procedure Collapse();
-    Function hasCollapsed: Boolean;
-    Function getEntropy(): integer;
-  End;
 
   { TWFC }
 
   TWFC = Class
   private
-    fabort: Boolean;
+    fabort: Boolean; // Wenn True, dann wird die Run routine so schnell wie möglich beendet.
+    Floored: Boolean;
+
     finished: Boolean;
     grid: Array Of Array Of TTile;
 
     color_table: TIntArray;
-    Patterns: TIntArray; // ACHTUNG: Das sind FarbPatterns !
+    Patterns: TIntArray; // ACHTUNG: Das sind FarbPatterns, keine Wellen der Patterns !
 
     Matcher: TMatcher;
-
-    patternsLength: integer; // TODO: Kann wieder Raus
 
     background_color: TColor;
 
@@ -83,7 +47,6 @@ Type
 
     affected: TPointArray;
 
-    parsed_patterns: TPatternArray; // TODO: ggf, kann der auch wieder Local in InitFromImage sein.
     Procedure ClearGrid();
     Procedure Seed();
     Function getNeighborIndicies(i, j: integer): TPointArray;
@@ -96,7 +59,7 @@ Type
 
     Constructor Create();
     Destructor Destroy(); override;
-    Procedure InitFromImage(Image: TBitmap; aN: integer; symmetry: Boolean);
+    Procedure InitFromImage(Image: TBitmap; aN: integer; symmetry, floor: Boolean);
 
     Procedure Run(aw, ah: Integer);
 
@@ -107,373 +70,7 @@ Type
 Implementation
 
 Uses
-  LCLIntf, math
-  , Dialogs // Debug
-  ;
-
-Const
-  Infinity: INteger = high(Integer);
-
-Procedure Nop();
-Begin
-
-End;
-
-Function includes(Const Data: TIntArray; value: Integer): Boolean; overload;
-Var
-  i: Integer;
-Begin
-  result := false;
-  For i := 0 To high(data) Do Begin
-    If data[i] = value Then Begin
-      result := true;
-      exit;
-    End;
-  End;
-End;
-
-Function includes(Const Data: TPointArray; value: TPoint): Boolean; overload;
-Var
-  i: Integer;
-Begin
-  result := false;
-  For i := 0 To high(data) Do Begin
-    If data[i] = value Then Begin
-      result := true;
-      exit;
-    End;
-  End;
-End;
-
-Function includes(Const Data: TPatternArray; Const value: TPattern): Boolean; overload;
-Var
-  i, j, x: Integer;
-  valid: Boolean;
-Begin
-  result := false;
-  For x := 0 To high(data) Do Begin
-    valid := true;
-    For i := 0 To high(value) Do Begin
-      For j := 0 To high(value[i]) Do Begin
-        If data[x][i, j] <> value[i, j] Then Begin
-          valid := false;
-          break;
-        End;
-      End;
-      If Not valid Then break;
-    End;
-    If valid Then Begin
-      result := true;
-      exit;
-    End;
-  End;
-End;
-
-Procedure Push(Var data: TIntArray; value: Integer); overload;
-Begin
-  setlength(data, high(data) + 2);
-  data[high(data)] := value;
-End;
-
-Procedure Push(Var data: TPointArray; value: TPoint); overload;
-Begin
-  setlength(data, high(data) + 2);
-  data[high(data)] := value;
-End;
-
-Procedure Push(Var Data: TPatternArray; Const value: TPattern); overload;
-Var
-  i, j: Integer;
-Begin
-  setlength(data, high(data) + 2);
-  setlength(data[high(data)], length(value), length(value[0]));
-  // TODO: Klären ob man das so "Krass machen muss, oder ob Referenzen reichen"
-  //  data[high(data)] := value;
-  For i := 0 To high(value) Do Begin
-    For j := 0 To high(value[i]) Do Begin
-      data[high(data)][i, j] := value[i, j];
-    End;
-  End;
-End;
-
-Procedure Pop(Var Data: TIntArrayArray); // TODO: Eigentlich wäre das eine Function, die das "Pop" Element zurück gibt
-Begin
-  setlength(data, high(data));
-End;
-
-Procedure Shift(Var Data: TIntArrayArray); // TODO: Eigentlich wäre das eine Function, die das "Shift" Element zurück gibt
-Var
-  i: Integer;
-Begin
-  For i := 1 To high(data) Do Begin
-    data[i - 1] := data[i];
-  End;
-  setlength(Data, high(data));
-End;
-
-Function IndexOf(Const data: TIntArray; value: Integer): integer;
-Var
-  i: Integer;
-Begin
-  result := -1;
-  For i := 0 To high(data) Do Begin
-    If data[i] = value Then Begin
-      result := i;
-      exit;
-    End;
-  End;
-End;
-
-Function Has(Const data: TIntArray; value: Integer): boolean;
-Var
-  i: Integer;
-Begin
-  result := false;
-  For i := 0 To high(data) Do Begin
-    If data[i] = value Then Begin
-      result := true;
-      exit;
-    End;
-  End;
-End;
-
-Procedure Delete(Var data: TIntArray; value: Integer);
-Var
-  i, j: Integer;
-Begin
-  For i := 0 To high(data) Do Begin
-    If data[i] = value Then Begin
-      For j := i To high(data) - 1 Do Begin
-        data[j] := data[j + 1];
-      End;
-      setlength(data, high(data));
-      exit;
-    End;
-  End;
-End;
-
-Function flip1DArray(Const Data: TIntArrayArray): TIntArrayArray;
-Var
-  i, j: Integer;
-Begin
-  result := Nil;
-  setlength(result, length(data));
-  For i := 0 To high(data) Do Begin
-    setlength(result[i], length(data[high(data) - i]));
-    For j := 0 To high(data[high(data) - i]) Do Begin
-      result[i, j] := data[high(data) - i, j];
-    End;
-  End;
-End;
-
-Function transpose2DArray(Const Data: TIntArrayArray): TIntArrayArray;
-Var
-  i, j: Integer;
-Begin
-  result := Nil;
-  setlength(result, length(data[0]), length(data));
-  For i := 0 To high(data[0]) Do Begin
-    For j := 0 To high(data) Do Begin
-      result[i, j] := data[j, i];
-    End;
-  End;
-End;
-
-Function arrayIsEqual(a, b: TIntArrayArray): boolean;
-Var
-  i, j: integer;
-Begin
-  // Checks if array a is equal to array b.
-  // JS sucks with being sensible.
-  result := true;
-  For i := 0 To high(a) Do Begin
-    For j := 0 To high(a[i]) Do Begin
-      If a[i, j] <> b[i, j] Then Begin
-        result := false;
-        exit;
-      End;
-    End;
-  End;
-End;
-
-Function Splice(Var a: TPointArray): TPoint;
-Var
-  i: Integer;
-Begin
-  result := a[0];
-  For i := 1 To high(a) Do Begin
-    a[i - 1] := a[i];
-  End;
-  setlength(a, high(a));
-End;
-
-{ TMatcher }
-
-Constructor TMatcher.Create(PatternCount: integer);
-Var
-  i, j: Integer;
-Begin
-  setlength(patterns, PatternCount);
-  For i := 0 To high(patterns) Do Begin
-    For j := 0 To 3 Do Begin
-      patterns[i][j] := Nil;
-    End;
-  End;
-  pattLen := PatternCount;
-End;
-
-Destructor TMatcher.Destroy;
-Begin
-  Inherited Destroy;
-End;
-
-Function TMatcher.tileCompatible(Const a_, b_: TPattern; direction: Integer
-  ): Boolean;
-Var
-  A, B: TPattern;
-  i, j: Integer;
-Begin
-  a := Nil;
-  b := Nil;
-  setlength(a, length(a_), length(a_[0]));
-  For i := 0 To high(a) Do Begin
-    For j := 0 To high(a[i]) Do Begin
-      a[i, j] := a_[i, j];
-    End;
-  End;
-  setlength(b, length(b_), length(b_[0]));
-  For i := 0 To high(b) Do Begin
-    For j := 0 To high(b[i]) Do Begin
-      b[i, j] := b_[i, j];
-    End;
-  End;
-
-  // Check if the tile a overlaps b in a specified direction
-
-  Case direction Of
-    0: Begin // Checks the up direction
-        pop(a);
-        shift(b);
-      End;
-    1: Begin // Checks the left direction
-        A := transpose2DArray(A);
-        pop(a);
-        B := transpose2DArray(B);
-        shift(B);
-      End;
-
-    2: Begin // Checks the down direction
-        shift(A);
-        pop(B);
-      End;
-
-    3: Begin // Checks the right direction
-        A := transpose2DArray(A);
-        shift(A);
-        B := transpose2DArray(B);
-        pop(B);
-      End;
-  End;
-
-  result := arrayIsEqual(A, B);
-End;
-
-Procedure TMatcher.AddPattern(Pattern, neighbor, direction: integer);
-Begin
-  //    if (this.patterns[pattern] != undefined) {
-  If assigned(patterns[Pattern][direction]) Then Begin
-    //      this.patterns[pattern][direction].push(neighbor);
-    setlength(patterns[Pattern][direction], high(patterns[Pattern][direction]) + 2);
-    patterns[Pattern][direction][high(patterns[Pattern][direction])] := neighbor;
-  End
-  Else Begin
-    setlength(patterns[Pattern][direction], 1);
-    patterns[Pattern][direction][0] := neighbor; // This made it work!
-  End;
-  // this.pattLen = this.patterns.length; -- Das ist quatsch, wir haben das ja schon initialisiert !
-End;
-
-Function TMatcher.match(pStates: TIntArray; neighbor_states: TIntArrayArray): TIntArray;
-Var
-  current_possibilities, possibilities: TIntArray;
-  direction, oppositeDirection, i, state, j, k, elt: Integer;
-Begin
-  // let possibilities = new Set(pStates); -- der Set operator macht hier eigentlich keinen Sinn, weil in pStates keine doppelten sind !
-  possibilities := Nil;
-  setlength(possibilities, length(pStates));
-  For i := 0 To high(pStates) Do Begin
-    possibilities[i] := pStates[i];
-  End;
-
-  For direction := 0 To 4 - 1 Do Begin
-    oppositeDirection := (direction + 2) Mod 4;
-    current_possibilities := Nil;
-
-    //      neighbor_states[direction].forEach((state) =>
-    //        this.patterns[state][oppositeDirection].forEach((elt) =>
-    //          current_possibilities.add(elt)
-    //        )
-    //      );
-
-    For j := 0 To high(neighbor_states[direction]) Do Begin
-      state := neighbor_states[direction][j];
-      For k := 0 To high(patterns[state][oppositeDirection]) Do Begin
-        elt := patterns[state][oppositeDirection][k];
-        setlength(current_possibilities, high(current_possibilities) + 2);
-        current_possibilities[high(current_possibilities)] := elt;
-      End;
-    End;
-
-    //      for (let i = 0; i < this.pattLen; i++)
-    For i := 0 To length(patterns) - 1 Do Begin
-      If Not has(current_possibilities, i) Then delete(possibilities, i);
-      //        if (!current_possibilities.has(i)) possibilities.delete(i);
-    End;
-  End;
-  result := possibilities;
-End;
-
-{ TTile }
-
-Constructor TTile.Create(aStates: TIntArray; atotal_states, ax, ay: integer);
-Begin
-  States := aStates;
-  total_states := atotal_states;
-  x := ax;
-  y := ay;
-  pLen := length(States);
-  _hasCollapsed := false;
-End;
-
-Procedure TTile.Collapse;
-Var
-  i, j: Integer;
-Begin
-  _hasCollapsed := true;
-  // Picks a random state and makes it the only one in the list
-  i := Random(length(States));
-  j := States[i];
-  setlength(States, 1);
-  States[0] := j;
-End;
-
-Function TTile.hasCollapsed: Boolean;
-Begin
-  result := _hasCollapsed;
-End;
-
-Function TTile.getEntropy(): integer;
-Begin
-  // Returns infinity if the tile has collapsed and returns the
-  // length of the states if the tile hasn't collapsed
-  If (length(states) > 1) Then Begin
-    result := length(states);
-  End
-  Else Begin
-    _hasCollapsed := true;
-    result := Infinity;
-  End;
-End;
+  LCLIntf, math;
 
 { TField }
 
@@ -505,14 +102,23 @@ End;
 
 Procedure TWFC.Seed;
 Var
-  i, j: Integer;
+  wave, i, j: Integer;
 Begin
-  i := trunc((random(11) + 45) * h / 100);
+  If Floored Then Begin
+    i := h - 1;
+    (*
+     * Choose a wave that is at the bottom row of the source Image
+     *)
+    //    wave := random(iw
+  End
+  Else Begin
+    wave := -1;
+    i := trunc((random(11) + 45) * h / 100);
+  End;
   j := trunc((random(11) + 45) * w / 100);
-
-  grid[i][j].collapse();
+  grid[i][j].collapse(wave);
   grid[i][j].color := color_table[
-    patterns[grid[i][j].states[0]]
+    patterns[grid[i][j].ColorTableIndex]
     ];
 
   affected := getNeighborIndicies(i, j);
@@ -569,7 +175,7 @@ Begin
 
       // Set the color of the tile to the corresponding patterns (0,0) tile
       grid[Min.x][Min.y].color := color_table[
-        patterns[grid[Min.x][Min.y].states[0]]
+        patterns[grid[Min.x][Min.y].ColorTableIndex]
         ];
     End;
 
@@ -604,25 +210,13 @@ Begin
     // Get previous states
     pStates := grid[i][j].states;
 
-    // console.time("mathcher.match");
     // Get new states and the direction of the possible collapse
-    // console.time("match.match");
     nStates := matcher.match(pStates, neighbors);
-    // console.timeEnd("match.match");
     nStatesLen := length(nStates);
-    // console.timeEnd("mathcher.match");
 
     // If the size of the previous and new states are different,
     // and the length of new states is greater than 0
     If ((length(pStates) <> nStatesLen) And (nStatesLen > 0)) Then Begin
-      // fill(0, 0, 255);
-      // noStroke();
-      // rect(
-      //   this.grid[i][j].x * tileW,
-      //   this.grid[i][j].y * tileH,
-      //   tileW,
-      //   tileH
-      // );
       // Update tiles states to be the new states
       grid[i][j].states := nStates;
 
@@ -631,22 +225,7 @@ Begin
       If (nStatesLen = 1) Then Begin
         // Set the color of the tile to the coresponding paterns (0,0) tile
         grid[i][j].color := color_table[patterns[nStates[0]]];
-        grid[i][j]._hasCollapsed := true;
-      End
-      Else Begin
-        //          let r = 0;
-        //          let g = 0;
-        //          let b = 0;
-        //          for (let k = 0; k < nStatesLen; k++) {
-        //            r += this.color_table[this.patterns[nStates[k]]][0];
-        //            g += this.color_table[this.patterns[nStates[k]]][1];
-        //            b += this.color_table[this.patterns[nStates[k]]][2];
-        //          }
-        //          this.grid[i][j].color = color(
-        //            r / nStatesLen,
-        //            g / nStatesLen,
-        //            b / nStatesLen
-        //          );
+        grid[i][j].SetHasCollapsed;
       End;
 
       // For every neighbor indicies
@@ -654,7 +233,6 @@ Begin
         // If those indicies are not already in the
         // affected array or in the new affected array,
         // add it to the new affected array
-//          if (!this.affected.includes(neighborIndicies[dir])) {
         If Not includes(affected, neighborIndicies[dir]) Then Begin
           push(affected, neighborIndicies[dir]);
         End;
@@ -662,14 +240,6 @@ Begin
     End;
   End
   Else Begin
-    //      if (!finished) {
-    //        main_timer += performance.now();
-    //        total_collapse_count++;
-    //        console.log(
-    //          "%c Average collapse time: " + main_timer / total_collapse_count,
-    //          "color: #2a7a4a"
-    //        );
-    //      }
     finished := true;
   End;
 End;
@@ -693,10 +263,9 @@ Function TWFC.getLowestEntropyLocation: TPoint;
 Var
   aEntropy, iInd, jInd, i, j: Integer;
 Begin
-  // Irgend was perverse Großes, was es so nie geben kann
   iInd := -1;
   jInd := -1;
-  aEntropy := Infinity;
+  aEntropy := uhelper.Infinity;
   For i := 0 To h - 1 Do Begin
     For j := 0 To w - 1 Do Begin
       If aEntropy > grid[i, j].getEntropy() Then Begin
@@ -707,30 +276,6 @@ Begin
     End;
   End;
   result := point(iInd, jInd);
-  //      let grid = []; // The grid of entropies
-  //    let minCol = []; // Collumn of minimum numbers
-  //
-  //    for (let i = 0; i < this.H; i++) {
-  //      // Initialize the row of entropies
-  //      let entropy_row = [];
-  //
-  //      // Populate the row of entropies with values
-  //      for (let j = 0; j < this.W; j++) {
-  //        entropy_row[j] = this.grid[i][j].getEntropy();
-  //      }
-  //
-  //      grid[i] = entropy_row;
-  //
-  //      // Store the minimum of the row in the minCol
-  //      minCol[i] = Min(entropy_row);
-  //    }
-  //
-  //    // Get the y index of the minimum value in the collumn
-  //    let iInd = minCol.indexOf(Min(minCol));
-  //    // Get the x index of the minimum value in the collumn
-  //    let jInd = grid[iInd].indexOf(Min(minCol));
-  //
-//      return [iInd, jInd];
 End;
 
 Constructor TWFC.Create;
@@ -753,7 +298,8 @@ Begin
   setlength(grid, 0, 0);
 End;
 
-Procedure TWFC.InitFromImage(Image: TBitmap; aN: integer; symmetry: Boolean);
+Procedure TWFC.InitFromImage(Image: TBitmap; aN: integer; symmetry,
+  floor: Boolean);
 Var
   col, direction, ind, i, j, u, v: Integer;
   pattern, rgba_map: TIntArrayArray;
@@ -762,12 +308,13 @@ Var
   iW, iH, rotation: Integer;
   _patterns: TPatternArray;
   _Colors: TIntArray;
+  parsed_patterns: TPatternArray;
 Begin
-
+  Floored := floor;
   n := aN;
   iW := Image.width;
   iH := Image.height;
-  // console.time("Built the rgb map");
+
   rgba_map := Nil;
   setlength(rgba_map, ih, iw);
   color_table := Nil;
@@ -787,9 +334,6 @@ Begin
   End;
 
   rgba_map := transpose2DArray(flip1DArray(rgba_map));
-  // console.timeEnd("Built the rgb map");
-
-  // console.time("Collected the _patterns");
 
   // initialize the list that will hold the _patterns.
   _patterns := Nil;
@@ -843,9 +387,6 @@ Begin
     End;
   End;
 
-  // console.timeEnd("Collected the _patterns");
-
-  // console.time("Compiled the matcher");
   // Initialize the matcher object
   parsed_patterns := Nil;
   Matcher.free;
@@ -867,16 +408,12 @@ Begin
       End;
     End;
   End;
-  // console.timeEnd("Compiled the matcher");
-  // console.log(`${matcher._patterns.length} _patterns`);
 
-  // console.time("Set up color table");
   _Colors := Nil;
   setlength(_Colors, length(_patterns));
   For i := 0 To high(_patterns) Do Begin
     _Colors[i] := _patterns[i][0][0];
   End;
-  // console.timeEnd("Set up color table");
 
   // Calculate an opaque background color by darkening and
   // hueshifting the most used color in the picture
@@ -903,7 +440,6 @@ Procedure TWFC.Run(aw, ah: Integer);
 Begin
   w := aw;
   h := ah;
-  patternsLength := length(patterns);
   affected := Nil;
   clearGrid();
   Seed();

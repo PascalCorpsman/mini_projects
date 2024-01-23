@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (Ovelap mode)                            23.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Cleanup                                               *)
 (*                                                                            *)
 (******************************************************************************)
 (*
@@ -53,6 +54,7 @@ Type
     Button5: TButton;
     Button6: TButton;
     CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -70,6 +72,7 @@ Type
     Procedure Button5Click(Sender: TObject);
     Procedure Button6Click(Sender: TObject);
     Procedure CheckBox1Click(Sender: TObject);
+    Procedure CheckBox2Click(Sender: TObject);
     Procedure Edit1Change(Sender: TObject);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
@@ -185,7 +188,7 @@ Begin
   wfc := Nil;
   If assigned(pattern) Then Begin
     wfc := TWFC.Create;
-    wfc.InitFromImage(pattern, strtointdef(edit1.text, 3), CheckBox1.Checked);
+    wfc.InitFromImage(pattern, strtointdef(edit1.text, 3), CheckBox1.Checked, CheckBox2.Checked);
     button2.Enabled := true;
   End
   Else Begin
@@ -238,7 +241,7 @@ End;
 
 Procedure TForm1.Button5Click(Sender: TObject);
 Begin
-  wfc.abort;
+  If assigned(wfc) Then wfc.abort;
 End;
 
 Procedure TForm1.Button6Click(Sender: TObject);
@@ -247,6 +250,11 @@ Begin
 End;
 
 Procedure TForm1.CheckBox1Click(Sender: TObject);
+Begin
+  button2.Enabled := false;
+End;
+
+Procedure TForm1.CheckBox2Click(Sender: TObject);
 Begin
   button2.Enabled := false;
 End;
@@ -271,13 +279,15 @@ End;
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Randomize;
-  caption := 'Wave function collapse demo ver. 0.01';
+  caption := 'Wave function collapse demo ver. 0.02';
   edit1.text := '3';
   edit2.text := '40';
   edit3.text := '40';
   CheckBox1.Checked := false;
+  CheckBox2.Checked := true;
   Pattern := Nil;
-  LoadPattern('data' + PathDelim + 'demo-1.png');
+  //  LoadPattern('data' + PathDelim + 'demo-1.png');
+  LoadPattern('data' + PathDelim + 'Flowers.png');
 End;
 
 Procedure TForm1.OnUpdatedStep(Sender: TObject);
