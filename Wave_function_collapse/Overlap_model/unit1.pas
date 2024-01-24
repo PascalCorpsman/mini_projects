@@ -344,8 +344,11 @@ Begin
       label4.caption := format(
         'Cells total: %d' + LineEnding +
         'Cells done: %d' + LineEnding +
-        'Backlog: %d',
-        [info.TotalCellsToCollapse, info.CollapsedCells, info.Backlog]);
+        'Backlog: %d' + LineEnding + LineEnding +
+        'Avail Waves: %d' + LineEnding +
+        'Wave combi''s: %d'
+        ,
+        [info.TotalCellsToCollapse, info.CollapsedCells, info.Backlog, Info.WavesCount, info.WavesCombinationCount]);
     End
     Else Begin
       label4.Caption := '';

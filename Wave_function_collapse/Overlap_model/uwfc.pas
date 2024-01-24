@@ -29,6 +29,8 @@ Type
   TInfo = Record
     TotalCellsToCollapse: integer;
     CollapsedCells: integer;
+    WavesCount: integer; // Anzahl der Möglichen Wellen
+    WavesCombinationCount: integer; // Anzahl aller möglichen "Kombinationen" von Wellen
     Backlog: Integer;
   End;
 
@@ -38,6 +40,8 @@ Type
 
   TWFC = Class
   private
+    fWavesCount: integer; // Für Info
+    fWavesCombinationCount: integer; // Für Info
     fCollapsedCells: Integer; // Already collapsed cells during this run
     fabort: Boolean; // Wenn True, dann wird die Run routine so schnell wie möglich beendet.
     fDisableVertWrap, fDisableHorWrap: Boolean; // Wenn True, dann wird das "Umschlagen" über die entsprechende Kante unterbunden.
@@ -475,6 +479,8 @@ Begin
   Matcher.free;
   Matcher := TMatcher.Create(length(_Patterns));
 
+  fWavesCount := length(_patterns);
+  fWavesCombinationCount := 0;
   // Check every pattern for every other pattern
   For i := 0 To high(_patterns) Do Begin
     For j := 0 To high(_patterns) Do Begin
@@ -487,6 +493,7 @@ Begin
         If (Matcher.tileCompatible(parsed_patterns[i], parsed_patterns[j], direction)) Then Begin
           // // if (Matcher.tileCompatible(JSON.parse(_patterns[i]), JSON.parse(_patterns[j]), direction)) {
           matcher.addPattern(i, j, direction);
+          inc(fWavesCombinationCount);
         End;
       End;
     End;
@@ -532,6 +539,8 @@ Begin
   fabort := false;
   info.TotalCellsToCollapse := aw * ah;
   info.CollapsedCells := 0;
+  info.WavesCombinationCount := fWavesCombinationCount;
+  info.WavesCount := fWavesCount;
   While (Not Finished) And (Not fabort) Do Begin
     updateStep();
     If assigned(OnUpdatedStep) Then Begin
