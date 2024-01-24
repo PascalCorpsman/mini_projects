@@ -194,7 +194,7 @@ Begin
   wfc := Nil;
   If assigned(pattern) Then Begin
     wfc := TWFC.Create;
-    If CheckBox3.Checked Or CheckBox2.Checked Then CheckBox1.Checked := false;
+    If (Not CheckBox3.Checked) Or (Not CheckBox2.Checked) Then CheckBox1.Checked := false;
     wfc.InitFromImage(pattern, strtointdef(edit1.text, 3), CheckBox1.Checked, Not CheckBox2.Checked, Not CheckBox3.Checked);
     button2.Enabled := true;
   End
@@ -215,7 +215,17 @@ Begin
   lt := GetTickCount64 - 2 * Refreshrate;
   wfc.OnUpdatedStep := @OnUpdatedStep;
   t := GetTickCount64;
-  wfc.Run(strtointdef(edit2.text, 40), strtointdef(edit3.text, 40));
+  Try
+    wfc.Run(strtointdef(edit2.text, 40), strtointdef(edit3.text, 40));
+  Except
+    On av: exception Do Begin
+      ShowMessage(av.Message);
+      button5.visible := false;
+      button2.Enabled := True;
+      button1.Enabled := True;
+      exit;
+    End;
+  End;
   caption := 'Took ' + PrettyTime(GetTickCount64 - t);
   lt := GetTickCount64 - 2 * Refreshrate;
   Dummy.Backlog := 0;
@@ -268,13 +278,13 @@ End;
 Procedure TForm1.CheckBox2Click(Sender: TObject);
 Begin
   button2.Enabled := false;
-  If CheckBox3.Checked Or CheckBox2.Checked Then CheckBox1.Checked := false;
+  If (Not CheckBox3.Checked) Or (Not CheckBox2.Checked) Then CheckBox1.Checked := false;
 End;
 
 Procedure TForm1.CheckBox3Click(Sender: TObject);
 Begin
   button2.Enabled := false;
-  If CheckBox3.Checked Or CheckBox2.Checked Then CheckBox1.Checked := false;
+  If (Not CheckBox3.Checked) Or (Not CheckBox2.Checked) Then CheckBox1.Checked := false;
 End;
 
 Procedure TForm1.Edit1Change(Sender: TObject);
@@ -308,12 +318,12 @@ Begin
   LoadPattern('data' + PathDelim + 'demo-1.png');
   label4.caption := '';
   // Debug
-  // LoadPattern('data' + PathDelim + 'demo-flowers2.png');
-  // edit2.text := '100';
-  // edit3.text := '100';
-  // CheckBox1.Checked := false; // Allow Rotate
-  // CheckBox2.Checked := false; // Allow Wrap vertical
-  // CheckBox3.Checked := true; // Allow Wrap Horizontal
+  //  LoadPattern('data' + PathDelim + 'demo-flowers2.png');
+  //  edit2.text := '100';
+  //  edit3.text := '100';
+  //  CheckBox1.Checked := false; // Allow Rotate
+  //  CheckBox2.Checked := false; // Allow Wrap vertical
+  //  CheckBox3.Checked := true; // Allow Wrap Horizontal
   // *)
 End;
 
