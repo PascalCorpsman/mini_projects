@@ -69,7 +69,7 @@ Type
 
     Constructor Create();
     Destructor Destroy(); override;
-    Procedure InitFromImage(Image: TBitmap; aN: integer; symmetry, floor: Boolean);
+    Procedure InitFromImage(Image: TBitmap; aN: integer; symmetry, floor, allowWrap: Boolean);
 
     Procedure Run(aw, ah: Integer);
 
@@ -330,14 +330,14 @@ Begin
   setlength(grid, 0, 0);
 End;
 
-Procedure TWFC.InitFromImage(Image: TBitmap; aN: integer; symmetry,
-  floor: Boolean);
+Procedure TWFC.InitFromImage(Image: TBitmap; aN: integer; symmetry, floor,
+  allowWrap: Boolean);
 Var
   col, direction, ind, i, j, u, v: Integer;
   pattern, rgba_map: TIntArrayArray;
   color_frequencies: TIntArray;
   r, g, b: Integer;
-  iW, iH, rotation, FloorWavesCnt: Integer;
+  iwb, ihb, iW, iH, rotation, FloorWavesCnt: Integer;
   _patterns: TPatternArray;
   _Colors: TIntArray;
   parsed_patterns: TPatternArray;
@@ -375,10 +375,17 @@ Begin
     setlength(FloorWaves, iw * 8); // Wegen Symmetry kann das bis zu 8 mal mehr werden !
     FloorWavesCnt := 0;
   End;
-
+  If allowWrap Then Begin
+    ihb := ih - 1;
+    iwb := iw - 1;
+  End
+  Else Begin
+    ihb := ih - 1 - n;
+    iwb := iw - 1 - n;
+  End;
   // Loop over the width and height of the image to extract _patterns.
-  For j := 0 To IH - 1 Do Begin
-    For i := 0 To IW - 1 Do Begin
+  For j := 0 To ihb Do Begin
+    For i := 0 To iwb Do Begin
 
       // initialize a 2d pattern
       pattern := Nil;

@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (Ovelap mode)                            23.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -26,6 +26,7 @@
 (*               0.02 - Cleanup                                               *)
 (*                      Floor feature                                         *)
 (*                      Improve gui                                           *)
+(*               0.03 - allow wrap                                            *)
 (*                                                                            *)
 (******************************************************************************)
 (*
@@ -57,6 +58,7 @@ Type
     Button6: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
+    CheckBox3: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -191,7 +193,7 @@ Begin
   wfc := Nil;
   If assigned(pattern) Then Begin
     wfc := TWFC.Create;
-    wfc.InitFromImage(pattern, strtointdef(edit1.text, 3), CheckBox1.Checked, CheckBox2.Checked);
+    wfc.InitFromImage(pattern, strtointdef(edit1.text, 3), CheckBox1.Checked, CheckBox2.Checked, CheckBox3.Checked);
     button2.Enabled := true;
   End
   Else Begin
@@ -283,7 +285,7 @@ End;
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Randomize;
-  caption := 'Wave function collapse demo ver. 0.02';
+  caption := 'Wave function collapse demo ver. 0.03';
   edit1.text := '3';
   edit2.text := '40';
   edit3.text := '40';
