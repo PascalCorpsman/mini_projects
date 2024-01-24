@@ -21,6 +21,7 @@ Before diving into the code i highly recommend to read the explanations from abo
   | N | Affects the detailgrade of the subpatterns, typically you should set N somewhere between 2 and 7 (for the most sample images use 3)  
   |allow rotate | if set, the source pattern can "Rotate" freely, otherwise not (best to see with "demo-1.png")
   | floor | disable wrap vertically (automatically disables allow rotate) (test with "demo-flowers.png")
+  | allow wrap | disables the N sampling to go "over" the edges of the image (ignores a N-Pixel wide range on the left and buttom side of the image)
 
 3.  Hit int button and wait until initialization is finished (this can take quit long if N is large)
 4.  Define output width and height (typically ~40, but the only limit is the RAM of your machine and the time you want to wait until it is finished)
