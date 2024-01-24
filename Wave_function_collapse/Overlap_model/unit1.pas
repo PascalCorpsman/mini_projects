@@ -218,6 +218,9 @@ Begin
   wfc.Run(strtointdef(edit2.text, 40), strtointdef(edit3.text, 40));
   caption := 'Took ' + PrettyTime(GetTickCount64 - t);
   lt := GetTickCount64 - 2 * Refreshrate;
+  Dummy.Backlog := 0;
+  Dummy.CollapsedCells := 0;
+  Dummy.TotalCellsToCollapse := 0;
   OnUpdatedStep(Nil, Dummy);
   button5.visible := false;
   button2.Enabled := True;
