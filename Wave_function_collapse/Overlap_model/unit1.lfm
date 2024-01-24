@@ -11,7 +11,7 @@ object Form1: TForm1
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   object Button1: TButton
-    Left = 328
+    Left = 336
     Height = 90
     Top = 0
     Width = 75
@@ -141,9 +141,14 @@ object Form1: TForm1
   object CheckBox2: TCheckBox
     Left = 216
     Height = 22
+    Hint = 'if set will disable allow rotate'#10#10'! Attention !'#10'To get a "usefull" output image, '#10'the image need to have colors at the bottom'#10'that are not used in the rest of the image!'
     Top = 46
-    Width = 54
-    Caption = 'floor'
+    Width = 101
+    Caption = 'wrap vertical'
+    Checked = True
+    ParentShowHint = False
+    ShowHint = True
+    State = cbChecked
     TabOrder = 10
     OnClick = CheckBox2Click
   end
@@ -157,12 +162,16 @@ object Form1: TForm1
   object CheckBox3: TCheckBox
     Left = 216
     Height = 22
+    Hint = 'if set will disable allow rotate'#10#10'! Attention !'#10'To get a "usefull" output image, '#10'the image need to have colors at the right'#10'that are not used in the rest of the image!'
     Top = 68
-    Width = 90
-    Caption = 'allow wrap'
+    Width = 119
+    Caption = 'wrap horizontal'
     Checked = True
+    ParentShowHint = False
+    ShowHint = True
     State = cbChecked
     TabOrder = 11
+    OnClick = CheckBox3Click
   end
   object OpenPictureDialog1: TOpenPictureDialog
     Left = 29

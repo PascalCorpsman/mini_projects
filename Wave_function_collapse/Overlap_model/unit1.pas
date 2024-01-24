@@ -78,6 +78,7 @@ Type
     Procedure Button6Click(Sender: TObject);
     Procedure CheckBox1Click(Sender: TObject);
     Procedure CheckBox2Click(Sender: TObject);
+    Procedure CheckBox3Click(Sender: TObject);
     Procedure Edit1Change(Sender: TObject);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
@@ -193,7 +194,8 @@ Begin
   wfc := Nil;
   If assigned(pattern) Then Begin
     wfc := TWFC.Create;
-    wfc.InitFromImage(pattern, strtointdef(edit1.text, 3), CheckBox1.Checked, CheckBox2.Checked, CheckBox3.Checked);
+    If CheckBox3.Checked Or CheckBox2.Checked Then CheckBox1.Checked := false;
+    wfc.InitFromImage(pattern, strtointdef(edit1.text, 3), CheckBox1.Checked, Not CheckBox2.Checked, Not CheckBox3.Checked);
     button2.Enabled := true;
   End
   Else Begin
@@ -263,6 +265,13 @@ End;
 Procedure TForm1.CheckBox2Click(Sender: TObject);
 Begin
   button2.Enabled := false;
+  If CheckBox3.Checked Or CheckBox2.Checked Then CheckBox1.Checked := false;
+End;
+
+Procedure TForm1.CheckBox3Click(Sender: TObject);
+Begin
+  button2.Enabled := false;
+  If CheckBox3.Checked Or CheckBox2.Checked Then CheckBox1.Checked := false;
 End;
 
 Procedure TForm1.Edit1Change(Sender: TObject);
@@ -289,15 +298,19 @@ Begin
   edit1.text := '3';
   edit2.text := '40';
   edit3.text := '40';
-  CheckBox1.Checked := false;
-  CheckBox2.Checked := false;
+  CheckBox1.Checked := true; // Allow Rotate
+  CheckBox2.Checked := true; // Allow Wrap vertical
+  CheckBox3.Checked := true; // Allow Wrap Horizontal
   Pattern := Nil;
   LoadPattern('data' + PathDelim + 'demo-1.png');
   label4.caption := '';
   // Debug
-  edit2.text := '100';
-  edit3.text := '100';
-  CheckBox1.Checked := true;
+  // LoadPattern('data' + PathDelim + 'demo-flowers2.png');
+  // edit2.text := '100';
+  // edit3.text := '100';
+  // CheckBox1.Checked := false; // Allow Rotate
+  // CheckBox2.Checked := false; // Allow Wrap vertical
+  // CheckBox3.Checked := true; // Allow Wrap Horizontal
   // *)
 End;
 

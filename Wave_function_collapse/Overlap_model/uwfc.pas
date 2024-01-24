@@ -40,8 +40,9 @@ Type
   private
     fCollapsedCells: Integer; // Already collapsed cells during this run
     fabort: Boolean; // Wenn True, dann wird die Run routine so schnell wie möglich beendet.
-    Floored: Boolean;
-    Floorwaves: TIntArray; // Alle Hier drin sind "Floor" Waves
+    fDisableVertWrap, fDisableHorWrap: Boolean; // Wenn True, dann wird das "Umschlagen" über die entsprechende Kante unterbunden.
+    fBottomwaves: TIntArray; // Alle Hier drin sind "Unten" Waves
+    fRightWaves: TIntArray; // Alle Hier drin sind "Right" Waves
 
     finished: Boolean;
     grid: Array Of Array Of TTile;
@@ -69,7 +70,7 @@ Type
 
     Constructor Create();
     Destructor Destroy(); override;
-    Procedure InitFromImage(Image: TBitmap; aN: integer; symmetry, floor, allowWrap: Boolean);
+    Procedure InitFromImage(Image: TBitmap; aN: integer; symmetry, DisableVertWrap, DisableHorWrap: Boolean);
 
     Procedure Run(aw, ah: Integer);
 
@@ -88,12 +89,15 @@ Procedure TWFC.ClearGrid;
 Var
   statesCnt, i, j, k: Integer;
   states: TIntArray;
+  allow: Boolean;
 Begin
   // Initializes the grid. Also clears the grid if already populated
   If Assigned(grid) Then Begin
-    For i := 0 To high(grid) Do
-      For j := 0 To high(grid[i]) Do
+    For i := 0 To high(grid) Do Begin
+      For j := 0 To high(grid[i]) Do Begin
         grid[i][j].free;
+      End;
+    End;
   End;
   grid := Nil;
   setlength(grid, h, w);
@@ -103,30 +107,41 @@ Begin
       setlength(States, length(patterns));
       statesCnt := 0;
       For k := 0 To high(states) Do Begin
-        (*
-         * If Floored we block all "Floor" waves except on the Bottom Line of the image
-         * And as we create the Image Upside down i = 0 is the bottom line
-         *)
-        If Floored Then Begin
+        allow := true;
+        If fDisableVertWrap Then Begin
           If i = 0 Then Begin
-            If Has(Floorwaves, k) Then Begin
-              states[statesCnt] := k;
-              inc(statesCnt);
+            If Not Has(fBottomwaves, k) Then Begin
+              allow := false;
             End;
           End
           Else Begin
-            If Not Has(Floorwaves, k) Then Begin
-              states[statesCnt] := k;
-              inc(statesCnt);
+            If Has(fBottomwaves, k) Then Begin
+              allow := false;
             End;
           End;
-        End
-        Else Begin
-          states[k] := k;
+        End;
+        If fDisableHorWrap Then Begin
+          If j = w - 1 Then Begin
+            If Not Has(fRightWaves, k) Then Begin
+              allow := false;
+            End;
+          End
+          Else Begin
+            If Has(fRightWaves, k) Then Begin
+              allow := false;
+            End;
+          End;
+        End;
+        If allow Then Begin
+          states[statesCnt] := k;
+          inc(statesCnt);
         End;
       End;
-      If Floored Then Begin
+      If fDisableHorWrap Or fDisableVertWrap Then Begin
         setlength(states, statesCnt);
+      End;
+      If Not assigned(states) Then Begin
+        Raise exception.create('Error, no valid states for cell found.');
       End;
       grid[i][j] := TTile.Create(states, length(patterns), j, i);
     End;
@@ -137,13 +152,18 @@ Procedure TWFC.Seed;
 Var
   i, j: Integer;
 Begin
-  If Floored Then Begin
-    i := 0; // We are floored, so lets start Collapsing there ;)
+  If fDisableVertWrap Then Begin
+    i := 0;
   End
   Else Begin
     i := trunc((random(11) + 45) * h / 100);
   End;
-  j := trunc((random(11) + 45) * w / 100);
+  If fDisableHorWrap Then Begin
+    j := w - 1;
+  End
+  Else Begin
+    j := trunc((random(11) + 45) * w / 100);
+  End;
   grid[i][j].collapse();
   grid[i][j].color := color_table[
     patterns[grid[i][j].ColorTableIndex]
@@ -330,21 +350,27 @@ Begin
   setlength(grid, 0, 0);
 End;
 
-Procedure TWFC.InitFromImage(Image: TBitmap; aN: integer; symmetry, floor,
-  allowWrap: Boolean);
+Procedure TWFC.InitFromImage(Image: TBitmap; aN: integer; symmetry,
+  DisableVertWrap, DisableHorWrap: Boolean);
 Var
   col, direction, ind, i, j, u, v: Integer;
   pattern, rgba_map: TIntArrayArray;
   color_frequencies: TIntArray;
   r, g, b: Integer;
-  iwb, ihb, iW, iH, rotation, FloorWavesCnt: Integer;
+  iW, iH, rotation, BottomWavesCnt, RightWavesCnt: Integer;
   _patterns: TPatternArray;
   _Colors: TIntArray;
   parsed_patterns: TPatternArray;
 Begin
-  If floor Then symmetry := false; // Will man einen Boden haben, dann darf sich das Pattern nicht drehen !
-  Floored := floor;
-  Floorwaves := Nil;
+  (*
+   * Symmetry makes no sense when disabling wrapping
+   *)
+  If DisableVertWrap Then symmetry := false;
+  If DisableHorWrap Then symmetry := false;
+  fDisableVertWrap := DisableVertWrap;
+  fDisableHorWrap := DisableHorWrap;
+  fBottomwaves := Nil;
+  fRightWaves := Nil;
   n := aN;
   iW := Image.width;
   iH := Image.height;
@@ -371,21 +397,18 @@ Begin
 
   // initialize the list that will hold the _patterns.
   _patterns := Nil;
-  If Floored Then Begin
-    setlength(FloorWaves, iw * 8); // Wegen Symmetry kann das bis zu 8 mal mehr werden !
-    FloorWavesCnt := 0;
+  If fDisableVertWrap Then Begin
+    setlength(fBottomwaves, iw * 8); // Wegen Symmetry kann das bis zu 8 mal mehr werden !
+    BottomWavesCnt := 0;
   End;
-  If allowWrap Then Begin
-    ihb := ih - 1;
-    iwb := iw - 1;
-  End
-  Else Begin
-    ihb := ih - 1 - n;
-    iwb := iw - 1 - n;
+  If fDisableHorWrap Then Begin
+    setlength(fRightWaves, iw * 8); // Wegen Symmetry kann das bis zu 8 mal mehr werden !
+    RightWavesCnt := 0;
   End;
+
   // Loop over the width and height of the image to extract _patterns.
-  For j := 0 To ihb Do Begin
-    For i := 0 To iwb Do Begin
+  For j := 0 To ih - 1 Do Begin
+    For i := 0 To iw - 1 Do Begin
 
       // initialize a 2d pattern
       pattern := Nil;
@@ -398,14 +421,12 @@ Begin
           pattern[u][v] := rgba_map[(i + u) Mod iW][(j + v) Mod iH];
         End;
       End;
-
       If (Not includes(_patterns, pattern)) Then Begin
         // Now that we have our pattern extracted wecheck if the symmetry is enabled.
         If (symmetry) Then Begin
           // If symmetry is enabled, we need to do all the rotations and reflections.
           // Loop over all directions.
           For rotation := 0 To 4 - 1 Do Begin
-
             // Tanspose the pattern
             pattern := transpose2DArray(pattern);
             // Check if this instance of the pattern is in the
@@ -428,9 +449,13 @@ Begin
           // check if this instance of the pattern is in the
           // _patterns list. If not, add it to the list
           push(_patterns, pattern);
-          If Floored And (j = iH - 1) Then Begin
-            FloorWaves[FloorWavesCnt] := high(_patterns);
-            inc(FloorWavesCnt);
+          If fDisableVertWrap And (j = iH - 1) Then Begin
+            fBottomwaves[BottomWavesCnt] := high(_patterns);
+            inc(BottomWavesCnt);
+          End;
+          If fDisableHorWrap And (i = iw - 1) Then Begin
+            fRightWaves[RightWavesCnt] := high(_patterns);
+            inc(RightWavesCnt);
           End;
         End;
       End
@@ -439,11 +464,12 @@ Begin
       End;
     End;
   End;
-
-  If Floored Then Begin
-    setlength(FloorWaves, FloorWavesCnt);
+  If fDisableVertWrap Then Begin
+    setlength(fBottomwaves, BottomWavesCnt);
   End;
-
+  If fDisableHorWrap Then Begin
+    setlength(fRightWaves, RightWavesCnt);
+  End;
   // Initialize the matcher object
   parsed_patterns := Nil;
   Matcher.free;
@@ -510,7 +536,7 @@ Begin
     updateStep();
     If assigned(OnUpdatedStep) Then Begin
       info.CollapsedCells := fCollapsedCells;
-      info.Backlog := sizeof(affected);
+      info.Backlog := length(affected);
       OnUpdatedStep(self, info);
     End;
   End;
@@ -525,10 +551,10 @@ Begin
   result.Height := h;
   result.Canvas.Brush.Color := background_color;
   result.Canvas.Rectangle(-1, -1, w + 1, h + 1);
-  For i := 0 To h - 1 Do Begin
-    For j := 0 To w - 1 Do Begin
-      If grid[i, j].hasCollapsed() Then Begin
-        result.Canvas.Pixels[w - j - 1, i] := grid[i, j].color;
+  For j := 0 To h - 1 Do Begin
+    For i := 0 To w - 1 Do Begin
+      If grid[j, i].hasCollapsed() Then Begin
+        result.Canvas.Pixels[i, j] := grid[j, i].color;
       End;
     End;
   End;
