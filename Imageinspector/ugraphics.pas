@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uGraphiks.pas                                                   ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.09                                                         *)
+(* Version     : 0.10                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -36,6 +36,7 @@
 (*                      added foldImage                                       *)
 (*                      add Wrap Modes                                        *)
 (*               0.09 - added floodfill                                       *)
+(*               0.10 - FIX: revert 90* Rotation images back to old algorithm *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -803,26 +804,60 @@ End;
 
 Procedure RotateClockWise90Degrees(Const Bitmap: TBitmap);
 Var
-  m: TMatrix3x3;
+  Source_intf, Dest_intf: TLazIntfImage;
+  DestBM: TBitmap;
+  i, j: Integer;
+  DestHandle, DestMaskHandle: HBitmap;
 Begin
-  m := IdentityMatrix3x3;
-  m[0, 0] := 0;
-  m[1, 0] := 1;
-  m[0, 1] := -1;
-  m[1, 1] := 0;
-  MulImage(Bitmap, m, imNone, wmBlack);
+  // Der MulImage Algorithmus, rundet manchmal komisch, dass sieht man
+  // Wenn es Exakt sein mus !
+  Source_intf := TLazIntfImage.Create(0, 0);
+  Source_intf.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
+  DestBM := TBitmap.Create;
+  DestBM.Width := Bitmap.Height;
+  DestBM.Height := Bitmap.Width;
+  Dest_intf := TLazIntfImage.Create(0, 0);
+  Dest_intf.LoadFromBitmap(DestBM.Handle, DestBM.MaskHandle);
+  For i := 0 To Bitmap.Width - 1 Do Begin
+    For j := 0 To Bitmap.Height - 1 Do Begin
+      Dest_intf[Bitmap.Height - 1 - j, i] := Source_intf[i, j];
+    End;
+  End;
+  Dest_intf.CreateBitmaps(DestHandle, DestMaskHandle, false);
+  Bitmap.Handle := DestHandle;
+  Bitmap.MaskHandle := DestMaskHandle;
+  Source_intf.free;
+  Dest_intf.free;
+  DestBM.free;
 End;
 
 Procedure RotateCounterClockWise90Degrees(Const Bitmap: TBitmap);
 Var
-  m: TMatrix3x3;
+  Source_intf, Dest_intf: TLazIntfImage;
+  DestBM: TBitmap;
+  i, j: Integer;
+  DestHandle, DestMaskHandle: HBitmap;
 Begin
-  m := IdentityMatrix3x3;
-  m[0, 0] := 0;
-  m[1, 0] := -1;
-  m[0, 1] := 1;
-  m[1, 1] := 0;
-  MulImage(Bitmap, m, imNone, wmBlack);
+  // Der MulImage Algorithmus, rundet manchmal komisch, dass sieht man
+  // Wenn es Exakt sein mus !
+  Source_intf := TLazIntfImage.Create(0, 0);
+  Source_intf.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
+  DestBM := TBitmap.Create;
+  DestBM.Width := Bitmap.Height;
+  DestBM.Height := Bitmap.Width;
+  Dest_intf := TLazIntfImage.Create(0, 0);
+  Dest_intf.LoadFromBitmap(DestBM.Handle, DestBM.MaskHandle);
+  For i := 0 To Bitmap.Width - 1 Do Begin
+    For j := 0 To Bitmap.Height - 1 Do Begin
+      Dest_intf[j, bitmap.Width - 1 - i] := Source_intf[i, j];
+    End;
+  End;
+  Dest_intf.CreateBitmaps(DestHandle, DestMaskHandle, false);
+  Bitmap.Handle := DestHandle;
+  Bitmap.MaskHandle := DestMaskHandle;
+  Source_intf.free;
+  Dest_intf.free;
+  DestBM.free;
 End;
 
 Procedure Rotate180Degrees(Const Bitmap: TBitmap);
