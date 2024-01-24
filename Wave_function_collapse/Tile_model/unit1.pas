@@ -1,7 +1,7 @@
 (******************************************************************************)
-(* Wave function collapse                                          17.01.2024 *)
+(* Wave function collapse (tile model)                             17.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -25,6 +25,7 @@
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Backjumping (like backtracking but with jumps)        *)
+(*               0.03 - Cleanup                                               *)
 (*                                                                            *)
 (******************************************************************************)
 // Inspired by https://www.youtube.com/watch?v=rI_y2GAlQFM
@@ -40,38 +41,10 @@ Unit Unit1;
 Interface
 
 Uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ufilo;
-
-Const
-
-  ConLeft = 0;
-  ConRight = 1;
-  ConUp = 2;
-  ConDown = 3;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
+  ExtDlgs, uwfc;
 
 Type
-
-  TWVCImage = Record
-    Filename: String;
-    Bitmap: TBitmap;
-    Prop: integer;
-    Connectors: Array[0..3] Of String;
-  End;
-
-  TGridElement = Record
-    Index: Integer; // -1 = noch nicht vergeben
-    Forced: Boolean; // Wenn True, dann wurde dieser Wert über den User gesetzt.
-    Possibilities: Array Of Boolean;
-    PSum: Integer; // Anzahl der Possibilities = true
-  End;
-
-  TGrid = Array Of Array Of TGridElement;
-
-  TBoolMatrix = Array Of Array Of Boolean;
-
-  TPointList = Array Of TPoint;
-
-  TGridStack = specialize TFilo < TGrid > ;
 
   { TForm1 }
 
@@ -86,6 +59,7 @@ Type
     Button8: TButton;
     Button9: TButton;
     CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -97,8 +71,10 @@ Type
     Image1: TImage;
     Image2: TImage;
     Label1: TLabel;
-    OpenDialog1: TOpenDialog;
+    Label2: TLabel;
+    Label3: TLabel;
     OpenDialog2: TOpenDialog;
+    OpenPictureDialog1: TOpenPictureDialog;
     PaintBox1: TPaintBox;
     SaveDialog1: TSaveDialog;
     SaveDialog2: TSaveDialog;
@@ -112,6 +88,7 @@ Type
     Procedure Button7Click(Sender: TObject);
     Procedure Button8Click(Sender: TObject);
     Procedure Button9Click(Sender: TObject);
+    Procedure CheckBox2Click(Sender: TObject);
     Procedure Edit1KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit2KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit3KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
@@ -125,37 +102,37 @@ Type
       Shift: TShiftState; X, Y: Integer);
     Procedure PaintBox1Paint(Sender: TObject);
   private
-    Grid: TGrid;
-    Connections: Array[0..3] Of TBoolMatrix; // Die Verbindungsmatrix der Bilder
+    wfc: Twfc;
     SelectedIndex: integer;
-    Images: Array Of TWVCImage;
+    Images: TWVCImageArray;
     Procedure AppendImageToLCL(index: integer);
     Procedure Clear;
     Procedure AddImage(Const Filename: String);
     Procedure SetSelectedImage(Index: Integer);
-    Function LoadSystem(Const Filename: String): Boolean;
-  public
 
+    Procedure SaveSystem(Const Filename: String);
+    Function LoadSystem(Const Filename: String): Boolean;
+
+    Procedure OnCollapseCell(Sender: TObject);
+    Procedure OnRenderTooLong(Sender: TObject);
+  public
 
   End;
 
 Var
   Form1: TForm1;
-  cancel: Boolean;
 
 Implementation
 
 {$R *.lfm}
 
-Uses IniFiles, math;
+Uses IniFiles;
 
 { TForm1 }
 
 Procedure TForm1.FormCreate(Sender: TObject);
-Var
-  i: Integer;
 Begin
-  caption := 'Wave Function Collapse Demo ver. 0.01';
+  caption := 'Wave Function Collapse Demo ver. 0.03';
   // Aufräumen, der Entwickler Hilfen
   edit1.free;
   edit2.free;
@@ -163,18 +140,15 @@ Begin
   edit4.free;
   edit5.free;
   Image1.Free;
-  // Init
-  Images := Nil;
-  For i := 0 To 3 Do Begin
-    Connections[i] := Nil;
-  End;
   edit6.text := '10';
   edit7.text := '10';
   edit8.text := '10';
-  Grid := Nil;
   Randomize;
   Constraints.MinWidth := Width;
   Constraints.MinHeight := Height;
+  wfc := Twfc.create;
+  wfc.OnUpdate := @OnCollapseCell;
+  wfc.OnRenderTooLong := @OnRenderTooLong;
   // Load a default tileset if one exists ;)
   If Loadsystem('paths.sys') Then Begin
     Button6.Click;
@@ -183,6 +157,8 @@ End;
 
 Procedure TForm1.FormDestroy(Sender: TObject);
 Begin
+  wfc.free;
+  wfc := Nil;
   Clear;
 End;
 
@@ -207,12 +183,13 @@ Begin
   x := x Div w;
   y := y Div h;
   If ssleft In shift Then Begin
-    Grid[x, y].Forced := true;
-    Grid[x, y].Index := SelectedIndex;
+    wfc.Grid[x, y].Forced := true;
+    wfc.Grid[x, y].Index := SelectedIndex;
+    CheckBox2.Checked := true;
   End
   Else Begin
-    Grid[x, y].Forced := false;
-    Grid[x, y].Index := -1;
+    wfc.Grid[x, y].Forced := false;
+    wfc.Grid[x, y].Index := -1;
   End;
   PaintBox1.Invalidate;
 End;
@@ -224,11 +201,20 @@ Begin
   // Clear Back
   PaintBox1.Canvas.Brush.Color := clRed;
   PaintBox1.Canvas.Rectangle(-1, -1, PaintBox1.Width + 1, PaintBox1.Height + 1);
-  If Not assigned(Grid) Then exit;
-  For i := 0 To high(Grid) Do Begin
-    For j := 0 To high(Grid[i]) Do Begin
-      If Grid[i, j].Index <> -1 Then Begin
-        PaintBox1.Canvas.Draw(i * Images[0].Bitmap.Width, j * Images[0].Bitmap.Height, Images[Grid[i, j].Index].Bitmap);
+  If Not assigned(wfc.Grid) Then exit;
+  For i := 0 To high(wfc.Grid) Do Begin
+    For j := 0 To high(wfc.Grid[i]) Do Begin
+      If wfc.Grid[i, j].Index <> -1 Then Begin
+        PaintBox1.Canvas.Draw(i * Images[0].Bitmap.Width, j * Images[0].Bitmap.Height, Images[wfc.Grid[i, j].Index].Bitmap);
+      End;
+      If wfc.Grid[i, j].Forced And CheckBox2.Checked Then Begin
+        PaintBox1.Canvas.Pen.Color := clred;
+        PaintBox1.Canvas.MoveTo((i + 0) * Images[0].Bitmap.Width, (j + 0) * Images[0].Bitmap.Height);
+
+        PaintBox1.Canvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 0) * Images[0].Bitmap.Height);
+        PaintBox1.Canvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 1) * Images[0].Bitmap.Height - 1);
+        PaintBox1.Canvas.LineTo((i + 0) * Images[0].Bitmap.Width, (j + 1) * Images[0].Bitmap.Height - 1);
+        PaintBox1.Canvas.LineTo((i + 0) * Images[0].Bitmap.Width, (j + 0) * Images[0].Bitmap.Height);
       End;
     End;
   End;
@@ -241,15 +227,15 @@ Var
   sl: TStringList;
 Begin
   // Import Images
-  If OpenDialog1.Execute Then Begin
+  If OpenPictureDialog1.Execute Then Begin
     Clear;
     sl := TStringList.Create;
     sl.Sorted := true;
-    For i := 0 To OpenDialog1.Files.Count - 1 Do Begin
-      sl.Add(OpenDialog1.Files[i]);
+    For i := 0 To OpenPictureDialog1.Files.Count - 1 Do Begin
+      sl.Add(OpenPictureDialog1.Files[i]);
     End;
     sl.Sort;
-    For i := 0 To OpenDialog1.Files.Count - 1 Do Begin
+    For i := 0 To OpenPictureDialog1.Files.Count - 1 Do Begin
       fn := sl[i];
       ap := ExtractFilePath(ParamStr(0));
       frn := ExtractRelativePath(ap, fn);
@@ -257,7 +243,7 @@ Begin
     End;
     sl.free;
     If assigned(Images) Then Begin
-      SetSelectedImage(0);
+      //      SetSelectedImage(0);
     End
     Else Begin
       SetSelectedImage(-1);
@@ -284,35 +270,14 @@ Begin
   h := StrToIntdef(Edit7.Text, 0);
   PaintBox1.Width := w * Images[0].Bitmap.Width;
   PaintBox1.Height := h * Images[0].Bitmap.Height;
-  setlength(Grid, w, h);
+  setlength(wfc.Grid, w, h);
   For i := 0 To w - 1 Do Begin
     For j := 0 To h - 1 Do Begin
-      Grid[i, j].Index := -1;
-      Grid[i, j].Forced := false;
+      wfc.Grid[i, j].Index := -1;
+      wfc.Grid[i, j].Forced := false;
     End;
   End;
   PaintBox1.Invalidate;
-End;
-
-Procedure TForm1.Button4Click(Sender: TObject);
-Var
-  ini: tinifile;
-  i: Integer;
-Begin
-  If SaveDialog1.Execute Then Begin
-    ini := TIniFile.Create(SaveDialog1.FileName);
-    ini.CacheUpdates := true;
-    ini.WriteInteger('Images', 'Count', length(Images));
-    For i := 0 To high(Images) Do Begin
-      ini.WriteString('Images', 'Image' + IntToStr(i), images[i].Filename);
-      ini.WriteInteger('Images', 'ImageP' + IntToStr(i), images[i].Prop);
-      ini.WriteString('Images', 'ImageL' + IntToStr(i), images[i].Connectors[ConLeft]);
-      ini.WriteString('Images', 'ImageR' + IntToStr(i), images[i].Connectors[ConRight]);
-      ini.WriteString('Images', 'ImageU' + IntToStr(i), images[i].Connectors[ConUp]);
-      ini.WriteString('Images', 'ImageD' + IntToStr(i), images[i].Connectors[ConDown]);
-    End;
-    ini.Free;
-  End;
 End;
 
 Procedure TForm1.Button5Click(Sender: TObject);
@@ -321,319 +286,40 @@ Begin
 End;
 
 Procedure TForm1.Button6Click(Sender: TObject);
-
 Var
-  InvalidResult: Boolean;
-  InvalidPos: TPoint;
-
-  Procedure UpdateGrid(i, j, n: Integer; Const M: TBoolMatrix);
-  Var
-    x, c: Integer;
-  Begin
-    // Außerhalb des Feldes
-    If (i < 0) Or (i >= length(Grid)) Then exit;
-    If (j < 0) Or (j >= length(Grid[i])) Then exit;
-    c := 0;
-    For x := 0 To length(Images) - 1 Do Begin
-      If Not M[n, x] Then Grid[i, j].Possibilities[x] := false;
-      If Grid[i, j].Possibilities[x] Then Begin
-        inc(c);
-      End;
-    End;
-    Grid[i, j].PSum := c;
-  End;
-
-  Procedure SetNum(i, j, n: Integer);
-  Begin
-    If Grid[i, j].Index <> -1 Then exit; // Wir versuchen ein bereits existierendes zu "ersetzen"
-    Grid[i, j].Index := n;
-    Grid[i, j].PSum := 0; // Das Feld ist ja gesetzt
-    // Aktualisieren der "Möglichkeiten" der Angrenzenden
-    UpdateGrid(i - 1, j, n, Connections[ConLeft]);
-    UpdateGrid(i + 1, j, n, Connections[ConRight]);
-    UpdateGrid(i, j - 1, n, Connections[ConUp]);
-    UpdateGrid(i, j + 1, n, Connections[ConDown]);
-  End;
-
-  Function GetLeastProbList(): TPointList;
-  Var
-    ls, i, j: integer;
-  Begin
-    ls := length(Images);
-    For i := 0 To high(Grid) Do Begin
-      For j := 0 To high(Grid[i]) Do Begin
-        If (Grid[i, j].Index = -1) Then Begin
-          If (Grid[i, j].PSum = 0) Then Begin
-            InvalidResult := true; // Das Backtracking anstoßen
-            InvalidPos := point(i, j);
-          End
-          Else Begin
-            ls := min(ls, Grid[i, j].PSum);
-          End;
-        End;
-      End;
-    End;
-    result := Nil;
-    For i := 0 To high(Grid) Do Begin
-      For j := 0 To high(Grid[i]) Do Begin
-        If (Grid[i, j].PSum = ls) And (Grid[i, j].Index = -1) Then Begin
-          setlength(result, high(result) + 2);
-          result[high(result)] := point(i, j);
-        End;
-      End;
-    End;
-  End;
-
-  Procedure InitGrid();
-  Var
-    w, h, i, j, k: Integer;
-    hasForced: Boolean;
-  Begin
-    w := length(Grid);
-    h := length(Grid[0]);
-    hasForced := false;
-    For i := 0 To w - 1 Do Begin
-      For j := 0 To h - 1 Do Begin
-        If Not Grid[i, j].Forced Then Begin // Die User Gesetzten werden natürlich nicht gelöscht !
-          Grid[i, j].Index := -1;
-        End
-        Else Begin
-          hasForced := true;
-        End;
-        setlength(Grid[i, j].Possibilities, length(Images));
-        For k := 0 To high(Grid[i, j].Possibilities) Do Begin
-          If Images[k].Prop > 0 Then Begin
-            Grid[i, j].Possibilities[k] := true;
-          End
-          Else Begin
-            Grid[i, j].Possibilities[k] := false;
-          End;
-          Grid[i, j].PSum := length(Images);
-        End;
-      End;
-    End;
-    // Setzen des / der ersten Feldes /Felder
-    If hasForced Then Begin
-      // Fall 1: Der User hat eigene Vorgaben gemacht, dann übernehmen wir diese
-      For i := 0 To w - 1 Do Begin
-        For j := 0 To h - 1 Do Begin
-          If Grid[i, j].Forced Then Begin
-            k := Grid[i, j].Index;
-            Grid[i, j].Index := -1;
-            setNum(i, j, k);
-          End;
-        End;
-      End;
-    End
-    Else Begin
-      // Fall 2: Das Feld ist Leer -> Wir setzen ein zufälliges 1. Feld
-      i := random(w);
-      j := random(h);
-      k := -1;
-      While k = -1 Do Begin // Sicherstellen, das wir dieses Eine Teil auch verwenden dürfen !
-        k := random(length(Images));
-        If Images[k].Prop = 0 Then k := -1;
-      End;
-      setNum(i, j, k);
-    End;
-  End;
-
-Var
-  gs: TGridStack;
-
-  Procedure PushGrid();
-  Var
-    g: TGrid;
-    i, j: Integer;
-  Begin
-    g := Nil;
-    setlength(g, length(Grid), length(Grid[0]));
-    For i := 0 To high(Grid) Do Begin
-      For j := 0 To high(Grid[0]) Do Begin
-        g[i, j] := Grid[i, j];
-      End;
-    End;
-    gs.Push(g);
-  End;
-
-  Procedure PopGrid();
-  Var
-    g: TGrid;
-    i, j: Integer;
-  Begin
-    If gs.IsEmpty Then Begin
-      // Der Jump ist derart Riesig, dass wir nichts mehr zum "popen" haben
-      InitGrid();
-    End
-    Else Begin
-      g := gs.Pop;
-      For i := 0 To high(Grid) Do Begin
-        For j := 0 To high(Grid[0]) Do Begin
-          Grid[i, j] := g[i, j];
-        End;
-      End;
-      setlength(g, 0, 0);
-    End;
-  End;
-
-  Procedure ClearGridstack();
-  Var
-    g: TGrid;
-  Begin
-    While Not gs.IsEmpty Do Begin
-      g := gs.Pop;
-      setlength(g, 0, 0);
-    End;
-  End;
-
-Var
-  ac, r, i, j, k, PSum: Integer;
-  pl: TPointList;
-  a: Array Of Integer;
-  BackJumpCounter: integer;
-  WasInvalid: Boolean;
-  StartTime: QWord;
-  allowed_time: QWord;
-  Triggered: Boolean;
+  i, cnt: Integer;
+  t: String;
 Begin
+  // Create
   If button6.caption = 'Cancel' Then Begin
-    Cancel := true;
+    wfc.Cancel := true;
     button6.caption := 'Create';
     Button6.Enabled := false;
     exit;
   End;
-  Button6.Enabled := false;
-  // Create
-  // 1. Connection Matrix Berechnen
-  For i := 0 To 3 Do Begin
-    setlength(Connections[i], length(Images), length(Images));
-  End;
-  (* Theoretisch kann jedes Teil mit Jedem Teil verbunden werden, das ganze in alle 4 Richtungen *)
-  For i := 0 To high(Images) Do Begin
-    For j := 0 To high(Images) Do Begin
-      Connections[ConLeft][i, j] := Images[j].Connectors[ConRight] = Images[i].Connectors[ConLeft];
-      Connections[ConRight][i, j] := Images[j].Connectors[ConLeft] = Images[i].Connectors[ConRight];
-      Connections[ConUp][i, j] := Images[j].Connectors[ConDown] = Images[i].Connectors[ConUp];
-      Connections[ConDown][i, j] := Images[j].Connectors[ConUp] = Images[i].Connectors[ConDown];
-    End;
-  End;
-  // 2. Grid Initialisieren
-  If Not assigned(Grid) Then button3.Click;
-  If Not assigned(Grid) Then exit;
-  InitGrid();
-  a := Nil;
-  setlength(a, length(Images));
+  button6.caption := 'Cancel';
+  Application.ProcessMessages;
 
-  (*
-   * Die Theorie sagt folgendes
-   * - Suchen aller Felder, welche die "Geringsten" Möglichkeiten haben
-   * - Eines dieser Felder zufällig auf eine Möglichkeit setzen -> Repeat until alles besetzt.
-   *
-   * Eigentlich brüchte man einen Backtrack algorithmus, um immer alles zu füllen, aber ohne geht es meistens auch !
-   *
-   *)
-  InvalidResult := false;
-  WasInvalid := false;
-  BackJumpCounter := 1;
-  gs := TGridStack.create;
-  pl := GetLeastProbList();
-  StartTime := GetTickCount64;
-  Triggered := false;
-  allowed_time := min(500, length(Grid) * Length(Grid[0]) * 10);
-  While assigned(pl) Do Begin
-    // Wählen eines Zufälligen Feldes, aus der Liste derer die Noch Frei sind
-    r := random(length(pl));
-    i := pl[r].X;
-    j := pl[r].Y;
-    // Wenn wir ein Teil haben, was "Problematisch" ist dann setzen wir dieses nach dem Backtrack als 1.
-    If WasInvalid Then Begin
-      WasInvalid := false;
-      i := InvalidPos.x;
-      j := InvalidPos.Y;
-    End;
-    // Wählen eines Zufälligen Kandidaten aus der Liste der noch freien Kandidaten
-    ac := 0;
-    For k := 0 To length(Images) - 1 Do Begin
-      If Grid[i, j].Possibilities[k] Then Begin
-        a[ac] := k;
-        inc(ac);
-      End;
-    End;
-    // Der Versuch das Wahrscheinlichkeitsabhängig zu machen
-    PSum := 0;
-    For k := 0 To ac - 1 Do Begin
-      psum := psum + Images[a[k]].Prop;
-    End;
-    r := random(psum + 1);
-    PSum := 0;
-    For k := 0 To ac - 1 Do Begin
-      psum := psum + Images[a[k]].Prop;
-      If r <= psum Then Begin
-        setNum(i, j, a[k]);
-        break;
-      End;
-    End;
-    pl := GetLeastProbList();
-    If InvalidResult Then Begin
-      If CheckBox1.Checked Then Begin
-        PaintBox1.Invalidate;
-        Application.ProcessMessages;
-        sleep(strtointdef(edit8.text, 10));
-      End;
-      For i := 0 To BackJumpCounter - 1 Do Begin
-        PopGrid();
-      End;
-      InvalidResult := false;
-      WasInvalid := true;
-      pl := GetLeastProbList();
-      BackJumpCounter := BackJumpCounter * 2 + 1;
-    End
-    Else Begin
-      PushGrid();
-      If BackJumpCounter > 1 Then
-        BackJumpCounter := BackJumpCounter - 1;
-    End;
-    If (GetTickCount64 - StartTime > allowed_time) And Not Triggered Then Begin
-      triggered := true;
-      Showmessage(
-        'Activateing preview now, as it seem to be to difficult to create the map.' + LineEnding +
-        'Click on "Cancel" button to skip actual creation'
-        );
-      button6.caption := 'Cancel';
-      CheckBox1.Checked := true;
-      edit8.text := '1';
-      Button6.Enabled := true;
-      cancel := false;
-    End;
-    If CheckBox1.Checked Then Begin
-      PaintBox1.Invalidate;
-      sleep(strtointdef(edit8.text, 10));
-      Application.ProcessMessages;
-    End;
-    // Wenn der User die Animation wieder Abgeschaltet hat, dann muss er hier die Chance bekommen dennoch Cancel zu drücken
-    If Triggered Then Begin
-      Application.ProcessMessages;
-    End;
-    If cancel Then pl := Nil;
+  // 2. Grid Initialisieren
+  If Not assigned(wfc.Grid) Then button3.Click;
+  If Not assigned(wfc.Grid) Then Begin
+    button6.caption := 'Create';
+    Button6.Enabled := true;
+    exit;
   End;
-  ClearGridstack();
-  gs.free;
+
+  wfc.LoadImages(Images);
+  wfc.Run();
+
   PaintBox1.Invalidate;
   button6.caption := 'Create';
   Button6.Enabled := true;
 End;
 
 Procedure TForm1.Button7Click(Sender: TObject);
-Var
-  i, j: Integer;
 Begin
-  For i := 0 To high(Grid) Do Begin
-    For j := 0 To high(Grid[i]) Do Begin
-      If Not Grid[i, j].Forced Then Begin
-        Grid[i, j].Index := -1;
-      End;
-    End;
-  End;
+  // Reset Grid
+  wfc.ResetGrid;
   PaintBox1.Invalidate;
 End;
 
@@ -653,16 +339,33 @@ End;
 Procedure TForm1.Button9Click(Sender: TObject);
 Var
   bm: TBitmap;
+  f: Boolean;
 Begin
   // Export Image
   If SaveDialog2.Execute Then Begin
     bm := TBitmap.Create;
     bm.Width := PaintBox1.Width;
     bm.Height := PaintBox1.Height;
+    f := CheckBox2.Checked;
+    If f Then Begin
+      CheckBox2.Checked := false;
+      PaintBox1.Invalidate;
+      Application.ProcessMessages;
+    End;
     bm.Canvas.CopyRect(rect(0, 0, bm.Width, bm.Height), PaintBox1.Canvas, rect(0, 0, bm.Width, bm.Height));
+    If f Then Begin
+      CheckBox2.Checked := true;
+      PaintBox1.Invalidate;
+      Application.ProcessMessages;
+    End;
     bm.SaveToFile(SaveDialog2.FileName);
     bm.free;
   End;
+End;
+
+Procedure TForm1.CheckBox2Click(Sender: TObject);
+Begin
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.Edit1KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
@@ -707,7 +410,7 @@ End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
 Begin
-  cancel := true;
+  wfc.cancel := true;
 End;
 
 Procedure TForm1.Clear;
@@ -846,6 +549,25 @@ Begin
   SelectedIndex := index;
 End;
 
+Procedure TForm1.SaveSystem(Const Filename: String);
+Var
+  ini: tinifile;
+  i: Integer;
+Begin
+  ini := TIniFile.Create(FileName);
+  ini.CacheUpdates := true;
+  ini.WriteInteger('Images', 'Count', length(images));
+  For i := 0 To high(images) Do Begin
+    ini.WriteString('Images', 'Image' + IntToStr(i), images[i].Filename);
+    ini.WriteInteger('Images', 'ImageP' + IntToStr(i), images[i].Prop);
+    ini.WriteString('Images', 'ImageL' + IntToStr(i), images[i].Connectors[ConLeft]);
+    ini.WriteString('Images', 'ImageR' + IntToStr(i), images[i].Connectors[ConRight]);
+    ini.WriteString('Images', 'ImageU' + IntToStr(i), images[i].Connectors[ConUp]);
+    ini.WriteString('Images', 'ImageD' + IntToStr(i), images[i].Connectors[ConDown]);
+  End;
+  ini.Free;
+End;
+
 Function TForm1.LoadSystem(Const Filename: String): Boolean;
 Var
   ini: TIniFile;
@@ -871,6 +593,35 @@ Begin
   ini.free;
   SetSelectedImage(-1);
   button3.Click;
+End;
+
+Procedure TForm1.OnCollapseCell(Sender: TObject);
+Begin
+  If CheckBox1.Checked Then Begin
+    PaintBox1.Invalidate;
+    Application.ProcessMessages;
+    sleep(strtointdef(edit8.text, 10));
+  End;
+End;
+
+Procedure TForm1.OnRenderTooLong(Sender: TObject);
+Begin
+  If CheckBox1.Checked Then exit;
+  Showmessage(
+    'Activateing preview now, as it seem to be to difficult to create the map.' + LineEnding +
+    'Click on "Cancel" button to skip actual creation'
+    );
+  button6.caption := 'Cancel';
+  CheckBox1.Checked := true;
+  edit8.text := '1';
+  Button6.Enabled := true;
+End;
+
+Procedure TForm1.Button4Click(Sender: TObject);
+Begin
+  If SaveDialog1.Execute Then Begin
+    SaveSystem(SaveDialog1.FileName);
+  End;
 End;
 
 End.

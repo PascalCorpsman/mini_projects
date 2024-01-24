@@ -1,11 +1,11 @@
 object Form1: TForm1
-  Left = 377
+  Left = 348
   Height = 575
-  Top = 194
-  Width = 809
+  Top = 110
+  Width = 811
   Caption = 'Form1'
   ClientHeight = 575
-  ClientWidth = 809
+  ClientWidth = 811
   Position = poScreenCenter
   LCLVersion = '3.99.0.0'
   OnCloseQuery = FormCloseQuery
@@ -15,12 +15,12 @@ object Form1: TForm1
     Left = 8
     Height = 496
     Top = 40
-    Width = 211
+    Width = 203
     HorzScrollBar.Page = 170
     VertScrollBar.Page = 122
     Anchors = [akTop, akLeft, akBottom]
     ClientHeight = 494
-    ClientWidth = 209
+    ClientWidth = 201
     TabOrder = 0
     object Image1: TImage
       Left = 64
@@ -85,7 +85,7 @@ object Form1: TForm1
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 120
+    Left = 112
     Height = 25
     Top = 7
     Width = 99
@@ -127,16 +127,8 @@ object Form1: TForm1
     TabOrder = 5
     Text = 'Edit7'
   end
-  object PaintBox1: TPaintBox
-    Left = 224
-    Height = 105
-    Top = 64
-    Width = 105
-    OnMouseDown = PaintBox1MouseDown
-    OnPaint = PaintBox1Paint
-  end
   object Button4: TButton
-    Left = 120
+    Left = 112
     Height = 25
     Top = 544
     Width = 99
@@ -182,7 +174,7 @@ object Form1: TForm1
     OnClick = Button7Click
   end
   object Button8: TButton
-    Left = 752
+    Left = 754
     Height = 49
     Top = 8
     Width = 49
@@ -216,18 +208,44 @@ object Form1: TForm1
     Width = 33
     Caption = 'delay'
   end
-  object OpenDialog1: TOpenDialog
-    DefaultExt = '.bmp'
-    Filter = 'Bitmaps|*.bmp|All|*.*'
-    Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
-    Left = 40
-    Top = 136
+  object CheckBox2: TCheckBox
+    Left = 328
+    Height = 22
+    Top = 40
+    Width = 96
+    Caption = 'mark forced'
+    Checked = True
+    State = cbChecked
+    TabOrder = 14
+    OnClick = CheckBox2Click
+  end
+  object Label2: TLabel
+    Left = 304
+    Height = 16
+    Top = 0
+    Width = 36
+    Caption = 'Width'
+  end
+  object Label3: TLabel
+    Left = 368
+    Height = 16
+    Top = 0
+    Width = 40
+    Caption = 'Height'
+  end
+  object PaintBox1: TPaintBox
+    Left = 224
+    Height = 105
+    Top = 64
+    Width = 105
+    OnMouseDown = PaintBox1MouseDown
+    OnPaint = PaintBox1Paint
   end
   object OpenDialog2: TOpenDialog
     DefaultExt = '.sys'
     Filter = 'System|*.sys|All|*.*'
     Left = 160
-    Top = 136
+    Top = 184
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.sys'
@@ -240,5 +258,12 @@ object Form1: TForm1
     Filter = 'Bitmap|*.bmp|All|*.*'
     Left = 264
     Top = 496
+  end
+  object OpenPictureDialog1: TOpenPictureDialog
+    DefaultExt = '.bmp'
+    Filter = 'Bitmap Files (*.bmp)|*.bmp|All|*.*'
+    Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
+    Left = 56
+    Top = 184
   end
 end
