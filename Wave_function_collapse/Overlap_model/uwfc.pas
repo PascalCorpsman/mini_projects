@@ -26,6 +26,11 @@ Uses
 
 Type
 
+  TGridConstraints = Array Of Record
+    x, y: Integer;
+    col: TColor;
+  End;
+
   TInfo = Record
     TotalCellsToCollapse: integer;
     CollapsedCells: integer;
@@ -62,13 +67,14 @@ Type
 
     affected: TPointArray;
 
-    Procedure ClearGrid();
+    Procedure ClearGrid(Const Constraints: TGridConstraints);
     Procedure Seed();
     Function getNeighborIndicies(i, j: integer): TPointArray;
     Procedure UpdateStep();
 
     Function IsDone(): Boolean;
     Function getLowestEntropyLocation(): TPoint;
+    Function ColorToColorTableIndex(col: TColor): integer;
   public
     OnUpdatedStep: TOnUpdatedStep;
 
@@ -76,7 +82,7 @@ Type
     Destructor Destroy(); override;
     Procedure InitFromImage(Image: TBitmap; aN: integer; symmetry, DisableVertWrap, DisableHorWrap: Boolean);
 
-    Procedure Run(aw, ah: Integer);
+    Procedure Run(aw, ah: Integer; Const Constraints: TGridConstraints);
 
     Function GetImage(): TBitmap;
     Procedure Abort;
@@ -89,7 +95,7 @@ Uses
 
 { TField }
 
-Procedure TWFC.ClearGrid;
+Procedure TWFC.ClearGrid(Const Constraints: TGridConstraints);
 Var
   statesCnt, i, j, k: Integer;
   states: TIntArray;
@@ -148,6 +154,25 @@ Begin
         Raise exception.create('Error, no valid states for cell found.');
       End;
       grid[i][j] := TTile.Create(states, length(patterns), j, i);
+    End;
+  End;
+
+  // Apply constraints
+  If assigned(Constraints) Then Begin
+    For j := 0 To high(Constraints) Do Begin
+      // Is Constraint for this image ?
+      If (Constraints[j].y < 0) Or (Constraints[j].y >= h) Or
+        (Constraints[j].x < 0) Or (Constraints[j].x >= w) Then Continue;
+      // Is the Color / wave valid in this image ?
+      i := ColorToColorTableIndex(Constraints[j].col);
+      If i >= 0 Then Begin
+        // Collapse cell to given color
+        grid[Constraints[j].y, Constraints[j].x].ForceCollapse(i);
+        grid[Constraints[j].y, Constraints[j].x].color := color_table[
+          patterns[grid[Constraints[j].y, Constraints[j].x].ColorTableIndex]
+          ];
+        assert(Constraints[j].col = grid[Constraints[j].y, Constraints[j].x].color, 'Error color resolving did not work');
+      End;
     End;
   End;
 End;
@@ -334,6 +359,25 @@ Begin
   result := point(iInd, jInd);
 End;
 
+Function TWFC.ColorToColorTableIndex(col: TColor): integer;
+Var
+  i: Integer;
+  a: Array Of Integer;
+Begin
+  result := -1;
+  a := Nil;
+  For i := 0 To high(Patterns) Do Begin
+    If color_table[Patterns[i]] = col Then Begin
+      // Es gibt ja mehrere Patterns die den Farbwert geben können, das darf nicht immer das 1. sein !
+      setlength(a, high(a) + 2);
+      a[high(a)] := i;
+    End;
+  End;
+  If assigned(a) Then Begin
+    result := a[random(length(a))];
+  End;
+End;
+
 Constructor TWFC.Create;
 Begin
   Matcher := Nil;
@@ -367,7 +411,7 @@ Var
   parsed_patterns: TPatternArray;
 Begin
   (*
-   * Symmetry makes no sense when disabling wrapping
+   * Symmetry is not possible when disabling wrapping :/
    *)
   If DisableVertWrap Then symmetry := false;
   If DisableHorWrap Then symmetry := false;
@@ -464,7 +508,7 @@ Begin
         End;
       End
       Else Begin
-        // TODO: Wenn FLoored und j = iH -1 dann muss diese Wave auch in das FloorWaves Array !
+        // TODO: Wenn fDisableVertWrap / fDisableHorWrap  und j = iH -1 dann muss diese Wave auch in das fBottomwaves / fDisableHorWrap Array !
       End;
     End;
   End;
@@ -526,14 +570,14 @@ Begin
   Patterns := _Colors;
 End;
 
-Procedure TWFC.Run(aw, ah: Integer);
+Procedure TWFC.Run(aw, ah: Integer; Const Constraints: TGridConstraints);
 Var
   info: TInfo;
 Begin
   w := aw;
   h := ah;
   affected := Nil;
-  clearGrid();
+  clearGrid(Constraints);
   Seed();
   finished := false;
   fabort := false;

@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 363
+  Left = 350
   Height = 517
-  Top = 119
+  Top = 107
   Width = 647
   Caption = 'Form1'
   ClientHeight = 517
@@ -83,14 +83,14 @@ object Form1: TForm1
   object Label2: TLabel
     Left = 416
     Height = 16
-    Top = 18
+    Top = 10
     Width = 36
     Caption = 'Width'
   end
   object Edit2: TEdit
     Left = 472
     Height = 26
-    Top = 8
+    Top = 0
     Width = 80
     TabOrder = 5
     Text = 'Edit2'
@@ -98,14 +98,14 @@ object Form1: TForm1
   object Label3: TLabel
     Left = 416
     Height = 16
-    Top = 54
+    Top = 42
     Width = 40
     Caption = 'Height'
   end
   object Edit3: TEdit
     Left = 472
     Height = 26
-    Top = 44
+    Top = 32
     Width = 80
     TabOrder = 6
     Text = 'Edit3'
@@ -173,9 +173,19 @@ object Form1: TForm1
     TabOrder = 11
     OnClick = CheckBox3Click
   end
+  object Button7: TButton
+    Left = 416
+    Height = 25
+    Top = 65
+    Width = 136
+    Caption = 'Edit Preload'
+    TabOrder = 12
+    OnClick = Button7Click
+  end
   object OpenPictureDialog1: TOpenPictureDialog
-    Left = 29
-    Top = 20
+    Filter = 'Bitmap and PNG|*.png;*.bmp|Bitmap|*.bmp|PNG|*.png|All|*.*'
+    Left = 56
+    Top = 72
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.png'

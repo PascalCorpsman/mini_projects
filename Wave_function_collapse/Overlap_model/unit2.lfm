@@ -1,0 +1,78 @@
+object Form2: TForm2
+  Left = 1466
+  Height = 516
+  Top = 140
+  Width = 578
+  Caption = 'Form2'
+  ClientHeight = 516
+  ClientWidth = 578
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object ListBox1: TListBox
+    Left = 8
+    Height = 408
+    Top = 32
+    Width = 140
+    Anchors = [akTop, akLeft, akBottom]
+    ItemHeight = 0
+    Style = lbOwnerDrawFixed
+    TabOrder = 0
+    TopIndex = -1
+    OnDrawItem = ListBox1DrawItem
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 8
+    Width = 39
+    Caption = 'Colors'
+  end
+  object PaintBox1: TPaintBox
+    Left = 160
+    Height = 105
+    Top = 32
+    Width = 105
+    OnMouseDown = PaintBox1MouseDown
+    OnMouseMove = PaintBox1MouseMove
+    OnPaint = PaintBox1Paint
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 448
+    Width = 140
+    Anchors = [akLeft, akBottom]
+    Caption = 'Reset grid'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 496
+    Height = 25
+    Top = 480
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Close'
+    TabOrder = 2
+    OnClick = Button2Click
+  end
+  object Button3: TButton
+    Left = 8
+    Height = 25
+    Top = 480
+    Width = 140
+    Anchors = [akLeft, akBottom]
+    Caption = 'Import'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 3
+    OnClick = Button3Click
+  end
+  object OpenPictureDialog1: TOpenPictureDialog
+    Filter = 'Bitmap and PNG|*.png;*.bmp|Bitmap|*.bmp|PNG|*.png|All|*.*'
+    Left = 192
+    Top = 456
+  end
+end

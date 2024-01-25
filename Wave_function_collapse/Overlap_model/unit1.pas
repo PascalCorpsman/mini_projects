@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (Ovelap mode)                            23.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.03                                                         *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -27,6 +27,7 @@
 (*                      Floor feature                                         *)
 (*                      Improve gui                                           *)
 (*               0.03 - allow wrap                                            *)
+(*               0.04 - ADD: Constraint Editor                                *)
 (*                                                                            *)
 (******************************************************************************)
 (*
@@ -56,6 +57,7 @@ Type
     Button4: TButton;
     Button5: TButton;
     Button6: TButton;
+    Button7: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
@@ -76,6 +78,7 @@ Type
     Procedure Button4Click(Sender: TObject);
     Procedure Button5Click(Sender: TObject);
     Procedure Button6Click(Sender: TObject);
+    Procedure Button7Click(Sender: TObject);
     Procedure CheckBox1Click(Sender: TObject);
     Procedure CheckBox2Click(Sender: TObject);
     Procedure CheckBox3Click(Sender: TObject);
@@ -99,6 +102,7 @@ Implementation
 
 {$R *.lfm}
 
+Uses unit2;
 
 (*
  * Formatiert TimeInmS als möglich hübsche Zeiteinheit
@@ -194,7 +198,7 @@ Begin
   wfc := Nil;
   If assigned(pattern) Then Begin
     wfc := TWFC.Create;
-    If (Not CheckBox3.Checked) Or (Not CheckBox2.Checked) Then CheckBox1.Checked := false;
+    If (Not CheckBox3.Checked) Or (Not CheckBox2.Checked) Then CheckBox1.Checked := false; // TO show it to the user, wfc checks by itself
     wfc.InitFromImage(pattern, strtointdef(edit1.text, 3), CheckBox1.Checked, Not CheckBox2.Checked, Not CheckBox3.Checked);
     button2.Enabled := true;
   End
@@ -207,6 +211,8 @@ Procedure TForm1.Button2Click(Sender: TObject);
 Var
   t: int64;
   Dummy: TInfo;
+  GridConstraints: TGridConstraints;
+  i, j: Integer;
 Begin
   If Not assigned(wfc) Then exit;
   button1.Enabled := false;
@@ -216,7 +222,18 @@ Begin
   wfc.OnUpdatedStep := @OnUpdatedStep;
   t := GetTickCount64;
   Try
-    wfc.Run(strtointdef(edit2.text, 40), strtointdef(edit3.text, 40));
+    GridConstraints := Nil;
+    For i := 0 To high(form2.Grid) Do Begin
+      For j := 0 To high(form2.Grid[i]) Do Begin
+        If Form2.Grid[i, j].forced Then Begin
+          setlength(GridConstraints, high(GridConstraints) + 2);
+          GridConstraints[high(GridConstraints)].x := i;
+          GridConstraints[high(GridConstraints)].y := j;
+          GridConstraints[high(GridConstraints)].col := Form2.Grid[i, j].Col;
+        End;
+      End;
+    End;
+    wfc.Run(strtointdef(edit2.text, 40), strtointdef(edit3.text, 40), GridConstraints);
   Except
     On av: exception Do Begin
       ShowMessage(av.Message);
@@ -241,6 +258,7 @@ Procedure TForm1.Button3Click(Sender: TObject);
 Begin
   If OpenPictureDialog1.Execute Then Begin
     LoadPattern(OpenPictureDialog1.FileName);
+    form2.Button1.Click; // Reset Grid
   End;
 End;
 
@@ -268,6 +286,13 @@ End;
 Procedure TForm1.Button6Click(Sender: TObject);
 Begin
   close;
+End;
+
+Procedure TForm1.Button7Click(Sender: TObject);
+Begin
+  // Edit Preload
+  form2.Init(Pattern, strtointdef(edit2.text, 40), strtointdef(edit3.text, 40));
+  form2.ShowModal;
 End;
 
 Procedure TForm1.CheckBox1Click(Sender: TObject);
@@ -307,7 +332,7 @@ End;
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Randomize;
-  caption := 'Wave function collapse demo ver. 0.03';
+  caption := 'Wave function collapse demo ver. 0.04';
   edit1.text := '3';
   edit2.text := '40';
   edit3.text := '40';
@@ -318,7 +343,7 @@ Begin
   LoadPattern('data' + PathDelim + 'demo-1.png');
   label4.caption := '';
   // Debug
-  //  LoadPattern('data' + PathDelim + 'demo-flowers2.png');
+  //  LoadPattern('data' + PathDelim + 'demo-flowers.png');
   //  edit2.text := '100';
   //  edit3.text := '100';
   //  CheckBox1.Checked := false; // Allow Rotate
@@ -381,9 +406,11 @@ Begin
   End;
   If assigned(Pattern) Then Begin
     Image2.Picture.Assign(Pattern);
+    button7.Enabled := true;
   End
   Else Begin
     Image2.Picture.Clear;
+    button7.Enabled := false;
   End;
   button2.Enabled := false;
 End;

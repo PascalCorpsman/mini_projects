@@ -39,6 +39,7 @@ Type
     Constructor Create(aStates: TIntArray; atotal_states, ax, ay: integer);
 
     Procedure Collapse();
+    Procedure ForceCollapse(State: integer);
 
     Function hasCollapsed: Boolean;
     Procedure SetHasCollapsed();
@@ -73,6 +74,13 @@ Begin
   j := States[i];
   setlength(States, 1);
   States[0] := j;
+End;
+
+Procedure TTile.ForceCollapse(State: integer);
+Begin
+  _hasCollapsed := true;
+  setlength(States, 1);
+  States[0] := State;
 End;
 
 Function TTile.hasCollapsed: Boolean;
