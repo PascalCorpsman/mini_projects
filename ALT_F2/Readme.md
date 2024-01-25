@@ -15,7 +15,7 @@ Features:
 - Custom Links
 - Applications with parameters
 - Custom Icons
-- Calculator
+- Calculator (start your search with "=" and type in the requested formular) [by editing settings.ini you can adjust more settings]
 - shortcut to task overview
 - automatic priorising of registered applications
 
@@ -24,3 +24,15 @@ Dependencies:
 
 Needed Lazarus packages:
 - UniqueInstance
+
+# What needs to be done to use it
+
+- Windows user: 
+  - copy a shortcut to the programm into your "autostart" folder and you are ready to use it.
+- Linux user: 
+  - Edit your global shortcut settings, disable the default ALT_F2 command
+  - Create a new command targeting to the new ALT_F2 tool, and define the keyboard shortcut
+
+If installed, type whenever you want the keyboard combinition ALT + F2 and the programm pops up. Start typing the name of the application you want to start, as soon as the requested app is the "first" in list, hit return to start (typicalli this happens after two or three charactes)
+
+If you want to create a new shortcut just type in the name of the requested app and hit return. As the programm does not know what to do with it, it asks you to give the target link once. After you submit it, the app automatically calls the target link so you can proofe that everything is right (if not use the context menu)
