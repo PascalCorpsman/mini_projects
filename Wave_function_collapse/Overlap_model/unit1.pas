@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (Ovelap mode)                            23.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.04                                                         *)
+(* Version     : 0.05                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -28,6 +28,7 @@
 (*                      Improve gui                                           *)
 (*               0.03 - allow wrap                                            *)
 (*               0.04 - ADD: Constraint Editor                                *)
+(*               0.05 - Show pattern infos                                    *)
 (*                                                                            *)
 (******************************************************************************)
 (*
@@ -70,6 +71,7 @@ Type
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    Label5: TLabel;
     OpenPictureDialog1: TOpenPictureDialog;
     SaveDialog1: TSaveDialog;
     Procedure Button1Click(Sender: TObject);
@@ -102,7 +104,7 @@ Implementation
 
 {$R *.lfm}
 
-Uses unit2;
+Uses unit2, uhelper;
 
 (*
  * Formatiert TimeInmS als möglich hübsche Zeiteinheit
@@ -176,7 +178,7 @@ Begin
     If (s = 's') Then Begin // Bei Sekunden die endenden 0-en löschen
       For i := length(sts) Downto 1 Do Begin
         If sts[i] = '0' Then Begin
-          delete(sts, i, 1);
+          system.delete(sts, i, 1);
         End
         Else Begin
           break;
@@ -332,7 +334,7 @@ End;
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Randomize;
-  caption := 'Wave function collapse demo ver. 0.04';
+  caption := 'Wave function collapse demo ver. 0.05';
   edit1.text := '3';
   edit2.text := '40';
   edit3.text := '40';
@@ -340,8 +342,10 @@ Begin
   CheckBox2.Checked := true; // Allow Wrap vertical
   CheckBox3.Checked := true; // Allow Wrap Horizontal
   Pattern := Nil;
-  LoadPattern('data' + PathDelim + 'demo-1.png');
   label4.caption := '';
+  label5.caption := '';
+
+  LoadPattern('data' + PathDelim + 'demo-1.png');
   // Debug
   //  LoadPattern('data' + PathDelim + 'demo-flowers.png');
   //  edit2.text := '100';
@@ -385,6 +389,9 @@ End;
 Procedure TForm1.LoadPattern(Const Filename: String);
 Var
   p: TPortableNetworkGraphic;
+  cols: TIntArray;
+  c: TColor;
+  i, j: Integer;
 Begin
   If assigned(Pattern) Then Pattern.free;
   Pattern := Nil;
@@ -405,12 +412,26 @@ Begin
     End;
   End;
   If assigned(Pattern) Then Begin
+    cols := Nil;
+    For i := 0 To Pattern.Width - 1 Do Begin
+      For j := 0 To Pattern.Height - 1 Do Begin
+        c := Pattern.Canvas.Pixels[i, j];
+        If Not has(cols, c) Then push(cols, c);
+      End;
+    End;
     Image2.Picture.Assign(Pattern);
     button7.Enabled := true;
+    label5.caption :=
+      'Pattern info:' + LineEnding +
+      'Width: ' + inttostr(Pattern.Width) + LineEnding +
+      'Height: ' + inttostr(Pattern.Height) + LineEnding +
+      'Colors: ' + inttostr(length(cols));
+
   End
   Else Begin
     Image2.Picture.Clear;
     button7.Enabled := false;
+    label5.caption := '';
   End;
   button2.Enabled := false;
 End;

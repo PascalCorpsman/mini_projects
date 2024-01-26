@@ -182,10 +182,17 @@ object Form1: TForm1
     TabOrder = 12
     OnClick = Button7Click
   end
+  object Label5: TLabel
+    Left = 8
+    Height = 16
+    Top = 104
+    Width = 41
+    Caption = 'Label5'
+  end
   object OpenPictureDialog1: TOpenPictureDialog
     Filter = 'Bitmap and PNG|*.png;*.bmp|Bitmap|*.bmp|PNG|*.png|All|*.*'
-    Left = 56
-    Top = 72
+    Left = 184
+    Top = 80
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.png'
