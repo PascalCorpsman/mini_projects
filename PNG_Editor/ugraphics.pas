@@ -786,20 +786,60 @@ End;
 
 Procedure UpSideDown(Const Bitmap: TBitmap);
 Var
-  m: TMatrix3x3;
+  Source_intf, Dest_intf: TLazIntfImage;
+  DestBM: TBitmap;
+  i, j: Integer;
+  DestHandle, DestMaskHandle: HBitmap;
 Begin
-  m := IdentityMatrix3x3;
-  m[1, 1] := -1;
-  MulImage(Bitmap, m, imNone, wmBlack);
+  // Der MulImage Algorithmus, rundet manchmal komisch, dass sieht man
+  // Wenn es Exakt sein mus !
+  Source_intf := TLazIntfImage.Create(0, 0);
+  Source_intf.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
+  DestBM := TBitmap.Create;
+  DestBM.Width := Bitmap.Width;
+  DestBM.Height := Bitmap.Height;
+  Dest_intf := TLazIntfImage.Create(0, 0);
+  Dest_intf.LoadFromBitmap(DestBM.Handle, DestBM.MaskHandle);
+  For i := 0 To Bitmap.Width - 1 Do Begin
+    For j := 0 To Bitmap.Height - 1 Do Begin
+      Dest_intf[i, Bitmap.Height - 1 - j] := Source_intf[i, j];
+    End;
+  End;
+  Dest_intf.CreateBitmaps(DestHandle, DestMaskHandle, false);
+  Bitmap.Handle := DestHandle;
+  Bitmap.MaskHandle := DestMaskHandle;
+  Source_intf.free;
+  Dest_intf.free;
+  DestBM.free;
 End;
 
 Procedure LeftToRight(Const Bitmap: TBitmap);
 Var
-  m: TMatrix3x3;
+  Source_intf, Dest_intf: TLazIntfImage;
+  DestBM: TBitmap;
+  i, j: Integer;
+  DestHandle, DestMaskHandle: HBitmap;
 Begin
-  m := IdentityMatrix3x3;
-  m[0, 0] := -1;
-  MulImage(Bitmap, m, imNone, wmBlack);
+  // Der MulImage Algorithmus, rundet manchmal komisch, dass sieht man
+  // Wenn es Exakt sein mus !
+  Source_intf := TLazIntfImage.Create(0, 0);
+  Source_intf.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
+  DestBM := TBitmap.Create;
+  DestBM.Width := Bitmap.Width;
+  DestBM.Height := Bitmap.Height;
+  Dest_intf := TLazIntfImage.Create(0, 0);
+  Dest_intf.LoadFromBitmap(DestBM.Handle, DestBM.MaskHandle);
+  For i := 0 To Bitmap.Width - 1 Do Begin
+    For j := 0 To Bitmap.Height - 1 Do Begin
+      Dest_intf[Bitmap.Width - 1 - i, j] := Source_intf[i, j];
+    End;
+  End;
+  Dest_intf.CreateBitmaps(DestHandle, DestMaskHandle, false);
+  Bitmap.Handle := DestHandle;
+  Bitmap.MaskHandle := DestMaskHandle;
+  Source_intf.free;
+  Dest_intf.free;
+  DestBM.free;
 End;
 
 Procedure RotateClockWise90Degrees(Const Bitmap: TBitmap);
