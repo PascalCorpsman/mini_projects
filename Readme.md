@@ -19,7 +19,7 @@ Following is a short description of all listed projects
 | CPU_Load | Application to create a defined CPU-Load |
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
 | GIT_gui | Plattform independand Tortoise Git like GIT-Gui |
-| Image_Multiplication | Demo to show images manipulations with a matrix |
+| Image_Multiplication | Demo to show image manipulations with a matrix |
 | Imageinspector | Programm to correct and measure photos of objects |
 | Imageshop | Image manipulation learning program |
 | Intercept_theorem | Demo application to calculate the intercept theorem |
