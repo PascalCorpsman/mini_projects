@@ -1,0 +1,464 @@
+object Form1: TForm1
+  Left = 347
+  Height = 522
+  Top = 107
+  Width = 624
+  ActiveControl = Button1
+  Caption = 'Form1'
+  ClientHeight = 522
+  ClientWidth = 624
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 96
+    Top = 8
+    Width = 608
+    Caption = ' background mask '
+    ClientHeight = 79
+    ClientWidth = 606
+    TabOrder = 0
+    object Image1: TImage
+      Left = 9
+      Height = 64
+      Top = 7
+      Width = 128
+      Stretch = True
+    end
+    object Button1: TButton
+      Left = 142
+      Height = 25
+      Top = 7
+      Width = 163
+      Caption = '&load background mask'
+      TabOrder = 0
+      OnClick = Button1Click
+    end
+    object Button11: TButton
+      Left = 446
+      Height = 25
+      Top = 7
+      Width = 145
+      Caption = 'load underlay texture'
+      TabOrder = 1
+      OnClick = Button11Click
+    end
+    object Image3: TImage
+      Left = 310
+      Height = 64
+      Top = 7
+      Width = 128
+      Stretch = True
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Height = 96
+    Top = 384
+    Width = 609
+    Caption = ' result '
+    ClientHeight = 79
+    ClientWidth = 607
+    TabOrder = 1
+    object Image2: TImage
+      Left = 94
+      Height = 64
+      Top = 5
+      Width = 128
+      Stretch = True
+    end
+    object Button2: TButton
+      Left = 318
+      Height = 25
+      Top = 23
+      Width = 163
+      Caption = '&recreate'
+      TabOrder = 0
+      OnClick = Button2Click
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 9
+    Height = 272
+    Top = 104
+    Width = 608
+    Caption = ' button caption settings '
+    ClientHeight = 255
+    ClientWidth = 606
+    TabOrder = 2
+    object Label1: TLabel
+      Left = 37
+      Height = 16
+      Top = 22
+      Width = 45
+      Caption = 'caption'
+      ParentColor = False
+    end
+    object Edit1: TEdit
+      Left = 106
+      Height = 26
+      Top = 15
+      Width = 115
+      TabOrder = 0
+      Text = 'Edit1'
+      OnChange = Edit1Change
+    end
+    object GroupBox4: TGroupBox
+      Left = 8
+      Height = 200
+      Top = 47
+      Width = 305
+      Caption = ' font '
+      ClientHeight = 183
+      ClientWidth = 303
+      TabOrder = 1
+      object Button3: TButton
+        Left = 59
+        Height = 25
+        Top = 31
+        Width = 75
+        Caption = 'set'
+        TabOrder = 0
+        OnClick = Button3Click
+      end
+      object Label2: TLabel
+        Left = 7
+        Height = 16
+        Top = 7
+        Width = 33
+        Caption = 'name'
+        ParentColor = False
+      end
+      object Edit2: TEdit
+        Left = 97
+        Height = 26
+        Top = -1
+        Width = 115
+        ReadOnly = True
+        TabOrder = 1
+        Text = 'Edit2'
+      end
+      object Label3: TLabel
+        Left = 11
+        Height = 16
+        Top = 78
+        Width = 22
+        Caption = 'size'
+        ParentColor = False
+      end
+      object Edit3: TEdit
+        Left = 97
+        Height = 26
+        Top = 70
+        Width = 115
+        TabOrder = 2
+        Text = 'Edit3'
+        OnChange = Edit3Change
+      end
+      object CheckBox1: TCheckBox
+        Left = 97
+        Height = 22
+        Top = 103
+        Width = 53
+        Caption = 'Bold'
+        TabOrder = 3
+        OnChange = CheckBox1Change
+      end
+      object CheckBox2: TCheckBox
+        Left = 97
+        Height = 22
+        Top = 126
+        Width = 53
+        Caption = 'Italic'
+        TabOrder = 4
+        OnChange = CheckBox2Change
+      end
+      object Button4: TButton
+        Left = 219
+        Height = 25
+        Top = 31
+        Width = 75
+        Caption = 'set color'
+        TabOrder = 5
+        OnClick = Button4Click
+      end
+      object Button10: TButton
+        Left = 139
+        Height = 25
+        Top = 31
+        Width = 75
+        Caption = 'set TTF'
+        TabOrder = 6
+        OnClick = Button10Click
+      end
+      object CheckBox3: TCheckBox
+        Left = 97
+        Height = 22
+        Top = 151
+        Width = 146
+        Caption = 'use underlaytexture'
+        TabOrder = 7
+        OnChange = Button2Click
+      end
+    end
+    object GroupBox5: TGroupBox
+      Left = 318
+      Height = 136
+      Top = -1
+      Width = 281
+      Caption = ' textborder '
+      ClientHeight = 119
+      ClientWidth = 279
+      TabOrder = 2
+      object CheckBox4: TCheckBox
+        Left = 90
+        Height = 22
+        Top = -1
+        Width = 59
+        Caption = 'in use'
+        Checked = True
+        State = cbChecked
+        TabOrder = 0
+        OnChange = CheckBox4Change
+      end
+      object Label4: TLabel
+        Left = 14
+        Height = 16
+        Top = 30
+        Width = 34
+        Caption = 'width'
+        ParentColor = False
+      end
+      object Label5: TLabel
+        Left = 90
+        Height = 16
+        Top = 63
+        Width = 31
+        Caption = 'color'
+        ParentColor = False
+      end
+      object Edit4: TEdit
+        Left = 89
+        Height = 26
+        Top = 23
+        Width = 80
+        TabOrder = 1
+        Text = 'Edit4'
+        OnChange = Edit1Change
+      end
+      object Button5: TButton
+        Left = 178
+        Height = 25
+        Top = 55
+        Width = 75
+        Caption = 'set color'
+        TabOrder = 2
+        OnClick = Button5Click
+      end
+      object RadioButton1: TRadioButton
+        Left = 89
+        Height = 22
+        Top = 91
+        Width = 78
+        Caption = 'cornered'
+        TabOrder = 3
+        OnChange = Button2Click
+      end
+      object RadioButton2: TRadioButton
+        Left = 178
+        Height = 22
+        Top = 91
+        Width = 61
+        Caption = 'round'
+        Checked = True
+        TabOrder = 4
+        TabStop = True
+      end
+      object ScrollBar1: TScrollBar
+        Left = 178
+        Height = 14
+        Hint = '128'
+        Top = 30
+        Width = 92
+        Max = 255
+        Min = 1
+        PageSize = 0
+        ParentShowHint = False
+        Position = 128
+        ShowHint = True
+        TabOrder = 5
+        OnChange = ScrollBar1Change
+      end
+      object Label9: TLabel
+        Left = 178
+        Height = 16
+        Top = 7
+        Width = 87
+        Caption = 'treshold value'
+        ParentColor = False
+      end
+    end
+    object GroupBox6: TGroupBox
+      Left = 318
+      Height = 113
+      Top = 135
+      Width = 280
+      Caption = ' underline options '
+      ClientHeight = 96
+      ClientWidth = 278
+      TabOrder = 3
+      object Label6: TLabel
+        Left = 14
+        Height = 16
+        Top = 13
+        Width = 26
+        Caption = 'char'
+        ParentColor = False
+      end
+      object Edit5: TEdit
+        Left = 89
+        Height = 26
+        Top = 6
+        Width = 80
+        TabOrder = 0
+        Text = 'Edit5'
+        OnChange = Edit1Change
+      end
+      object Edit6: TEdit
+        Left = 89
+        Height = 26
+        Top = 35
+        Width = 80
+        TabOrder = 1
+        Text = 'Edit6'
+        OnChange = Edit1Change
+      end
+      object Edit7: TEdit
+        Left = 89
+        Height = 26
+        Top = 65
+        Width = 80
+        TabOrder = 2
+        Text = 'Edit7'
+        OnChange = Edit1Change
+      end
+      object Label7: TLabel
+        Left = 14
+        Height = 16
+        Top = 42
+        Width = 50
+        Caption = 'distance'
+        ParentColor = False
+      end
+      object Label8: TLabel
+        Left = 14
+        Height = 16
+        Top = 72
+        Width = 34
+        Caption = 'width'
+        ParentColor = False
+      end
+    end
+  end
+  object Button6: TButton
+    Left = 8
+    Height = 25
+    Top = 488
+    Width = 115
+    Caption = 'save as'
+    TabOrder = 3
+    OnClick = Button6Click
+  end
+  object Button7: TButton
+    Left = 136
+    Height = 25
+    Top = 488
+    Width = 227
+    Caption = 'close'
+    TabOrder = 4
+    OnClick = Button7Click
+  end
+  object Button8: TButton
+    Left = 376
+    Height = 25
+    Top = 488
+    Width = 115
+    Caption = 'load settings'
+    TabOrder = 5
+    OnClick = Button8Click
+  end
+  object Button9: TButton
+    Left = 501
+    Height = 25
+    Top = 488
+    Width = 115
+    Caption = 'save settings'
+    TabOrder = 6
+    OnClick = Button9Click
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.bmp'
+    Filter = 'Bitmap|*.bmp|Portable Network Graphik|*.png|JPG Graphik|*.jpg'
+    Left = 200
+    Top = 40
+  end
+  object FontDialog1: TFontDialog
+    MinFontSize = 0
+    MaxFontSize = 0
+    Left = 88
+    Top = 248
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    Left = 264
+    Top = 256
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.bmp'
+    Filter = 'Bitmap|*.bmp|Portable Network Graphik|*.png|JPG Graphik|*.jpg'
+    Left = 24
+    Top = 480
+  end
+  object OpenDialog2: TOpenDialog
+    DefaultExt = '.bs'
+    Filter = 'button settings|*.bs|all|*.*'
+    Left = 392
+    Top = 472
+  end
+  object SaveDialog2: TSaveDialog
+    DefaultExt = '.bs'
+    Filter = 'button settings|*.bs|all|*.*'
+    Left = 512
+    Top = 472
+  end
+  object OpenDialog3: TOpenDialog
+    DefaultExt = '.ttf'
+    Filter = 'True Type Font|*.ttf|All|*.*'
+    Left = 184
+    Top = 248
+  end
+end
