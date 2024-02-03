@@ -767,7 +767,6 @@ Var
   b: Byte;
   i, j: Integer;
 Begin
-  //  Bitmap.pixelformat := pf24bit; -- Das Darf nicht drin sein, sonst sind evtl alle Werte 0 !!!
   TempIntfImg := TLazIntfImage.Create(0, 0);
   TempIntfImg.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
   For j := 0 To bitmap.height - 1 Do
