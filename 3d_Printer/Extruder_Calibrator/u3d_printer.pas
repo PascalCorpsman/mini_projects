@@ -716,15 +716,15 @@ Var
 Begin
   result := false;
   fPort := Port;
-  // Einen evtl alten Lock Löschen
+  // Auf jeden Trennen
+  Disconnect;
+  // Einen evtl. alten Lock Löschen
   If FileExists('/var/lock/LCK..' + ExtractFileName(Port)) Then Begin
     HandleLog('Deleting old /var/lock entry for :' + ExtractFileName(Port), llInfo);
     If Not DeleteFile('/var/lock/LCK..' + ExtractFileName(Port)) Then Begin
       HandleLog('Could not delete log from :' + port, llFatal);
     End;
   End;
-  // Auf jeden Trennen
-  Disconnect;
   // Auf jeden alle Aktuellen Anfragen Abbrechen
   fExecGCodeCommandFlag := false;
   fGCodeFile.SendActive := false;
