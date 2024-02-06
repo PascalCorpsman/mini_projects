@@ -1,0 +1,38 @@
+object Form4: TForm4
+  Left = 238
+  Height = 362
+  Top = 123
+  Width = 434
+  ActiveControl = Memo1
+  Caption = 'Form4'
+  ClientHeight = 362
+  ClientWidth = 434
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  FormStyle = fsStayOnTop
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  object Memo1: TMemo
+    Left = 8
+    Height = 312
+    Top = 8
+    Width = 418
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      'Memo1'
+    )
+    ReadOnly = True
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 328
+    Width = 417
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'OK'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+end

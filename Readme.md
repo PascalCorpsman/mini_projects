@@ -25,6 +25,7 @@ Following is a short description of all listed projects
 | Imageshop | Image manipulation learning program |
 | Intercept_theorem | Demo application to calculate the intercept theorem |
 | LAN_Chat | Simple chat program for LAN (and WAN if ports are forwared) |
+| QProgrammer | Lightwight Pascal like interpreter with integrated testsystem |
 | PNG_Editor | Split and merge alpha channel of .png images |
 | Parken | Demo for trectric curves |
 | Pentago | Implementation of the board game Pentago |

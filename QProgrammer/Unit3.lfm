@@ -1,0 +1,59 @@
+object Form3: TForm3
+  Left = 347
+  Height = 383
+  Top = 107
+  Width = 502
+  ActiveControl = Memo1
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Form3'
+  ClientHeight = 383
+  ClientWidth = 502
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  object Memo1: TMemo
+    Left = 8
+    Height = 334
+    Top = 8
+    Width = 485
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      'This program acts as a replacement for a Free Pascal compiler.'
+      ''
+      'The following variable types can be used:'
+      ''
+      'Boolean, Integer'
+      ''
+      'supported boolean operators:'
+      ''
+      'not, and, or, xor, <, >, <=, >=, <>, ='
+      ''
+      'supported integer operators:'
+      ''
+      '+, -, *, div, mod, and, or, <, >, <=, >=, <>, ='
+      ''
+      'It is allowed to do function calls and recursion'
+      ''
+      'supported loop constructs:'
+      ''
+      'For, While'
+      ''
+      'This is only a subset of the Free Pasacl language, to see the full language spezifications see the Internet or read the turorial.'
+    )
+    ReadOnly = True
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 349
+    Width = 473
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'OK'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+end
