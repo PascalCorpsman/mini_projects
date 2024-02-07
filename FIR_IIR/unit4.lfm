@@ -1,0 +1,76 @@
+object Form4: TForm4
+  Left = 240
+  Height = 515
+  Top = 108
+  Width = 577
+  Caption = 'Form4'
+  ClientHeight = 515
+  ClientWidth = 577
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Label1: TLabel
+    Left = 8
+    Height = 30
+    Top = 8
+    Width = 118
+    Caption = 'Aviable operators and'#10'their binding strength:'
+    ParentColor = False
+  end
+  object ListBox1: TListBox
+    Left = 8
+    Height = 419
+    Top = 48
+    Width = 168
+    Font.Height = -13
+    Font.Name = 'Courier New'
+    Font.Pitch = fpFixed
+    Items.Strings = (
+      'Operator  Kind'
+      '----------------'
+      '    strongest'
+      '   -      unary'
+      '   +      unary'
+      '  abs     unary'
+      '  sqrt    unary'
+      '  sqr     unary'
+      '  sin     unary'
+      '  cos     unary'
+      '   ^      binary'
+      '   /      binary'
+      '   *      binary'
+      '   -      binary'
+      '   +      binary'
+      '  max     binary'
+      '  min     binary'
+      '   =      binary'
+      '   <>     binary'
+      '   <      binary'
+      '   <=     binary'
+      '   >      binary'
+      '   >=     binary'
+      '    weakest'
+    )
+    ItemHeight = 16
+    ParentFont = False
+    ScrollWidth = 145
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 24
+    Height = 25
+    Top = 480
+    Width = 528
+    Caption = 'OK'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Label2: TLabel
+    Left = 184
+    Height = 270
+    Top = 8
+    Width = 315
+    Caption = '! Attention !'#13#10'Only round braces allowed'#13#10'  Use them to control the binding strength'#13#10#13#10'All Operators are inorder operators'#13#10'  E.g. : Building the min value of two numbers by: ( x min y )'#13#10#13#10'The decimalseparator is the dot '#13#10'  (independent by the used operating system settings)'#13#10#13#10'Sin, Cos are calculated in radian'#13#10#13#10'Available constants'#13#10'  pi = 3.141...'#13#10'  e  = 2.718...'#13#10#13#10'You can use // as single line comments or'#13#10'  { } to comment out any text block you want to'
+    ParentColor = False
+  end
+end

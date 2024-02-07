@@ -19,6 +19,7 @@ Following is a short description of all listed projects
 | Button_Tool| Program to create graphics with textured texts |
 | CPU_Load | Application to create a defined CPU-Load |
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
+| FIR_IIR | Demo to aply FIR and IIR Filter onto arbiture data |
 | GIT_gui | Plattform independand Tortoise Git like GIT-Gui |
 | Image_Multiplication | Demo to show image manipulations with a matrix |
 | Imageinspector | Programm to correct and measure photos of objects |
