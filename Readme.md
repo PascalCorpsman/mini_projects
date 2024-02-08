@@ -17,6 +17,7 @@ Following is a short description of all listed projects
 | 3D_Printer/Extruder_calibrator | Application to easy calibrate the extruder steps of a 3d printer |
 | ALT_F2 | Application starter app with included calculater |
 | Button_Tool| Program to create graphics with textured texts |
+| Color_Test | Color capturing tool |
 | CPU_Load | Application to create a defined CPU-Load |
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
 | FIR_IIR | Demo to aply FIR and IIR Filter onto arbiture data |
