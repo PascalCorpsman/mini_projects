@@ -1,0 +1,219 @@
+object Form1: TForm1
+  Left = 335
+  Height = 354
+  Top = 115
+  Width = 604
+  AllowDropFiles = True
+  Caption = 'Form1'
+  ClientHeight = 354
+  ClientWidth = 604
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDropFiles = FormDropFiles
+  OnShow = FormShow
+  PopupMenu = PopupMenu2
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Label1: TLabel
+    Left = 8
+    Height = 15
+    Top = 18
+    Width = 38
+    Caption = 'Scan in'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 64
+    Height = 23
+    Top = 8
+    Width = 320
+    Anchors = [akTop, akLeft, akRight]
+    OnKeyPress = Edit2KeyPress
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 15
+    Top = 50
+    Width = 28
+    Caption = 'Mask'
+    ParentColor = False
+  end
+  object Edit2: TEdit
+    Left = 64
+    Height = 23
+    Hint = 'Enter a commalist (eg. ".txt,.pas") or *'#13#10'Searching for "." gives you all files in the directory'
+    Top = 40
+    Width = 320
+    Anchors = [akTop, akLeft, akRight]
+    OnKeyPress = Edit2KeyPress
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
+    Text = 'Edit2'
+  end
+  object Button1: TButton
+    Left = 504
+    Height = 91
+    Top = 8
+    Width = 90
+    Anchors = [akTop, akRight]
+    Caption = 'Scan'
+    OnClick = Button1Click
+    TabOrder = 5
+  end
+  object CheckBox1: TCheckBox
+    Left = 397
+    Height = 19
+    Top = 32
+    Width = 93
+    Anchors = [akTop, akRight]
+    Caption = 'Scan recursive'
+    Checked = True
+    ParentShowHint = False
+    State = cbChecked
+    TabOrder = 3
+  end
+  object ListBox1: TListBox
+    Left = 8
+    Height = 219
+    Top = 104
+    Width = 586
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    ItemHeight = 0
+    MultiSelect = True
+    OnDblClick = MenuItem3Click
+    PopupMenu = PopupMenu1
+    ScrollWidth = 584
+    TabOrder = 6
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 15
+    Top = 82
+    Width = 47
+    Caption = 'Contains'
+    ParentColor = False
+  end
+  object Edit3: TEdit
+    Left = 64
+    Height = 23
+    Hint = 'If set, all files which are found via mask, will additional '#13#10'checked for the containing text. Only matches with'#13#10'mask and containing text will shown.'#13#10#13#10'Leave empty if not used.'
+    Top = 72
+    Width = 320
+    Anchors = [akTop, akLeft, akRight]
+    OnKeyPress = Edit2KeyPress
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 2
+    Text = 'Edit3'
+  end
+  object CheckBox2: TCheckBox
+    Left = 397
+    Height = 19
+    Top = 56
+    Width = 91
+    Anchors = [akTop, akRight]
+    Caption = 'Case sensitive'
+    TabOrder = 4
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 331
+    Width = 604
+    Panels = <    
+      item
+        Width = 50
+      end>
+    SimplePanel = False
+  end
+  object CheckBox3: TCheckBox
+    Left = 384
+    Height = 19
+    Hint = 'If selected the filenames are matched via Regex'#13#10'eg.'#13#10'[.]*\.pas$\L Finds all .pas files'
+    Top = 8
+    Width = 110
+    Caption = 'Match with regex'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 8
+    Visible = False
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 32
+    Top = 120
+    object MenuItem1: TMenuItem
+      Caption = 'Copy Filename'
+      OnClick = MenuItem1Click
+    end
+    object MenuItem10: TMenuItem
+      Caption = 'Copy Foldername'
+      OnClick = MenuItem10Click
+    end
+    object Separator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Open File'
+      OnClick = MenuItem3Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Explore to..'
+      OnClick = MenuItem2Click
+    end
+    object Separator2: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Export found list'
+      OnClick = MenuItem5Click
+    end
+    object MenuItem9: TMenuItem
+      Caption = 'Rename selected Filenames'
+      OnClick = MenuItem9Click
+    end
+    object Separator3: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem11: TMenuItem
+      Caption = 'Copy selected files to'
+      OnClick = MenuItem11Click
+    end
+    object MenuItem12: TMenuItem
+      Caption = 'Move selected files to'
+      OnClick = MenuItem12Click
+    end
+    object MenuItem6: TMenuItem
+      Caption = 'Delete selected'
+      OnClick = MenuItem6Click
+    end
+    object MenuItem7: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem8: TMenuItem
+      Caption = 'Select all'
+      ShortCut = 16449
+      OnClick = MenuItem8Click
+    end
+  end
+  object PopupMenu2: TPopupMenu
+    Left = 128
+    Top = 120
+    object MenuItem4: TMenuItem
+      Caption = 'Stay on top'
+      OnClick = MenuItem4Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.txt'
+    Filter = 'Textfiles|*.txt|All|*.*'
+    Left = 216
+    Top = 120
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    Left = 328
+    Top = 120
+  end
+end
