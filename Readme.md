@@ -22,7 +22,7 @@ Following is a short description of all listed projects
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
 | FIR_IIR | Demo to aply FIR and IIR Filter onto arbiture data |
 | GIT_gui | Plattform independand Tortoise Git like GIT-Gui |
-| Heamsim | Explore different memory manager and usecases |
+| Heapsim | Explore different memory manager and usecases |
 | Image_Multiplication | Demo to show image manipulations with a matrix |
 | Imageinspector | Programm to correct and measure photos of objects |
 | Imageshop | Image manipulation learning program |
