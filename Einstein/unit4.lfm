@@ -1,0 +1,34 @@
+object Form4: TForm4
+  Left = 236
+  Height = 241
+  Top = 100
+  Width = 320
+  Caption = 'Form4'
+  ClientHeight = 241
+  ClientWidth = 320
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.4.2.0'
+  object Memo1: TMemo
+    Left = 8
+    Height = 192
+    Top = 8
+    Width = 304
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      'Memo1'
+    )
+    ReadOnly = True
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 208
+    Width = 304
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Close'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+end

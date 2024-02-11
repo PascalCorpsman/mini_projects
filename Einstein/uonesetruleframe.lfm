@@ -1,0 +1,26 @@
+object OneSetRuleFrame: TOneSetRuleFrame
+  Left = 317
+  Height = 125
+  Top = 358
+  Width = 639
+  ClientHeight = 125
+  ClientWidth = 639
+  LCLVersion = '1.6.0.4'
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 112
+    Top = 8
+    Width = 568
+    Caption = 'GroupBox1'
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 584
+    Height = 112
+    Top = 8
+    Width = 51
+    Caption = 'Del'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+end

@@ -1,0 +1,36 @@
+object TwoSetRuleFrame: TTwoSetRuleFrame
+  Left = 245
+  Height = 190
+  Top = 106
+  Width = 639
+  ClientHeight = 190
+  ClientWidth = 639
+  LCLVersion = '1.6.0.4'
+  object Button1: TButton
+    Left = 584
+    Height = 176
+    Top = 8
+    Width = 51
+    Caption = 'Del'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 176
+    Top = 8
+    Width = 568
+    Caption = 'GroupBox1'
+    ClientHeight = 158
+    ClientWidth = 564
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 8
+      Height = 13
+      Top = 72
+      Width = 31
+      Caption = 'Label1'
+      ParentColor = False
+    end
+  end
+end

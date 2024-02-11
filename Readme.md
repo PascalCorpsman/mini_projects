@@ -20,6 +20,7 @@ Following is a short description of all listed projects
 | Color_Test | Color capturing tool |
 | CPU_Load | Application to create a defined CPU-Load |
 | CRC_Calculator | Calculate CRC checksums of arbiture data |
+| Einstein | Solver for Einstein puzzles |
 | FIR_IIR | Demo to aply FIR and IIR Filter onto arbiture data |
 | GIT_gui | Plattform independand Tortoise Git like GIT-Gui |
 | Heapsim | Explore different memory manager and usecases |

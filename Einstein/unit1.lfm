@@ -1,0 +1,219 @@
+object Form1: TForm1
+  Left = 979
+  Height = 552
+  Top = 124
+  Width = 809
+  Caption = 'Form1'
+  ClientHeight = 552
+  ClientWidth = 809
+  Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnShow = FormShow
+  object PageControl2: TPageControl
+    Left = 8
+    Height = 320
+    Top = 16
+    Width = 672
+    ActivePage = TabSheet8
+    TabIndex = 2
+    TabOrder = 0
+    object TabSheet6: TTabSheet
+      Caption = 'Sets'
+      ClientHeight = 286
+      ClientWidth = 666
+      object PageControl1: TPageControl
+        Left = 0
+        Height = 286
+        Top = 0
+        Width = 666
+        Align = alClient
+        TabOrder = 0
+      end
+    end
+    object TabSheet7: TTabSheet
+      Caption = 'Rules'
+      ClientHeight = 286
+      ClientWidth = 666
+      object Button2: TButton
+        Left = 176
+        Height = 25
+        Top = 8
+        Width = 120
+        Caption = 'Add new Rule'
+        TabOrder = 0
+        OnClick = Button2Click
+      end
+      object ComboBox1: TComboBox
+        Left = 8
+        Height = 26
+        Top = 8
+        Width = 156
+        ItemHeight = 0
+        Items.Strings = (
+          'Depends on'
+          'Depends distance on'
+          'Eliminate'
+          'Eliminate distance'
+          'Left of'
+          'Left distance of'
+          'Right of'
+          'Right distance of'
+          'MultiEliminate'
+          'IntegerDepends'
+        )
+        Style = csDropDownList
+        TabOrder = 1
+      end
+      object Button3: TButton
+        Left = 488
+        Height = 25
+        Top = 8
+        Width = 75
+        Caption = '\/'
+        TabOrder = 2
+        OnClick = Button3Click
+      end
+      object Button4: TButton
+        Left = 400
+        Height = 25
+        Top = 8
+        Width = 75
+        Caption = '/\'
+        TabOrder = 3
+        OnClick = Button4Click
+      end
+      object Button5: TButton
+        Left = 576
+        Height = 25
+        Top = 8
+        Width = 75
+        Caption = 'Help'
+        TabOrder = 4
+        OnClick = Button5Click
+      end
+      object ScrollBar1: TScrollBar
+        Left = 635
+        Height = 249
+        Top = 40
+        Width = 14
+        Anchors = [akTop, akRight, akBottom]
+        Kind = sbVertical
+        PageSize = 0
+        TabOrder = 5
+        OnChange = ScrollBar1Change
+      end
+    end
+    object TabSheet8: TTabSheet
+      Caption = 'Solution'
+      ClientHeight = 286
+      ClientWidth = 666
+      object Button1: TButton
+        Left = 8
+        Height = 25
+        Top = 8
+        Width = 646
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Calculate'
+        TabOrder = 0
+        OnClick = Button1Click
+      end
+      object StringGrid1: TStringGrid
+        Left = 8
+        Height = 237
+        Top = 40
+        Width = 646
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        ColCount = 6
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goSmoothScroll, goFixedColSizing]
+        PopupMenu = PopupMenu1
+        RowCount = 6
+        TabOrder = 1
+        OnDrawCell = StringGrid1DrawCell
+      end
+    end
+  end
+  object MainMenu1: TMainMenu
+    Left = 288
+    Top = 232
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem2: TMenuItem
+        Caption = 'New'
+        ShortCut = 16462
+        OnClick = MenuItem2Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Load'
+        ShortCut = 16460
+        OnClick = MenuItem3Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = 'Save'
+        ShortCut = 16467
+        OnClick = MenuItem4Click
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Save as'
+        ShortCut = 16449
+        OnClick = MenuItem5Click
+      end
+      object MenuItem6: TMenuItem
+        Caption = 'Close'
+        ShortCut = 32883
+        OnClick = MenuItem6Click
+      end
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'Options'
+      object MenuItem8: TMenuItem
+        Caption = 'Show pencils'
+        OnClick = MenuItem8Click
+      end
+      object MenuItem11: TMenuItem
+        Caption = 'Add user hints to conclusions'
+        Checked = True
+        OnClick = MenuItem11Click
+      end
+      object MenuItem12: TMenuItem
+        Caption = 'show set contents on each row'
+        OnClick = MenuItem12Click
+      end
+      object MenuItem10: TMenuItem
+        Caption = 'Enable guessing'
+        OnClick = MenuItem10Click
+      end
+      object MenuItem13: TMenuItem
+        Caption = 'Enable bruteforce'
+        OnClick = MenuItem13Click
+      end
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.einstein'
+    Filter = 'Einstein file|*.einstein|All|*.*'
+    Left = 104
+    Top = 111
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.einstein'
+    Filter = 'Einstein file|*.einstein|All|*.*'
+    Left = 200
+    Top = 112
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 288
+    Top = 112
+    object MenuItem9: TMenuItem
+      Caption = 'Show conclusion log'
+      OnClick = MenuItem9Click
+    end
+  end
+  object ApplicationProperties1: TApplicationProperties
+    OnIdle = ApplicationProperties1Idle
+    Left = 104
+    Top = 232
+  end
+end

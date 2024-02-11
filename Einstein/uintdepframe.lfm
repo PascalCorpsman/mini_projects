@@ -1,0 +1,120 @@
+object IntDepSetFrame: TIntDepSetFrame
+  Left = 243
+  Height = 125
+  Top = 115
+  Width = 641
+  ClientHeight = 125
+  ClientWidth = 641
+  LCLVersion = '1.6.0.4'
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 112
+    Top = 8
+    Width = 568
+    Caption = 'GroupBox1'
+    ClientHeight = 94
+    ClientWidth = 564
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 336
+      Height = 13
+      Top = 40
+      Width = 8
+      Caption = '='
+      ParentColor = False
+    end
+    object ComboBox1: TComboBox
+      Left = 8
+      Height = 21
+      Top = 32
+      Width = 120
+      ItemHeight = 13
+      Style = csDropDownList
+      TabOrder = 0
+    end
+    object ComboBox2: TComboBox
+      Left = 136
+      Height = 21
+      Top = 32
+      Width = 100
+      ItemHeight = 13
+      OnChange = ComboBox2Change
+      Style = csDropDownList
+      TabOrder = 1
+    end
+    object Edit1: TEdit
+      Left = 248
+      Height = 21
+      Top = 32
+      Width = 80
+      TabOrder = 2
+      Text = 'Edit1'
+    end
+    object ComboBox3: TComboBox
+      Left = 352
+      Height = 21
+      Top = 32
+      Width = 120
+      ItemHeight = 13
+      Style = csDropDownList
+      TabOrder = 3
+    end
+    object Label2: TLabel
+      Left = 480
+      Height = 13
+      Top = 40
+      Width = 31
+      Caption = 'Label2'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 8
+      Height = 13
+      Top = 12
+      Width = 47
+      Caption = 'Element 1'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 136
+      Height = 13
+      Top = 12
+      Width = 51
+      Caption = 'Cathegory'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      Left = 352
+      Height = 13
+      Top = 12
+      Width = 47
+      Caption = 'Element 2'
+      ParentColor = False
+    end
+    object Label6: TLabel
+      Left = 248
+      Height = 13
+      Top = 12
+      Width = 49
+      Caption = 'difference'
+      ParentColor = False
+    end
+    object Label7: TLabel
+      Left = 480
+      Height = 13
+      Top = 12
+      Width = 51
+      Caption = 'Cathegory'
+      ParentColor = False
+    end
+  end
+  object Button1: TButton
+    Left = 584
+    Height = 112
+    Top = 8
+    Width = 51
+    Caption = 'Del'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+end
