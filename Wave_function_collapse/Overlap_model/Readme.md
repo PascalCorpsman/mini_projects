@@ -6,7 +6,7 @@ There are lots and good [explenations](https://discourse.processing.org/t/wave-c
  
 ![](preview2.png)
 
-So i searched github for a existing one, which i can translate into FreePascal and then improve to my own whishes. Finally i found [this](https://github.com/D-T-666/wave-function-collapse-p5). It has some easy to fix bugs (as it mirrors and somehow rotates the input image to the output only relevant, if symmetry flag is off).
+So i searched github for a existing one, which i can translate into Free Pascal and then improve to my own whishes. Finally i found [this](https://github.com/D-T-666/wave-function-collapse-p5). It has some easy to fix bugs (as it mirrors and somehow rotates the input image to the output only relevant, if symmetry flag is off).
 
 Before diving into the code i highly recommend to read the explanations from above, otherwise this code is really hard to understand.
  
