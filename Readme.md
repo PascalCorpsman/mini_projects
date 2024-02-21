@@ -14,6 +14,7 @@ Following is a short description of all listed projects
 
 | Project | Description |
 | --- | ---|
+| 2048 | Implementation of the 2048 game |
 | 3D_Printer/Extruder_calibrator | Application to easy calibrate the extruder steps of a 3d printer |
 | ALT_F2 | Application starter app with included calculater |
 | Button_Tool| Program to create graphics with textured texts |

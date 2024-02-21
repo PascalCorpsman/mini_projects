@@ -1,0 +1,68 @@
+object Form1: TForm1
+  Left = 237
+  Height = 480
+  Top = 122
+  Width = 640
+  ActiveControl = OpenGLControl1
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 640
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object OpenGLControl1: TOpenGLControl
+    Left = 8
+    Height = 246
+    Top = 8
+    Width = 314
+    OnKeyDown = OpenGLControl1KeyDown
+    OnKeyUp = OpenGLControl1KeyUp
+    OnMakeCurrent = OpenGLControl1MakeCurrent
+    OnPaint = OpenGLControl1Paint
+    OnResize = OpenGLControl1Resize
+    PopupMenu = PopupMenu1
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 24
+    Top = 24
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 96
+    Top = 24
+    object MenuItem1: TMenuItem
+      Caption = 'Load Board'
+      OnClick = MenuItem1Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Save Board'
+      OnClick = MenuItem2Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.2048'
+    Filter = 'Board|*.2048|All|*.*'
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    Left = 184
+    Top = 24
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.2048'
+    Filter = 'Board|*.2048|All|*.*'
+    Left = 256
+    Top = 24
+  end
+  object Timer2: TTimer
+    Enabled = False
+    Interval = 50
+    OnTimer = Timer2Timer
+    Left = 24
+    Top = 80
+  end
+  object ApplicationProperties1: TApplicationProperties
+    OnIdle = ApplicationProperties1Idle
+    Left = 396
+    Top = 89
+  end
+end
