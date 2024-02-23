@@ -1,0 +1,423 @@
+object Form1: TForm1
+  Left = 416
+  Height = 560
+  Top = 113
+  Width = 663
+  ActiveControl = StringGrid1
+  Caption = 'Form1'
+  ClientHeight = 560
+  ClientWidth = 663
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 56
+    Top = 8
+    Width = 645
+    Anchors = [akTop, akLeft, akRight]
+    Caption = ' Turing band '
+    ClientHeight = 36
+    ClientWidth = 641
+    TabOrder = 0
+    OnResize = GroupBox1Resize
+    object Label1: TLabel
+      Left = 286
+      Height = 15
+      Top = 7
+      Width = 34
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 342
+      Height = 37
+      Top = -1
+      Width = 79
+      Caption = 'Label2'
+      Font.Height = -27
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label3: TLabel
+      Left = 446
+      Height = 15
+      Top = 7
+      Width = 34
+      Caption = 'Label3'
+      ParentColor = False
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Height = 56
+    Top = 64
+    Width = 645
+    Anchors = [akTop, akLeft, akRight]
+    Caption = ' Turing info '
+    ClientHeight = 36
+    ClientWidth = 641
+    TabOrder = 1
+    object Label4: TLabel
+      Left = 6
+      Height = 15
+      Top = 7
+      Width = 62
+      Caption = 'Actual state'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      Left = 94
+      Height = 15
+      Top = 7
+      Width = 34
+      Caption = 'Label5'
+      ParentColor = False
+    end
+    object Label14: TLabel
+      Left = 158
+      Height = 15
+      Top = 7
+      Width = 59
+      Caption = 'Actual step'
+      ParentColor = False
+    end
+    object Label15: TLabel
+      Left = 238
+      Height = 15
+      Top = 7
+      Width = 40
+      Caption = 'Label15'
+      ParentColor = False
+    end
+  end
+  object GroupBox4: TGroupBox
+    Left = 8
+    Height = 306
+    Top = 120
+    Width = 645
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = ' Turing definition '
+    ClientHeight = 286
+    ClientWidth = 641
+    TabOrder = 2
+    object Label6: TLabel
+      Left = 6
+      Height = 15
+      Top = 7
+      Width = 52
+      Caption = 'Rule table'
+      ParentColor = False
+    end
+    object StringGrid1: TStringGrid
+      Left = 126
+      Height = 81
+      Top = 7
+      Width = 507
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goSmoothScroll]
+      PopupMenu = PopupMenu1
+      TabOrder = 0
+    end
+    object Button7: TButton
+      Left = 126
+      Height = 25
+      Top = 96
+      Width = 510
+      Anchors = [akLeft, akRight, akBottom]
+      Caption = 'New rule'
+      OnClick = Button7Click
+      TabOrder = 1
+    end
+    object GroupBox5: TGroupBox
+      Left = 6
+      Height = 152
+      Top = 128
+      Width = 627
+      Anchors = [akLeft, akRight, akBottom]
+      Caption = ' Init turing machine '
+      ClientHeight = 132
+      ClientWidth = 623
+      TabOrder = 2
+      object Label8: TLabel
+        Left = 6
+        Height = 15
+        Top = 7
+        Width = 71
+        Caption = 'Band content'
+        ParentColor = False
+      end
+      object Edit1: TEdit
+        Left = 118
+        Height = 23
+        Top = 0
+        Width = 499
+        Anchors = [akTop, akLeft, akRight]
+        OnChange = Edit1Change
+        TabOrder = 0
+        Text = 'Edit1'
+      end
+      object Label9: TLabel
+        Left = 6
+        Height = 15
+        Top = 38
+        Width = 45
+        Caption = 'Init state'
+        ParentColor = False
+      end
+      object SpinEdit2: TSpinEdit
+        Left = 118
+        Height = 23
+        Top = 31
+        Width = 50
+        OnChange = Edit1Change
+        TabOrder = 1
+        Value = 1
+      end
+      object Label10: TLabel
+        Left = 6
+        Height = 15
+        Top = 70
+        Width = 77
+        Caption = 'Input alphabet'
+        ParentColor = False
+      end
+      object Edit2: TEdit
+        Left = 118
+        Height = 23
+        Top = 63
+        Width = 499
+        Anchors = [akTop, akLeft, akRight]
+        OnChange = Edit1Change
+        OnKeyDown = Edit2KeyDown
+        TabOrder = 2
+        Text = 'Edit2'
+      end
+      object Label11: TLabel
+        Left = 6
+        Height = 15
+        Top = 102
+        Width = 69
+        Caption = 'Band alpahet'
+        ParentColor = False
+      end
+      object Edit3: TEdit
+        Left = 118
+        Height = 23
+        Top = 95
+        Width = 371
+        Anchors = [akTop, akLeft, akRight]
+        OnChange = Edit1Change
+        OnKeyDown = Edit2KeyDown
+        TabOrder = 3
+        Text = 'Edit3'
+      end
+      object Label12: TLabel
+        Left = 513
+        Height = 15
+        Top = 102
+        Width = 76
+        Anchors = [akTop, akRight]
+        Caption = 'Empty symbol'
+        ParentColor = False
+      end
+      object Edit4: TEdit
+        Left = 593
+        Height = 23
+        Top = 95
+        Width = 24
+        Anchors = [akTop, akRight]
+        OnChange = Edit1Change
+        TabOrder = 4
+        Text = 'Edit4'
+      end
+      object Label7: TLabel
+        Left = 190
+        Height = 15
+        Top = 36
+        Width = 59
+        Caption = 'Finish state'
+        ParentColor = False
+      end
+      object SpinEdit1: TSpinEdit
+        Left = 278
+        Height = 23
+        Top = 31
+        Width = 50
+        OnChange = Edit1Change
+        TabOrder = 5
+      end
+      object Label13: TLabel
+        Left = 467
+        Height = 15
+        Top = 36
+        Width = 92
+        Anchors = [akTop, akRight]
+        Caption = 'Init head position'
+        ParentColor = False
+      end
+      object SpinEdit3: TSpinEdit
+        Left = 567
+        Height = 23
+        Top = 31
+        Width = 50
+        Anchors = [akTop, akRight]
+        MaxValue = 1000
+        MinValue = 1
+        OnChange = Edit1Change
+        TabOrder = 6
+        Value = 1
+      end
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 8
+    Height = 91
+    Top = 433
+    Width = 645
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = ' Turing control '
+    ClientHeight = 71
+    ClientWidth = 641
+    TabOrder = 3
+    OnResize = GroupBox3Resize
+    object Button1: TButton
+      Left = 102
+      Height = 25
+      Top = 7
+      Width = 80
+      Caption = '&Step'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+    object Button2: TButton
+      Left = 198
+      Height = 25
+      Top = 7
+      Width = 171
+      Caption = '&Run'
+      OnClick = Button2Click
+      TabOrder = 1
+    end
+    object Button3: TButton
+      Left = 374
+      Height = 25
+      Top = 7
+      Width = 171
+      Caption = '&Load'
+      OnClick = Button3Click
+      TabOrder = 2
+    end
+    object Button4: TButton
+      Left = 558
+      Height = 25
+      Top = 7
+      Width = 75
+      Caption = 'S&ave'
+      OnClick = Button4Click
+      TabOrder = 3
+    end
+    object Button6: TButton
+      Left = 14
+      Height = 25
+      Top = 7
+      Width = 83
+      Caption = '&Init'
+      OnClick = Button6Click
+      TabOrder = 4
+    end
+    object Label16: TLabel
+      Left = 198
+      Height = 15
+      Top = 43
+      Width = 81
+      Caption = 'Step delay [ms]'
+      ParentColor = False
+    end
+    object SpinEdit4: TSpinEdit
+      Left = 302
+      Height = 23
+      Top = 39
+      Width = 64
+      Increment = 100
+      MaxValue = 10000
+      MinValue = 100
+      TabOrder = 5
+      Value = 100
+    end
+    object CheckBox1: TCheckBox
+      Left = 14
+      Height = 19
+      Top = 40
+      Width = 62
+      Caption = 'auto init'
+      Checked = True
+      State = cbChecked
+      TabOrder = 6
+    end
+    object CheckBox2: TCheckBox
+      Left = 102
+      Height = 19
+      Top = 40
+      Width = 97
+      Caption = 'show next step'
+      Checked = True
+      OnClick = CheckBox2Click
+      State = cbChecked
+      TabOrder = 7
+    end
+  end
+  object Button5: TButton
+    Left = 8
+    Height = 25
+    Top = 530
+    Width = 645
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = '&Close'
+    OnClick = Button5Click
+    TabOrder = 4
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 520
+    Top = 160
+    object MenuItem2: TMenuItem
+      Caption = 'edit rule'
+      OnClick = MenuItem2Click
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'sort rules'
+      OnClick = MenuItem4Click
+    end
+    object MenuItem5: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'delete rule'
+      OnClick = MenuItem1Click
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'clear'
+      OnClick = MenuItem3Click
+    end
+    object MenuItem6: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'Show Mealy machine'
+      OnClick = MenuItem7Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.trn'
+    Filter = 'Turing File|*.trn|All|*.*'
+    Left = 416
+    Top = 464
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.trn'
+    Filter = 'Turing File|*.trn|All|*.*'
+    Left = 576
+    Top = 464
+  end
+end

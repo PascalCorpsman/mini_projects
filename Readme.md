@@ -37,6 +37,7 @@ Following is a short description of all listed projects
 | SFXR | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
 | Simple_Search | Win98 style search dialog |
 | Superdom | FPC-Port of the Super domination game which is part of [Rockbox](https://www.rockbox.org/) |
+| TuringMachine | Implementation of a Turing machine |
 | Wave function collaps | different implementations of the wave function collapse algorithms
 
 

@@ -1,0 +1,61 @@
+object Form3: TForm3
+  Left = 238
+  Height = 508
+  Top = 114
+  Width = 553
+  Caption = 'Form3'
+  ClientHeight = 508
+  ClientWidth = 553
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 476
+    Width = 540
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Close'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Image1: TImage
+    Left = 8
+    Height = 458
+    Top = 8
+    Width = 538
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    OnMouseDown = PaintBox1MouseDown
+    OnMouseMove = PaintBox1MouseMove
+    OnMouseUp = PaintBox1MouseUp
+    OnPaint = Image1Paint
+    OnResize = PaintBox1Resize
+    PopupMenu = PopupMenu1
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 152
+    Top = 24
+    object MenuItem2: TMenuItem
+      Caption = 'Order as circle'
+      OnClick = MenuItem2Click
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Save image as'
+      OnClick = MenuItem1Click
+    end
+    object MenuItem3: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Help'
+      OnClick = MenuItem4Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.bmp'
+    Filter = 'Bitmap|*.bmp|All|*.*'
+    Left = 48
+    Top = 80
+  end
+end
