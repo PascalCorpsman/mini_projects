@@ -29,6 +29,7 @@ Following is a short description of all listed projects
 | Imageinspector | Programm to correct and measure photos of objects |
 | Imageshop | Image manipulation learning program |
 | Intercept_theorem | Demo application to calculate the intercept theorem |
+| Kollision | game that tests your reaction and multitasking skills |
 | LAN_Chat | Simple chat program for LAN (and WAN if ports are forwared) |
 | QProgrammer | Lightwight Pascal like interpreter with integrated testsystem |
 | PNG_Editor | Split and merge alpha channel of .png images |

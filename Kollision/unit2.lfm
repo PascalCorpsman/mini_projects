@@ -1,0 +1,55 @@
+object Form2: TForm2
+  Left = 238
+  Height = 122
+  Top = 124
+  Width = 316
+  ActiveControl = Edit1
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Highscores'
+  ClientHeight = 122
+  ClientWidth = 316
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 8
+    Height = 18
+    Top = 16
+    Width = 48
+    Caption = 'Name :'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 18
+    Top = 48
+    Width = 40
+    Caption = 'Time :'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 72
+    Height = 18
+    Top = 48
+    Width = 43
+    Caption = 'Label3'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 80
+    Width = 283
+    Caption = 'OK'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Edit1: TEdit
+    Left = 72
+    Height = 25
+    Top = 9
+    Width = 232
+    OnKeyPress = Edit1KeyPress
+    TabOrder = 1
+  end
+end
