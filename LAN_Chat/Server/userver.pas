@@ -9,6 +9,20 @@ Uses
 
 Type
 
+  TServerinfo = Record
+    StartTimeStamp: QWord;
+    Restarts: Integer;
+    LastRestartReason: String;
+  End;
+
+  TinternalServerInfo = Record
+    BytesForwarded: QWord;
+    ClientConnects: Integer;
+    Clientrejects: Integer;
+    SocketErrors: integer;
+    LastSocketErrorMsg: String;
+  End;
+
   TParticipant = Record
     Name: String; // Klarname
     uID: Integer; // UID von TChunkManager
@@ -29,6 +43,8 @@ Type
   TLANChatServer = Class
   private
     fSettings: TSettings;
+    fInfo: TServerinfo;
+    fInternalInfo: TinternalServerInfo;
 
     fParticipants: Array Of TParticipant;
     fKnownParticipants: Array Of TKnownParticipant;
@@ -57,6 +73,7 @@ Type
     Procedure HandleChangePassword(Const aChunk: TChunk);
     Procedure HandleLogin(Const aChunk: TChunk);
     Procedure HandleRemoveKnownParticipant(Const aChunk: TChunk);
+    Procedure HandleInfoRequest(Const aChunk: TChunk);
 
     Procedure SendKnownParticipantList();
     Function GetParticipantIndex(aName: String): Integer;
@@ -70,11 +87,16 @@ Type
     Procedure LoadSettings();
     Procedure StoreSettings();
   public
+    Property Running: Boolean read frunning;
     Constructor Create(); virtual;
     Destructor Destroy(); override;
+    Procedure SetInfo(Const aInfo: TServerinfo);
     Procedure Execute();
     Procedure Terminate();
   End;
+
+Var
+  LanChatVersion: Integer;
 
 Implementation
 
@@ -90,6 +112,11 @@ Var
 Begin
   Inherited Create();
   LoadSettings();
+  fInternalInfo.BytesForwarded := 0;
+  fInternalInfo.ClientConnects := 0;
+  fInternalInfo.Clientrejects := 0;
+  fInternalInfo.LastSocketErrorMsg := '';
+  fInternalInfo.SocketErrors := 0;
   fNeedSendKnownParticipantList := false;
 
   fUDP := TLUdp.Create(Nil);
@@ -140,6 +167,11 @@ Begin
   fConnection.Free;
 End;
 
+Procedure TLANChatServer.SetInfo(Const aInfo: TServerinfo);
+Begin
+  finfo := aInfo;
+End;
+
 Procedure TLANChatServer.OnReceivedChunk(Sender: TObject; Const Chunk: TChunk);
 Begin
   Case Chunk.UserDefinedID Of
@@ -154,6 +186,7 @@ Begin
     MSG_Change_Password: HandleChangePassword(Chunk);
     MSG_Login_to_server_settings: HandleLogin(Chunk);
     MSG_Remove_Known_Participant: HandleRemoveKnownParticipant(Chunk);
+    MSG_Request_Server_Info: HandleInfoRequest(Chunk);
   Else Begin
       writeln('Error unknown message id: ' + inttostr(Chunk.UserDefinedID));
     End;
@@ -190,6 +223,8 @@ End;
 Procedure TLANChatServer.OnError(Const msg: String; aSocket: TLSocket);
 Begin
   writeln('Socket error: ' + msg);
+  inc(fInternalInfo.SocketErrors);
+  fInternalInfo.LastSocketErrorMsg := msg;
 End;
 
 Procedure TLANChatServer.OnUDPReceiveEvent(aSocket: TLSocket);
@@ -236,6 +271,7 @@ Begin
     aError := Error_Invalid_Protocol_Version;
     data.Write(aError, SizeOf(aError));
     fConnection.SendChunk(MSG_New_Participant_Result, data, aChunk.UID);
+    inc(fInternalInfo.Clientrejects);
     exit;
   End;
   For i := 0 To high(fParticipants) Do Begin
@@ -262,6 +298,7 @@ Begin
   fConnection.SendChunk(MSG_New_Participant_Result, data, aChunk.UID);
   // Wenn der Teilnehmer Aktzeptiert wurde, dann teilen wir das allen mit
   If Allowed Then Begin
+    inc(fInternalInfo.ClientConnects);
     writeln('Accept: ' + nName);
     setlength(fParticipants, high(fParticipants) + 2);
     fParticipants[high(fParticipants)].Name := nName;
@@ -286,6 +323,7 @@ Begin
   End
   Else Begin
     writeln('Reject: ' + nName);
+    inc(fInternalInfo.Clientrejects);
   End;
 End;
 
@@ -385,6 +423,7 @@ Begin
     // Der Gegenstelle die Antwort weiter leiten
     aChunk.Data.Position := 0;
     data.CopyFrom(aChunk.Data, aChunk.Data.Size);
+    fInternalInfo.BytesForwarded := fInternalInfo.BytesForwarded + aChunk.Data.Size;
     fConnection.SendChunk(MSG_File_Transfer_FileContent, data, fParticipants[index].uID);
   End;
 End;
@@ -556,6 +595,36 @@ Begin
   End;
 End;
 
+Procedure TLANChatServer.HandleInfoRequest(Const aChunk: TChunk);
+Var
+  data: TMemoryStream;
+  i: integer;
+  q: QWord;
+Begin
+  data := TMemoryStream.Create;
+  (*
+   * Info Version
+   *)
+  i := 1;
+  data.Write(i, SizeOf(i));
+  i := LanChatVersion;
+  data.Write(i, SizeOf(i));
+  // Time running in ms
+  q := GetTickCount64 - finfo.StartTimeStamp;
+  data.Write(q, SizeOf(q));
+  data.Write(fInternalInfo.ClientConnects, SizeOf(fInternalInfo.ClientConnects));
+  data.Write(fInternalInfo.Clientrejects, SizeOf(fInternalInfo.Clientrejects));
+  data.Write(fInternalInfo.BytesForwarded, SizeOf(fInternalInfo.BytesForwarded));
+
+  data.Write(fInternalInfo.SocketErrors, SizeOf(fInternalInfo.SocketErrors));
+  data.WriteAnsiString(fInternalInfo.LastSocketErrorMsg);
+
+  data.Write(finfo.Restarts, SizeOf(finfo.Restarts));
+  data.WriteAnsiString(fInfo.LastRestartReason);
+
+  fConnection.SendChunk(MSG_Request_Server_Info_Result, data, aChunk.UID)
+End;
+
 Procedure TLANChatServer.SendKnownParticipantList;
 Var
   data: TMemoryStream;
@@ -677,7 +746,6 @@ Procedure TLANChatServer.Execute;
 Var
   c: Char;
 Begin
-  // TODO: Make Configurable
   If Not fConnection.Listen(fSettings.Port) Then Begin
     writeln('Error, could not listen on port: ' + inttostr(fSettings.Port));
     exit;
@@ -696,7 +764,7 @@ Begin
       c := ReadKey;
       If c = #27 Then Begin
         writeln('Going down by user input');
-        frunning := false;
+        Terminate();
       End;
     End;
   End;

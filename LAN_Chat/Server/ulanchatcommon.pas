@@ -28,8 +28,9 @@ Const
    * History: 1 = Initial version
    *          2 = Abort File Transfer
    *          3 = Server Administration..
+   *          4 = Server Info
    *)
-  ProtokollVersion = 3;
+  ProtokollVersion = 4;
 
   (*
    * Nachrichten von Clients an den Server
@@ -38,6 +39,7 @@ Const
   MSG_Change_Password = 2;
   MSG_Login_to_server_settings = 3;
   MSG_Remove_Known_Participant = 4;
+  MSG_Request_Server_Info = 5;
 
   (*
    * Nachrichten vom Server an die Clients
@@ -47,6 +49,7 @@ Const
   MSG_Change_Password_Result = 102;
   MSG_Login_to_server_settings_Result = 103;
   MSG_Remove_Known_Participant_Result = 104;
+  MSG_Request_Server_Info_Result = 105;
 
 
   (*
@@ -83,6 +86,7 @@ Function ErrorcodeToString(aValue: uint16): String;
 
 Function GetFileSize(Const Filename: String): int64;
 Function FileSizeToString(Value: Int64): String;
+Function PrettyTime(Time_in_ms: UInt64): String;
 
 Implementation
 
@@ -144,6 +148,74 @@ Begin
     result := inttostr(value) + ',' + inttostr(r Div 100) + s + 'B'
   Else
     result := inttostr(value) + s + 'B'
+End;
+
+Function PrettyTime(Time_in_ms: UInt64): String;
+Var
+  hs, digits, sts, sep, s: String;
+  st, i: integer;
+  b: Boolean;
+Begin
+  s := 'ms';
+  hs := '';
+  sep := DefaultFormatSettings.DecimalSeparator;
+  st := 0;
+  b := false;
+  digits := '3';
+  // [0 .. 60[ s
+  If Time_in_ms >= 1000 Then Begin
+    st := Time_in_ms Mod 1000;
+    Time_in_ms := Time_in_ms Div 1000;
+    s := 's';
+    b := true;
+  End;
+  // [1 .. 60[ min
+  If (Time_in_ms >= 60) And b Then Begin
+    st := Time_in_ms Mod 60;
+    Time_in_ms := Time_in_ms Div 60;
+    s := 'min';
+    sep := DefaultFormatSettings.TimeSeparator;
+    digits := '2';
+  End
+  Else
+    b := false;
+  // [1 .. 24[ h
+  If (Time_in_ms >= 60) And b Then Begin
+    st := Time_in_ms Mod 60;
+    Time_in_ms := Time_in_ms Div 60;
+    s := 'h';
+  End
+  Else
+    b := false;
+  // [1 ..  d
+  If (Time_in_ms >= 24) And b Then Begin
+    st := Time_in_ms Mod 24;
+    Time_in_ms := Time_in_ms Div 24;
+    hs := 'd';
+    If st <> 0 Then s := 'h';
+    sep := ' ';
+    digits := '1';
+  End
+  Else
+    b := false;
+  // Ausgabe mit oder ohne Nachkomma
+  If st <> 0 Then Begin
+    sts := format('%0.' + digits + 'd', [st]);
+    If (s = 's') Then Begin // Bei Sekunden die endenden 0-en löschen
+      For i := length(sts) Downto 1 Do Begin
+        If sts[i] = '0' Then Begin
+          delete(sts, i, 1);
+        End
+        Else Begin
+          break;
+        End;
+      End;
+    End;
+    result := inttostr(Time_in_ms) + hs + sep + sts + s;
+  End
+  Else Begin
+    result := inttostr(Time_in_ms) + s;
+  End;
 End;
 
 (*

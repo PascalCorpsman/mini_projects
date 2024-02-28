@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.05                                                         *)
+(* Version     : 0.06                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -28,6 +28,7 @@
 (*               0.03 - File transfer support                                 *)
 (*               0.04 - Settings for Server                                   *)
 (*               0.05 - Add UDP for autodetecting                             *)
+(*               0.06 - Automatic restart on Exception                        *)
 (*                                                                            *)
 (******************************************************************************)
 Program f_server;
@@ -68,21 +69,47 @@ Begin
 End;
 {$ENDIF}
 
+Var
+  NeedRunning: Boolean;
+  info: TServerinfo;
 Begin
 {$IFDEF LINUX}
   InstallSigHandler;
 {$ENDIF}
-  writeln('LAN chat server ver. 0.05');
+  writeln('LAN chat server ver. 0.06');
+  LanChatVersion := 006;
+  info.StartTimeStamp := GetTickCount64;
+  info.Restarts := 0;
+  info.LastRestartReason := '';
   server := TLANChatServer.Create();
-  Try
-    server.Execute();
-  Except
-    On av: Exception Do Begin
-      writeln('Got an exception:');
-      writeln('');
-      writeln('  ' + av.Message);
-      writeln('');
-      writeln('going down.');
+  NeedRunning := true;
+  While NeedRunning Do Begin
+    Try
+      server.Setinfo(Info);
+      server.Execute();
+      // Termination by User -> Leave the while loop
+      If Not server.Running Then Begin
+        NeedRunning := false;
+      End;
+    Except
+      On av: Exception Do Begin
+        inc(info.Restarts);
+        info.LastRestartReason := av.Message;
+        writeln('Got an exception:');
+        writeln('');
+        writeln('  ' + av.Message);
+        writeln('');
+        writeln('going down.');
+        Try
+          server.free;
+        Except
+        End;
+        sleep(1000);
+        (*
+         * Restart the server
+         *)
+        server := TLANChatServer.Create();
+      End;
     End;
   End;
   server.Free;

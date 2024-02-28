@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.13                                                         *)
+(* Version     : 0.14                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -45,6 +45,7 @@
 (*               0.12 - Fix: Filesize progress was not shown on server side   *)
 (*               0.13 - Fix: Crash, when removing multiple users at same time *)
 (*                      Fix: Label2 was not initialized, on start transmission*)
+(*               0.14 - ADD: Serverinfo                                       *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -156,6 +157,7 @@ Type
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
+    SpeedButton4: TSpeedButton;
     Timer1: TTimer;
     TrayIcon1: TTrayIcon;
     UniqueInstance1: TUniqueInstance;
@@ -184,6 +186,7 @@ Type
     Procedure SpeedButton1Click(Sender: TObject);
     Procedure SpeedButton2Click(Sender: TObject);
     Procedure SpeedButton3Click(Sender: TObject);
+    Procedure SpeedButton4Click(Sender: TObject);
     Procedure Timer1Timer(Sender: TObject);
     Procedure TrayIcon1Click(Sender: TObject);
     Procedure UniqueInstance1OtherInstance(Sender: TObject;
@@ -217,6 +220,7 @@ Type
     Procedure HandleLoginToServerSettingsResult(Const Chunk: TChunk);
     Procedure HandlePasswordChangeResult(Const Chunk: TChunk);
     Procedure HandleRemoveKnownParticipantResult(Const Chunk: TChunk);
+    Procedure HandleServerinfoResult(Const Chunk: TChunk);
 
     Procedure OpenOptions();
     Procedure AppendLog(aParticipant: String; aPos: TPosition; aMessage: String);
@@ -712,6 +716,12 @@ Begin
   fconnection.SendChunk(MSG_Login_to_server_settings, data);
 End;
 
+Procedure TForm1.SpeedButton4Click(Sender: TObject);
+Begin
+  // request Server Info
+  fconnection.SendChunk(MSG_Request_Server_Info, Nil);
+End;
+
 Procedure TForm1.Timer1Timer(Sender: TObject);
 Begin
   // Reconnect alle 5s
@@ -812,6 +822,7 @@ Begin
     MSG_Login_to_server_settings_Result: HandleLoginToServerSettingsResult(Chunk);
     MSG_Change_Password_Result: HandlePasswordChangeResult(Chunk);
     MSG_Remove_Known_Participant_Result: HandleRemoveKnownParticipantResult(Chunk);
+    MSG_Request_Server_Info_Result: HandleServerinfoResult(Chunk);
   Else Begin
       showmessage('Error, got unknown message id: ' + inttostr(Chunk.UserDefinedID));
     End;
@@ -1204,6 +1215,44 @@ Begin
   Else Begin
     ShowMessage(ErrorcodeToString(aResult));
   End;
+End;
+
+Procedure TForm1.HandleServerinfoResult(Const Chunk: TChunk);
+Var
+  s: String;
+  i, infoVersion: integer;
+  q: QWORD;
+Begin
+  s := '';
+  infoVersion := -1;
+  Chunk.Data.Read(infoVersion, Sizeof(infoVersion));
+  i := -1;
+  Chunk.Data.Read(i, Sizeof(i));
+  s := s + format('Server version: %0.2f', [i / 100]) + LineEnding;
+  q := 0;
+  Chunk.Data.Read(q, Sizeof(q));
+  s := s + 'Server uptime: ' + PrettyTime(q) + LineEnding + LineEnding;
+
+  i := -1;
+  Chunk.Data.Read(i, Sizeof(i));
+  s := s + format('Client connects: %d', [i]) + LineEnding;
+  i := -1;
+  Chunk.Data.Read(i, Sizeof(i));
+  s := s + format('Client rejects: %d', [i]) + LineEnding + LineEnding;
+  q := 0;
+  Chunk.Data.Read(q, Sizeof(q));
+  s := s + 'Forwarded data: ' + FileSizeToString(q) + LineEnding + LineEnding;
+
+  i := -1;
+  Chunk.Data.Read(i, Sizeof(i));
+  s := s + format('Socket errors: %d', [i]) + LineEnding;
+  s := s + '  Last socket errormessage: ' + Chunk.Data.ReadAnsiString + LineEnding;
+
+  i := -1;
+  Chunk.Data.Read(i, Sizeof(i));
+  s := s + format('Server crashes: %d', [i]) + LineEnding;
+  s := s + '  Last crashmessage: ' + Chunk.Data.ReadAnsiString + LineEnding + LineEnding;
+  ShowMessage(s);
 End;
 
 Procedure TForm1.OpenOptions;
