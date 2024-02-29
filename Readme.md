@@ -31,6 +31,7 @@ Following is a short description of all listed projects
 | Intercept_theorem | Demo application to calculate the intercept theorem |
 | Kollision | game that tests your reaction and multitasking skills |
 | LAN_Chat | Simple chat program for LAN (and WAN if ports are forwared) |
+| Network | Develop tools to simulate network properties (limit and delay) |
 | QProgrammer | Lightwight Pascal like interpreter with integrated testsystem |
 | PNG_Editor | Split and merge alpha channel of .png images |
 | Parken | Demo for trectric curves |
