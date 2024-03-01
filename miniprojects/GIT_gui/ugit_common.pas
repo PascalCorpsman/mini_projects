@@ -60,6 +60,7 @@ Type
     csAddedWithModifications,
     csModifiedWithFurtherModifications,
     csAdded,
+    csAddedDeleted, // Die Datei wurde hinzugefügt in den Stage bereich, aber im Working Tree gelöscht
     csDeleted,
     csRenamed,
     csCopied
@@ -133,6 +134,11 @@ Function RunCommand(WorkDir: String; Command: String; Params: Array Of String): 
 
 Procedure Nop(); // Debugging only
 
+(*
+ * True if name is Valid, otherwise false
+ *)
+Function IsValidBranchName(aBranchName: String): Boolean;
+
 Implementation
 
 Uses UTF8Process, process
@@ -143,6 +149,26 @@ Uses UTF8Process, process
 Procedure Nop();
 Begin
 
+End;
+
+Function IsValidBranchName(aBranchName: String): Boolean;
+Var
+  i: Integer;
+Begin
+  result := false;
+  If Length(aBranchName) = 0 Then exit;
+  If 'HEAD' = aBranchName Then exit;
+  If 'FETCH_HEAD' = aBranchName Then exit;
+  For i := 1 To length(aBranchName) Do Begin
+    If aBranchName[i] In
+      [
+      #0..' ' // White Spaces and invisible chars
+    , '''', '~', '^', ':', '?', '*', '[', ']', '\', '.' // ASCII Delimiters
+    , '@', '#', '$', '%', '&', '(', ')', '{', '}', '`', '"', '<', '>', '|', '!', '+', ';', ',', '=' // ASCII Special Characters
+    ]
+      Then exit;
+  End;
+  result := True;
 End;
 
 Function RunCommand(WorkDir: String; Command: String; Params: Array Of String
@@ -208,10 +234,15 @@ Begin
   result.Local := '';
   result.Remote := '';
   If pos('##', value) = 0 Then exit;
-  If pos('...', value) = 0 Then exit;
-  value := trim(copy(value, pos('##', value) + 2, length(value)));
-  result.Local := copy(value, 1, pos('...', value) - 1);
-  result.Remote := copy(value, pos('...', value) + 3, length(value));
+  If pos('...', value) = 0 Then Begin
+    value := trim(copy(value, pos('##', value) + 2, length(value)));
+    result.Local := value;
+  End
+  Else Begin
+    value := trim(copy(value, pos('##', value) + 2, length(value)));
+    result.Local := copy(value, 1, pos('...', value) - 1);
+    result.Remote := copy(value, pos('...', value) + 3, length(value));
+  End;
 End;
 
 (*
@@ -270,14 +301,20 @@ Begin
   Case value Of
     '??': result := csNotVersioned;
     'M': result := csModified;
-    'AM': result := csAddedWithModifications;
+    'MA', 'AM': result := csAddedWithModifications;
     'MM': result := csModifiedWithFurtherModifications;
     'A': result := csAdded;
     'D': result := csDeleted;
     'R': result := csRenamed;
     'C': result := csCopied;
+    'AD': result := csAddedDeleted;
   Else Begin
-      Raise exception.create('StrToStatus: Error, unknown value "' + Value + '"');
+      If (value <> '') And (value[1] = 'R') Then Begin
+        result := csRenamed;
+      End
+      Else Begin
+        Raise exception.create('StrToStatus: Error, unknown value "' + Value + '"');
+      End;
     End;
   End;
 End;
@@ -286,11 +323,12 @@ Function StatusToString(Const Value: TCommitStatus): String;
 Begin
   Case value Of
     csNotVersioned: result := TextNotVersioned;
-    csModified
-      , csAddedWithModifications
-      , csModifiedWithFurtherModifications
+    csModified,
+      csModifiedWithFurtherModifications
       : result := TextModified;
-    csAdded: result := TextAdded;
+    csAddedWithModifications,
+      csAddedDeleted,
+      csAdded: result := TextAdded;
     csDeleted: result := TextDeleted;
     csRenamed: result := TextRenamed;
     csCopied: result := TextCopied;
@@ -313,18 +351,34 @@ Begin
     result.FileName := copy(value, pos(Separator, value) + 1, length(value));
   End;
   If pos('"', result.FileName) = 1 Then Begin
+    (*
+     * Wenn UTF8-Zeichen "Komisch" aussehen, dann hilft folgender Befehl im Repository Root
+     *   git config core.quotepath false
+     *)
     delete(result.FileName, 1, 1);
     delete(result.FileName, length(Result.FileName), 1);
+  End;
+  If trim(result.FileName) = '' Then Begin
+    Raise exception.create('ExtractCommitFileInfo: Invalid value:' + value);
   End;
 End;
 
 Procedure UpdateCommitFileInfo(Var value: TCommitFileInfo; Data: String);
 Var
+  sa: TStringArray;
+  s: String;
   i: Integer;
 Begin
-  For i := 1 To length(data) Do Begin
-    If data[i] = '+' Then inc(value.LinesAdded);
-    If data[i] = '-' Then inc(value.LinesRemoved);
+  sa := data.Split(',');
+  For i := 0 To high(sa) Do Begin
+    If pos('insertion', sa[i]) <> 0 Then Begin
+      s := trim(sa[i]);
+      value.LinesAdded := value.LinesAdded + strtointdef(copy(s, 1, pos(' ', s) - 1), 0);
+    End;
+    If pos('deletion', sa[i]) <> 0 Then Begin
+      s := trim(sa[i]);
+      value.LinesRemoved := value.LinesRemoved + strtointdef(copy(s, 1, pos(' ', s) - 1), 0);
+    End;
   End;
 End;
 
@@ -333,7 +387,7 @@ Var
   Res: TStringlist;
   i, StartIndex: Integer;
   Separator: Char;
-  fn, s: String;
+  fn: String;
 Begin
   result.RepoRoot := aDir;
   // 1. Liste der Geänderten Dateien und des Aktuellen Branchs auslesen
@@ -369,10 +423,18 @@ Begin
         End;
       csAdded: Begin
           fn := IncludeTrailingPathDelimiter(aDir) + result.CommitFileInfo[i].FileName;
-          res := TStringList.Create;
-          res.LoadFromFile(fn);
-          result.CommitFileInfo[i].LinesAdded := res.Count;
-          res.free;
+          If FileExists(fn) Then Begin
+            res := TStringList.Create;
+            res.LoadFromFile(fn);
+            result.CommitFileInfo[i].LinesAdded := res.Count;
+            res.free;
+          End;
+        End;
+      csRenamed: Begin
+          // Nichts war ja nur eine Umbenennung..
+        End;
+      csAddedDeleted: Begin
+          // Nichts wurde ja schon wieder gelöscht
         End;
       csDeleted: Begin
           // Die Gelöschte Datei existiert ja nicht mehr, also lassen wir sie uns "anzeigen" und lesen die Größe von Hand aus ..
@@ -380,19 +442,22 @@ Begin
           result.CommitFileInfo[i].LinesRemoved := res.Count;
           res.free;
         End;
-      csModified: Begin
+      csModifiedWithFurtherModifications,
+        csAddedWithModifications,
+        csModified: Begin
           res := RunCommand(aDir, 'git', ['diff', '--stat', result.CommitFileInfo[i].FileName]);
           If res.Count = 2 Then Begin
-            UpdateCommitFileInfo(result.CommitFileInfo[i], res[0]);
+            UpdateCommitFileInfo(result.CommitFileInfo[i], res[1]);
           End
           Else Begin
-            s := res.text;
-            If s <> '' Then Begin
-              Raise exception.create('Noch mal genau nachsehen für: ' + result.CommitFileInfo[i].FileName + LineEnding + s);
-            End;
+            // TODO: Manche Dateien scheint Git einfach nicht mehr zu kennen, da kommt dann eine Fehlermeldung, die als AV raus zu geben macht aber auch keinen Sinn ...
+            //s := res.text;
+            //If s <> '' Then Begin
+              //Raise exception.create('Noch mal genau nachsehen für: ' + result.CommitFileInfo[i].FileName + LineEnding + s);
+            //End;
           End;
           res.free;
-        End;
+        End
     Else Begin
         Raise Exception.create('GetCommitInformations: Unhandled Status, need more implementations !');
       End;

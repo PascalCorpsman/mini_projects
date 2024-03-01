@@ -42,6 +42,7 @@ Type
   public
     Function RunVisualCommand(aDir, aCommand: String; params: Array Of String): boolean;
     Procedure SetContinueButtonTo(aCaption: String); // TODO: um die Popup Einträge Erweitern ...
+    Procedure InitProgressbar(aMax: integer);
   End;
 
 Var
@@ -198,11 +199,13 @@ Begin
     ProgressBar1.Position := ProgressBar1.Max;
     Memo1.Append('');
     Memo1.Append('Success (' + inttostr(GetTickCount64 - t) + ' ms @ ' + FormatDateTime('dd.mm.yyyy hh:nn:ss', Now) + ')');
+    ProgressBar1.Color := clGreen;
     Button3.Enabled := true;
   End
   Else Begin
     Memo1.Append('');
     Memo1.Append('Failed (' + inttostr(GetTickCount64 - t) + ' ms @ ' + FormatDateTime('dd.mm.yyyy hh:nn:ss', Now) + ')');
+    ProgressBar1.Color := clRed;
   End;
   // Wir Warten bis der User Beendet
   While (ModalResult = mrNone) And (Not fAbort) Do Begin
@@ -216,6 +219,13 @@ End;
 Procedure TGitProgress.SetContinueButtonTo(aCaption: String);
 Begin
   Button3.caption := aCaption;
+End;
+
+Procedure TGitProgress.InitProgressbar(aMax: integer);
+Begin
+  ProgressBar1.Max := aMax;
+  ProgressBar1.Position := 0;
+  ProgressBar1.Color := clDefault;
 End;
 
 End.
