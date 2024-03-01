@@ -5,7 +5,7 @@ This repository holds projects which:
 * where not directly related to a example unit
 * where not big enough that it's worth it to create a seperate repository.
 
-Every Miniproject is located in a single subdirectory of this repository. All needed files are within this directory (no dependencies to other units (written by me)). If there are dependencies to other libraries this is described in the mini projects Readme.md file.
+Every Miniproject is located in a single subdirectory of this repository (subfolder miniprojects). All needed files are within this directory (no dependencies to other units (written by me)). If there are dependencies to other libraries this is described in the mini projects Readme.md file.
 
 On some projects there is a "bin" folder that holds precompiled Windows 64 and Linux 64 binaries, so that there even is no need to compile the projects.
 
@@ -14,7 +14,7 @@ Following is a short description of all listed projects
 
 | Project | Description |
 | --- | ---|
-| 2048 | Implementation of the 2048 game |
+| [2048](miniprojects/2048) | Implementation of the 2048 game |
 | 3D_Printer/Extruder_calibrator | Application to easy calibrate the extruder steps of a 3d printer |
 | ALT_F2 | Application starter app with included calculater |
 | Button_Tool| Program to create graphics with textured texts |
