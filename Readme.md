@@ -22,12 +22,12 @@ Following is a short description of all listed projects
 | [CPU Load](miniprojects/CPU_Load) | Application to create a defined CPU-Load |
 | [CRC Calculator](miniprojects/CRC_Calculator) | Calculate CRC checksums of arbiture data |
 | [Einstein](miniprojects/Einstein) | Solver for Einstein puzzles |
-| [FIR IIR](miniprojects/FIR_IIR) | Demo to aply FIR and IIR Filter onto arbiture data |
-| [GIT gui](miniprojects/GIT_gui) | Plattform independand Tortoise Git like GIT-Gui |
+| [FIR IIR](miniprojects/FIR_IIR) | Demo to apply FIR and IIR Filter onto arbiture data |
+| [GIT gui](miniprojects/GIT_gui) | Plattform independent Tortoise Git like GIT-Gui |
 | [Heapsim](miniprojects/Heapsim) | Explore different memory manager and usecases |
 | [Image Multiplication](miniprojects/Image_Multiplication) | Demo to show image manipulations with a matrix |
-| [Imageinspector](miniprojects/Imageinspector) | Programm to correct and measure photos of objects |
-| [Imageshop](miniprojects/Imageshop) | Image manipulation learning program |
+| [Imageinspector](miniprojects/Imageinspector) | Programm to manipulate images and measure objects shown in that images |
+| [Imageshop](miniprojects/Imageshop) | Interactive image manipulation learning program (inspired by [this](https://github.com/sysrpl/Codebot.ImageShop)) |
 | [Intercept theorem](miniprojects/Intercept_theorem) | Demo application to calculate the intercept theorem |
 | [Kollision](miniprojects/Kollision) | game that tests your reaction and multitasking skills |
 | [LAN Chat](miniprojects/LAN_Chat) | Simple chat program for LAN (and WAN if ports are forwared) |
