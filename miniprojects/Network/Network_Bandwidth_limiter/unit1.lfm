@@ -1,0 +1,216 @@
+object Form1: TForm1
+  Left = 280
+  Height = 247
+  Top = 140
+  Width = 486
+  Caption = 'Form1'
+  ClientHeight = 247
+  ClientWidth = 486
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnShow = FormShow
+  object Label1: TLabel
+    Left = 120
+    Height = 32
+    Top = 8
+    Width = 232
+    Caption = 'PC1 <-> PC2 (Port)'#13#10'PC1 <-> Bandwidth limit <-> PC2 (Port)'
+    Font.Color = clMaroon
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 32
+    Top = 8
+    Width = 67
+    Caption = 'Normal :'#13#10'Simualtion:'
+    ParentColor = False
+    ParentFont = False
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 145
+    Top = 48
+    Width = 160
+    Caption = ' PC1 '
+    ClientHeight = 128
+    ClientWidth = 158
+    TabOrder = 0
+    object Edit1: TEdit
+      Left = 64
+      Height = 26
+      Top = 8
+      Width = 80
+      TabOrder = 0
+      Text = 'Edit1'
+    end
+    object Label3: TLabel
+      Left = 7
+      Height = 16
+      Top = 14
+      Width = 26
+      Caption = 'Port'
+      ParentColor = False
+    end
+    object Button3: TButton
+      Left = 7
+      Height = 32
+      Top = 72
+      Width = 137
+      Caption = 'Start listen'
+      TabOrder = 1
+      OnClick = Button3Click
+    end
+    object Label7: TLabel
+      Left = 6
+      Height = 16
+      Top = 47
+      Width = 41
+      Caption = 'Clients'
+      ParentColor = False
+    end
+    object Label8: TLabel
+      Left = 64
+      Height = 16
+      Top = 47
+      Width = 41
+      Caption = 'Label8'
+      ParentColor = False
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 336
+    Height = 145
+    Top = 48
+    Width = 144
+    Caption = ' PC2 '
+    ClientHeight = 128
+    ClientWidth = 142
+    TabOrder = 1
+    object Label5: TLabel
+      Left = 7
+      Height = 16
+      Top = 47
+      Width = 26
+      Caption = 'Port'
+      ParentColor = False
+    end
+    object Edit3: TEdit
+      Left = 47
+      Height = 26
+      Top = 39
+      Width = 80
+      TabOrder = 0
+      Text = 'Edit3'
+    end
+    object Label6: TLabel
+      Left = 7
+      Height = 16
+      Top = 14
+      Width = 12
+      Caption = 'IP'
+      ParentColor = False
+    end
+    object Edit4: TEdit
+      Left = 47
+      Height = 26
+      Top = 6
+      Width = 80
+      TabOrder = 1
+      Text = 'Edit4'
+    end
+    object Button4: TButton
+      Left = 7
+      Height = 32
+      Top = 72
+      Width = 120
+      Caption = 'Connect'
+      TabOrder = 2
+      OnClick = Button4Click
+    end
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 32
+    Top = 208
+    Width = 472
+    Caption = 'Close'
+    TabOrder = 2
+    OnClick = Button2Click
+  end
+  object GroupBox3: TGroupBox
+    Left = 176
+    Height = 145
+    Top = 48
+    Width = 152
+    Caption = ' Bandwidth '
+    ClientHeight = 128
+    ClientWidth = 150
+    TabOrder = 3
+    object Label4: TLabel
+      Left = 94
+      Height = 16
+      Top = 14
+      Width = 34
+      Caption = '[kb/s]'
+      ParentColor = False
+    end
+    object Edit2: TEdit
+      Left = 8
+      Height = 26
+      Top = 6
+      Width = 80
+      TabOrder = 0
+      Text = 'Edit2'
+    end
+    object Button1: TButton
+      Left = 8
+      Height = 32
+      Top = 72
+      Width = 124
+      Caption = 'Apply bandwidth'
+      TabOrder = 1
+      OnClick = Button1Click
+    end
+  end
+  object Button5: TButton
+    Left = 365
+    Height = 25
+    Top = 8
+    Width = 75
+    Caption = 'Help'
+    TabOrder = 4
+    OnClick = Button5Click
+  end
+  object ApplicationProperties1: TApplicationProperties
+    OnIdle = ApplicationProperties1Idle
+    Left = 232
+    Top = 168
+  end
+  object LTCPComponent1: TLTCPComponent
+    Port = 0
+    OnReceive = LTCPComponent1Receive
+    OnError = LTCPComponent1Error
+    OnDisconnect = LTCPComponent1Disconnect
+    OnAccept = LTCPComponent1Accept
+    OnCanSend = LTCPComponent1CanSend
+    Timeout = 0
+    ReuseAddress = False
+    Left = 64
+    Top = 168
+  end
+  object LTCPComponent2: TLTCPComponent
+    Port = 0
+    OnReceive = LTCPComponent2Receive
+    OnError = LTCPComponent2Error
+    OnConnect = LTCPComponent2Connect
+    OnCanSend = LTCPComponent2CanSend
+    Timeout = 0
+    ReuseAddress = False
+    Left = 392
+    Top = 168
+  end
+end

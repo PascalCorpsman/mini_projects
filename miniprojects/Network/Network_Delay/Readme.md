@@ -1,13 +1,12 @@
 # Network delay
 
-This tools simulates a delayed network. This is usefull if you want to simulate a WAN connection on your local computer.
+This tools simulates a delayed network connection. This is usefull if you want to simulate a WAN connection on your local computer.
 
 ![](preview.png)
 
 Features:
 - Delay network packets
 - TCP-IP only
-
 
 ### How to use:
 - start the application
