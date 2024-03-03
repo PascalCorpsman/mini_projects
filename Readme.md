@@ -29,6 +29,7 @@ Following is a short description of all listed projects
 | [Imageinspector](miniprojects/Imageinspector) | Programm to manipulate images and measure objects shown in that images |
 | [Imageshop](miniprojects/Imageshop) | Interactive image manipulation learning program (inspired by [this](https://github.com/sysrpl/Codebot.ImageShop)) |
 | [Intercept theorem](miniprojects/Intercept_theorem) | Demo application to calculate the intercept theorem |
+| [KLab](miniprojects/KLab/) | IDE for Atmel(r) AVR(c) microcontrollers projects inspired by [KontrollerLab](https://sourceforge.net/projects/kontrollerlab/)|
 | [Kollision](miniprojects/Kollision) | game that tests your reaction and multitasking skills |
 | [LAN Chat](miniprojects/LAN_Chat) | Simple chat program for LAN (and WAN if ports are forwared) |
 | [Network](miniprojects/Network) | Develop tools to simulate network properties (limit and delay) |

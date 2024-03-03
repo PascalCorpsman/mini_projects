@@ -1,0 +1,67 @@
+object Form7: TForm7
+  Left = 250
+  Height = 296
+  Top = 120
+  Width = 560
+  Caption = 'Form7'
+  ClientHeight = 296
+  ClientWidth = 560
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.3'
+  object ListBox1: TListBox
+    Left = 8
+    Height = 248
+    Top = 8
+    Width = 544
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    ItemHeight = 0
+    ScrollWidth = 540
+    TabOrder = 0
+    TopIndex = -1
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 264
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Add'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 96
+    Height = 25
+    Top = 264
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Del'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 392
+    Height = 25
+    Top = 263
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    OnClick = Button3Click
+    TabOrder = 3
+  end
+  object Button4: TButton
+    Left = 477
+    Height = 25
+    Top = 263
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Cancel'
+    OnClick = Button4Click
+    TabOrder = 4
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    left = 72
+    top = 216
+  end
+end

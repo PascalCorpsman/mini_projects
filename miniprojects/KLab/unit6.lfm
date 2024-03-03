@@ -1,0 +1,90 @@
+object Form6: TForm6
+  Left = 250
+  Height = 102
+  Top = 120
+  Width = 427
+  Caption = 'Form6'
+  ClientHeight = 102
+  ClientWidth = 427
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.1'
+  object Label1: TLabel
+    Left = 8
+    Height = 17
+    Top = 15
+    Width = 65
+    Caption = 'Find What:'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 80
+    Height = 25
+    Top = 8
+    Width = 248
+    OnKeyPress = Edit1KeyPress
+    OnKeyUp = Edit1KeyUp
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Button1: TButton
+    Left = 344
+    Height = 25
+    Top = 8
+    Width = 75
+    Caption = '&Find Next'
+    Enabled = False
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 344
+    Height = 25
+    Top = 40
+    Width = 75
+    Caption = '&Cancel'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object CheckBox1: TCheckBox
+    Left = 16
+    Height = 21
+    Top = 44
+    Width = 171
+    Caption = 'Match &Whole Word Only'
+    TabOrder = 3
+  end
+  object CheckBox2: TCheckBox
+    Left = 16
+    Height = 21
+    Top = 72
+    Width = 98
+    Caption = 'Match &Case'
+    TabOrder = 4
+  end
+  object RadioGroup1: TRadioGroup
+    Left = 200
+    Height = 49
+    Top = 44
+    Width = 129
+    AutoFill = True
+    Caption = ' Direction '
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.TopBottomSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 30
+    ClientWidth = 125
+    Columns = 2
+    ItemIndex = 1
+    Items.Strings = (
+      '&Up'
+      '&Down'
+    )
+    TabOrder = 5
+  end
+end

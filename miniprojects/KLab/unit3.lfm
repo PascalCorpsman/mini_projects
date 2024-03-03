@@ -1,0 +1,633 @@
+object Form3: TForm3
+  Left = 250
+  Height = 433
+  Top = 120
+  Width = 835
+  Caption = 'Program fuses'
+  ClientHeight = 433
+  ClientWidth = 835
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.1'
+  object Label1: TLabel
+    Left = 40
+    Height = 17
+    Top = 16
+    Width = 34
+    Caption = 'Bit 7'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label2: TLabel
+    Left = 144
+    Height = 17
+    Top = 16
+    Width = 34
+    Caption = 'Bit 6'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label3: TLabel
+    Left = 248
+    Height = 17
+    Top = 16
+    Width = 34
+    Caption = 'Bit 5'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label4: TLabel
+    Left = 352
+    Height = 17
+    Top = 16
+    Width = 34
+    Caption = 'Bit 4'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label5: TLabel
+    Left = 456
+    Height = 17
+    Top = 16
+    Width = 34
+    Caption = 'Bit 3'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label6: TLabel
+    Left = 552
+    Height = 17
+    Top = 16
+    Width = 34
+    Caption = 'Bit 2'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label7: TLabel
+    Left = 656
+    Height = 17
+    Top = 16
+    Width = 34
+    Caption = 'Bit 1'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label8: TLabel
+    Left = 760
+    Height = 17
+    Top = 16
+    Width = 34
+    Caption = 'Bit 0'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label9: TLabel
+    Left = 8
+    Height = 17
+    Top = 40
+    Width = 816
+    Caption = 'Fuse bits, high byte  -----------------------------------------------------------------------------------------------------------------------------------------'
+    ParentColor = False
+  end
+  object CheckBox1: TCheckBox
+    Left = 734
+    Height = 21
+    Top = 72
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox8Change
+    TabOrder = 0
+  end
+  object CheckBox2: TCheckBox
+    Left = 630
+    Height = 21
+    Top = 72
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox8Change
+    TabOrder = 1
+  end
+  object CheckBox3: TCheckBox
+    Left = 526
+    Height = 21
+    Top = 72
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox8Change
+    TabOrder = 2
+  end
+  object CheckBox4: TCheckBox
+    Left = 422
+    Height = 21
+    Top = 72
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox8Change
+    TabOrder = 3
+  end
+  object CheckBox5: TCheckBox
+    Left = 318
+    Height = 21
+    Top = 72
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox8Change
+    TabOrder = 4
+  end
+  object CheckBox6: TCheckBox
+    Left = 214
+    Height = 21
+    Top = 72
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox8Change
+    TabOrder = 5
+  end
+  object CheckBox7: TCheckBox
+    Left = 110
+    Height = 21
+    Top = 72
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox8Change
+    TabOrder = 6
+  end
+  object CheckBox8: TCheckBox
+    Left = 7
+    Height = 21
+    Top = 72
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox8Change
+    TabOrder = 7
+  end
+  object Label10: TLabel
+    Left = 8
+    Height = 17
+    Top = 104
+    Width = 819
+    Caption = 'Fuse bits, low byte  -------------------------------------------------------------------------------------------------------------------------------------------'
+    ParentColor = False
+  end
+  object Label11: TLabel
+    Left = 8
+    Height = 17
+    Top = 168
+    Width = 820
+    Caption = 'Fuse bits, extended byte ------------------------------------------------------------------------------------------------------------------------------------'
+    ParentColor = False
+  end
+  object Label12: TLabel
+    Left = 9
+    Height = 17
+    Top = 232
+    Width = 815
+    Caption = 'Lock bits -------------------------------------------------------------------------------------------------------------------------------------------------------'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 9
+    Height = 25
+    Top = 400
+    Width = 75
+    Caption = 'Close'
+    OnClick = Button1Click
+    TabOrder = 8
+  end
+  object Button2: TButton
+    Left = 553
+    Height = 25
+    Top = 400
+    Width = 131
+    Caption = 'Read from device'
+    OnClick = Button2Click
+    TabOrder = 9
+  end
+  object Button3: TButton
+    Left = 698
+    Height = 25
+    Top = 400
+    Width = 131
+    Caption = 'Write to device'
+    OnClick = Button3Click
+    TabOrder = 10
+  end
+  object Label13: TLabel
+    Left = 9
+    Height = 17
+    Top = 303
+    Width = 35
+    Caption = 'Hint:'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object CheckBox33: TCheckBox
+    Left = 56
+    Height = 21
+    Top = 300
+    Width = 292
+    Caption = 'Checked means fuse is programmed (=0)'
+    Checked = True
+    Enabled = False
+    State = cbChecked
+    TabOrder = 11
+  end
+  object CheckBox34: TCheckBox
+    Left = 360
+    Height = 21
+    Top = 300
+    Width = 324
+    Caption = 'Unchecked means fuse is unprogrammed (=1)'
+    Enabled = False
+    TabOrder = 12
+  end
+  object Label14: TLabel
+    Left = 8
+    Height = 17
+    Top = 326
+    Width = 73
+    Caption = 'Attention:'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label15: TLabel
+    Left = 22
+    Height = 59
+    Top = 326
+    Width = 433
+    Caption = '                   Program the fuses only if you know exactly what you are'#10'doing! Writing wrong fuse bits may damage the device! Rever to the'#10'datasheets for details.'
+    ParentColor = False
+  end
+  object Label16: TLabel
+    Left = 512
+    Height = 17
+    Top = 348
+    Width = 31
+    Caption = 'CPU:'
+    ParentColor = False
+  end
+  object ComboBox1: TComboBox
+    Left = 552
+    Height = 29
+    Top = 339
+    Width = 276
+    ItemHeight = 0
+    OnChange = ComboBox1Change
+    Style = csDropDownList
+    TabOrder = 13
+  end
+  object CheckBox9: TCheckBox
+    Left = 734
+    Height = 21
+    Top = 136
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox16Change
+    TabOrder = 14
+  end
+  object CheckBox10: TCheckBox
+    Left = 630
+    Height = 21
+    Top = 136
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox16Change
+    TabOrder = 15
+  end
+  object CheckBox11: TCheckBox
+    Left = 526
+    Height = 21
+    Top = 136
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox16Change
+    TabOrder = 16
+  end
+  object CheckBox12: TCheckBox
+    Left = 422
+    Height = 21
+    Top = 136
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox16Change
+    TabOrder = 17
+  end
+  object CheckBox13: TCheckBox
+    Left = 318
+    Height = 21
+    Top = 136
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox16Change
+    TabOrder = 18
+  end
+  object CheckBox14: TCheckBox
+    Left = 214
+    Height = 21
+    Top = 136
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox16Change
+    TabOrder = 19
+  end
+  object CheckBox15: TCheckBox
+    Left = 110
+    Height = 21
+    Top = 136
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox16Change
+    TabOrder = 20
+  end
+  object CheckBox16: TCheckBox
+    Left = 7
+    Height = 21
+    Top = 136
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox16Change
+    TabOrder = 21
+  end
+  object CheckBox17: TCheckBox
+    Left = 734
+    Height = 21
+    Top = 200
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox24Change
+    TabOrder = 22
+  end
+  object CheckBox18: TCheckBox
+    Left = 630
+    Height = 21
+    Top = 200
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox24Change
+    TabOrder = 23
+  end
+  object CheckBox19: TCheckBox
+    Left = 526
+    Height = 21
+    Top = 200
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox24Change
+    TabOrder = 24
+  end
+  object CheckBox20: TCheckBox
+    Left = 422
+    Height = 21
+    Top = 200
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox24Change
+    TabOrder = 25
+  end
+  object CheckBox21: TCheckBox
+    Left = 318
+    Height = 21
+    Top = 200
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox24Change
+    TabOrder = 26
+  end
+  object CheckBox22: TCheckBox
+    Left = 214
+    Height = 21
+    Top = 200
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox24Change
+    TabOrder = 27
+  end
+  object CheckBox23: TCheckBox
+    Left = 110
+    Height = 21
+    Top = 200
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox24Change
+    TabOrder = 28
+  end
+  object CheckBox24: TCheckBox
+    Left = 7
+    Height = 21
+    Top = 200
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox24Change
+    TabOrder = 29
+  end
+  object CheckBox25: TCheckBox
+    Left = 734
+    Height = 21
+    Top = 256
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox32Change
+    TabOrder = 30
+  end
+  object CheckBox26: TCheckBox
+    Left = 630
+    Height = 21
+    Top = 256
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox32Change
+    TabOrder = 31
+  end
+  object CheckBox27: TCheckBox
+    Left = 526
+    Height = 21
+    Top = 256
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox32Change
+    TabOrder = 32
+  end
+  object CheckBox28: TCheckBox
+    Left = 422
+    Height = 21
+    Top = 256
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox32Change
+    TabOrder = 33
+  end
+  object CheckBox29: TCheckBox
+    Left = 318
+    Height = 21
+    Top = 256
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox32Change
+    TabOrder = 34
+  end
+  object CheckBox30: TCheckBox
+    Left = 214
+    Height = 21
+    Top = 256
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox32Change
+    TabOrder = 35
+  end
+  object CheckBox31: TCheckBox
+    Left = 110
+    Height = 21
+    Top = 256
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox32Change
+    TabOrder = 36
+  end
+  object CheckBox32: TCheckBox
+    Left = 7
+    Height = 21
+    Top = 256
+    Width = 94
+    Caption = 'CheckBox1'
+    OnChange = CheckBox32Change
+    TabOrder = 37
+  end
+  object Label17: TLabel
+    Left = 9
+    Height = 17
+    Top = 280
+    Width = 232
+    Caption = 'For fuse bit calculation you can use :'
+    ParentColor = False
+  end
+  object Label18: TLabel
+    Cursor = crHandPoint
+    Left = 248
+    Height = 17
+    Top = 280
+    Width = 232
+    Caption = 'http://www.engbedded.com/fusecalc/'
+    Font.Color = clBlue
+    ParentColor = False
+    ParentFont = False
+    OnClick = Label18Click
+  end
+  object Label19: TLabel
+    Left = 88
+    Height = 17
+    Top = 406
+    Width = 46
+    Caption = 'in hex :'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 194
+    Height = 25
+    Top = 400
+    Width = 26
+    OnKeyPress = Edit1KeyPress
+    TabOrder = 38
+    Text = 'Edit1'
+  end
+  object Edit2: TEdit
+    Left = 279
+    Height = 25
+    Top = 400
+    Width = 26
+    OnKeyPress = Edit2KeyPress
+    TabOrder = 39
+    Text = 'Edit2'
+  end
+  object Edit3: TEdit
+    Left = 402
+    Height = 25
+    Top = 400
+    Width = 26
+    OnKeyPress = Edit3KeyPress
+    TabOrder = 40
+    Text = 'Edit3'
+  end
+  object Edit4: TEdit
+    Left = 493
+    Height = 25
+    Top = 400
+    Width = 26
+    OnKeyPress = Edit4KeyPress
+    TabOrder = 41
+    Text = 'Edit4'
+  end
+  object Label20: TLabel
+    Left = 178
+    Height = 17
+    Top = 406
+    Width = 15
+    Caption = '0x'
+    ParentColor = False
+  end
+  object Label21: TLabel
+    Left = 261
+    Height = 17
+    Top = 406
+    Width = 15
+    Caption = '0x'
+    ParentColor = False
+  end
+  object Label22: TLabel
+    Left = 386
+    Height = 17
+    Top = 406
+    Width = 15
+    Caption = '0x'
+    ParentColor = False
+  end
+  object Label23: TLabel
+    Left = 474
+    Height = 17
+    Top = 406
+    Width = 15
+    Caption = '0x'
+    ParentColor = False
+  end
+  object Label24: TLabel
+    Left = 146
+    Height = 17
+    Top = 400
+    Width = 27
+    Caption = 'high'
+    ParentColor = False
+  end
+  object Label25: TLabel
+    Left = 234
+    Height = 17
+    Top = 400
+    Width = 20
+    Caption = 'low'
+    ParentColor = False
+  end
+  object Label26: TLabel
+    Left = 322
+    Height = 17
+    Top = 400
+    Width = 60
+    Caption = 'extended'
+    ParentColor = False
+  end
+  object Label27: TLabel
+    Left = 442
+    Height = 17
+    Top = 400
+    Width = 25
+    Caption = 'lock'
+    ParentColor = False
+  end
+end
