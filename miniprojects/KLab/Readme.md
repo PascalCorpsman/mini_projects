@@ -1,6 +1,6 @@
 # KLab
 
-IDE for Atmel(r) AVR(c) microcontrollers projects inspired by [KontrollerLab](https://sourceforge.net/projects/kontrollerlab/)
+IDE for Atmel(r) AVR(c) microcontroller projects inspired by [KontrollerLab](https://sourceforge.net/projects/kontrollerlab/)
 
 ![](preview.png)
 
