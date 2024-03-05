@@ -17,6 +17,7 @@ Following is a short description of all listed projects
 | [2048](miniprojects/2048) | Implementation of the 2048 game |
 | [Extruder calibrator](miniprojects/3D_Printer/Extruder_Calibrator) | Application to easy calibrate the extruder steps of a 3d printer |
 | [ALT_F2](miniprojects/ALT_F2) | Application starter app with included calculater |
+| [Bitverknuepfungen](miniprojects/Bitverknuepfungen) | Program that evaluates boolean operator formulas |
 | [Button Tool](miniprojects/Button_Tool)| Program to create graphics with textured texts |
 | [Color Test](miniprojects/Color_Test) | Color capturing tool |
 | [CPU Load](miniprojects/CPU_Load) | Application to create a defined CPU-Load |

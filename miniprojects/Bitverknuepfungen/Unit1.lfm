@@ -1,0 +1,173 @@
+object Form1: TForm1
+  Left = 364
+  Height = 305
+  Top = 114
+  Width = 410
+  ActiveControl = Button1
+  Caption = 'Form1'
+  ClientHeight = 305
+  ClientWidth = 410
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnPaint = FormPaint
+  OnResize = FormResize
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object GroupBox1: TGroupBox
+    Left = 0
+    Height = 57
+    Top = 0
+    Width = 410
+    Align = alTop
+    Caption = ' Enter Formel '
+    ClientHeight = 39
+    ClientWidth = 406
+    TabOrder = 0
+    object Button1: TButton
+      Left = 112
+      Height = 25
+      Top = 4
+      Width = 75
+      Caption = '&Get'
+      OnClick = Button1Click
+      PopupMenu = PopupMenu2
+      TabOrder = 0
+    end
+    object ComboBox1: TComboBox
+      Left = 8
+      Height = 21
+      Hint = 'Warning : No Syntax checking !'
+      Top = 4
+      Width = 73
+      ItemHeight = 13
+      ItemIndex = 6
+      Items.Strings = (
+        'A'
+        'not A'
+        'not not A'
+        'A and 1'
+        'A or 0'
+        'A or B'
+        'A and B'
+        'A xor B'
+        'A <-> B'
+        'A -> B'
+        'not ( A and B )'
+      )
+      OnKeyPress = ComboBox1KeyPress
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      Text = 'A and B'
+    end
+    object Button2: TButton
+      Left = 200
+      Height = 25
+      Top = 4
+      Width = 75
+      Caption = '&Close'
+      OnClick = Button2Click
+      TabOrder = 2
+    end
+  end
+  object StringGrid1: TStringGrid
+    Left = 0
+    Height = 248
+    Top = 57
+    Width = 410
+    Align = alClient
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColMoving, goRowSelect]
+    PopupMenu = PopupMenu1
+    TabOrder = 1
+    TitleFont.Height = -11
+    TitleFont.Name = 'MS Sans Serif'
+    OnDrawCell = StringGrid1DrawCell
+    OnSelectCell = StringGrid1SelectCell
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 8
+    Top = 72
+    object Colourize1: TMenuItem
+      Caption = '&Colourize'
+      Checked = True
+      OnClick = Colourize1Click
+    end
+    object ShowOnlyResult11: TMenuItem
+      Caption = 'Show Only Result = &1'
+      OnClick = ShowOnlyResult11Click
+    end
+    object ShowonlyResult01: TMenuItem
+      Caption = 'Show only Result = &0'
+      OnClick = ShowonlyResult01Click
+    end
+    object Resortlist1: TMenuItem
+      Caption = '&Resort list'
+      OnClick = Resortlist1Click
+    end
+    object MakeKVDiagram1: TMenuItem
+      Caption = '&Make K-V-Diagram'
+      OnClick = MakeKVDiagram1Click
+    end
+    object Load1: TMenuItem
+      Caption = '&Load'
+      OnClick = Load1Click
+    end
+    object Save1: TMenuItem
+      Caption = '&Save'
+      OnClick = Save1Click
+    end
+    object SavewithoutValues1: TMenuItem
+      Caption = 'S&ave without Values'
+      OnClick = SavewithoutValues1Click
+    end
+    object ExtracttoLimboole1: TMenuItem
+      Caption = '&Extract to Limboole'
+      OnClick = ExtracttoLimboole1Click
+    end
+    object ImportfromLimboole1: TMenuItem
+      Caption = '&Import from Limboole'
+      OnClick = ImportfromLimboole1Click
+    end
+    object Help1: TMenuItem
+      Caption = '&Help'
+      OnClick = Help1Click
+    end
+    object Support1: TMenuItem
+      Caption = 'Suppor&t'
+      OnClick = Support1Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.bfk'
+    Filter = 'Bit convention|*.bfk|All|*.*'
+    Left = 40
+    Top = 72
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.bfk'
+    Filter = 'Bit convention|*.bfk|All|*.*'
+    Left = 72
+    Top = 72
+  end
+  object PopupMenu2: TPopupMenu
+    Left = 8
+    Top = 104
+    object GetonlyResult11: TMenuItem
+      Caption = 'Get only Result = &1'
+      OnClick = GetonlyResult11Click
+    end
+    object GetonlyResult01: TMenuItem
+      Caption = 'Get only Result = &0'
+      OnClick = GetonlyResult01Click
+    end
+  end
+  object OpenDialog2: TOpenDialog
+    DefaultExt = '.*'
+    Filter = 'All|*.*'
+    Left = 40
+    Top = 104
+  end
+end

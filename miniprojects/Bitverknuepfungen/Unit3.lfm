@@ -1,0 +1,22 @@
+object Form3: TForm3
+  Left = 238
+  Height = 92
+  Top = 122
+  Width = 325
+  BorderStyle = bsNone
+  Caption = 'Form3'
+  ClientHeight = 92
+  ClientWidth = 325
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  FormStyle = fsStayOnTop
+  LCLVersion = '2.3.0.0'
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Height = 82
+    Top = 6
+    Width = 308
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabOrder = 0
+  end
+end

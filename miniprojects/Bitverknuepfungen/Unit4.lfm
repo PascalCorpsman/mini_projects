@@ -1,0 +1,58 @@
+object Form4: TForm4
+  Left = 238
+  Height = 322
+  Top = 122
+  Width = 537
+  ActiveControl = StringGrid1
+  Caption = 'Form4'
+  ClientHeight = 322
+  ClientWidth = 537
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  FormStyle = fsStayOnTop
+  OnResize = FormResize
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object GroupBox1: TGroupBox
+    Left = 0
+    Height = 61
+    Top = 261
+    Width = 537
+    Align = alBottom
+    ClientHeight = 43
+    ClientWidth = 533
+    TabOrder = 0
+    object Button1: TButton
+      Left = 24
+      Height = 33
+      Top = 9
+      Width = 185
+      Caption = '&OK'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+  end
+  object StringGrid1: TStringGrid
+    Left = 0
+    Height = 261
+    Top = 0
+    Width = 537
+    Align = alClient
+    FixedCols = 0
+    FixedRows = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing]
+    PopupMenu = PpForm4
+    TabOrder = 1
+    TitleFont.Height = -11
+    TitleFont.Name = 'MS Sans Serif'
+    OnDrawCell = StringGrid1DrawCell
+  end
+  object PpForm4: TPopupMenu
+    Left = 8
+    Top = 8
+    object Colourize1: TMenuItem
+      Caption = '&Colourize'
+      OnClick = Colourize1Click
+    end
+  end
+end
