@@ -24,6 +24,7 @@ Following is a short description of all listed projects
 | [CRC Calculator](miniprojects/CRC_Calculator) | Calculate CRC checksums of arbiture data |
 | [Einstein](miniprojects/Einstein) | Solver for Einstein puzzles |
 | [FIR IIR](miniprojects/FIR_IIR) | Demo to apply FIR and IIR Filter onto arbiture data |
+| [Fixed comma](miniprojects/Fixed_Comma) | Demo to show how fixed comma numbers work |
 | [GIT gui](miniprojects/GIT_gui) | Plattform independent Tortoise Git like GIT-Gui |
 | [Heapsim](miniprojects/Heapsim) | Explore different memory manager and usecases |
 | [Image Multiplication](miniprojects/Image_Multiplication) | Demo to show image manipulations with a matrix |
