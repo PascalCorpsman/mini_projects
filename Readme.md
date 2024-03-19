@@ -37,6 +37,7 @@ Following is a short description of all listed projects
 | [LAN Chat](miniprojects/LAN_Chat) | Simple chat program for LAN (and WAN if ports are forwared) |
 | [Network](miniprojects/Network) | Develop tools to simulate network properties (limit and delay) |
 | [QProgrammer](miniprojects/QProgrammer) | Lightwight Pascal like interpreter with integrated testsystem |
+| [Raytracer](miniprojects/Raytracer) | Demo that shows how to write a raytracer (including a parser for the scenes) |
 | [PNG Editor](miniprojects/PNG_Editor) | Split and merge alpha channel of .png images |
 | [Parken](miniprojects/Parken) | Demo for trectric curves |
 | [Pentago](miniprojects/Pentago) | Implementation of the board game Pentago |

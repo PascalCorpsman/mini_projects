@@ -1,0 +1,263 @@
+(*
+In dieser Scene wird versucht alle Möglichkeiten die der
+Raytracer bietet auf zu zeigen.
+
+Der Parser Arbeiten von Oben nach unten => was oben steht wird zuerst gemacht !
+
+*)
+
+// Dies ist ein Kommentar der nur eine Zeile Lang ist
+(*
+   Das ist ein Mehrzeiliger Kommentar
+*)
+// Diese Scene zeigt welche Elemente der Raytrace alles unterstützt
+// Hier sind ALLE Optionen aufgelistet.
+// Auser bei Positionsangaben sind immer jeweils Standartwerte gesetzt.
+//
+Raytracer
+{
+  Imagewidth = 400; // Integer > 0
+  Imageheight = 400; // Integer >  0
+  (*
+  Gibt die Bildgröße in Pixels an.
+  *)
+  Mindistance = 0.00001; // x mit x > 0
+  // Gibt an ab welcher Minimalen Toleranz zwei Float werte als unterschiedlich
+  // erkannt werden
+  (*
+  ACHTUNG dieser Wert sollte nur von sehr Erfahrenen Usern geändert werden, da
+  er unter umständen alle Berechnungen des Raytracers zunichte machen kann und
+  oder zu Programmabstürzen führen kann.
+  *)
+  Maxdistance = 10000000000.0; // x mit x = Single > 0
+  // Gibt an ab welcher Minimalen Toleranz zwei Float werte als unterschiedlich
+  // erkannt werden
+  (*
+  ACHTUNG dieser Wert sollte nur von sehr Erfahrenen Usern geändert werden, da
+  er unter umständen alle Berechnungen des Raytracers zunichte machen kann und
+  oder zu Programmabstürzen führen kann.
+  *)
+  
+  Lightoverflowmode = Clamp; // Scale
+  Orthoprojection = off; // on
+  Ortho = ((0.0,0.0),(1.0,1.0),1.0);
+  // ((x,y),(z,a),b); = ( BottomLeft,TopRight,Z-Direction)
+  // mit x,y,z,a,b = Single
+  // ist die Option Orthoprojection an so rendert der Raytracer ein Bild
+  // innerhalb von BottomLeft und TopRight in der XY-Ebene, z gibt dabei die
+  // Blickrichtung an.
+  // z >= 0 = Blickrichtung in Positive Z-Achse
+  // z < 0 = Blickrichtung in Negative Z- Achse
+  
+  Cullfaceing = off; // on
+  Cullfacemode = front; // back
+  Backgroundcolor = (0.0,0.0,0.0); // (x,y,z) mit x,y,z = Single
+  Rekursiondepth = 10; // x mit x = Integer >= 0
+  Eye = ((0.0,0.5,0.0),(0.0,1.0,0.0),(0.0,0.0,1.0));
+  // ((x,y,z),(a,b,c),(d,e,f)) = (Position,Up,Direction) mit x,y,z,a,b,c,d,e,f
+  // = single
+  // Alternativ zu Eye kann auch Look At benutzt werden.
+  // Lookat = ((0.0,0.5,0.0),(0.0,0.5,1.0),(0.0,1.0,0.0));
+  // ((x,y,z),(a,b,c),(d,e,f)) = (Position,Center,Up) mit x,y,z,a,b,c,d,e,f
+  // = single
+  Fog = off; // on
+  Fogmin = 1.0; // x mit x = Single >= 0
+  Fogmax = 2.0; // x mit x = Single > Fogmin
+  Fogmode = linear; // Cos
+  Fogcolor = (0.3,0.3,0.3); // (x,y,z) mit x,y,z = Single
+}
+Variables
+{
+  Zero1 = 0.0;
+  Zero1 = Zero1;
+  Zero2 = (0.0,0.0);
+  Zero2 = Zero2;
+  Zero2 = (Zero1,Zero1);
+  Zero3 = (0.0,0.0,0.0);
+  Zero3 = Zero3;
+  Zero4 = (0.0,0.0,Zero1,0.0);
+  Zero4 = Zero4;
+  StringS = "@Scenepath@sample.bmp";
+  StringS = StringS;
+  OnB = on;
+  OnB = OnB;
+  TextureModeM = Biliniar;
+  TextureModeM = TextureModeM;
+}
+// So kann man eine Lichtquelle hinzufügen
+// Mindestens eine eingeschaltete Lichtquelle mus vorhanden sein !
+Light
+{
+  Position = (-0.5,5.0,2.0); // (x,y,z) mit x,y,z = Single
+  Active = on; // off
+  Ambientcolor = (1.0,1.0,1.0); // (x,y,z) mit x,y,z = Single >= 0
+  Diffusecolor = (1.0,1.0,1.0); // (x,y,z) mit x,y,z = Single >= 0
+  Specularcolor = (1.0,1.0,1.0); // (x,y,z) mit x,y,z = Single >= 0
+}
+// So werden Dreiecke hinzugefügt
+Triangle
+{
+  Points = ((-1.0,0.0,0.0),(1.0,0.0,0.0),(0.0,1.0,1.0));
+  // Die Definition der punkte mus immer geschehen bevor rotiert oder
+  // gedreht wird.
+  // die Vertices müssen im Gegenuhrzeigersinn angegeben werden. Sonst stimmt
+  // das Cullfacing nicht !!
+  // ((x,y,z),(a,b,c),(d,e,f)) = (Vertex1,Vertex2,Vertex3) mit x,y,z,a,b,c,d,e,f
+  Rotate = (0.0,0.0,0.0,0.0);
+  // Mit Rotate kann das gesammte Triangle nachträglich noch gedreht werden.
+  // Ein Beispielhafter aufruf wäre etwa
+  // Rotate = ( 90 , 1 , 0 , 0 );
+  // Bewirkt eine Drehung des gesammten Dreiecks um 90° um die X-Achse
+  // Die Reihenfolge der Operationene ist hierbei aber durchaus von
+  // Bedeutung.
+  // (a,x,y,z) = ( Angle , dX , dY , dZ ) mit a,x,y,z = Single
+  Translate = (0.0,0.0,0.0);
+  // Mit Translate kann das gesammte Traingle nachträglich noch um den
+  // Vektor verschoben werden.
+  // (x,y,z) = ( dX , dY , dZ ) mit x,y,z = Single
+  // Jedes Primitive hat seine Eigenen Materialeigenschaften
+  // Im Großen Ganzen sind die aber bis auf die Anzahl der
+  // Texturkoordinaten immer gleich.
+  Material
+  {
+    Texture = "@Scenepath@sample_reflection.bmp";
+    // Vom Raytracer Akzeptierte Bildformate
+    // *.bmp
+    // *.jpg
+    // Ein Bild wird entweder Absolut oder indirekt angeben
+    // z.B. :
+    // Texture = "C:\Test.bmp"; // Absolut
+    // oder
+    // der Präfix @Local@ steht hierbei für den Pfad von dem aus der Parser gestartet wurde.
+    // Texture = "@Local@Test.bmp"; // Hierbei wird die Biddatei im Verzeichnis von
+    // dem aus der Parser gestartet wurde geöffnet.
+    // Der Präfix @Scenepath@ steht für den Pfas in dem die *.scene Datei gespeichert wurde
+    // Das Aufrufen weiterer Verzeichnisse ist ebenfalls möglich in etwa wie
+    // Texture = "@Scenepath@BilderVerzeichnis\Test.bmp";
+    
+    // Transparencetexture = "@Scenepath@Sample.bmp"
+    // Transparencetexture überschreibt den Parameter Transparence und setzt für
+    // jeden Lookup den interpolierten Luminance wert aus der Texture als
+    // Transparence wert ein.
+    
+    Smoothshadow = 0.0; // x mit x = Single >= 0
+    // ist diese Option eingeschaltet dann wird der Schatten der duch die
+    // Kugel entsteht je nach SmoothshadowMode übergeblendet.
+    // X = 0 = aus
+    // X > 0 = eingeschaltet. Smoothshadow wird auf den Radius der Kugel
+    // scaliert X = 1 = Kugelradius
+    Smoothshadowmode = linear; // cos
+    // ist die Smoothshadow aktiviert dann kann hier ausgewählt werden ob
+    // der Schatten Liniar oder über die Cosinusfunction angenähert werden soll.
+    Textureparameter = Clamp; // Repeat
+    Textureinterpolation = Nearest; // Biliniar , Cos , Triliniar
+    Reflectance = 0.0; // x mit x = Single in [ 0..1 ]
+    Transparence = 0.0; // x mit x = Single in [ 0..1 ]
+    Ambientcolor = (0.0,0.0,0.0);
+    // (x,y,z) mit x,y,z = Single in >= 0
+    // Ambientes Licht wird zwar mit 0 initialisiert, es empfiehlt sich jedoch
+    // den wert ein klein wenig über 0 zu setzen, da sonst die Schatten doch sehr
+    // Dunkel sind. So schöne Effeckte wie Kern und Halbschatten gehen dann
+    // Komplett verloren.
+    Emissioncolor = (0.0,0.0,0.0);
+    // (x,y,z) mit x,y,z = Single in >= 0
+    Diffusecolor = (1.0,1.0,1.0);
+    // (x,y,z) mit x,y,z = Single in >= 0
+    Specularcolor = (1.0,1.0,1.0);
+    // (x,y,z) mit x,y,z = Single in >= 0
+    Highlightexponent = 64.0; // x mit x = Single >= 0
+    Texturecoordinates = ((0.0,1.0),(0.0,0.0),(1.0,0.0));
+    // Die Texturekoordinaten sind natürlich nur notwendig wenn auch eine
+    // Textur angegeben wurde.
+    // Die Texturkoordinaten werden hierbei in der Selben Reihenfolge
+    // wie übergeben an die entsprechenden Punkte gebunden.
+    // ((x,y),(z,a),(b,c) =
+    // (TexturCoordPunkt1,TexturCoordPunkt2,TexturCoordPunkt2) mit
+    // x,y,z,a,b,c = Single
+  }
+}
+(*
+Ab hier Werden nun immer nur noch die unterschiede gezeigt die sich zu
+Triangle unterscheiden.
+*)
+Quad
+{
+  Points = (
+  (0.5,0.0,0.1), //1
+  (1.5,0.75,0.1), //2
+  (1.5,1.75,2.0), //3
+  (0.5,1.0,2.0) // 4
+  
+  );
+  // Ein Quad braucht natürlich 4 punkte wieder im Gegenuhrzeigersinn
+  
+  // Rotate = Gleich wie bei Triangle
+  // Translate = Gleich wie bei Triangle
+  Material
+  {
+    Diffusecolor = (1.0,0.0,0.0);
+    // Die Diffuse Farbe ist nur Spielerei damit das Bild schön Bund aussieht ;)
+    
+    Texturecoordinates = ((0.0,0.0),(1.0,0.0),(1.0,1.0),(0.0,1.0));
+    // Das Quad hat nun natürlich 4 TexturKoordinaten der rest bleibt gleich.
+  }
+}
+
+Sphere
+{
+  Position = (-0.5,0.5,0.5);
+  Radius = 0.25; // x = Single in >= 0
+  // eine Kugel wird definiert durch eine Position und einen Radius
+  // Erst wenn beide Definiert wurden, kann sie Rotiert oder Transliert werden
+  
+  // Rotate = Dreht die Kugel ( wirkt sich also auf die Texturierung aus )
+  // sammt Position um den Ursprung
+  // Translate = Gleich wie bei Triangle
+  
+  Material
+  {
+    Shadowborder = 0.0; // x = Single in >= 0
+    // Die Kugeln bieten die Möglichkeit der Weichen Schatten auf der Kugel
+    // Diese können zur besseren Darstellung aktiviert werden.
+    // X = 0 = aus
+    // X > 0 = eingeschaltet. Shadowborder wird auf den Radius der Kugel
+    // scaliert X = 1 = Kugelradius
+    Shadowbordermode = linear; // Cos
+    // ist die Shadowborder aktiviert dann kann hier ausgewählt werden ob
+    // der Schatten Liniar oder über die Cosinusfunction angenähert werden soll.
+    Smoothshadow = 0.0; // x = Single in >= 0, genaueres siehe Triangle
+    Smoothshadowmode = linear; // Cos, genaueres siehe Triangle
+    Ambientcolor = (0.0,0.0,0.0);
+    Diffusecolor = (0.0,1.0,0.0);
+    // Wieder ein bischen Spielerei.
+    // TextureCoordinates <= gibt es bei Kugeln NICHT !!!
+  }
+}
+
+External
+{
+  Filename = "@Scenepath@sample2";
+  // Hier kann eine weitere Teilscene geladen werden.
+  // dies dient nur der Übersichtlichkeit
+  // Alle in der Teilszene befindlichen Primitive gemeinsam ( ausgenommen
+  // Lichtquellen ) können nachträglich noch mittels Rotate und Translate
+  // Verschoben bzw rotiert werden. Will man also z.b. ein Quad mehrfach nutzen,
+  // so lagert man es in eine extra scene aus und bindet diese ein und kann so
+  // ohne viel Schreibarbeit das object mehrfach in die Scene einfügen.
+  (*
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ACHTUNG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  Der Parser kann eine Wechselseitige Rekursion zwischen 2 *.scene Dateien
+  nicht erkennen. Und stürtzt dann unweigerlich mit einem Stackoverflow ab.
+
+  *)
+  // Rotate = Rotieren aller Elemente ( auser lichtquellen ) aus der Scene
+  // Translate = Translieren aller Elemente ( auser lichtquellen ) aus der Scene
+  Translate = (0.75,0.7,1);
+  (*
+  Werden mehrere Dateien nacheinander Eingebunden und Transliert, so ist auf
+  die Reihenfolge zu achten. Die Translationen , Rotationen wirken sich immer
+  nur auf alle bereits geladenen Dateien aus.
+  *)
+}

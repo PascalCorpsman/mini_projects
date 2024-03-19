@@ -1,0 +1,51 @@
+object Form4: TForm4
+  Left = 238
+  Height = 475
+  Top = 122
+  Width = 640
+  ActiveControl = TreeView1
+  Caption = 'help'
+  ClientHeight = 475
+  ClientWidth = 640
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Memo1: TMemo
+    Left = 160
+    Height = 460
+    Top = 8
+    Width = 473
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    OnKeyPress = Memo1KeyPress
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 440
+    Width = 145
+    Anchors = [akLeft, akBottom]
+    Caption = '&OK'
+    OnClick = Button1Click
+    OnKeyDown = Button1KeyDown
+    TabOrder = 1
+  end
+  object TreeView1: TTreeView
+    Left = 8
+    Height = 424
+    Top = 8
+    Width = 145
+    Anchors = [akTop, akLeft, akBottom]
+    Indent = 19
+    ReadOnly = True
+    ShowSeparators = False
+    TabOrder = 2
+    OnClick = TreeView1Click
+    OnKeyPress = TreeView1KeyPress
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+  end
+end

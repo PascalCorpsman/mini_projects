@@ -1,0 +1,112 @@
+Raytracer
+{
+  //  Imagewidth = 800;
+  //  Imageheight = 600;
+  Imagewidth = 400;
+  Imageheight = 300;
+  Rekursiondepth = 1;
+  Lookat = ((40,40,0),(0,0,0),(0,1,0));
+  Mindistance = 0.01;
+  Backgroundcolor = (0,0,0);
+}
+Variables
+{
+  Spherepos3 = (0,0,0);
+  SphereRadius1 = 5;
+  SphereDistance1 = 10;
+  SphereReflectance1 = 0.8;
+  SpecCol3 = (0.1,0.1,0.1);
+  w_half1 = 4;
+  h_half1 = 4;
+  t_half1 = 4;
+
+  //Die Farben stimmen wohl noch nicht alle und
+ // auch sind diese 3 Konstanten nur gesetzt, damit es kompiliert.
+  AmbientColor3 = (0.0,0.0,0.0);
+  DiffuseColor3 = (0.2,0.2,0.2);
+  SpecularColor3 = (1.0,1.0,1.0);
+}
+
+Light
+{
+  Active = on;
+  Position = (SphereDistance1,30,SphereDistance1);
+  Specularcolor = SpecCol3;
+  // Diffusecolor = (1,0,0);
+  Ambientcolor = (0.1,0.9,0.1);
+}
+
+Light
+{
+  Active = on;
+  Position = (-SphereDistance1,30,SphereDistance1);
+  Specularcolor = SpecCol3;
+}
+Light
+{
+  Active = on;
+  Position = (-SphereDistance1,30,-SphereDistance1);
+  Specularcolor = SpecCol3;
+}
+Light
+{
+  Active = on;
+  Position = (SphereDistance1,30,-SphereDistance1);
+  Specularcolor = SpecCol3;
+}
+External
+{
+  Filename = "@scenepath@balls_cube";
+}
+(*
+
+Quad
+{
+  Points = (
+  (-40,-10,-40),
+  (40,-10,-40),
+  (40,-10,40),
+  (-40,-10,40)
+  );
+  Material
+  {
+    Texture = "Marble.bmp";
+    Textureinterpolation = Biliniar;
+  }
+}
+
+Quad
+{
+  Points = (
+  (40,-30,-40),
+  (40,-10,-40),
+  (40,-10,40),
+  (40,-30,40)
+  );
+  Material
+  {
+    Texture = "Marble.bmp";
+    Textureinterpolation = Biliniar;
+  }
+}
+ *)
+External
+{
+  Filename = "@scenepath@balls_sphere";
+  Translate = (SphereDistance1,0,SphereDistance1);
+}
+External
+{
+  Filename = "@scenepath@balls_sphere";
+  Translate = (-SphereDistance1,0,SphereDistance1);
+}
+External
+{
+  Filename = "@scenepath@balls_sphere";
+  Translate = (-SphereDistance1,0,-SphereDistance1);
+}
+External
+{
+  Filename = "@scenepath@balls_sphere";
+  Translate = (SphereDistance1,0,-SphereDistance1);
+}

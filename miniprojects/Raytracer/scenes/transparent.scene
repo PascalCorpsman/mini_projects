@@ -1,0 +1,49 @@
+Raytracer
+{
+  Backgroundcolor = (0.0,0.0,0.0);
+  Lookat = ((0,0.1,-5),(0,0,0),(0,1,0));
+  Cullfaceing = off;
+}
+
+Light
+{
+  (*
+  Wir Wollen Keine Schatten, also gibt es in der Scene nur Ambientes Licht.
+  *)
+  Position = (0.0,2.0,-2.0);
+  Ambientcolor = (1.0,1.0,1.0);
+  Diffusecolor = (0.0,0.0,0.0);
+  Specularcolor = (0.0,0.0,0.0);
+}
+
+Quad
+{
+  Points = (
+  (-2,-2,0),
+  (2,-2,0),
+  (2,2,0),
+  (-2,2,0)
+  );
+  Material
+  {
+    Ambientcolor = (1,0,0);
+    Diffusecolor = (0,0,0);
+  }
+}
+
+Quad
+{
+  Points = (
+  (-2,2,0), //4
+  (2,2,0), //3
+  (2,-2,0), //2
+  (-2,-2,0) //1
+  );
+  Translate = (1,-1,-1);
+  Material
+  {
+    Ambientcolor = (0,1,0);
+    //Transparence = 0.5;
+    Transparencetexture = "@Scenepath@transparence.bmp";
+  }
+}

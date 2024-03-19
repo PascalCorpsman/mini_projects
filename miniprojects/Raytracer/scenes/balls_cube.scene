@@ -1,0 +1,110 @@
+(*
+Cube.scene
+
+Stellt einen Würfel dar.
+
+Es werden benötigt
+
+w_half1 = breite
+t_half1 = tiefe
+h_half1 = Höhe
+AmbientColor3 = Ambiente Fabe
+DiffuseColor3 = Diffuse Fabe
+SpecularColor3 = Speculare Fabe
+*)
+// Der Deckel
+Quad
+{
+  Points = (
+  (-w_half1,h_half1,-T_half1),
+  (w_half1,h_half1,-T_half1),
+  (w_half1,h_half1,T_half1),
+  (-w_half1,h_half1,T_half1)
+  );
+  Material
+  {
+    Ambientcolor = Ambientcolor3;
+    Diffusecolor = Diffusecolor3;
+    Specularcolor = Specularcolor3;
+  }
+}
+// Der Boden
+Quad
+{
+  Points = (
+  (-w_half1,-h_half1,T_half1),
+  (w_half1,-h_half1,T_half1),
+  (w_half1,-h_half1,-T_half1),
+  (-w_half1,-h_half1,-T_half1)
+  );
+  Material
+  {
+    Ambientcolor = Ambientcolor3;
+    Diffusecolor = Diffusecolor3;
+    Specularcolor = Specularcolor3;
+  }
+}
+// Vorne
+Quad
+{
+  Points = (
+  (-w_half1,h_half1,T_half1),
+  (w_half1,h_half1,T_half1),
+  (w_half1,-h_half1,T_half1),
+  (-w_half1,-h_half1,T_half1)
+  );
+  Material
+  {
+    Ambientcolor = Ambientcolor3;
+    Diffusecolor = Diffusecolor3;
+    Specularcolor = Specularcolor3;
+  }
+}
+// Hinten
+Quad
+{
+  Points = (
+  (-w_half1,-h_half1,-T_half1),
+  (w_half1,-h_half1,-T_half1),
+  (w_half1,h_half1,-T_half1),
+  (-w_half1,h_half1,-T_half1)
+  );
+  Material
+  {
+    Ambientcolor = Ambientcolor3;
+    Diffusecolor = Diffusecolor3;
+    Specularcolor = Specularcolor3;
+  }
+}
+// Links
+Quad
+{
+  Points = (
+  (-w_half1,-h_half1,T_half1),
+  (-w_half1,-h_half1,-T_half1),
+  (-w_half1,h_half1,-T_half1),
+  (-w_half1,h_half1,T_half1)
+  );
+  Material
+  {
+    Ambientcolor = Ambientcolor3;
+    Diffusecolor = Diffusecolor3;
+    Specularcolor = Specularcolor3;
+  }
+}
+// Rechts
+Quad
+{
+  Points = (
+  (w_half1,h_half1,T_half1),
+  (w_half1,h_half1,-T_half1),
+  (w_half1,-h_half1,-T_half1),
+  (w_half1,-h_half1,T_half1)
+  );
+  Material
+  {
+    Ambientcolor = Ambientcolor3;
+    Diffusecolor = Diffusecolor3;
+    Specularcolor = Specularcolor3;
+  }
+}

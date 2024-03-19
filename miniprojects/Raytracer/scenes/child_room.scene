@@ -1,0 +1,147 @@
+Raytracer
+{
+  Imagewidth = 860;
+  Imageheight = 650;
+  Imagewidth = 430;
+  Imageheight = 325;
+  Cullfaceing = on;
+  Rekursiondepth = 10;
+  //  Rekursiondepth = 0;
+  Eye = ((0,0.0,0.0),(0,1,0),(0,0,1));
+}
+(*
+Die Garantie das wir immer was sehen..
+*)
+Light
+{
+  Active = on;
+  Position = (0,0.0,0);
+  Ambientcolor = (1,1,1);
+  Diffusecolor = (0,0,0);
+  Specularcolor = (0,0,0);
+}
+
+Light
+{
+  Active = on;
+  Position = (0,0.95,0.25);
+  Ambientcolor = (0,0,0);
+  Diffusecolor = (0.5,0.5,0.5);
+  Specularcolor = (1,1,1);
+}
+
+//(*
+Sphere
+{
+  Position = (0,0.0,0.0);
+  Radius = 0.1;
+  Rotate = (40,0,0,1);
+  Translate = (0,0.95,0.25);
+  
+  Material
+  {
+    
+    Textureinterpolation = Biliniar;
+    Transparencetexture = "@scenepath@child_room.bmp";
+    Texture = "@scenepath@child_room_texture.bmp";
+    Ambientcolor = (0.3,0.3,0.3);
+  }
+} //*)
+
+(*
+     Boden
+*)
+Quad
+{
+  Points = (
+  (-1.32,-1,0),
+  (1.32,-1,0),
+  (1.32,-1,1),
+  (-1.32,-1,1)
+  );
+  Material
+  {
+    Ambientcolor = (0.2,0.2,0.2);
+    Diffusecolor = (0.25,0.25,0.25);
+    Specularcolor = (0.3,0.3,0.3);
+    Highlightexponent = 1;
+  }
+}
+(*
+Hinten
+*)
+Quad
+{
+  Points = (
+  (-1.32,-1,1),
+  (1.32,-1,1),
+  (1.32,1,1),
+  (-1.32,1,1)
+  );
+  Material
+  {
+    Ambientcolor = (0.0,0.0,0.3);
+    Diffusecolor = (0,0,0.5);
+    Specularcolor = (0.3,0.3,0.1);
+    Highlightexponent = 1;
+  }
+}
+(*
+Links
+*)
+Quad
+{
+  Points = (
+  (-1.32,-1,0),
+  (-1.32,-1,1),
+  (-1.32,1,1),
+  (-1.32,1,0)
+  );
+  Material
+  {
+    Ambientcolor = (0.3,0.0,0.0);
+    Diffusecolor = (0.5,0,0);
+    Specularcolor = (0.3,0.3,0.3);
+    Highlightexponent = 1;
+  }
+}
+(*
+Rechts
+*)
+Quad
+{
+  Points = (
+  (1.32,-1,1),
+  (1.32,-1,0),
+  (1.32,1,0),
+  (1.32,1,1)
+  );
+  Material
+  {
+    Ambientcolor = (0.0,0.3,0.0);
+    Diffusecolor = (0,0.5,0);
+    Specularcolor = (0.3,0.3,0.3);
+    Highlightexponent = 1;
+  }
+}
+(*
+Decke
+*)
+Quad
+{
+  Points = (
+  (-1.32,1,1),
+  (1.32,1,1),
+  (1.32,1,0),
+  (-1.32,1,0)
+  );
+  Material
+  {
+    Ambientcolor = (0.3,0.3,0.3);
+    //    Diffusecolor = (0,0,0);
+    Diffusecolor = (0.4,0.4,0.4);
+    //    Specularcolor = (1,1,1);
+    Specularcolor = (0,0,0);
+    Highlightexponent = 1;
+  }
+}

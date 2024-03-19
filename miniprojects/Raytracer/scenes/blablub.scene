@@ -1,0 +1,169 @@
+Raytracer
+{
+  Lookat = ((0,1,-6),(0,0,0),(0,1,0));
+}
+
+Light
+{
+  Active = on;
+  Position = (6,2,2);
+  //  Ambientcolor = (1,0,0);
+  //Ambientcolor = (0.5,0.5,0.5);
+  Ambientcolor = (0,0,0);
+  Diffusecolor = (0,0,0);
+  Specularcolor = (0,1,0);
+  
+  
+}
+
+Light
+{
+  Active = on;
+  Position = (0,2,2);
+  //  Ambientcolor = (0.1,0.1,0.1);
+  //  Diffusecolor = (0.1,0.1,0.1);
+  Diffusecolor = (0.1,0.1,0.1);
+  Specularcolor = (0,0,0);
+  
+}
+
+Variables
+{
+  d1 = 3;
+  d_drittel1 = 1;
+  ambi3 = (0.5,0.5,0.5);
+}
+// Decke
+Quad
+{
+  Points = (
+  (-d1,d1,d1),
+  (-d1,d1,-d1),
+  (d1,d1,-d1),
+  (d1,d1,d1)
+  );
+  Material
+  {
+    Ambientcolor = ambi3;
+  }
+}
+// Boden
+Quad
+{
+  Points = (
+  (-d1,-d1,d1),
+  (-d1,-d1,-d1),
+  (d1,-d1,-d1),
+  (d1,-d1,d1)
+  );
+  Material
+  {
+    Ambientcolor = ambi3;
+  }
+}
+// Links
+Quad
+{
+  Points = (
+  (-d1,-d1,d1),
+  (-d1,-d1,-d1),
+  (-d1,d1,-d1),
+  (-d1,d1,d1)
+  );
+  Material
+  {
+    Ambientcolor = ambi3;
+  }
+}
+// Hinten
+Quad
+{
+  Points = (
+  (-d1,-d1,d1),
+  (d1,-d1,d1),
+  (d1,d1,d1),
+  (-d1,d1,d1)
+  );
+  Material
+  {
+    Ambientcolor = ambi3;
+  }
+}
+// rechts
+Quad
+{
+  Points = (
+  (d1,-d_drittel1,-d1),
+  (d1,-d_drittel1,d1),
+  (d1,-d1,d1),
+  (d1,-d1,-d1)
+  );
+  Material
+  {
+    Ambientcolor = ambi3;
+  }
+}
+Quad
+{
+  Points = (
+  (d1,d_drittel1,-d1),
+  (d1,d_drittel1,d1),
+  (d1,d1,d1),
+  (d1,d1,-d1)
+  );
+  Material
+  {
+    Ambientcolor = ambi3;
+  }
+}
+Quad
+{
+  Points = (
+  (d1,-d_drittel1,-d1),
+  (d1,-d_drittel1,-d_drittel1),
+  (d1,d_drittel1,-d_drittel1),
+  (d1,d_drittel1,-d1)
+  );
+  Material
+  {
+    Ambientcolor = ambi3;
+  }
+}
+Quad
+{
+  Points = (
+  (d1,-d_drittel1,d1),
+  (d1,-d_drittel1,d_drittel1),
+  (d1,d_drittel1,d_drittel1),
+  (d1,d_drittel1,d1)
+  );
+  Material
+  {
+    Ambientcolor = ambi3;
+  }
+}
+// Fenster
+Quad
+{
+  Points = (
+  (d1,-d_drittel1,-d_drittel1),
+  (d1,-d_drittel1,d_drittel1),
+  (d1,d_drittel1,d_drittel1),
+  (d1,d_drittel1,-d_drittel1)
+  );
+  Material
+  {
+    Ambientcolor = (1,0,0);
+    Transparencetexture = "@scenepath@window_t.bmp";
+    Texture = "@scenepath@window.bmp";
+    
+    //    Textureinterpolation = Biliniar;
+    //    Transparencetexture = "@scenepath@Child_room.bmp";
+    //    Texture = "@scenepath@Child_room_texture.bmp"
+    Ambientcolor = (0.3,0.3,0.3);
+  }
+}
+
+(*****************************************************************************)
+
+

@@ -1,0 +1,19 @@
+Sphere
+{
+  Position = (0,0,0);
+  Radius = 0.6;
+  Material
+  {
+    Smoothshadow = 0.25;
+    Smoothshadowmode = cos;
+    Shadowborder = 1;
+    Shadowbordermode = cos;
+    Reflectance = 0.25;
+    Ambientcolor = (0.0,0.0,0.0);
+    Diffusecolor = (0.75,0.75,0.75);
+    //    Specularcolor = (0.5,0.5,0.5);
+    //    Highlightexponent = 6;
+    Specularcolor = (0.25,0.25,0.25);
+    Highlightexponent = 4;
+  }
+}

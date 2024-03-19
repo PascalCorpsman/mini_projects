@@ -1,0 +1,82 @@
+Raytracer
+{
+  Imagewidth = 640;
+  Imageheight = 480;
+//  Imagewidth = 1024;
+//  Imageheight = 768;
+  Rekursiondepth = 10;
+   Eye = ((0,1.5,-4),(0,1,0),(0,0,1));
+//  Eye = ((0,1.5,-8),(0,1,0),(0,0,1));
+  Mindistance = 0.0001;
+  Fog = on;
+  Fogmin = 2;
+  Fogmax = 15;
+  Fogmode = Linear;
+// Fogmode = cos;
+  Fogcolor = (0.5,0.5,0.5);
+}
+Light
+{
+  Position = (2.3,3.0,-2);
+  Ambientcolor = (1,1,1);
+  //  Diffusecolor = (1,1,1);
+  Diffusecolor = (1,1,1);
+  Specularcolor = (2,2,2);
+}
+(*
+Mit diesem Licht kann man versuchen die abgedunkelten Teile ein wenig aufzuhellen
+aber es klappt nicht wirklich
+*)
+Light
+{
+  Active = off;
+  Position = (-3.75,1,-3);
+  Ambientcolor = (0,0,0);
+  Diffusecolor = (0.2,0.2,0.2);
+  Specularcolor = (0,0,0);
+}
+Sphere
+{
+  Position = (0,3.5,4);
+  Radius = 3.5;
+  Translate = (0,-1.25,0);
+  Material
+  {
+    Smoothshadow = 0.05;
+    Smoothshadowmode = cos;
+    Shadowborder = 0.75;
+    Shadowbordermode = cos;
+    Reflectance = 0.25;
+    Ambientcolor = (0.0,0.0,0.0);
+    Diffusecolor = (0.75,0.75,0.75);
+    Specularcolor = (0.25,0.25,0.25);
+    Highlightexponent = 2;
+  }
+}
+// Da die Kleine Kugel 3 Mal die Gleiche ist können wir sie auch
+// über externe Datieen Einbinden ;)
+External
+{
+  Filename = "@scenepath@sample_reflection_sphere";
+  Translate = (2,0,0);
+  
+  Filename = "@scenepath@sample_reflection_sphere";
+  Translate = (2,0,0);
+  
+  Filename = "@scenepath@sample_reflection_sphere";
+  Translate = (-2,0.3,-2);
+}
+Quad
+{
+  Points = ((-6,0,-6),(6,0,-6),(6,0,6),(-6,0,6));
+  Translate = (0,-1.25,0);
+  Material
+  {
+    Ambientcolor = (0.2,0.2,0.2);
+    Reflectance = 0.25;
+    Texture = "@scenepath@sample_reflection.bmp";
+    Textureinterpolation = Nearest;
+    //    Textureinterpolation = Biliniar ;
+    //    Textureinterpolation = cos ;
+  }
+} //*)

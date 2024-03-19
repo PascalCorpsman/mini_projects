@@ -1,0 +1,13 @@
+Sphere
+{
+  Position = SpherePos3;
+  Radius = SphereRadius1;
+  Material
+  {
+  Reflectance = SphereReflectance1;
+  Shadowborder = 0.8;
+  Shadowbordermode = cos;
+  Smoothshadow = 0.2;
+  Smoothshadowmode = cos;
+  }
+}

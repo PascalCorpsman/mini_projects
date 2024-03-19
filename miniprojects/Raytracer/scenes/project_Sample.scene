@@ -1,0 +1,65 @@
+Raytracer
+{
+  Lookat = ((-2.0,3,-2.5),(0,0,0),(0,1,0));
+  // Lookat = ((1.75,3,-2),(0,0,0),(0,1,0));
+  // Eye = ((0,1,-4),(0,1,0),(0,0,1));
+  Cullfaceing = off;
+  imagewidth = 1024;
+  imageheight = 768;
+}
+Light
+{
+  Position = (0,10,1);
+  Ambientcolor = (1,1,1);
+  Diffusecolor = (1,1,1);
+  Specularcolor = (1,1,1);
+}
+
+Quad
+{
+  Points = (
+  (-2,-1,-2),
+  (2,-1,-2),
+  (2,-1,2),
+  (-2,-1,2)
+  );
+  Material
+  {
+    Ambientcolor = (0.2,0.2,0.2);
+    Diffusecolor = (0.25,0.25,0.25);
+    Specularcolor = (0.3,0.3,0.3);
+    //    Highlightexponent = 1;
+  }
+}
+//(*
+Quad
+{
+  Points = (
+  (-2,0,-2), //1
+  (-2,0,2), //2
+  (2,0,2), //3
+  (2,0,-2) // 4
+  );
+  Rotate = (-90,0,1,0);
+  Translate = (-0.25,0,0);
+  Material
+  {
+    // Dadurch das ich in Diesem Sample die Cullfaces mit getestet habe
+    // ist das Quad Falsch herum übergeben.
+    // Deswegen müssen wir die Textur künstlich wieder zurück drehen
+    
+    Texturecoordinates = 
+    (
+    (0,1),
+    (1,1),
+    (1,0),
+    (0,0)
+    );
+    //     Ambientcolor = (0.5,0.5,0.5);
+    Ambientcolor = (0.0,0.0,0.0);
+    Diffusecolor = (2,0,0);
+    Specularcolor = (1,1,1);
+    Transparence = 0.7;
+    Transparencetexture = "@Scenepath@transparence.bmp";
+  }
+} //*)

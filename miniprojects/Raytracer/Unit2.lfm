@@ -1,0 +1,33 @@
+object Form2: TForm2
+  Left = 238
+  Height = 622
+  Top = 122
+  Width = 755
+  Caption = 'Image preview'
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnPaint = FormPaint
+  PopupMenu = PopupMenu1
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object PopupMenu1: TPopupMenu
+    Left = 8
+    Top = 8
+    object saveimage1: TMenuItem
+      Caption = 'save image'
+      OnClick = saveimage1Click
+    end
+    object backtomainwindow1: TMenuItem
+      Caption = 'back to main window'
+      ShortCut = 9
+      OnClick = backtomainwindow1Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.bmp'
+    Filter = 'Bitmap|*.bmp|All|*.*'
+    Left = 16
+    Top = 56
+  end
+end

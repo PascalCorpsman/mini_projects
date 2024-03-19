@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="12"/>
+    <General>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <Language Value=""/>
+      <CharSet Value=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T &amp;apos;Lazarus Run Output&amp;apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <LaunchingApplication PathPlusParams="/usr/bin/xterm -T &amp;apos;Lazarus Run Output&amp;apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+          </local>
+        </Mode0>
+      </Modes>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="SynEdit"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="22">
+      <Unit0>
+        <Filename Value="Simple_Ray.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="6"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="35"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="../../DatenSteuerung/Tokenizer/tokenizer.pas"/>
+        <CursorPos X="24" Y="19"/>
+        <UsageCount Value="35"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="Unit1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <TopLine Value="597"/>
+        <CursorPos X="3" Y="612"/>
+        <UsageCount Value="35"/>
+        <Bookmarks Count="1">
+          <Item0 Y="209" ID="1"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="Raytracer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="3"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="35"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="raytracer_math.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="5"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="35"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="RayParser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="8"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="35"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="Unit2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form2"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="1"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="35"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="Replace.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form3"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="2"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="35"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="Unit4.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form4"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="371"/>
+        <CursorPos X="54" Y="177"/>
+        <UsageCount Value="35"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="FileManager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="9"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="35"/>
+        <Loaded Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="/home/corpsman/lazarus/lcl/lcltype.pp"/>
+        <UnitName Value="LCLType"/>
+        <TopLine Value="100"/>
+        <CursorPos X="17" Y="117"/>
+        <UsageCount Value="10"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/objpas/classes/classesh.inc"/>
+        <TopLine Value="25"/>
+        <CursorPos X="4" Y="33"/>
+        <UsageCount Value="10"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="/home/corpsman/lazarus/components/synedit/syneditsearch.pp"/>
+        <UnitName Value="SynEditSearch"/>
+        <TopLine Value="51"/>
+        <CursorPos X="3" Y="68"/>
+        <UsageCount Value="10"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="/home/corpsman/lazarus/lcl/include/control.inc"/>
+        <TopLine Value="1608"/>
+        <CursorPos Y="1626"/>
+        <UsageCount Value="10"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="/home/corpsman/lazarus/lcl/include/buttoncontrol.inc"/>
+        <TopLine Value="9"/>
+        <CursorPos Y="22"/>
+        <UsageCount Value="10"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="/home/corpsman/lazarus/lcl/include/buttons.inc"/>
+        <TopLine Value="310"/>
+        <CursorPos Y="342"/>
+        <UsageCount Value="10"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="/home/corpsman/lazarus/lcl/include/wincontrol.inc"/>
+        <TopLine Value="5180"/>
+        <CursorPos Y="5199"/>
+        <UsageCount Value="10"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="/home/corpsman/lazarus/lcl/lclmessageglue.pas"/>
+        <UnitName Value="LCLMessageGlue"/>
+        <TopLine Value="98"/>
+        <CursorPos Y="121"/>
+        <UsageCount Value="10"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="/home/corpsman/lazarus/lcl/interfaces/gtk2/gtk2wsstdctrls.pp"/>
+        <UnitName Value="Gtk2WSStdCtrls"/>
+        <TopLine Value="2089"/>
+        <CursorPos Y="2108"/>
+        <UsageCount Value="10"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="/home/corpsman/lazarus/lcl/interfaces/gtk2/gtk2widgetset.inc"/>
+        <TopLine Value="2394"/>
+        <CursorPos X="43" Y="2409"/>
+        <UsageCount Value="10"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="../../DatenSteuerung/utokenizer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="10"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="../../DatenSteuerung/uncommenter.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="7"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit21>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="455" Column="6" TopLine="448"/>
+      </Position1>
+      <Position2>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="294" Column="3" TopLine="289"/>
+      </Position2>
+      <Position3>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="294" Column="3" TopLine="289"/>
+      </Position3>
+      <Position4>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="455" Column="7" TopLine="448"/>
+      </Position4>
+      <Position5>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="182" Column="5" TopLine="178"/>
+      </Position5>
+      <Position6>
+        <Filename Value="Raytracer.pas"/>
+        <Caret Line="1184" Column="15" TopLine="667"/>
+      </Position6>
+      <Position7>
+        <Filename Value="Raytracer.pas"/>
+        <Caret Line="893" Column="97" TopLine="846"/>
+      </Position7>
+      <Position8>
+        <Filename Value="RayParser.pas"/>
+        <Caret Line="9" Column="51"/>
+      </Position8>
+      <Position9>
+        <Filename Value="RayParser.pas"/>
+        <Caret Line="31" Column="38"/>
+      </Position9>
+      <Position10>
+        <Filename Value="FileManager.pas"/>
+        <Caret Line="7" Column="26"/>
+      </Position10>
+      <Position11>
+        <Filename Value="Raytracer.pas"/>
+        <Caret Line="809" Column="39" TopLine="792"/>
+      </Position11>
+      <Position12>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="198" Column="31" TopLine="177"/>
+      </Position12>
+      <Position13>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="10" Column="81"/>
+      </Position13>
+      <Position14>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="231" Column="48" TopLine="205"/>
+      </Position14>
+      <Position15>
+        <Filename Value="Unit1.pas"/>
+      </Position15>
+      <Position16>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="261" Column="18" TopLine="220"/>
+      </Position16>
+      <Position17>
+        <Filename Value="Simple_Ray.lpr"/>
+        <Caret Line="12" Column="6"/>
+      </Position17>
+      <Position18>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="85" Column="27" TopLine="64"/>
+      </Position18>
+      <Position19>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="5" Column="32"/>
+      </Position19>
+      <Position20>
+        <Filename Value="Replace.pas"/>
+        <Caret Line="3" Column="13"/>
+      </Position20>
+      <Position21>
+        <Filename Value="Raytracer.pas"/>
+        <Caret Line="1199" Column="17" TopLine="1194"/>
+      </Position21>
+      <Position22>
+        <Filename Value="Unit4.pas"/>
+        <Caret Line="13" Column="27"/>
+      </Position22>
+      <Position23>
+        <Filename Value="raytracer_math.pas"/>
+        <Caret Line="173" Column="38" TopLine="163"/>
+      </Position23>
+      <Position24>
+        <Filename Value="Simple_Ray.lpr"/>
+        <Caret Line="8"/>
+      </Position24>
+      <Position25>
+        <Filename Value="../../DatenSteuerung/uncommenter.pas"/>
+        <Caret Line="13" Column="43"/>
+      </Position25>
+      <Position26>
+        <Filename Value="RayParser.pas"/>
+        <Caret Line="15" Column="51"/>
+      </Position26>
+      <Position27>
+        <Filename Value="FileManager.pas"/>
+        <Caret Line="15" Column="50"/>
+      </Position27>
+      <Position28>
+        <Filename Value="../../DatenSteuerung/utokenizer.pas"/>
+        <Caret Line="14" Column="41"/>
+      </Position28>
+      <Position29>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="2" Column="13"/>
+      </Position29>
+      <Position30>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="612" Column="3" TopLine="604"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <SearchPaths>
+      <IncludeFiles Value="/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer;../../DatenSteuerung"/>
+    </SearchPaths>
+    <Linking>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+  </CompilerOptions>
+  <Debugging>
+    <Watches Count="3">
+      <Item1>
+        <Expression Value="atoken"/>
+      </Item1>
+      <Item2>
+        <Expression Value="num"/>
+      </Item2>
+      <Item3>
+        <Expression Value="FRayfloats[i].name"/>
+      </Item3>
+    </Watches>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

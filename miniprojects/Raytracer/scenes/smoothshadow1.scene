@@ -1,0 +1,104 @@
+Raytracer
+{
+  Imagewidth = 640;
+  Imageheight = 480;
+//  Imagewidth = 800;
+//  Imageheight = 600;
+  Imagewidth = 1204;
+  Imageheight = 768;
+
+//  Imagewidth = 1280;
+//  Imageheight = 1024;
+  Cullfaceing = on;
+  Cullfacemode = front;
+  Lookat = ((1,1.5,-3),(0,0,0),(0,1,0));
+  Mindistance = 0.0001;
+}
+Light
+{
+  Active = on;
+  Position = (0,5,0);
+  Ambientcolor = (0.25,0.25,0.25);
+  Diffusecolor = (0.5,0.0,0.0);
+  Specularcolor = (1,0,0);
+}
+Light
+{
+  Active = on;
+  Position = (2,5,0);
+  Ambientcolor = (0,0,0);
+  Diffusecolor = (0.0,0.5,0.0);
+  Specularcolor = (0,1,0);
+}
+//(*
+Sphere
+{
+  Position = (0,0,0);
+  Radius = 1;
+  Material
+  {
+    // Der Weiche Schatten den die Kugel wirft.
+    Smoothshadow = 0.2;
+    Smoothshadowmode = Cos;
+    // der Weiche Schatten auf der Kugel
+    Shadowborder = 0.4;
+    Shadowbordermode = cos;
+    Ambientcolor = (0.2,0.2,0.2);
+    Diffusecolor = (0.5,0.5,0.5);
+    Specularcolor = (0.75,0.75,0.75);
+  }
+}
+
+Sphere
+{
+  Position = (1.5,1.5,0);
+  Radius = 0.5;
+  Material
+  {
+    // Der Weiche Schatten den die Kugel wirft.
+    Smoothshadow = 0.2;
+    Smoothshadowmode = Cos;
+    // der Weiche Schatten auf der Kugel
+    Shadowborder = 0.4;
+    Shadowbordermode = cos;
+    Ambientcolor = (0.2,0.2,0.2);
+    Diffusecolor = (0.5,0.5,0.5);
+    Specularcolor = (0.75,0.75,0.75);
+  }
+} //*)
+//(*
+Triangle
+{
+  Points = (
+  (0,0,0),
+  (1,0,0),
+  (0,0,1)
+  );
+  Rotate = (-10,1,0,0);
+  Rotate = (60,0,1,0);
+  Translate = (-0.25,1,-1.6);
+  Material
+  {
+    // Der Weiche Schatten den die Kugel wirft.
+    Smoothshadow = 0.25;
+    Smoothshadowmode = Cos;
+    Ambientcolor = (0.2,0.2,0.2);
+    Diffusecolor = (0.5,0.5,0.5);
+    Specularcolor = (0.75,0.75,0.75);
+  }
+} //*)
+Quad
+{
+  Points = (
+  (-4,-2,-4),
+  (4,-2,-4),
+  (4,-2,4),
+  (-4,-2,4)
+  );
+  Material
+  {
+    Ambientcolor = (0.2,0.2,0.2);
+    Diffusecolor = (1,1,1);
+    Specularcolor = (1,1,1);
+  }
+}

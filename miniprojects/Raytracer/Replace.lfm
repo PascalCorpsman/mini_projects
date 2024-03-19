@@ -1,0 +1,198 @@
+object Form3: TForm3
+  Left = 238
+  Height = 260
+  Top = 122
+  Width = 298
+  ActiveControl = ComboBox1
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Text replace'
+  ClientHeight = 260
+  ClientWidth = 298
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnPaint = FormPaint
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Label1: TLabel
+    Left = 16
+    Height = 13
+    Top = 16
+    Width = 79
+    Caption = 'Search for         :'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 16
+    Height = 13
+    Top = 40
+    Width = 79
+    Caption = 'Replace trough :'
+    ParentColor = False
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 57
+    Top = 160
+    Width = 137
+    Caption = ' Area '
+    ClientHeight = 39
+    ClientWidth = 133
+    TabOrder = 0
+    object CheckBox1: TCheckBox
+      Left = 8
+      Height = 17
+      Top = 0
+      Width = 70
+      Caption = 'whole Text'
+      TabOrder = 0
+    end
+    object CheckBox2: TCheckBox
+      Left = 8
+      Height = 17
+      Top = 16
+      Width = 84
+      Caption = 'Selected Text'
+      TabOrder = 1
+    end
+  end
+  object Button1: TButton
+    Left = 24
+    Height = 25
+    Top = 224
+    Width = 75
+    Caption = '&OK'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 112
+    Height = 25
+    Top = 224
+    Width = 75
+    Caption = 'Replace &all'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 200
+    Height = 25
+    Top = 224
+    Width = 75
+    Caption = '&Cancel'
+    OnClick = Button3Click
+    TabOrder = 3
+  end
+  object ComboBox1: TComboBox
+    Left = 104
+    Height = 21
+    Top = 7
+    Width = 185
+    ItemHeight = 13
+    OnKeyPress = ComboBox1KeyPress
+    TabOrder = 4
+  end
+  object ComboBox2: TComboBox
+    Left = 104
+    Height = 21
+    Top = 40
+    Width = 185
+    ItemHeight = 13
+    OnKeyPress = ComboBox2KeyPress
+    TabOrder = 5
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Height = 89
+    Top = 64
+    Width = 137
+    Caption = ' Options '
+    ClientHeight = 71
+    ClientWidth = 133
+    TabOrder = 6
+    object CheckBox3: TCheckBox
+      Left = 8
+      Height = 17
+      Top = -2
+      Width = 92
+      Caption = 'case sensitivity '
+      TabOrder = 0
+    end
+    object CheckBox4: TCheckBox
+      Left = 8
+      Height = 17
+      Top = 14
+      Width = 99
+      Caption = 'only whole words'
+      TabOrder = 1
+    end
+    object CheckBox5: TCheckBox
+      Left = 8
+      Height = 17
+      Top = 30
+      Width = 78
+      Caption = 'regular terms'
+      TabOrder = 2
+    end
+    object CheckBox6: TCheckBox
+      Left = 8
+      Height = 17
+      Top = 46
+      Width = 85
+      Caption = 'with validation'
+      TabOrder = 3
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 152
+    Height = 89
+    Top = 64
+    Width = 137
+    Caption = ' Direction '
+    ClientHeight = 71
+    ClientWidth = 133
+    TabOrder = 7
+    object CheckBox7: TCheckBox
+      Left = 16
+      Height = 17
+      Top = 14
+      Width = 53
+      Caption = 'forward'
+      TabOrder = 0
+    end
+    object CheckBox8: TCheckBox
+      Left = 16
+      Height = 17
+      Top = 30
+      Width = 65
+      Caption = 'backward'
+      TabOrder = 1
+    end
+  end
+  object GroupBox4: TGroupBox
+    Left = 152
+    Height = 57
+    Top = 160
+    Width = 137
+    Caption = ' Begin '
+    ClientHeight = 39
+    ClientWidth = 133
+    TabOrder = 8
+    object CheckBox9: TCheckBox
+      Left = 16
+      Height = 17
+      Top = 0
+      Width = 63
+      Caption = 'Ex Cursur'
+      TabOrder = 0
+    end
+    object CheckBox10: TCheckBox
+      Left = 16
+      Height = 17
+      Top = 16
+      Width = 87
+      Caption = 'from beginning'
+      TabOrder = 1
+    end
+  end
+end

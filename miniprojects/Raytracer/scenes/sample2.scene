@@ -1,0 +1,18 @@
+(*
+Diese Sample Scene ist Teil der Datei Sample.scene und demonstriert wie eine
+2. Scene über eine Datei nachgeladen werden kann.
+*)
+Sphere
+{
+  Position = (0.0,0.0,0.0);
+  // Unsere Kugel ist im Ursprung im Hauptsample wird sie dann noch an ihre
+  // entsprechende Stelle Transliert.
+  Radius = 0.25;
+
+  Material // Wir machen die Kugel ein wenig Bunt
+  {
+    Ambientcolor = (0.0,0.0,0.0);
+    Diffusecolor = (0.2,0.2,1.0);
+    Specularcolor = (0.2,0.2,1.0);
+  }
+}
