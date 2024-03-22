@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* HeapSim                                                         04.09.2015 *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -27,6 +27,7 @@
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Verbesserungen in TBitVectorHeap                      *)
+(*               0.03 - Fix Div by 0 errors on very short simulations         *)
 (*                                                                            *)
 (******************************************************************************)
 (*
@@ -502,12 +503,14 @@ Var
     AlocBlockInfo[high(AlocBlockInfo)].Len := len;
   End;
 
+  Var
+    dt, StartTime: int64;
+
   Function GetBlock(Iteration, Len, Livetime: integer): TBlock;
   Var
     i: integer;
     p: PByte;
     t: Double;
-
   Begin
     If panik Then exit;
     IncAlocBlockInfo(len);
@@ -520,6 +523,7 @@ Var
     result.data := heap.GetMem(len);
     EpikTimer1.Stop();
     If Not assigned(result.data) Then Begin
+      dt := GetTickCount64 - StartTime;
       showmessage(format('Showmessage, error could not allocate %d bytes in iteration %d. Heap Full!', [len, Iteration]));
       panik := true;
       exit;
@@ -692,7 +696,6 @@ Var
 
 Var
   n, i, ii: integer;
-  dt, StartTime: int64;
   Selector: TSelector;
   // Variablen für Random Blocks
   MinSize, MaxSize, Size: integer;
@@ -733,10 +736,11 @@ Begin
   Selector := sRandomBlocks;
   If RadioButton2.Checked Then Selector := sArraySim;
   If RadioButton3.Checked Then Selector := sAlternatings;
-  setlength(blocks, 0);
-  SetLength(sizes, 0);
+  blocks := nil;
+  sizes := nil;
   setlength(ReportLines, 100);
   ReportLinesCnt := 0;
+  Statistics := nil;
   setlength(Statistics, StatisticCount);
   Statistics[GetmemCalls].StatInt64 := 0;
   Statistics[FreememCalls].StatInt64 := 0;
@@ -966,7 +970,10 @@ Begin
     FreeBlock(Blocks[j]);
   End;
   // Zum Schluss noch eine Letzte Auswertung
-  dt := GetTickCount64 - StartTime;
+  If Not panik Then Begin
+    // Im Panik mode muss die Zeit vor der Messagebox bestimmt werden, sonst messen wir ja die Zeit mit, die der User zum klicken braucht ..
+    dt := GetTickCount64 - StartTime;
+  End;
   // X- Achse = Anzahl der Durchläufe
   // Y- Achse = Vergange Zeit in s
   If assigned(AbsoluteTime) Then
@@ -985,21 +992,23 @@ Begin
   AddReportLine('', '');
   AddReportLine('Total getmem calls', inttostr(Statistics[GetmemCalls].StatInt64));
   AddReportLine('Min getmem time [iteration, µs]', format('%d, %0.1f', [Statistics[MinGetMemtime].Statiteration, Statistics[MinGetMemtime].StatFloat]));
-  AddReportLine('Avg getmem time [µs]', format('%0.1f', [Statistics[AvgGetMemTime].StatFloat / Statistics[AvgGetMemTime].StatInt64]));
+  AddReportLine('Avg getmem time [µs]', format('%0.1f', [Statistics[AvgGetMemTime].StatFloat / max(1, Statistics[AvgGetMemTime].StatInt64)]));
   AddReportLine('Max getmem time [iteration, µs]', format('%d, %0.1f', [Statistics[MaxGetMemtime].Statiteration, Statistics[MaxGetMemtime].StatFloat]));
   AddReportLine('Smallest allocated block [iteration, Byte]', format('%d, %d', [Statistics[SmallestBlock].Statiteration, Statistics[SmallestBlock].StatInt64]));
   AddReportLine('Biggest allocoted block [iteration, Byte]', format('%d, %d', [Statistics[BiggestBlock].Statiteration, Statistics[BiggestBlock].StatInt64]));
   AddReportLine('', '');
   AddReportLine('Total freemem calls', inttostr(Statistics[FreeMemCalls].StatInt64));
-  AddReportLine('Min freemem time [iteration, µs]', format('%d, %0.1f', [Statistics[MinFreeMemtime].Statiteration, Statistics[MinFreeMemtime].StatFloat]));
-  AddReportLine('Avg freemem time [µs]', format('%0.1f', [Statistics[AvgFreeMemTime].StatFloat / Statistics[AvgFreeMemTime].StatInt64]));
-  AddReportLine('Max freemem time [iteration, µs]', format('%d, %0.1f', [Statistics[MaxFreeMemtime].Statiteration, Statistics[MaxFreeMemtime].StatFloat]));
+  If Statistics[FreeMemCalls].StatInt64 <> 0 Then Begin // If there are no "Free's" there is also no valid statistic for that !
+    AddReportLine('Min freemem time [iteration, µs]', format('%d, %0.1f', [Statistics[MinFreeMemtime].Statiteration, Statistics[MinFreeMemtime].StatFloat]));
+    AddReportLine('Avg freemem time [µs]', format('%0.1f', [Statistics[AvgFreeMemTime].StatFloat / max(1, Statistics[AvgFreeMemTime].StatInt64)]));
+    AddReportLine('Max freemem time [iteration, µs]', format('%d, %0.1f', [Statistics[MaxFreeMemtime].Statiteration, Statistics[MaxFreeMemtime].StatFloat]));
+  End;
   AddReportLine('', '');
   AddReportLine('Max allocated bytes at the same time [iteration, Byte, %]', format('%d, %d, %0.2f', [Statistics[MaxAllocated].Statiteration, Statistics[MaxAllocated].StatInt64, (Statistics[MaxAllocated].StatInt64 * 100) / heap.HeapSize]));
   AddReportLine('Max used (allocated + clipped) bytes at the same time [iteration, Byte, %]', format('%d, %d, %0.2f', [Statistics[MaxUsedBytes].Statiteration, Statistics[MaxUsedBytes].StatInt64, (Statistics[MaxUsedBytes].StatInt64 * 100) / heap.HeapSize]));
   AddReportLine('', '');
   AddReportLine('Min lifetime [iterations]', format('%d', [Statistics[MinLifetime].StatInt64]));
-  AddReportLine('Avg lifetime [iterations]', format('%0.1f', [Statistics[AvgLifetime].StatInt64 / Statistics[AvgLifetime].Statcnt]));
+  AddReportLine('Avg lifetime [iterations]', format('%0.1f', [Statistics[AvgLifetime].StatInt64 / max(1, Statistics[AvgLifetime].Statcnt)]));
   AddReportLine('Max lifetime [iterations]', format('%d', [Statistics[MaxLifetime].StatInt64]));
   AddReportLine('', '');
   If Statistics[FirstReorder].Statiteration <> -1 Then Begin
@@ -1161,7 +1170,7 @@ Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Constraints.MinHeight := height;
   Constraints.MinWidth := Width;
-  Version := '0.02';
+  Version := '0.03';
   caption := 'HeapSim ver. ' + version + ' by Corpsman, www.Corpsman.de';
   ComboBox1.Items.Clear;
   ComboBox1.Items.Add(FirstFitH);
@@ -1276,6 +1285,7 @@ Begin
       maxx := max(maxx, round(serie.MaxXValue));
     End;
     // Leeren Datensatz mit gefüllter X-Achse erstellen
+    Data := nil;
     setlength(Data, maxx - minx + 1);
     For i := 0 To high(data) Do Begin
       setlength(data[i].Elements, chart.SeriesCount + 1);
