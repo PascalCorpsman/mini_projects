@@ -316,7 +316,7 @@ object Form1: TForm1
       object Edit11: TEdit
         Left = 96
         Height = 26
-        Hint = 'Lifetime will be random in range [min .. max] livetime in operation cycles'
+        Hint = 'Lifetime will be random in range [min .. max] livetime in operation cycles'#10'if using "commalist" option you could also give a commalist of values!'
         Top = 48
         Width = 80
         TabOrder = 1
@@ -333,7 +333,7 @@ object Form1: TForm1
       object Edit12: TEdit
         Left = 302
         Height = 26
-        Hint = 'Lifetime will be random in range [min .. max] livetime in operation cycles'
+        Hint = 'Lifetime will be random in range [min .. max] livetime in operation cycles'#10'if using "commalist" option you could also give a commalist of values!'
         Top = 48
         Width = 80
         TabOrder = 2

@@ -28,6 +28,7 @@
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Verbesserungen in TBitVectorHeap                      *)
 (*               0.03 - Fix Div by 0 errors on very short simulations         *)
+(*                      ADD: commalist min/maxlivetime for commalist          *)
 (*                                                                            *)
 (******************************************************************************)
 (*
@@ -503,8 +504,8 @@ Var
     AlocBlockInfo[high(AlocBlockInfo)].Len := len;
   End;
 
-  Var
-    dt, StartTime: int64;
+Var
+  dt, StartTime: int64;
 
   Function GetBlock(Iteration, Len, Livetime: integer): TBlock;
   Var
@@ -700,13 +701,17 @@ Var
   // Variablen für Random Blocks
   MinSize, MaxSize, Size: integer;
   MinLiveTime, MaxLiveTime: Integer;
-  sizes: Array Of Integer;
+  sizes: Array Of Record
+    size: Integer;
+    MinLiveTime, MaxLiveTime: Integer;
+  End;
   sizesptr: integer;
   s: String;
   chseed, j: Integer;
   Allocated, AbsoluteTime: TLineSeries;
   k: Integer;
   bs: TBarSeries;
+  sa: TStringArray;
 Begin
   // Disable LCL
   GroupBox1.Enabled := false;
@@ -736,11 +741,11 @@ Begin
   Selector := sRandomBlocks;
   If RadioButton2.Checked Then Selector := sArraySim;
   If RadioButton3.Checked Then Selector := sAlternatings;
-  blocks := nil;
-  sizes := nil;
+  blocks := Nil;
+  sizes := Nil;
   setlength(ReportLines, 100);
   ReportLinesCnt := 0;
-  Statistics := nil;
+  Statistics := Nil;
   setlength(Statistics, StatisticCount);
   Statistics[GetmemCalls].StatInt64 := 0;
   Statistics[FreememCalls].StatInt64 := 0;
@@ -803,19 +808,55 @@ Begin
         s := Edit13.Text + ',';
         While trim(s) <> '' Do Begin
           SetLength(sizes, high(sizes) + 2);
-          sizes[high(sizes)] := strtointdef(trim(copy(s, 1, pos(',', s) - 1)), -1);
-          If sizes[high(sizes)] <= 0 Then Begin
+          sizes[high(sizes)].size := strtointdef(trim(copy(s, 1, pos(',', s) - 1)), -1);
+          If sizes[high(sizes)].size <= 0 Then Begin
             showmessage('Error invalid size configuration.');
             SetLength(sizes, 0);
             exit;
           End;
           delete(s, 1, pos(',', s));
         End;
-        MinLiveTime := strtoint(edit11.text);
-        MaxLiveTime := strtoint(edit12.text);
-        If (MinLiveTime <= 0) Or (MaxLiveTime < MinLiveTime) Then Begin
-          showmessage('Error invalid livetime configuration.');
-          exit;
+        If pos(',', edit11.text) <> 0 Then Begin
+          s := edit11.text;
+          sa := s.split(',');
+          If length(sa) <> length(sizes) Then Begin
+            showmessage('Error invalid minvalues count configuration.');
+            SetLength(sizes, 0);
+            exit;
+          End;
+          For i := 0 To high(sa) Do Begin
+            sizes[i].MinLiveTime := strtoint(trim(sa[i]));
+          End;
+        End
+        Else Begin
+          MinLiveTime := strtoint(edit11.text);
+          For i := 0 To high(sizes) Do Begin
+            sizes[i].MinLiveTime := MinLiveTime;
+          End;
+        End;
+        If pos(',', edit12.text) <> 0 Then Begin
+          s := edit12.text;
+          sa := s.split(',');
+          If length(sa) <> length(sizes) Then Begin
+            showmessage('Error invalid maxvalues count configuration.');
+            SetLength(sizes, 0);
+            exit;
+          End;
+          For i := 0 To high(sa) Do Begin
+            sizes[i].MaxLiveTime := strtoint(trim(sa[i]));
+          End;
+        End
+        Else Begin
+          MaxLiveTime := strtoint(edit12.text);
+          For i := 0 To high(sizes) Do Begin
+            sizes[i].MaxLiveTime := MinLiveTime;
+          End;
+        End;
+        For i := 0 To high(sizes) Do Begin
+          If (sizes[i].MinLiveTime <= 0) Or (sizes[i].MaxLiveTime < sizes[i].MinLiveTime) Then Begin
+            showmessage('Error invalid livetime configuration.');
+            exit;
+          End;
         End;
         sizesptr := 0;
       End;
@@ -917,7 +958,7 @@ Begin
         End;
       sAlternatings: Begin
           setlength(Blocks, high(Blocks) + 2);
-          blocks[high(Blocks)] := GetBlock(i, sizes[sizesptr], RandomRange(MinLiveTime, MaxLiveTime));
+          blocks[high(Blocks)] := GetBlock(i, sizes[sizesptr].size, RandomRange(sizes[sizesptr].MinLiveTime, sizes[sizesptr].MaxLiveTime));
           sizesptr := (sizesptr + 1) Mod length(sizes);
         End;
     End;
@@ -1285,7 +1326,7 @@ Begin
       maxx := max(maxx, round(serie.MaxXValue));
     End;
     // Leeren Datensatz mit gefüllter X-Achse erstellen
-    Data := nil;
+    Data := Nil;
     setlength(Data, maxx - minx + 1);
     For i := 0 To high(data) Do Begin
       setlength(data[i].Elements, chart.SeriesCount + 1);
