@@ -8,3 +8,12 @@ Features:
 - load / store
 - pick by click
 - rotate a clicked object
+
+
+Dependencies:
+
+DGLOpenGL ( https://github.com/saschawillems/dglopengl )
+
+Needed Lazarus packages:
+
+LazOpenGLContext
