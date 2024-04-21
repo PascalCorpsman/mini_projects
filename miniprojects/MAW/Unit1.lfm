@@ -1,0 +1,234 @@
+object Form1: TForm1
+  Left = 238
+  Height = 498
+  Top = 122
+  Width = 843
+  ActiveControl = Button1
+  Anchors = [akTop, akRight]
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Form1'
+  ClientHeight = 498
+  ClientWidth = 843
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
+  OnResize = FormResize
+  object Label1: TLabel
+    Left = 663
+    Height = 42
+    Top = 40
+    Width = 151
+    Anchors = [akTop, akRight]
+    Caption = 'Left click   : select bodypart'#10'Right click : rotate selected'#10'                   bodypart'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 675
+    Height = 14
+    Top = 168
+    Width = 103
+    Anchors = [akTop, akRight]
+    Caption = 'Rotation arround X'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 676
+    Height = 14
+    Top = 232
+    Width = 102
+    Anchors = [akTop, akRight]
+    Caption = 'Rotation arround Y'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 675
+    Height = 14
+    Top = 296
+    Width = 103
+    Anchors = [akTop, akRight]
+    Caption = 'Rotation arround Z'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 656
+    Height = 25
+    Top = 8
+    Width = 177
+    Anchors = [akTop, akRight]
+    Caption = '&Reset All Rotations'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 656
+    Height = 25
+    Top = 96
+    Width = 177
+    Anchors = [akTop, akRight]
+    Caption = '&Save'
+    TabOrder = 1
+    OnClick = Button2Click
+  end
+  object Button3: TButton
+    Left = 656
+    Height = 25
+    Top = 128
+    Width = 177
+    Anchors = [akTop, akRight]
+    Caption = '&Load'
+    TabOrder = 2
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    Left = 656
+    Height = 25
+    Top = 464
+    Width = 177
+    Anchors = [akTop, akRight]
+    Caption = '&Close'
+    TabOrder = 3
+    OnClick = Button4Click
+  end
+  object ScrollBar1: TScrollBar
+    Left = 658
+    Height = 297
+    Top = 160
+    Width = 14
+    Anchors = [akTop, akRight]
+    Kind = sbVertical
+    PageSize = 0
+    TabOrder = 4
+    OnChange = ScrollBar1Change
+  end
+  object Button5: TButton
+    Left = 680
+    Height = 25
+    Top = 192
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = '<'
+    TabOrder = 5
+    OnMouseDown = Button5MouseDown
+    OnMouseUp = Button5MouseUp
+  end
+  object Button6: TButton
+    Left = 760
+    Height = 25
+    Top = 192
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = '>'
+    TabOrder = 6
+    OnMouseDown = Button6MouseDown
+    OnMouseUp = Button5MouseUp
+  end
+  object Button7: TButton
+    Left = 680
+    Height = 25
+    Top = 256
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = '<'
+    TabOrder = 7
+    OnMouseDown = Button7MouseDown
+    OnMouseUp = Button7MouseUp
+  end
+  object Button8: TButton
+    Left = 760
+    Height = 25
+    Top = 256
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = '>'
+    TabOrder = 8
+    OnMouseDown = Button8MouseDown
+    OnMouseUp = Button7MouseUp
+  end
+  object Button9: TButton
+    Left = 680
+    Height = 25
+    Top = 320
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = '<'
+    TabOrder = 9
+    OnMouseDown = Button9MouseDown
+    OnMouseUp = Button9MouseUp
+  end
+  object Button10: TButton
+    Left = 760
+    Height = 25
+    Top = 320
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = '>'
+    TabOrder = 10
+    OnMouseDown = Button10MouseDown
+    OnMouseUp = Button9MouseUp
+  end
+  object Button11: TButton
+    Left = 680
+    Height = 25
+    Top = 368
+    Width = 153
+    Anchors = [akTop, akRight]
+    Caption = 'Select Body'
+    TabOrder = 11
+    OnClick = Button11Click
+  end
+  object OpenGLControl1: TOpenGLControl
+    Left = 8
+    Height = 482
+    Top = 8
+    Width = 640
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    OnMakeCurrent = OpenGLControl1MakeCurrent
+    OnMouseDown = Panel1MouseDown
+    OnMouseMove = Panel1MouseMove
+    OnPaint = OpenGLControl1Paint
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.maw'
+    Filter = 'Marionette|*.maw|All|*.*'
+    Left = 152
+    Top = 32
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.maw'
+    Filter = 'Marionette|*.maw|All|*.*'
+    Left = 48
+    Top = 32
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 125
+    OnTimer = Timer1Timer
+    Left = 48
+    Top = 112
+  end
+  object Timer2: TTimer
+    Enabled = False
+    Interval = 125
+    OnTimer = Timer2Timer
+    Left = 48
+    Top = 176
+  end
+  object Timer3: TTimer
+    Enabled = False
+    Interval = 125
+    OnTimer = Timer3Timer
+    Left = 48
+    Top = 240
+  end
+  object Timer4: TTimer
+    Enabled = False
+    Interval = 50
+    OnTimer = Timer4Timer
+    Left = 48
+    Top = 304
+  end
+end

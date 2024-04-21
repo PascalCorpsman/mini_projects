@@ -35,6 +35,7 @@ Following is a short description of all listed projects
 | [KLab](miniprojects/KLab/) | IDE for Atmel(r) AVR(c) microcontrollers projects inspired by [KontrollerLab](https://sourceforge.net/projects/kontrollerlab/)|
 | [Kollision](miniprojects/Kollision) | game that tests your reaction and multitasking skills |
 | [LAN Chat](miniprojects/LAN_Chat) | Simple chat program for LAN (and WAN if ports are forwared) |
+| [MAW](miniprojects/MAW) | Demo that shows picking in OpenGL on a little puppet example |
 | [Network](miniprojects/Network) | Develop tools to simulate network properties (limit and delay) |
 | [QProgrammer](miniprojects/QProgrammer) | Lightwight Pascal like interpreter with integrated testsystem |
 | [Raytracer](miniprojects/Raytracer) | Demo that shows how to write a raytracer (including a parser for the scenes) |

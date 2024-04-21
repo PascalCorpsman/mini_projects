@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="12"/>
+    <General>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <Language Value=""/>
+      <CharSet Value=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T &amp;apos;Lazarus Run Output&amp;apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <LaunchingApplication PathPlusParams="/usr/bin/xterm -T &amp;apos;Lazarus Run Output&amp;apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+          </local>
+        </Mode0>
+      </Modes>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="LazOpenGLContext"/>
+        <MinVersion Release="1" Valid="True"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="11">
+      <Unit0>
+        <Filename Value="Project1.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="21"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="../opengl_standards.pas"/>
+        <UsageCount Value="20"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../OpenGL_Primitives.pas"/>
+        <TopLine Value="82"/>
+        <UsageCount Value="20"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../dglopengl.pas"/>
+        <UnitName Value="dglOpenGL"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="21"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="Unit1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <TopLine Value="149"/>
+        <CursorPos Y="204"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="marionette.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="15"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/objpas/math.pp"/>
+        <TopLine Value="247"/>
+        <CursorPos X="15" Y="265"/>
+        <UsageCount Value="10"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/i386/mathu.inc"/>
+        <TopLine Value="9"/>
+        <CursorPos X="11" Y="27"/>
+        <UsageCount Value="10"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../../DatenSteuerung/uvectormath.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos Y="63"/>
+        <UsageCount Value="21"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="uvectormath.inc"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="8" Y="7"/>
+        <UsageCount Value="20"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../uopengl_primitives.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit10>
+    </Units>
+    <JumpHistory Count="21" HistoryIndex="20">
+      <Position1>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="212" Column="23"/>
+      </Position1>
+      <Position2>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="211" Column="103" TopLine="201"/>
+      </Position2>
+      <Position3>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="166" Column="29" TopLine="160"/>
+      </Position3>
+      <Position4>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="303" Column="3" TopLine="301"/>
+      </Position4>
+      <Position5>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="344" Column="3" TopLine="342"/>
+      </Position5>
+      <Position6>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="378" Column="21" TopLine="367"/>
+      </Position6>
+      <Position7>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="96" Column="18" TopLine="79"/>
+      </Position7>
+      <Position8>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="138" Column="3" TopLine="130"/>
+      </Position8>
+      <Position9>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="98" Column="16" TopLine="80"/>
+      </Position9>
+      <Position10>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="129" Column="16" TopLine="116"/>
+      </Position10>
+      <Position11>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="197" Column="3" TopLine="170"/>
+      </Position11>
+      <Position12>
+        <Filename Value="Unit1.pas"/>
+      </Position12>
+      <Position13>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="106" Column="14" TopLine="77"/>
+      </Position13>
+      <Position14>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="132" TopLine="126"/>
+      </Position14>
+      <Position15>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="389" TopLine="370"/>
+      </Position15>
+      <Position16>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="178" Column="10" TopLine="176"/>
+      </Position16>
+      <Position17>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="384" Column="3" TopLine="210"/>
+      </Position17>
+      <Position18>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="197" Column="29" TopLine="182"/>
+      </Position18>
+      <Position19>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="98" TopLine="73"/>
+      </Position19>
+      <Position20>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="99" Column="35" TopLine="73"/>
+      </Position20>
+      <Position21>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="78" Column="21" TopLine="73"/>
+      </Position21>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <SearchPaths>
+      <IncludeFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/"/>
+      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;../../DatenSteuerung;.."/>
+    </SearchPaths>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
