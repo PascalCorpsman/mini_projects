@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.06                                                         *)
+(* Version     : 0.07                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -29,6 +29,7 @@
 (*               0.04 - Settings for Server                                   *)
 (*               0.05 - Add UDP for autodetecting                             *)
 (*               0.06 - Automatic restart on Exception                        *)
+(*               0.07 - FIX AV in Chunkmanager                                *)
 (*                                                                            *)
 (******************************************************************************)
 Program f_server;
@@ -76,7 +77,7 @@ Begin
 {$IFDEF LINUX}
   InstallSigHandler;
 {$ENDIF}
-  writeln('LAN chat server ver. 0.06');
+  writeln('LAN chat server ver. 0.07');
   LanChatVersion := 006;
   info.StartTimeStamp := GetTickCount64;
   info.Restarts := 0;
