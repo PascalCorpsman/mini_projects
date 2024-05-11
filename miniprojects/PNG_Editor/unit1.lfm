@@ -1,42 +1,35 @@
 object Form1: TForm1
-  Left = 341
+  Left = 347
   Height = 444
-  Top = 120
+  Top = 107
   Width = 710
   Caption = 'Form1'
   ClientHeight = 444
   ClientWidth = 710
-  OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
+  LCLVersion = '3.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   object Button1: TButton
     Left = 8
     Height = 25
     Top = 8
     Width = 520
     Caption = 'Load PNG'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object Image1: TImage
     Left = 8
     Height = 256
     Top = 72
     Width = 256
-    AntialiasingMode = amOff
-    Center = True
-    Proportional = True
-    Stretch = True
   end
   object Image2: TImage
     Left = 272
     Height = 256
     Top = 72
     Width = 256
-    AntialiasingMode = amOff
-    Center = True
-    Proportional = True
-    Stretch = True
   end
   object Label1: TLabel
     Left = 544
@@ -52,8 +45,8 @@ object Form1: TForm1
     Top = 40
     Width = 256
     Caption = 'Load Normal'
-    OnClick = Button2Click
     TabOrder = 1
+    OnClick = Button2Click
   end
   object Button3: TButton
     Left = 272
@@ -61,8 +54,8 @@ object Form1: TForm1
     Top = 40
     Width = 256
     Caption = 'Load Alpha'
-    OnClick = Button3Click
     TabOrder = 2
+    OnClick = Button3Click
   end
   object Button4: TButton
     Left = 8
@@ -70,8 +63,8 @@ object Form1: TForm1
     Top = 336
     Width = 256
     Caption = 'Save Normal'
-    OnClick = Button4Click
     TabOrder = 3
+    OnClick = Button4Click
   end
   object Button5: TButton
     Left = 272
@@ -79,8 +72,8 @@ object Form1: TForm1
     Top = 336
     Width = 256
     Caption = 'Save Alpha'
-    OnClick = Button5Click
     TabOrder = 4
+    OnClick = Button5Click
   end
   object Button6: TButton
     Left = 8
@@ -88,8 +81,8 @@ object Form1: TForm1
     Top = 368
     Width = 520
     Caption = 'Save PNG'
-    OnClick = Button6Click
     TabOrder = 5
+    OnClick = Button6Click
   end
   object Button7: TButton
     Left = 8
@@ -97,8 +90,8 @@ object Form1: TForm1
     Top = 408
     Width = 520
     Caption = 'Close'
-    OnClick = Button7Click
     TabOrder = 6
+    OnClick = Button7Click
   end
   object Label2: TLabel
     Left = 536

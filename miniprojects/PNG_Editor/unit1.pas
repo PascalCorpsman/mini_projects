@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* PNG Editor                                                      ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.03                                                         *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -26,6 +26,7 @@
 (*               0.02 - Anzeige der Bild Dimensionen, wenn vorhanden          *)
 (*               0.03 - Checkbox beim Laden der Transparenz zum Binarisieren  *)
 (*                      via clFuchsia                                         *)
+(*               0.04 - Umstellung auf eigene Zoom Algorithmen beim Rendern   *)
 (******************************************************************************)
 
 Unit Unit1;
@@ -65,9 +66,15 @@ Type
     Procedure Button5Click(Sender: TObject);
     Procedure Button6Click(Sender: TObject);
     Procedure Button7Click(Sender: TObject);
+    Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
   private
+    fNormalImage: TBitmap; // Original unscalliert
+    fAlphaImage: TBitmap; // Original unscalliert
     Procedure RefreshDimensions();
+    Procedure Clear(Normal, Alpha: Boolean);
+    Function CreateScaledImage(Const Source: TBitmap): TBitmap;
+    Function LoadImage(Const Filename: String): TBitmap;
   public
 
   End;
@@ -80,65 +87,73 @@ Implementation
 {$R *.lfm}
 
 Uses
-  IntfGraphics, fpImage, LCLType, ugraphics, GraphType;
+  IntfGraphics, fpImage, LCLType, ugraphics, GraphType, Math;
 
 { TForm1 }
 
 Procedure TForm1.Button1Click(Sender: TObject);
 Var
   p: TPortableNetworkGraphic;
-  b, b2: TBitmap;
   i, j: Integer;
-  Source, Dest: TLazIntfImage;
+  Normal, Alpha: TLazIntfImage;
   ImgHandle, ImgMaskHandle: HBitmap;
-  CurColor, DestColor: TFPColor;
+  NormalColor, AlphaColor: TFPColor;
+  ScaledImage: TBitmap;
 Begin
   // Load PNG
   If OpenDialog1.Execute Then Begin
+    Clear(true, true);
     p := TPortableNetworkGraphic.Create;
     p.LoadFromFile(OpenDialog1.FileName);
-    b := TBitmap.Create;
-    b.Assign(p);
-    b2 := TBitmap.Create;
-    b2.Width := b.Width;
-    b2.Height := b.Height;
-    Source := TLazIntfImage.Create(0, 0);
-    Source.LoadFromBitmap(b.Handle, b.MaskHandle);
-    Dest := TLazIntfImage.Create(0, 0);
-    Dest.LoadFromBitmap(b2.Handle, b2.MaskHandle);
-    For i := 0 To b.Width - 1 Do Begin
-      For j := 0 To b.Height - 1 Do Begin
-        CurColor := Source.Colors[i, j];
-        DestColor.red := CurColor.alpha;
-        DestColor.green := CurColor.alpha;
-        DestColor.blue := CurColor.alpha;
-        DestColor.alpha := 255 * 256;
-        Dest.Colors[i, j] := DestColor;
-        CurColor.alpha := 255 * 256;
-        Source.Colors[i, j] := CurColor;
+    fNormalImage := TBitmap.Create;
+    fNormalImage.Assign(p);
+    fAlphaImage := TBitmap.Create;
+    fAlphaImage.Width := fNormalImage.Width;
+    fAlphaImage.Height := fNormalImage.Height;
+    Normal := TLazIntfImage.Create(0, 0);
+    Normal.LoadFromBitmap(fNormalImage.Handle, fNormalImage.MaskHandle);
+    Alpha := TLazIntfImage.Create(0, 0);
+    Alpha.LoadFromBitmap(fAlphaImage.Handle, fAlphaImage.MaskHandle);
+    For i := 0 To fNormalImage.Width - 1 Do Begin
+      For j := 0 To fNormalImage.Height - 1 Do Begin
+        NormalColor := Normal.Colors[i, j];
+        AlphaColor.red := NormalColor.alpha;
+        AlphaColor.green := NormalColor.alpha;
+        AlphaColor.blue := NormalColor.alpha;
+        AlphaColor.alpha := 255 * 256;
+        Alpha.Colors[i, j] := AlphaColor;
+        NormalColor.alpha := 255 * 256;
+        Normal.Colors[i, j] := NormalColor;
       End;
     End;
-    Source.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-    b.Handle := ImgHandle;
-    b.MaskHandle := ImgMaskHandle;
-    Dest.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-    b2.Handle := ImgHandle;
-    b2.MaskHandle := ImgMaskHandle;
-    Image1.Picture.Assign(b);
-    image2.Picture.Assign(b2);
-    Source.Free;
-    Dest.free;
-    b.free;
-    b2.free;
+    Normal.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
+    fNormalImage.Handle := ImgHandle;
+    fNormalImage.MaskHandle := ImgMaskHandle;
+    Alpha.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
+    fAlphaImage.Handle := ImgHandle;
+    fAlphaImage.MaskHandle := ImgMaskHandle;
+    ScaledImage := CreateScaledImage(fNormalImage);
+    Image1.Picture.Assign(ScaledImage);
+    ScaledImage.free;
+    ScaledImage := CreateScaledImage(fAlphaImage);
+    Image2.Picture.Assign(ScaledImage);
+    ScaledImage.free;
     RefreshDimensions();
   End;
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
+Var
+  ScaledImage: TBitmap;
 Begin
   // Load Normal
   If OpenDialog2.Execute Then Begin
-    Image1.Picture.LoadFromFile(OpenDialog2.FileName);
+    Clear(true, false);
+    fNormalImage := LoadImage(OpenDialog2.FileName);
+    fNormalImage.Transparent := false;
+    ScaledImage := CreateScaledImage(fNormalImage);
+    Image1.Picture.Assign(ScaledImage);
+    ScaledImage.free;
     RefreshDimensions();
   End;
 End;
@@ -151,7 +166,6 @@ Procedure TForm1.Button3Click(Sender: TObject);
     fuchsia, CurColor: TFPColor;
     i, j: Integer;
   Begin
-    //  Bitmap.pixelformat := pf24bit; -- Das Darf nicht drin sein, sonst sind evtl alle Werte 0 !!!
     TempIntfImg := TLazIntfImage.Create(0, 0);
     TempIntfImg.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
     For j := 0 To bitmap.height - 1 Do
@@ -175,107 +189,97 @@ Procedure TForm1.Button3Click(Sender: TObject);
   End;
 
 Var
-  b: TBitmap;
+  ScaledImage: TBitmap;
 Begin
   // Load Alpha
   If OpenDialog2.Execute Then Begin
-    Image2.Picture.LoadFromFile(OpenDialog2.FileName);
-    b := TBitmap.Create;
-    b.Assign(Image2.Picture.Bitmap);
+    Clear(false, true);
+    fAlphaImage := LoadImage(OpenDialog2.FileName);
+    fAlphaImage.Transparent := false;
     If CheckBox1.Checked Then Begin
-      BinariseByCLFuchsia(b);
+      BinariseByCLFuchsia(fAlphaImage);
     End
     Else Begin
-      ConvertToGrayscale(b);
+      ConvertToGrayscale(fAlphaImage);
     End;
-    Image2.Picture.Assign(b);
-    b.free;
+    ScaledImage := CreateScaledImage(fAlphaImage);
+    Image2.Picture.Assign(ScaledImage);
+    ScaledImage.free;
     RefreshDimensions();
   End;
 End;
 
 Procedure TForm1.Button4Click(Sender: TObject);
-Var
-  b: TBitmap;
 Begin
   // Save Normal
+  If Not assigned(fNormalImage) Then Begin
+    showmessage('Error, no image to save.');
+    exit;
+  End;
   If SaveDialog1.Execute Then Begin
-    b := TBitmap.Create;
-    b.Assign(Image1.Picture.Bitmap);
-    b.SaveToFile(SaveDialog1.FileName);
-    b.free;
+    fNormalImage.SaveToFile(SaveDialog1.FileName);
   End;
 End;
 
 Procedure TForm1.Button5Click(Sender: TObject);
-Var
-  b: TBitmap;
 Begin
   // Save Alpha
+  If Not assigned(fAlphaImage) Then Begin
+    showmessage('Error, no image to save.');
+    exit;
+  End;
   If SaveDialog1.Execute Then Begin
-    b := TBitmap.Create;
-    b.Assign(Image2.Picture.Bitmap);
-    b.SaveToFile(SaveDialog1.FileName);
-    b.free;
+    fAlphaImage.SaveToFile(SaveDialog1.FileName);
   End;
 End;
 
 Procedure TForm1.Button6Click(Sender: TObject);
 Var
-  b, a, d: TBitmap;
-  Source, Alpha, Dest: TLazIntfImage;
-  SColor, AColor: TFPColor;
+  DestBitmap: TBitmap;
+  NormalSource, AlphaSource, Dest: TLazIntfImage;
+  NormalColor, AlphaColor: TFPColor;
   ImgHandle, ImgMaskHandle: HBitmap;
-  p: TPortableNetworkGraphic;
+  png: TPortableNetworkGraphic;
   i, j: Integer;
 Begin
+  If Not assigned(fNormalImage) Or Not assigned(fAlphaImage) Then Begin
+    showmessage('Error, need both images to store as .png');
+    exit;
+  End;
+  If (fAlphaImage.Width <> fNormalImage.Width) Or (fAlphaImage.Height <> fNormalImage.Height) Then Begin
+    ShowMessage('Error, alphamask and normal image differ in size.');
+    exit;
+  End;
   // Save PNG
   If SaveDialog2.Execute Then Begin
-    b := TBitmap.Create;
-    b.Assign(Image1.Picture.Bitmap); // Das Quellbild ohne Alpha
-    a := TBitmap.Create;
-    a.Assign(Image2.Picture.Bitmap); // Der Alphakanal des Quellbildes
-    If (a.Width <> b.Width) Or (a.Height <> b.Height) Then Begin
-      ShowMessage('Error alphamask and normal image differ in size.');
-      a.free;
-      b.Free;
-      exit;
-    End;
-    d := TBitmap.Create;
-    d.Width := a.Width;
-    d.Height := a.Height;
+    DestBitmap := TBitmap.Create;
+    DestBitmap.Width := fAlphaImage.Width;
+    DestBitmap.Height := fAlphaImage.Height;
 
-    source := TLazIntfImage.Create(0, 0);
-    Source.LoadFromBitmap(b.Handle, b.MaskHandle);
-
-    Alpha := TLazIntfImage.Create(0, 0);
-    Alpha.LoadFromBitmap(a.Handle, a.MaskHandle);
+    NormalSource := TLazIntfImage.Create(0, 0);
+    NormalSource.LoadFromBitmap(fNormalImage.Handle, fNormalImage.MaskHandle);
+    AlphaSource := TLazIntfImage.Create(0, 0);
+    AlphaSource.LoadFromBitmap(fAlphaImage.Handle, fAlphaImage.MaskHandle);
 
     Dest := TLazIntfImage.Create(0, 0, [riqfRGB, riqfAlpha]);
-    Dest.SetSize(a.Width, a.Height);
+    Dest.SetSize(fAlphaImage.Width, fAlphaImage.Height);
 
-    For i := 0 To a.Width - 1 Do Begin
-      For j := 0 To a.Height - 1 Do Begin
-        SColor := Source.Colors[i, j];
-        AColor := Alpha.Colors[i, j];
-        SColor.alpha := AColor.red; // Egal ist ja eh Graustufen
-        Dest.Colors[i, j] := SColor;
+    For i := 0 To fAlphaImage.Width - 1 Do Begin
+      For j := 0 To fAlphaImage.Height - 1 Do Begin
+        NormalColor := NormalSource.Colors[i, j];
+        AlphaColor := AlphaSource.Colors[i, j];
+        NormalColor.Alpha := AlphaColor.red; // Egal ist ja eh Graustufen
+        Dest.Colors[i, j] := NormalColor;
       End;
     End;
-
     Dest.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-    d.Handle := ImgHandle;
-    d.MaskHandle := ImgMaskHandle;
-
-    p := TPortableNetworkGraphic.Create;
-    p.Assign(d);
-    p.SaveToFile(SaveDialog2.FileName);
-    p.free;
-    d.free;
-    a.Free;
-    b.Free;
-    source.free;
-    Alpha.free;
+    DestBitmap.Handle := ImgHandle;
+    DestBitmap.MaskHandle := ImgMaskHandle;
+    png := TPortableNetworkGraphic.Create;
+    png.Assign(DestBitmap);
+    png.SaveToFile(SaveDialog2.FileName);
+    png.free;
+    DestBitmap.free;
     Dest.free;
   End;
 End;
@@ -285,16 +289,110 @@ Begin
   close;
 End;
 
+Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
+Begin
+  Clear(true, true);
+End;
+
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Label2.Caption := '';
-  caption := 'PNG-Editor ver. 0.03 by Corpsman';
+  caption := 'PNG-Editor ver. 0.04 by Corpsman';
   Application.Title := caption;
+  fNormalImage := Nil;
+  fAlphaImage := Nil;
 End;
 
-Procedure TForm1.RefreshDimensions();
+Procedure TForm1.RefreshDimensions;
+Var
+  s: String;
 Begin
-  label2.caption := format('Image: %d x %d' + LineEnding + 'Alpha: %d x %d', [Image1.Picture.Width, Image1.Picture.Height, Image2.Picture.Width, Image2.Picture.Height]);
+  s := '';
+  If assigned(fNormalImage) Then Begin
+    s := format('Image: %d x %d', [fNormalImage.Width, fNormalImage.Height]);
+  End;
+  If assigned(fAlphaImage) Then Begin
+    If s <> '' Then s := s + LineEnding;
+    s := s + format('Alpha: %d x %d', [fAlphaImage.Width, fAlphaImage.Height]);
+  End;
+  label2.caption := s;
+End;
+
+Procedure TForm1.Clear(Normal, Alpha: Boolean);
+Begin
+  If Normal Then Begin
+    If assigned(fNormalImage) Then Begin
+      fNormalImage.free;
+    End;
+    fNormalImage := Nil;
+    image1.Picture.Clear;
+  End;
+  If Alpha Then Begin
+    If assigned(fAlphaImage) Then Begin
+      fAlphaImage.free;
+    End;
+    fAlphaImage := Nil;
+    image2.Picture.Clear;
+  End;
+End;
+
+Function TForm1.CreateScaledImage(Const Source: TBitmap): TBitmap;
+Var
+  dimMax, dimx, dimy: integer;
+  scale: Single;
+  Mode: TInterpolationMode;
+Begin
+  // Rechnet Source so um, dass es Maximal in ein Bild der Größe 256x256 passt
+  // Ist Source zu Groß wird es Bilinear klein gerechnet
+  // sonst Nearest Neighbor gezoomt
+  result := TBitmap.Create;
+  result.Width := 256;
+  result.Height := 256;
+  // Den nachher nicht übermalten Teil "transparent" machen
+  result.Transparent := false;
+  result.Canvas.Pen.Color := clbtnface;
+  result.Canvas.Brush.Color := clbtnface;
+  //  result.Transparent := true;
+  //  result.TransparentColor := form1.Color;
+  //  result.Canvas.Pen.Color := form1.Color;
+  //  result.Canvas.Brush.Color := form1.Color;
+  result.Canvas.Rectangle(0, 0, 257, 257);
+  dimx := source.Width;
+  dimy := source.Height;
+  dimMax := max(dimx, dimy);
+  scale := 256 / dimMax;
+  If dimMax > 256 Then Begin
+    // Shrink
+    mode := imBilinear;
+  End
+  Else Begin
+    // Zoom
+    mode := imNone;
+  End;
+  // Source Transparents kaputt machen
+  source.TransparentColor := clNone;
+  source.Transparent := false;
+  Stretchdraw(result,
+    rect(
+    round((256 - scale * dimx) / 2),
+    round((256 - scale * dimy) / 2),
+    round((256 + scale * dimx) / 2),
+    round((256 + scale * dimy) / 2)
+    ), source, Mode);
+End;
+
+Function TForm1.LoadImage(Const Filename: String): TBitmap;
+Var
+  gc: TGraphicClass;
+  g: TGraphic;
+Begin
+  result := TBitmap.Create;
+  // So generisch wie es eben nur geht Das Bild laden und als TBitmap wieder raus ;)
+  gc := TPicture.FindGraphicClassWithFileExt(ExtractFileExt(Filename));
+  g := gc.Create;
+  g.LoadFromFile(FileName);
+  result.Assign(g);
+  g.free;
 End;
 
 End.
