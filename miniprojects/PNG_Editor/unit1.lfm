@@ -3,6 +3,7 @@ object Form1: TForm1
   Height = 444
   Top = 107
   Width = 710
+  AllowDropFiles = True
   Caption = 'Form1'
   ClientHeight = 444
   ClientWidth = 710
@@ -10,6 +11,7 @@ object Form1: TForm1
   LCLVersion = '3.99.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDropFiles = FormDropFiles
   object Button1: TButton
     Left = 8
     Height = 25

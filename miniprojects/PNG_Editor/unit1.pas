@@ -27,6 +27,7 @@
 (*               0.03 - Checkbox beim Laden der Transparenz zum Binarisieren  *)
 (*                      via clFuchsia                                         *)
 (*               0.04 - Umstellung auf eigene Zoom Algorithmen beim Rendern   *)
+(*               0.05 - start mit drag / drop                                 *)
 (******************************************************************************)
 
 Unit Unit1;
@@ -68,6 +69,7 @@ Type
     Procedure Button7Click(Sender: TObject);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
   private
     fNormalImage: TBitmap; // Original unscalliert
     fAlphaImage: TBitmap; // Original unscalliert
@@ -75,6 +77,7 @@ Type
     Procedure Clear(Normal, Alpha: Boolean);
     Function CreateScaledImage(Const Source: TBitmap): TBitmap;
     Function LoadImage(Const Filename: String): TBitmap;
+    Procedure LoadPNG(Const Filename: String);
   public
 
   End;
@@ -92,53 +95,11 @@ Uses
 { TForm1 }
 
 Procedure TForm1.Button1Click(Sender: TObject);
-Var
-  p: TPortableNetworkGraphic;
-  i, j: Integer;
-  Normal, Alpha: TLazIntfImage;
-  ImgHandle, ImgMaskHandle: HBitmap;
-  NormalColor, AlphaColor: TFPColor;
-  ScaledImage: TBitmap;
+
 Begin
   // Load PNG
   If OpenDialog1.Execute Then Begin
-    Clear(true, true);
-    p := TPortableNetworkGraphic.Create;
-    p.LoadFromFile(OpenDialog1.FileName);
-    fNormalImage := TBitmap.Create;
-    fNormalImage.Assign(p);
-    fAlphaImage := TBitmap.Create;
-    fAlphaImage.Width := fNormalImage.Width;
-    fAlphaImage.Height := fNormalImage.Height;
-    Normal := TLazIntfImage.Create(0, 0);
-    Normal.LoadFromBitmap(fNormalImage.Handle, fNormalImage.MaskHandle);
-    Alpha := TLazIntfImage.Create(0, 0);
-    Alpha.LoadFromBitmap(fAlphaImage.Handle, fAlphaImage.MaskHandle);
-    For i := 0 To fNormalImage.Width - 1 Do Begin
-      For j := 0 To fNormalImage.Height - 1 Do Begin
-        NormalColor := Normal.Colors[i, j];
-        AlphaColor.red := NormalColor.alpha;
-        AlphaColor.green := NormalColor.alpha;
-        AlphaColor.blue := NormalColor.alpha;
-        AlphaColor.alpha := 255 * 256;
-        Alpha.Colors[i, j] := AlphaColor;
-        NormalColor.alpha := 255 * 256;
-        Normal.Colors[i, j] := NormalColor;
-      End;
-    End;
-    Normal.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-    fNormalImage.Handle := ImgHandle;
-    fNormalImage.MaskHandle := ImgMaskHandle;
-    Alpha.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-    fAlphaImage.Handle := ImgHandle;
-    fAlphaImage.MaskHandle := ImgMaskHandle;
-    ScaledImage := CreateScaledImage(fNormalImage);
-    Image1.Picture.Assign(ScaledImage);
-    ScaledImage.free;
-    ScaledImage := CreateScaledImage(fAlphaImage);
-    Image2.Picture.Assign(ScaledImage);
-    ScaledImage.free;
-    RefreshDimensions();
+    LoadPNG(OpenDialog1.FileName);
   End;
 End;
 
@@ -297,10 +258,19 @@ End;
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Label2.Caption := '';
-  caption := 'PNG-Editor ver. 0.04 by Corpsman';
+  caption := 'PNG-Editor ver. 0.05 by Corpsman';
   Application.Title := caption;
   fNormalImage := Nil;
   fAlphaImage := Nil;
+End;
+
+Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
+  );
+Begin
+  // TODO: Das könnte viel differenzierter sein
+  If FileExists(FileNames[0]) Then Begin
+    LoadPNG(FileNames[0]);
+  End;
 End;
 
 Procedure TForm1.RefreshDimensions;
@@ -393,6 +363,58 @@ Begin
   g.LoadFromFile(FileName);
   result.Assign(g);
   g.free;
+End;
+
+Procedure TForm1.LoadPNG(Const Filename: String);
+Var
+  p: TPortableNetworkGraphic;
+  i, j: Integer;
+  Normal, Alpha: TLazIntfImage;
+  ImgHandle, ImgMaskHandle: HBitmap;
+  NormalColor, AlphaColor: TFPColor;
+  ScaledImage: TBitmap;
+Begin
+  OpenDialog1.InitialDir := ExtractFileDir(Filename);
+  OpenDialog2.InitialDir := ExtractFileDir(Filename);
+  SaveDialog1.InitialDir := ExtractFileDir(Filename);
+  SaveDialog2.InitialDir := ExtractFileDir(Filename);
+  Clear(true, true);
+  p := TPortableNetworkGraphic.Create;
+  p.LoadFromFile(FileName);
+  fNormalImage := TBitmap.Create;
+  fNormalImage.Assign(p);
+  fAlphaImage := TBitmap.Create;
+  fAlphaImage.Width := fNormalImage.Width;
+  fAlphaImage.Height := fNormalImage.Height;
+  Normal := TLazIntfImage.Create(0, 0);
+  Normal.LoadFromBitmap(fNormalImage.Handle, fNormalImage.MaskHandle);
+  Alpha := TLazIntfImage.Create(0, 0);
+  Alpha.LoadFromBitmap(fAlphaImage.Handle, fAlphaImage.MaskHandle);
+  For i := 0 To fNormalImage.Width - 1 Do Begin
+    For j := 0 To fNormalImage.Height - 1 Do Begin
+      NormalColor := Normal.Colors[i, j];
+      AlphaColor.red := NormalColor.alpha;
+      AlphaColor.green := NormalColor.alpha;
+      AlphaColor.blue := NormalColor.alpha;
+      AlphaColor.alpha := 255 * 256;
+      Alpha.Colors[i, j] := AlphaColor;
+      NormalColor.alpha := 255 * 256;
+      Normal.Colors[i, j] := NormalColor;
+    End;
+  End;
+  Normal.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
+  fNormalImage.Handle := ImgHandle;
+  fNormalImage.MaskHandle := ImgMaskHandle;
+  Alpha.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
+  fAlphaImage.Handle := ImgHandle;
+  fAlphaImage.MaskHandle := ImgMaskHandle;
+  ScaledImage := CreateScaledImage(fNormalImage);
+  Image1.Picture.Assign(ScaledImage);
+  ScaledImage.free;
+  ScaledImage := CreateScaledImage(fAlphaImage);
+  Image2.Picture.Assign(ScaledImage);
+  ScaledImage.free;
+  RefreshDimensions();
 End;
 
 End.
