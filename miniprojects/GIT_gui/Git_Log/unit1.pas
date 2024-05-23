@@ -156,8 +156,20 @@ Type
     Procedure CheckBox2Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure FormShow(Sender: TObject);
+    Procedure MenuItem17Click(Sender: TObject);
+    Procedure MenuItem18Click(Sender: TObject);
+    Procedure MenuItem19Click(Sender: TObject);
+    Procedure MenuItem20Click(Sender: TObject);
+    Procedure MenuItem21Click(Sender: TObject);
+    Procedure MenuItem22Click(Sender: TObject);
+    Procedure MenuItem23Click(Sender: TObject);
     Procedure MenuItem24Click(Sender: TObject);
     Procedure MenuItem25Click(Sender: TObject);
+    Procedure MenuItem26Click(Sender: TObject);
+    Procedure MenuItem27Click(Sender: TObject);
+    Procedure MenuItem28Click(Sender: TObject);
+    Procedure MenuItem29Click(Sender: TObject);
+    Procedure MenuItem30Click(Sender: TObject);
     Procedure MenuItem44Click(Sender: TObject);
     Procedure PopupMenu3Popup(Sender: TObject);
     Procedure StringGrid1Click(Sender: TObject);
@@ -262,6 +274,41 @@ Begin
   End;
 End;
 
+Procedure TForm1.MenuItem17Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem18Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem19Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem20Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem21Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem22Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem23Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
 Procedure TForm1.MenuItem24Click(Sender: TObject);
 Var
   li: Integer;
@@ -286,6 +333,31 @@ Begin
   If form2.showmodal = mrOK Then Begin
     LoadLCL;
   End;
+End;
+
+Procedure TForm1.MenuItem26Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem27Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem28Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem29Click(Sender: TObject);
+Begin
+  showmessage('todo.');
+End;
+
+Procedure TForm1.MenuItem30Click(Sender: TObject);
+Begin
+  showmessage('todo.');
 End;
 
 Procedure TForm1.MenuItem44Click(Sender: TObject);

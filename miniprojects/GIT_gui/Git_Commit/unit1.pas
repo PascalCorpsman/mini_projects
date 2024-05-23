@@ -37,10 +37,11 @@ Const
    *                 ADD: Missing implementation for "select Added" / "select Deleted"
    *                 ADD: Restore manual sorting after Reload
    *          0.06 = ADD: STRG + A in Stringgrid
+   *          0.07 = FIX: calculations of selected files when using the filter shortcuts
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.06';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.07';
   CommitText = 'Commit               | ▼';
   ReCommitText = 'ReCommit           | ▼';
   CommitAndPushText = 'Commit && Push | ▼';
@@ -239,6 +240,7 @@ Begin
   For i := 1 To StringGrid1.RowCount - 1 Do Begin
     StringGrid1.Cells[0, i] := BoolToStr(StringGrid1.Cells[3, i] = TextModified, '1', '0');
   End;
+  UpdateInfo;
 End;
 
 Procedure TForm1.Label4Click(Sender: TObject);
@@ -249,6 +251,7 @@ Begin
   For i := 1 To StringGrid1.RowCount - 1 Do Begin
     StringGrid1.cells[0, i] := '1';
   End;
+  UpdateInfo;
 End;
 
 Procedure TForm1.Label5Click(Sender: TObject);
@@ -259,6 +262,7 @@ Begin
   For i := 1 To StringGrid1.RowCount - 1 Do Begin
     StringGrid1.cells[0, i] := '0';
   End;
+  UpdateInfo;
 End;
 
 Procedure TForm1.Label6Click(Sender: TObject);
@@ -269,6 +273,7 @@ Begin
   For i := 1 To StringGrid1.RowCount - 1 Do Begin
     StringGrid1.Cells[0, i] := BoolToStr(StringGrid1.Cells[3, i] = TextNotVersioned, '1', '0');
   End;
+  UpdateInfo;
 End;
 
 Procedure TForm1.Label7Click(Sender: TObject);
@@ -279,6 +284,7 @@ Begin
   For i := 1 To StringGrid1.RowCount - 1 Do Begin
     StringGrid1.Cells[0, i] := BoolToStr(StringGrid1.Cells[3, i] <> TextNotVersioned, '1', '0');
   End;
+  UpdateInfo;
 End;
 
 Procedure TForm1.Label8Click(Sender: TObject);
@@ -289,6 +295,7 @@ Begin
   For i := 1 To StringGrid1.RowCount - 1 Do Begin
     StringGrid1.Cells[0, i] := BoolToStr(StringGrid1.Cells[3, i] = TextAdded, '1', '0');
   End;
+  UpdateInfo;
 End;
 
 Procedure TForm1.Label9Click(Sender: TObject);
@@ -299,6 +306,7 @@ Begin
   For i := 1 To StringGrid1.RowCount - 1 Do Begin
     StringGrid1.Cells[0, i] := BoolToStr(StringGrid1.Cells[3, i] = TextDeleted, '1', '0');
   End;
+  UpdateInfo;
 End;
 
 Procedure TForm1.Memo1Change(Sender: TObject);
