@@ -372,6 +372,7 @@ Var
     stream.Read(result.Color, SizeOf(result.Color));
     stream.Read(result.SelectedColor, SizeOf(result.SelectedColor));
     If LoadedFileVersion = 1 Then Begin
+      i := 1;
       stream.Read(i, SizeOf(i));
       result.Value := i;
     End

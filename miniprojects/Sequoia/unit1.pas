@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Sequoia                                                         02.06.2024 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Show file / folder infos                              *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -38,15 +39,28 @@ Uses
 Const
   Colors: Array Of TColor =
   (
-    $00FEF906, $00B9F8C5, $004BF44C, $0002BA0A,
-    $00FD39FD, $00B60AB3, $002FF4FB, $00F5433C, $00C40000, $00FEBFBA, $000001BF, $00BEC4F8
+    $00FEF906, $00B9F8C5, $004BF44C, $0002BA0A, $00FD39FD,
+    $00B60AB3, $002FF4FB, $00F5433C, $00C40000, $00FEBFBA,
+    $000001BF, $00BEC4F8
     );
 
 Type
 
+  TScanDirResult = Record
+    aSize: uint64;
+    aCount: integer;
+  End;
+
+  TKind = (kFile, kFolder);
+
   TUserData = Record
+    Kind: TKind;
     Folder, Name: String;
     Size: UInt64;
+    // if Kind = kFolder -> Filecount
+    Files: integer;
+    // if Kind = kFolder -> Filecount of all subfolders
+    RecursiveFiles: integer;
   End;
 
   PUserData = ^TUserData;
@@ -73,7 +87,8 @@ Type
 
     Function DefaultElement(): TSunBurstChartElement;
 
-    Function ScanDir(aDir: String; ParentNode: PSunBurstChartElement): UInt64;
+    Function ScanDir(aDir: String; ParentNode: PSunBurstChartElement
+      ): TScanDirResult;
 
     Procedure LoadDirectory(Const aDirectory: String);
 
@@ -142,6 +157,12 @@ Begin
   aColor := (aColor + 1) Mod length(Colors);
   new(userData);
   result.UserData := userData;
+  userData^.Kind := kFile;
+  userData^.Folder := '';
+  userData^.Name := '';
+  userData^.Size := 0;
+  userData^.Files := 0;
+  userData^.RecursiveFiles := 0;
 End;
 
 { TForm1 }
@@ -186,20 +207,27 @@ Begin
 End;
 
 Function TForm1.ScanDir(aDir: String; ParentNode: PSunBurstChartElement
-  ): UInt64;
+  ): TScanDirResult;
 Var
   node, child: TSunBurstChartElement;
   NodeP: PSunBurstChartElement;
   sR: TSearchRec;
   ud: PUserData;
+  recursiveres: TScanDirResult;
+  RecursiveCount: integer;
+  Folders: Integer;
 Begin
-  result := 0;
+  result.aCount := 0;
+  result.aSize := 0;
+  RecursiveCount := 0;
+  Folders := 0;
   If FindFirstUTF8(aDir + '*', faAnyFile, sr) = 0 Then Begin
     node := DefaultElement;
     node.Value := 0;
     ud := node.UserData;
     ud^.Folder := IncludeTrailingPathDelimiter(ExtractFileDir(ExcludeTrailingPathDelimiter(aDir)));
     ud^.Name := ExtractFileName(ExcludeTrailingPathDelimiter(aDir));
+    ud^.Kind := kFolder;
     If ParentNode = Nil Then Begin
       node.Caption := ud^.Name;
     End;
@@ -211,10 +239,14 @@ Begin
         End;
         If (sR.Attr And faDirectory = faDirectory) Then Begin
           If (sr.Name <> '.') And (sr.Name <> '..') Then Begin
-            nodep^.Value := nodep^.Value + ScanDir(IncludeTrailingPathDelimiter(adir + sr.Name), nodep);
+            Folders := Folders + 1;
+            recursiveres := ScanDir(IncludeTrailingPathDelimiter(adir + sr.Name), nodep);
+            nodep^.Value := nodep^.Value + recursiveres.aSize;
+            RecursiveCount := RecursiveCount + recursiveres.aCount;
           End;
         End
         Else Begin
+          result.aCount := result.aCount + 1;
           nodep^.Value := nodep^.Value + sR.Size;
           child := DefaultElement;
           child.Value := sR.Size;
@@ -222,6 +254,7 @@ Begin
           ud^.Folder := aDir;
           ud^.Name := sr.Name;
           ud^.Size := sR.Size;
+          ud^.Kind := kFile;
           SunburstChart1.AddChildElement(nodep, child);
         End;
       Until FindNextUTF8(sr) <> 0;
@@ -230,7 +263,9 @@ Begin
     End;
     ud := node.UserData;
     ud^.Size := nodep^.Value;
-    result := nodep^.Value;
+    ud^.Files := Result.aCount + Folders;
+    ud^.RecursiveFiles := RecursiveCount + result.aCount;
+    result.aSize := nodep^.Value;
   End;
 End;
 
@@ -290,6 +325,9 @@ Begin
     If Not assigned(ud) Then exit;
     StatusBar1.Panels[0].Text := FileSizeToString(ud^.Size);
     StatusBar1.Panels[1].Text := ud^.Folder + ud^.Name;
+    If ud^.Kind = kFolder Then Begin
+      StatusBar1.Panels[0].Text := StatusBar1.Panels[0].Text + format(' [%d %d]', [ud^.Files, ud^.RecursiveFiles]);
+    End;
   End
   Else Begin
     StatusBar1.Panels[0].Text := '';
