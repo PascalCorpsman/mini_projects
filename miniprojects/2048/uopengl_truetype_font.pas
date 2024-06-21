@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uopengl_truetype_font.pas                                       ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -26,6 +26,7 @@
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Bugfix Setcolor                                       *)
+(*               0.03 - SaveToStream / LoadFromStream                         *)
 (*                                                                            *)
 (******************************************************************************)
 Unit uopengl_truetype_font;
@@ -69,8 +70,8 @@ Type
     Procedure setColor3v(AValue: TVector3);
     Procedure setColorfp(AValue: TFPColor);
     Procedure setsize(AValue: Single);
-    Procedure SaveLetter(Const Stream: TFileStream; Const Letter: TLetter);
-    Function LoadLetter(Const Stream: TFileStream): TLetter;
+    Procedure SaveLetter(Const Stream: TStream; Const Letter: TLetter);
+    Function LoadLetter(Const Stream: TStream): TLetter;
     Procedure DrawLetter(Index: byte);
     Procedure Go2d(); //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
     Procedure Exit2d(); //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
@@ -85,9 +86,13 @@ Type
 
     Procedure Init_Create_Font_by_Bitmaps();
     Procedure Add_Letter(Index: byte; Const Image: tbitmap);
+
     Procedure SaveToFile(Filename: String);
+    Procedure SaveToStream(Const Stream: TStream);
 
     Procedure LoadfromFile(Filename: String);
+    Procedure LoadFromStream(Const Stream: TStream);
+
     Procedure Textout(x, y: integer; Text: String);
     Function TextWidth(Text: String): single;
     Function TextHeight(text: String): single;
@@ -152,7 +157,7 @@ Begin
   Init_Create_Font_by_Bitmaps; // Löschen der Evtl initialisierten Chars
 End;
 
-Procedure TOpenGL_TrueType_Font.Go2d();
+Procedure TOpenGL_TrueType_Font.Go2d;
 Begin
   glMatrixMode(GL_PROJECTION);
   glPushMatrix(); // Store The Projection Matrix
@@ -163,7 +168,7 @@ Begin
   glLoadIdentity(); // Reset The Modelview Matrix
 End;
 
-Procedure TOpenGL_TrueType_Font.Exit2d();
+Procedure TOpenGL_TrueType_Font.Exit2d;
 Begin
   glMatrixMode(GL_PROJECTION);
   glPopMatrix(); // Restore old Projection Matrix
@@ -204,7 +209,8 @@ End;
   @param Letter Zu Speichernder Buchstabe
  *)
 
-Procedure TOpenGL_TrueType_Font.SaveLetter(Const Stream: TFileStream; Const Letter: TLetter);
+Procedure TOpenGL_TrueType_Font.SaveLetter(Const Stream: TStream;
+  Const Letter: TLetter);
 Var
   i: integer;
 Begin
@@ -221,7 +227,7 @@ End;
   @return geladener Buchstabe
  *)
 
-Function TOpenGL_TrueType_Font.LoadLetter(Const Stream: TFileStream): TLetter;
+Function TOpenGL_TrueType_Font.LoadLetter(Const Stream: TStream): TLetter;
 Var
   i: integer;
 Begin
@@ -241,13 +247,19 @@ End;
 Procedure TOpenGL_TrueType_Font.SaveToFile(Filename: String);
 Var
   f: TFileStream;
-  i: integer;
 Begin
   f := TFileStream.Create(Filename, fmcreate Or fmOpenWrite);
-  For i := 0 To 255 Do Begin
-    SaveLetter(F, FLetters[i]);
-  End;
+  SaveToStream(f);
   f.free;
+End;
+
+Procedure TOpenGL_TrueType_Font.SaveToStream(Const Stream: TStream);
+Var
+  i: Integer;
+Begin
+  For i := 0 To 255 Do Begin
+    SaveLetter(Stream, FLetters[i]);
+  End;
 End;
 
 (*
@@ -257,13 +269,20 @@ End;
 Procedure TOpenGL_TrueType_Font.LoadfromFile(Filename: String);
 Var
   f: TFileStream;
+Begin
+  f := TFileStream.Create(filename, fmOpenRead);
+  LoadFromStream(f);
+  f.Free;
+End;
+
+Procedure TOpenGL_TrueType_Font.LoadFromStream(Const Stream: TStream);
+Var
   j, i: integer;
 Begin
   Init_Create_Font_by_Bitmaps;
-  f := TFileStream.Create(filename, fmOpenRead);
   fCharHeight := 0;
   For i := 0 To 255 Do Begin
-    FLetters[i] := LoadLetter(f);
+    FLetters[i] := LoadLetter(Stream);
     fCharWidths[i] := 0;
     For j := 0 To high(FLetters[i]) Do Begin
       fCharHeight := max(fCharHeight, FLetters[i][j].y);
@@ -271,14 +290,13 @@ Begin
     End;
   End;
   fsize := fCharHeight;
-  f.Free;
 End;
 
 (*
   Initialisiert alle Notwendigen Variablen zum Erzeugen der True Type Font
  *)
 
-Procedure TOpenGL_TrueType_Font.Init_Create_Font_by_Bitmaps();
+Procedure TOpenGL_TrueType_Font.Init_Create_Font_by_Bitmaps;
 Var
   i: integer;
 Begin
