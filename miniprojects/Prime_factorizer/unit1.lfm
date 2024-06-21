@@ -1,0 +1,50 @@
+object Form1: TForm1
+  Left = 334
+  Height = 361
+  Top = 113
+  Width = 293
+  BorderIcons = [biSystemMenu]
+  Caption = 'Form1'
+  ClientHeight = 361
+  ClientWidth = 293
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  object Edit1: TEdit
+    Left = 8
+    Height = 26
+    Top = 32
+    Width = 272
+    TabOrder = 0
+    Text = 'Edit1'
+    OnKeyDown = Edit1KeyDown
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 8
+    Width = 85
+    Caption = 'Enter Number'
+  end
+  object Button1: TButton
+    Left = 7
+    Height = 25
+    Top = 64
+    Width = 273
+    Caption = 'Calc factors'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+  object Memo1: TMemo
+    Left = 8
+    Height = 258
+    Top = 96
+    Width = 272
+    Lines.Strings = (
+      'Memo1'
+    )
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 2
+  end
+end

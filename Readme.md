@@ -41,6 +41,7 @@ Following is a short description of all listed projects
 | [Raytracer](miniprojects/Raytracer) | Demo that shows how to write a raytracer (including a parser for the scenes) |
 | [Sequoia](miniprojects/Sequoia) | Application to easy find large files in a folder structure |
 | [PNG Editor](miniprojects/PNG_Editor) | Split and merge alpha channel of .png images |
+| [Prime factorizer](miniprojects/Prime_factorizer/) | Calc the primefactors of a given number |
 | [Parken](miniprojects/Parken) | Demo for trectric curves |
 | [Pentago](miniprojects/Pentago) | Implementation of the board game Pentago |
 | [SFXR](miniprojects/SFXR) | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
