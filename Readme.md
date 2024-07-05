@@ -19,6 +19,7 @@ Following is a short description of all listed projects
 | [ALT_F2](miniprojects/ALT_F2) | Application starter app with included calculater |
 | [Bitverknuepfungen](miniprojects/Bitverknuepfungen) | Program that evaluates boolean operator formulas |
 | [Button Tool](miniprojects/Button_Tool)| Program to create graphics with textured texts |
+| [Bridge Builder](miniprojects/Bridge_Builder)| Game inspired by the famoues Bridge Builder game ideas |
 | [Color Test](miniprojects/Color_Test) | Color capturing tool |
 | [CPU Load](miniprojects/CPU_Load) | Application to create a defined CPU-Load |
 | [CRC Calculator](miniprojects/CRC_Calculator) | Calculate CRC checksums of arbiture data |
