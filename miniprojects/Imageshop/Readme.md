@@ -15,3 +15,6 @@ How to use:
 - connect the output of the image load box to the input of the Final output box (via drag drop)
 - use mouse scroll wheel to zoom
 - to delete a connection, redo the drag drop process for a existing line.
+
+Dependencies:
+- OpenGL ([dglOpenGL](https://github.com/saschawillems/dglopengl) and TOpenGLControl from the LCL)
