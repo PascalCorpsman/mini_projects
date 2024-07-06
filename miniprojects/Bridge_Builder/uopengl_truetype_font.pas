@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uopengl_truetype_font.pas                                       ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.03                                                         *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -27,6 +27,7 @@
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Bugfix Setcolor                                       *)
 (*               0.03 - SaveToStream / LoadFromStream                         *)
+(*               0.04 - Umstellen auf Abgeleitet von TOpenGL_Font             *)
 (*                                                                            *)
 (******************************************************************************)
 Unit uopengl_truetype_font;
@@ -37,7 +38,7 @@ Interface
 
 Uses
   Classes, SysUtils, graphics, fileutil, math, dglopengl, IntfGraphics,
-  fpImage, uvectormath, LConvEncoding;
+  fpImage, uvectormath, LConvEncoding, uopengl_font_common;
 
 Type
   //Basis Datentyp zum Abspeichern eines Pixels mit Transparenzwert
@@ -52,36 +53,22 @@ Type
 
   { TOpenGL_TrueType_Font }
 
-  TOpenGL_TrueType_Font = Class
+  TOpenGL_TrueType_Font = Class(TOpenGL_Font)
   private
     FLetters: Array[0..255] Of TLetter; //< Die datencontainer für die Einzelnen Buchstaben
     fCharWidths: Array[0..255] Of integer; //< Die Breiten der Einzelnen Buchstaben ( das sie nicht jedes mal neu ermittelt werden müssen )
     fCharheight: integer; //< Alle Buchstaben sind Gleich hoch ( so hoch wie das Leerzeichen
-    fColor: TVector3; //< Farbe der Schrift
-    fsize: Single; //< Größe der Schrift in Pixeln ( Höhe )
     Fscreenwidth: integer; //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
     Fscreenheight: integer; //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
     FFontGo2D: boolean; //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
-    Function getcolor: TColor;
-    Function getcolor3v: TVector3;
-    Function getcolorfp: TFPColor;
-    Function getsize: Single;
-    Procedure setColor(AValue: TColor);
-    Procedure setColor3v(AValue: TVector3);
-    Procedure setColorfp(AValue: TFPColor);
-    Procedure setsize(AValue: Single);
     Procedure SaveLetter(Const Stream: TStream; Const Letter: TLetter);
     Function LoadLetter(Const Stream: TStream): TLetter;
     Procedure DrawLetter(Index: byte);
     Procedure Go2d(); //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
     Procedure Exit2d(); //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
   public
-    Property Color: TColor read getcolor write setColor; //< Zugriff auf die Schriftfarbe
-    Property Color3v: TVector3 read getcolor3v write setColor3v; //< Zugriff auf die Schriftfarbe
-    Property Colorfp: TFPColor read getcolorfp write setColorfp; //< Zugriff auf die Schriftfarbe
-    Property Size: Single read getsize write setsize; //< Höhe der Schrift in Pixeln
 
-    Constructor Create();
+    Constructor Create(); override;
     Destructor Destroy; override;
 
     Procedure Init_Create_Font_by_Bitmaps();
@@ -93,9 +80,9 @@ Type
     Procedure LoadfromFile(Filename: String);
     Procedure LoadFromStream(Const Stream: TStream);
 
-    Procedure Textout(x, y: integer; Text: String);
-    Function TextWidth(Text: String): single;
-    Function TextHeight(text: String): single;
+    Procedure Textout(x, y: integer; Text: String); override;
+    Function TextWidth(Text: String): single; override;
+    Function TextHeight(text: String): single; override;
     Procedure SetColor(r, g, b: Float); //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
     Property FontGo2D: Boolean read FFontGo2D write FFontGo2D; //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt, Wenn True, dann ruft die Routine beim Textout ein Go2D und Exit2D auf
     Property ScreenWidth: integer read Fscreenwidth write Fscreenwidth; //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
@@ -143,8 +130,6 @@ Begin
     fCharWidths[i] := 0;
   End;
   fCharheight := 0;
-  fColor := v3(1, 1, 1);
-  fsize := 0;
   FFontGo2D := false;
 End;
 
@@ -174,33 +159,6 @@ Begin
   glPopMatrix(); // Restore old Projection Matrix
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix(); // Restore old Projection Matrix
-End;
-
-(*
-  Gibt die Aktuell Verwendete Farbe der Schrift zurücl
-  @return Aktuell verwendete Renderfarbe
- *)
-
-Function TOpenGL_TrueType_Font.getcolor: TColor;
-Var
-  r, g, b: integer;
-Begin
-  r := max(0, min(255, round(fColor.x * 255)));
-  g := max(0, min(255, round(fColor.y * 255)));
-  b := max(0, min(255, round(fColor.z * 255)));
-  result := r Or (g Shl 8) Or (b Shl 16);
-End;
-
-(*
-  Setzt die Schriftfarbe
-  @param AValue neue Schriftfarbe
- *)
-
-Procedure TOpenGL_TrueType_Font.setColor(AValue: TColor);
-Begin
-  fcolor.x := byte(Avalue) / 255;
-  fcolor.y := byte(Avalue Shr 8) / 255;
-  fcolor.z := byte(Avalue Shr 16) / 255;
 End;
 
 (*
@@ -482,77 +440,7 @@ End;
 
 Procedure TOpenGL_TrueType_Font.SetColor(r, g, b: Float);
 Begin
-  fColor := v3(r, g, b);
-End;
-
-(*
-  Gibt die Aktuelle Zeichhöhe in Pixeln zurück
-  @return Höhe eines Zeichens in Pixel
- *)
-
-Function TOpenGL_TrueType_Font.getsize: Single;
-Begin
-  result := fsize;
-End;
-
-(*
-  Setzt die Pixelhöhe aller Zeichen
-  @param AValue Neue Höhe in Pixel
- *)
-
-Procedure TOpenGL_TrueType_Font.setsize(AValue: Single);
-Begin
-  fsize := AValue;
-End;
-
-(*
-  Gibt die Aktuell Verwendete Farbe der Schrift zurücl
-  @return Aktuell verwendete Renderfarbe
- *)
-
-Function TOpenGL_TrueType_Font.getcolor3v: TVector3;
-Begin
-  result := fColor;
-End;
-
-(*
-  Gibt die Aktuell Verwendete Farbe der Schrift zurücl
-  @return Aktuell verwendete Renderfarbe
- *)
-
-Function TOpenGL_TrueType_Font.getcolorfp: TFPColor;
-Var
-  r, g, b: integer;
-Begin
-  r := max(0, min(255, round(fColor.x * 255))) Shl 8 Or $FF;
-  g := max(0, min(255, round(fColor.y * 255))) Shl 8 Or $FF;
-  b := max(0, min(255, round(fColor.z * 255))) Shl 8 Or $FF;
-  result.red := r;
-  result.green := g;
-  result.blue := b;
-  result.alpha := 0;
-End;
-
-(*
-  Setzt die Schriftfarbe
-  @param AValue neue Schriftfarbe
- *)
-
-Procedure TOpenGL_TrueType_Font.setColor3v(AValue: TVector3);
-Begin
-  fColor := AValue;
-End;
-
-(*
-  Setzt die Schriftfarbe
-  @param AValue neue Schriftfarbe
- *)
-
-Procedure TOpenGL_TrueType_Font.setColorfp(AValue: TFPColor);
-Begin
-  fcolor.x := ((AValue.red And $FF00) Shr 8) / 255;
-  fcolor.y := ((AValue.green And $FF00) Shr 8) / 255;
-  fcolor.z := ((AValue.blue And $FF00) Shr 8) / 255;
+  setColorV3(v3(r, g, b));
 End;
 
 End.

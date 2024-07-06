@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Eventer                                                         09.05.2019 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -22,6 +22,7 @@
 (*               or go wrong, use at your own risk.                           *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - IterateAllEventClasses                                *)
 (*                                                                            *)
 (* Known Bugs  : none                                                         *)
 (*                                                                            *)
@@ -36,7 +37,6 @@
  * mittels derer man virtuelle Methoden zum Überschreiben hat. Diese Klasse
  * kann Beliebig erzeugt und wieder freigegeben werden ohne das die Aufrufkette
  * des Owner beschädigt wird.
- *
  *)
 
 Unit ueventer;
@@ -121,6 +121,12 @@ Type
     Procedure KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState); virtual;
 
     (*
+     * Iterriert durch alle Registrierten TEventerClass die es im System gibt
+     * TODO: Einführen eines "Parent" attributes, damit könnten dann auch so dinge wie TPanel gemacht werden ;)
+     *)
+    Procedure IterateAllEventClasses(Callback: TNotifyEvent);
+
+    (*
      * Alle Hier Stehenden Properties können in Kindklassen bei Bedarf "sichtbar" gemacht werden.
      *)
     Property OnClick: TNotifyEvent read fOnClick write Fonclick;
@@ -143,7 +149,7 @@ Type
     Property Enabled: Boolean read fEnabled write SetEnabled; // Wenn nicht enabled, werden keinerlei Events erzeugt, aber wir sind sichtbat
     Property Visible: Boolean read FVisible write SetVisible; // Wenn nicht sichtbar, werden keinerlei Events erzeugt.
 
-    Procedure SetFocus(); virtual; // Ist mit vorsicht zu geniesen, aber prinzipiell brauchbar ( Das Problem ist das der Focus evtl noch auf einem Anderen Element sitzen könnte )
+    Procedure SetFocus(); virtual; // Ist mit vorsicht zu geniesen, aber prinzipiell brauchbar ( Das Problem ist das der Focus evtl. noch auf einem Anderen Element sitzen könnte )
 
     Constructor Create(Owner: TOwnerClass); virtual;
     Destructor Destroy; override;
@@ -324,6 +330,8 @@ Begin
   For i := 0 To high(fEventer) Do Begin
     fEventer[i].FFocus := false;
   End;
+  // TODO: Die Laufrichtung von i sollte Rückwärts sein, dann kann man sich diese If's sparen
+  //       Das Problem ist aber dennoch das gleiche, wenn ein Eventer Freigegeben wird steht i auf dem "danach" d.h. alle nachfoldenden Events werden dann beim Falschen Element aufgerufen !
   For i := 0 To high(fEventer) Do Begin
     If i > high(fEventer) Then break; // Da im Event das Eventer element auch freigegeben werden darf, baucht es dieses if
     If PointInRect(point(x, y), fEventer[i].ClientRect) And fEventer[i].Visible And fEventer[i].fEnabled Then Begin
@@ -513,7 +521,7 @@ Begin
   fHeight := AValue;
 End;
 
-Function TEventerClass.getClientRect: Trect;
+Function TEventerClass.GetClientRect: Trect;
 Begin
   result := rect(fLeft, fTop, fLeft + fWidth, fTop + fHeight);
 End;
@@ -629,7 +637,16 @@ Begin
 
 End;
 
-Procedure TEventerClass.SetFocus();
+Procedure TEventerClass.IterateAllEventClasses(Callback: TNotifyEvent);
+Var
+  i: Integer;
+Begin
+  For i := 0 To high(EventerHandler.fEventer) Do Begin
+    Callback(EventerHandler.fEventer[i]);
+  End;
+End;
+
+Procedure TEventerClass.SetFocus;
 Begin
   FFocus := True;
 End;
