@@ -403,14 +403,14 @@ Procedure TSpringEngine.Render;
 Var
   i: Integer;
 Begin
-  If Assigned(OnRenderSpringEvent) Then Begin
-    For i := 0 To high(fSprings) Do Begin
-      OnRenderSpringEvent(self, fSprings[i]);
-    End;
-  End;
   If assigned(OnRenderColliderEvent) Then Begin
     For i := 0 To high(FCollider) Do Begin
       OnRenderColliderEvent(self, FCollider[i]);
+    End;
+  End;
+  If Assigned(OnRenderSpringEvent) Then Begin
+    For i := 0 To high(fSprings) Do Begin
+      OnRenderSpringEvent(self, fSprings[i]);
     End;
   End;
 End;

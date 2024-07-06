@@ -12,10 +12,16 @@
 (*               source file of the project.                                  *)
 (*                                                                            *)
 (******************************************************************************)
- // Mit diesem Schalter kann das Überladen der Standard Operatoren Aktiviert
-     // werden ( Achtung das kann nicht jeder FPC Compiler )
 
-     {$DEFINE UseOperandOverloading}
+   // Hier wird der Uses Teil voll Fertig gemacht (damit alle notwendigen Units für TOwnerClass zur Verfügung gestellt werden können)
+//  , ExtCtrls;
+ , OpenGLContext;
 
-     TBaseType = Single; // Alle Komponenten bestehen aus BaseType, zur Nutzung von OpenGL ist Single zwingend !!
-                                                                                                                         
+// Die Klasse welche die zu Kapernden Methoden bereit stellt
+
+Type
+  //TOwnerClass = TPaintBox;
+  TOwnerClass = TOpenGLControl;
+
+{$define KeyEvents} // Nicht jede TOwnerClass hat KeyEvents, deswegen sind die Optional => TODO: Manuelles einpflegen der Key Events
+                                                                                                                                       

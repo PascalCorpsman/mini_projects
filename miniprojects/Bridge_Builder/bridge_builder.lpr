@@ -2,7 +2,7 @@
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
-(* This file is part of Bridge builder                                        *)
+(* This file is part of OpenGL Clear Engine                                   *)
 (*                                                                            *)
 (*  See the file license.md, located under:                                   *)
 (*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
@@ -12,10 +12,21 @@
 (*               source file of the project.                                  *)
 (*                                                                            *)
 (******************************************************************************)
- // Mit diesem Schalter kann das Überladen der Standard Operatoren Aktiviert
-     // werden ( Achtung das kann nicht jeder FPC Compiler )
+Program bridge_builder;
 
-     {$DEFINE UseOperandOverloading}
+{$MODE objfpc}{$H+}
 
-     TBaseType = Single; // Alle Komponenten bestehen aus BaseType, zur Nutzung von OpenGL ist Single zwingend !!
-                                                                                                                         
+Uses
+{$IFDEF UNIX}{$IFDEF UseCThreads}
+  cthreads,
+{$ENDIF}{$ENDIF}
+  Interfaces, // this includes the LCL widgetset
+  Forms, imagesforlazarus, Unit1, uphysik, uvectormath, uopengl_graphikengine,
+  uopengl_widgetset, uOpenGL_ASCII_Font, ugraphics, ubridge_builder, uscreens;
+
+Begin
+  Application.Initialize;
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+End.
+
