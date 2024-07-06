@@ -44,7 +44,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="18">
+    <Units Count="20">
       <Unit0>
         <Filename Value="bridge_builder.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -60,7 +60,7 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
         <IsVisibleTab Value="True"/>
-        <CursorPos X="13" Y="10"/>
+        <CursorPos X="90" Y="37"/>
         <UsageCount Value="37"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -143,10 +143,11 @@
       </Unit13>
       <Unit14>
         <Filename Value="../Sample/DatenSteuerung/ueventer.pas"/>
+        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="22"/>
         <CursorPos X="39" Y="36"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="20"/>
       </Unit14>
       <Unit15>
         <Filename Value="ueventer.inc"/>
@@ -169,6 +170,24 @@
         <UsageCount Value="20"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit17>
+      <Unit18>
+        <Filename Value="../Sample/DatenSteuerung/ufifo.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../Sample/OpenGL/uopengl_truetype_font.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit19>
     </Units>
     <JumpHistory Count="4" HistoryIndex="3">
       <Position1>
