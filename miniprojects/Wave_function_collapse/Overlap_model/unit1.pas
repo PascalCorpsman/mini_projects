@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (Ovelap mode)                            23.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.05                                                         *)
+(* Version     : 0.06                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -29,6 +29,7 @@
 (*               0.03 - allow wrap                                            *)
 (*               0.04 - ADD: Constraint Editor                                *)
 (*               0.05 - Show pattern infos                                    *)
+(*               0.06 - FIX: left right was swapped                           *)
 (*                                                                            *)
 (******************************************************************************)
 (*
@@ -334,7 +335,7 @@ End;
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Randomize;
-  caption := 'Wave function collapse demo ver. 0.05';
+  caption := 'Wave function collapse demo ver. 0.06';
   edit1.text := '3';
   edit2.text := '40';
   edit3.text := '40';

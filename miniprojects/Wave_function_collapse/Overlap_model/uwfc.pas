@@ -430,7 +430,7 @@ Begin
   // Loop over the height of the image.
   For j := 0 To IH - 1 Do Begin
     For i := 0 To IW - 1 Do Begin
-      col := Image.Canvas.Pixels[i, j];
+      col := Image.Canvas.Pixels[IW - i - 1, j];
       If (Not includes(color_table, col)) Then Begin
         push(color_frequencies, 0);
         push(color_table, col);
@@ -619,4 +619,7 @@ Begin
 End;
 
 End.
+
+
+
 
