@@ -49,7 +49,7 @@ Uses
   Classes, SysUtils, Controls
 
   (*
-   * Kommt hier ein Compilerfehler dann muss die Eventerconfig.inc im
+   * Kommt hier ein Compilerfehler dann muss die ueventer.inc im
    * Projectverzeichnis angelegt werden. Nachfolgend ein "Maximalbeispiel" für die LCL
    {----------------- Start of content -------------------}
 

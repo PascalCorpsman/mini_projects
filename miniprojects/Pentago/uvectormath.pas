@@ -59,7 +59,7 @@
 (*                    TMatrix4x4.Raw, TMatrix4x4.getInverse,                  *)
 (*                     TMatrix3x3.getInverse, TMatrix2x2.getInverse           *)
 (*                    InvertMatrix2 for TMatrix4x4, TMatrix2x2                *)
-(*               0.18                                                         *)
+(*               0.18 CalculatePlumbFootPoint                                 *)
 (*                                                                            *)
 (******************************************************************************)
 Unit uvectormath;
