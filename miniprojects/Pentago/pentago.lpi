@@ -41,7 +41,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="17">
       <Unit0>
         <Filename Value="pentago.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -89,7 +89,7 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="698"/>
+        <TopLine Value="684"/>
         <CursorPos X="2" Y="753"/>
         <UsageCount Value="30"/>
         <Bookmarks Count="1">
@@ -154,6 +154,15 @@
         <IsPartOfProject Value="True"/>
         <UsageCount Value="20"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="../Sample/OpenGL/uopengl_font_common.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit16>
     </Units>
     <JumpHistory Count="10" HistoryIndex="9">
       <Position1>

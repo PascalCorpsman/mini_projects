@@ -1893,7 +1893,7 @@ Var
   i, j: Integer;
 Begin
   result := false;
-  For i := 0 To high(FImages) Do
+  For i := 0 To high(FImages) Do Begin
     If FImages[i].Image = Value Then Begin
       result := true;
       glDeleteTextures(1, @value);
@@ -1903,6 +1903,7 @@ Begin
       setlength(FImages, high(FImages));
       exit;
     End;
+  End;
 End;
 
 Initialization

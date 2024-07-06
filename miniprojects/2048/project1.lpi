@@ -40,7 +40,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="18">
+    <Units Count="19">
       <Unit0>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -56,7 +56,7 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="118"/>
+        <TopLine Value="10"/>
         <CursorPos X="81" Y="10"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
@@ -181,6 +181,15 @@
         <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="20"/>
       </Unit17>
+      <Unit18>
+        <Filename Value="../Sample/OpenGL/uopengl_font_common.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit18>
     </Units>
     <JumpHistory Count="28" HistoryIndex="27">
       <Position1>
@@ -304,7 +313,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL;/home/corpsman/lazarus/components/images;../../Graphik;../../DatenSteuerung;../Sample/DatenSteuerung;../Sample/OpenGL"/>
+      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;/home/corpsman/lazarus/components/images/;../../Graphik;../../DatenSteuerung;../Sample/DatenSteuerung;../Sample/OpenGL"/>
     </SearchPaths>
     <Linking>
       <Options>
