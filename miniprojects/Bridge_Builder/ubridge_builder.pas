@@ -26,10 +26,11 @@ Const
    * History: 0.01 - Initialversion
    *)
   Version = '0.01';
-  ScreenWidth = 800;
-  ScreenHeight = 600;
   GridSize = 5;
   MaxEdgeLen = 100;
+Var
+  ScreenWidth: integer = 800;
+  ScreenHeight: integer = 600;
 
 Type
 
@@ -119,9 +120,13 @@ Begin
   EditorScreen.setStartPoint.Checked := true;
   GameState := gsEditor;
   StartNode := -1;
-  map.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
+  //  map.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
+  map.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_02.lvl'); // TODO: Debug remove !
   MainScreen.visible := false;
   EditorScreen.visible := true;
+
+    Da Muss der Zoom mittels CTRL und Wheel rein !!
+
 End;
 
 Procedure TBridgeBuilder.OnLoadButtonClick(Sender: TObject);
@@ -329,4 +334,5 @@ Begin
 End;
 
 End.
+
 

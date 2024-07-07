@@ -360,6 +360,13 @@ End;
 Procedure TMap.InitOpenGL;
 Begin
   fFixedBoltTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem('GFX' + PathDelim + 'fixed_bolt.png');
+  // Die Original Textur ist 16x16, aber das ist zu Groß, wenn man das so "hinhackt"
+  // dann bleibt die Textur Hochauflösend ;), das geht hier aber nur weil die
+  // Textur eine 2^X größe hat ordentlich !
+  fFixedBoltTex.OrigWidth := 8;
+  fFixedBoltTex.OrigHeight := 8;
+  fFixedBoltTex.StretchedWidth := 8;
+  fFixedBoltTex.StretchedHeight := 8;
 End;
 
 End.

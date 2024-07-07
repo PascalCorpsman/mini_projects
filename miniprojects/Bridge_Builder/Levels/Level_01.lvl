@@ -1,0 +1,22 @@
+[General]
+Texture=Level01.png
+
+[Fixed Bolts]
+Count=6
+Bolt0=2/122
+Bolt1=97/122
+Bolt2=212/177
+Bolt3=212/122
+Bolt4=312/122
+Bolt5=97/177
+
+[FinalZone]
+P1=212/97
+P2=317/97
+P3=317/122
+P4=212/122
+
+[Fixed Edges]
+Count=1
+E0=0/1
+E1=0/5

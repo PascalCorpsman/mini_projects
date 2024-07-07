@@ -1,0 +1,25 @@
+[General]
+Texture=Level02.png
+
+[Fixed Bolts]
+Count=6
+Bolt0=2/562
+Bolt1=217/607
+Bolt2=817/607
+Bolt3=917/562
+Bolt4=817/562
+Bolt5=217/562
+
+[FinalZone]
+P1=817/517
+P2=1022/517
+P3=1022/562
+P4=817/562
+
+[StartNode]
+Start=7/562
+
+[Fixed Edges]
+Count=2
+E1=5/0
+E0=4/3
