@@ -1,20 +1,21 @@
 object Form1: TForm1
   Left = 347
-  Height = 604
+  Height = 648
   Top = 107
   Width = 804
   ActiveControl = OpenGLControl1
   Caption = 'Form1'
-  ClientHeight = 604
+  ClientHeight = 648
   ClientWidth = 804
+  Menu = MainMenu1
   Position = poScreenCenter
   LCLVersion = '3.99.0.0'
   OnCreate = FormCreate
   object OpenGLControl1: TOpenGLControl
     Left = 0
-    Height = 600
+    Height = 432
     Top = 0
-    Width = 800
+    Width = 440
     OnMakeCurrent = OpenGLControl1MakeCurrent
     OnPaint = OpenGLControl1Paint
     OnResize = OpenGLControl1Resize
@@ -22,6 +23,57 @@ object Form1: TForm1
   object Timer1: TTimer
     OnTimer = Timer1Timer
     Left = 24
+    Top = 24
+  end
+  object MainMenu1: TMainMenu
+    Left = 128
+    Top = 24
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem3: TMenuItem
+        Caption = 'New level'
+        OnClick = MenuItem3Click
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Load level'
+        OnClick = MenuItem5Click
+      end
+      object MenuItem6: TMenuItem
+        Caption = 'Save level'
+        OnClick = MenuItem6Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = 'Save level as'
+        OnClick = MenuItem4Click
+      end
+      object MenuItem2: TMenuItem
+        Caption = 'Leave editor'
+        OnClick = MenuItem2Click
+      end
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'View'
+      object MenuItem8: TMenuItem
+        Caption = 'Gird'
+        OnClick = MenuItem8Click
+      end
+    end
+  end
+  object OpenPictureDialog1: TOpenPictureDialog
+    Filter = 'Portable Network Graphik|*.png|All|*.*'
+    Left = 256
+    Top = 24
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.lvl'
+    Filter = 'Brid builder level|*.lvl|All|*.*'
+    Left = 392
+    Top = 24
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.lvl'
+    Filter = 'Brid builder level|*.lvl|All|*.*'
+    Left = 496
     Top = 24
   end
 end

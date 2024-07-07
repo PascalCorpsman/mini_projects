@@ -34,7 +34,7 @@ Interface
 
 Uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls,
+  ExtCtrls, Menus, StdCtrls, ExtDlgs,
   OpenGlcontext,
   (*
    * Kommt ein Linkerfehler wegen OpenGL dann: sudo apt-get install freeglut3-dev
@@ -51,15 +51,35 @@ Type
   { TForm1 }
 
   TForm1 = Class(TForm)
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    OpenDialog1: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
+    OpenPictureDialog1: TOpenPictureDialog;
+    SaveDialog1: TSaveDialog;
     Timer1: TTimer;
     Procedure FormCreate(Sender: TObject);
+    Procedure MenuItem2Click(Sender: TObject);
+    Procedure MenuItem3Click(Sender: TObject);
+    Procedure MenuItem4Click(Sender: TObject);
+    Procedure MenuItem5Click(Sender: TObject);
+    Procedure MenuItem6Click(Sender: TObject);
+    Procedure MenuItem8Click(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
     Procedure Timer1Timer(Sender: TObject);
   private
     { private declarations }
+    Procedure SwitchToEditor(Sender: TObject);
+    Procedure LeaveEditor(Sender: TObject);
   public
     { public declarations }
     game: TBridgeBuilder;
@@ -117,7 +137,7 @@ Begin
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
-  WidgetSetGo2d(800, 600);
+  WidgetSetGo2d(ScreenWidth, ScreenHeight);
   game.render();
   WidgetSetExit2d();
   OpenGLControl1.SwapBuffers;
@@ -143,8 +163,12 @@ Begin
     Halt;
   End;
   game := TBridgeBuilder.create;
+  game.OnSwitchToEditor := @SwitchToEditor;
+  game.OnLeaveEditor := @LeaveEditor;
+  LeaveEditor(Nil);
+  Form1.ClientWidth := ScreenWidth;
+  form1.ClientHeight := ScreenHeight;
   OpenGLControl1.Align := alClient;
-
   (*
   60 - FPS entsprechen
   0.01666666 ms
@@ -152,6 +176,50 @@ Begin
   Generell sollte die Interval Zahl also dynamisch zum Rechenaufwand, mindestens aber immer 17 sein.
   *)
   Timer1.Interval := 17;
+End;
+
+Procedure TForm1.MenuItem2Click(Sender: TObject);
+Begin
+  game.SwitchToMainMenu;
+End;
+
+Procedure TForm1.MenuItem3Click(Sender: TObject);
+Begin
+  // New Level
+  game.Map.Clear;
+End;
+
+Procedure TForm1.MenuItem4Click(Sender: TObject);
+Begin
+  // Save Level as
+  If SaveDialog1.Execute Then Begin
+    game.Map.SaveToFile(SaveDialog1.Filename);
+  End;
+End;
+
+Procedure TForm1.MenuItem5Click(Sender: TObject);
+Begin
+  // Load Level
+  If OpenDialog1.Execute Then Begin
+    game.Map.LoadFromFile(OpenDialog1.FileName);
+  End;
+End;
+
+Procedure TForm1.MenuItem6Click(Sender: TObject);
+Begin
+  // Save Level
+  If game.Map.Filename = '' Then Begin
+    MenuItem4Click(Nil);
+  End
+  Else Begin
+    game.Map.SaveToFile(game.Map.Filename);
+  End;
+End;
+
+Procedure TForm1.MenuItem8Click(Sender: TObject);
+Begin
+  MenuItem8.Checked := Not MenuItem8.Checked;
+  game.map.ShowGrid := MenuItem8.Checked;
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);
@@ -175,6 +243,16 @@ Begin
     End;
 {$ENDIF}
   End;
+End;
+
+Procedure TForm1.SwitchToEditor(Sender: TObject);
+Begin
+  menu := MainMenu1;
+End;
+
+Procedure TForm1.LeaveEditor(Sender: TObject);
+Begin
+  menu := Nil;
 End;
 
 End.

@@ -146,6 +146,7 @@ Type
     Procedure KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState); override;
   public
     Caption: String;
+    RenderCaption: Boolean;
     Property OnClick;
 
     Constructor Create(Owner: TOpenGLControl); override;
@@ -155,7 +156,7 @@ Type
      * Hover = die die angezeigt wird, solange sich dir Maus darüber bewegt
      * Down = die die angezeigt wird, solange die Maus gedrückt wurde
      *)
-    Procedure LoadTextures(Normal, Hover, Down: String);
+    Procedure LoadTextures(Normal, Hover, Down: String); virtual;
   End;
 
   { TOpenGL_Button_Alpha }
@@ -166,13 +167,13 @@ Type
     Procedure OnRender(); override;
   public
     (*
-     * Lädt die 3 Texturen
+     * Lädt die 4 Texturen
      * Normal = die die immer angezeigt wird
      * Hover = die die angezeigt wird, solange sich dir Maus darüber bewegt
      * Down = die die angezeigt wird, solange die Maus gedrückt wurde
      * Mask = Alpha Maske ( für alle Gleich )
      *)
-    Procedure LoadTextures(Normal, Hover, Down, Mask: String);
+    Procedure LoadTextures(Normal, Hover, Down, Mask: String); virtual; reintroduce;
   End;
 
   { TOpenGL_Scrollbar }
@@ -647,6 +648,7 @@ End;
 
 Procedure TOpenGL_Button_Alpha.LoadTextures(Normal, Hover, Down, Mask: String);
 Begin
+  RenderCaption := false;
   FNormalTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem(normal, Mask, smClamp);
   fHoverTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem(hover, Mask, smClamp);
   fDownTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem(down, Mask, smClamp);
@@ -1095,7 +1097,7 @@ Begin
       End;
     End;
   End;
-  If (caption <> '') And assigned(OpenGL_ASCII_Font) Then Begin
+  If RenderCaption And (caption <> '') And assigned(OpenGL_ASCII_Font) Then Begin
     tex := caption;
     While (OpenGL_ASCII_Font.TextWidth(tex) > Width) And (tex <> '') Do Begin
       delete(tex, 1, 1);
@@ -1133,11 +1135,13 @@ End;
 Constructor TOpenGl_Button.Create(Owner: TOpenGLControl);
 Begin
   Inherited Create(Owner);
-  caption := ''; // Eigentlich sollte da self.ClassName stehen, aber das wäre nicht abwärtskompatibel !
+  RenderCaption := true;
+  caption := self.ClassName;
 End;
 
 Procedure TOpenGl_Button.LoadTextures(Normal, Hover, Down: String);
 Begin
+  RenderCaption := false;
   FNormalTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem(normal, smClamp);
   fHoverTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem(hover, smClamp);
   fDownTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem(down, smClamp);
@@ -1358,6 +1362,7 @@ End;
 Procedure TOpenGL_Radiobutton.Click;
 Begin
   Inherited Click;
+  // Enabled / Visible brauchen wir alles nicht mehr zu prüfen, dass macht schon der Eventer ;)
   SetChecked(true);
 End;
 

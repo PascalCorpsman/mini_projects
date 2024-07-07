@@ -170,13 +170,13 @@ Var
 
   ACHTUNG Diese Routinen funktionieren nicht immer mit eingeschalteten CullFacing !!
   *)
-Procedure RenderAlphaQuad(Top, Left: Single; Image: TGraphikItem); overload; // Fertig Getestet
+Procedure RenderAlphaQuad(Top, Left: Single; Image: TGraphikItem); overload; // Fertig Getestet // WTF: warum ist hier top und left vertauscht ?
 Procedure RenderAlphaQuad(Middle: Tpoint; Width, Height, Angle: Integer; Texture: integer = 0); overload; // Fertig Getestet
 Procedure RenderAlphaRQuad(TopLeft, BottomRight: TPoint; Angle: Integer; RotatebyOrigin: Boolean = False; Texture: Integer = 0); overload; // Fertig Getestet
 Procedure RenderAlphaRQuad(TopLeft, BottomRight: TVector2; Angle: Integer; RotatebyOrigin: Boolean = False; Texture: Integer = 0); overload; // Fertig Getestet
 Procedure RenderAlphaImage(Value: TSubImage);
 
-Procedure RenderQuad(Top, Left: Single; Image: TGraphikItem); overload;
+Procedure RenderQuad(Top, Left: Single; Image: TGraphikItem); overload; // WTF: warum ist hier top und left vertauscht ?
 Procedure RenderQuad(Middle: TVector2; Angle: Single; Image: TGraphikItem); overload;
 Procedure RenderQuad(Middle: Tpoint; Width, Height, Angle: Integer; Texture: integer = 0); overload; // Fertig Getestet
 Procedure RenderQuad(Middle: TVector2; Width, Height, Angle: Single; Texture: integer = 0); overload; // Fertig Getestet
