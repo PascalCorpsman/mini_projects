@@ -52,5 +52,9 @@ Following is a short description of all listed projects
 | [Wave function collaps](miniprojects/Wave_function_collapse/) | different implementations of the wave function collapse algorithms
 
 
+## What do i need to compile the source of the miniprojects
+
+At least you need to have the [Lazarus IDE](https://www.lazarus-ide.org/index.php?page=downloads) installed. If the project needs more than that, this is listed in the projects dependencies section.
+
 ## License
 All sourcecode files do have their own license header included at the top, for all other files in this repository see license.md for further informations.
