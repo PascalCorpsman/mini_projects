@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uOpenGL_WidgetSet.pas                                           ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.10                                                         *)
+(* Version     : 0.11                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -36,6 +36,7 @@
 (*               0.08 = Support für OpenGLASCIIFont                           *)
 (*               0.09 = TOpenGL_Radiobutton                                   *)
 (*               0.10 = Fix Textglitch of TOpenGL_Radiobutton                 *)
+(*               0.11 = OnChange für TOpenGL_Radiobutton                      *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -305,6 +306,7 @@ Type
     CircleBackColor: TVector3; // Die Hintergrundfarbe, des "Selectiert" Bobbels
 
     GroupIndex: Integer; // Will man mehrere Groupboxen haben die auch mehrere Selektierungen zulassen benötigt man Gruppierungen!
+    OnChange: TNotifyEvent;
 
     Property Caption: String read fCaption write setCaption;
     Property Checked: Boolean read fChecked write setChecked;
@@ -1055,6 +1057,7 @@ Begin
   glColor4f(1, 1, 1, 1);
   If fMouseDown Then Begin
     If fDownTex.Image = 0 Then Begin
+      glBindTexture(GL_TEXTURE_2D, 0);
       glcolor3f(0.8, 0, 0); // TODO: das könnte Konfigurierbar sein ..
       glbegin(GL_LINE_LOOP);
       glVertex2f(left, top + Height);
@@ -1070,6 +1073,7 @@ Begin
   Else Begin
     If FMouseHover Then Begin
       If fHoverTex.Image = 0 Then Begin
+        glBindTexture(GL_TEXTURE_2D, 0);
         glcolor3f(0.8, 0.8, 0.0); // TODO: das könnte Konfigurierbar sein ..
         glbegin(GL_LINE_LOOP);
         glVertex2f(left, top + Height);
@@ -1084,6 +1088,7 @@ Begin
     End
     Else Begin
       If FNormalTex.Image = 0 Then Begin
+        glBindTexture(GL_TEXTURE_2D, 0);
         glcolor3f(0.8, 0.8, 0.8); // TODO: das könnte Konfigurierbar sein ..
         glbegin(GL_LINE_LOOP);
         glVertex2f(left, top + Height);
@@ -1297,6 +1302,7 @@ Begin
   If fChecked Then Begin
     IterateAllEventClasses(@UncheckOthers);
   End;
+  If assigned(OnChange) Then OnChange(self);
 End;
 
 Procedure TOpenGL_Radiobutton.setCaption(AValue: String);
@@ -1369,6 +1375,7 @@ End;
 Constructor TOpenGL_Radiobutton.Create(Owner: TOpenGLControl; FontFile: String);
 Begin
   Inherited Create(Owner, FontFile);
+  OnChange := Nil;
   Caption := self.ClassName;
   fChecked := false;
   CircleColor := v3(0, 0, 0);

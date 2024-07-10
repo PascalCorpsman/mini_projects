@@ -80,6 +80,7 @@ Type
     { private declarations }
     Procedure SwitchToEditor(Sender: TObject);
     Procedure LeaveEditor(Sender: TObject);
+    Procedure LoadLevel(Sender: TObject);
   public
     { public declarations }
     game: TBridgeBuilder;
@@ -165,6 +166,7 @@ Begin
   game := TBridgeBuilder.create;
   game.OnSwitchToEditor := @SwitchToEditor;
   game.OnLeaveEditor := @LeaveEditor;
+  game.OnLoadButton := @LoadLevel;
   LeaveEditor(Nil);
   Form1.ClientWidth := ScreenWidth;
   form1.ClientHeight := ScreenHeight;
@@ -201,7 +203,7 @@ Procedure TForm1.MenuItem5Click(Sender: TObject);
 Begin
   // Load Level
   If OpenDialog1.Execute Then Begin
-    game.Map.LoadFromFile(OpenDialog1.FileName);
+    game.LoadFromFile(OpenDialog1.FileName);
   End;
 End;
 
@@ -253,6 +255,17 @@ End;
 Procedure TForm1.LeaveEditor(Sender: TObject);
 Begin
   menu := Nil;
+End;
+
+Procedure TForm1.LoadLevel(Sender: TObject);
+Begin
+  //  If OpenDialog1.Execute Then
+  Begin
+    //    game.LoadFromFile(OpenDialog1.FileName);
+            //LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
+    game.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_02.lvl'); // TODO: Debug remove !
+    game.SwitchToGame;
+  End;
 End;
 
 End.

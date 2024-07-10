@@ -47,7 +47,22 @@ Type
     EditFixedPoints: TOpenGL_Radiobutton;
     EditFinalZone: TOpenGL_Radiobutton;
     EditInitialEdges: TOpenGL_Radiobutton;
+    EditDeadZones: TOpenGL_Radiobutton;
     LoadBackGround: TOpenGl_Button;
+  private
+    Procedure SetVisible(AValue: Boolean);
+  public
+    Property Visible: Boolean write SetVisible;
+    Constructor Create(Owner: TOpenGLControl); virtual;
+    Destructor Destroy(); override;
+    Procedure Render;
+  End;
+
+  { TInGameScreen }
+
+  TInGameScreen = Class
+    LeaveButton: TOpenGl_Button;
+    RunButton: TOpenGl_Button;
   private
     Procedure SetVisible(AValue: Boolean);
   public
@@ -149,6 +164,11 @@ Begin
   EditInitialEdges.Left := 10;
   EditInitialEdges.Caption := 'Edit initial edges';
 
+  EditDeadZones := TOpenGL_Radiobutton.Create(Owner, '');
+  EditDeadZones.Top := EditInitialEdges.top + EditInitialEdges.Height + 5;
+  EditDeadZones.Left := 10;
+  EditDeadZones.Caption := 'Edit dead zones';
+
   LoadBackGround := TOpenGl_Button.Create(Owner);
   LoadBackGround.caption := 'Load background';
   LoadBackGround.top := 10;
@@ -164,6 +184,7 @@ Begin
   LoadBackGround.free;
   setStartPoint.free;
   EditInitialEdges.free;
+  EditDeadZones.free;
 End;
 
 Procedure TEditorScreen.Render;
@@ -174,6 +195,42 @@ Begin
   LoadBackGround.render();
   setStartPoint.render();
   EditInitialEdges.Render();
+  EditDeadZones.Render();
+End;
+
+{ TInGameScreen }
+
+Constructor TInGameScreen.Create(Owner: TOpenGLControl);
+Begin
+  Inherited Create;
+  LeaveButton := TOpenGl_Button.Create(Owner);
+  LeaveButton.Caption := 'Leave';
+  LeaveButton.Top := 10;
+  LeaveButton.Width := 50;
+  LeaveButton.Left := 10;
+  RunButton := TOpenGl_Button.Create(Owner);
+  RunButton.Caption := 'Run';
+  RunButton.Top := 10;
+  RunButton.Width := 50;
+  RunButton.Left := ScreenWidth - RunButton.Width - 10;
+End;
+
+Destructor TInGameScreen.Destroy;
+Begin
+  LeaveButton.Free;
+  RunButton.Free;
+End;
+
+Procedure TInGameScreen.SetVisible(AValue: Boolean);
+Begin
+  LeaveButton.visible := AValue;
+  RunButton.visible := AValue;
+End;
+
+Procedure TInGameScreen.Render;
+Begin
+  LeaveButton.Render();
+  RunButton.Render();
 End;
 
 End.

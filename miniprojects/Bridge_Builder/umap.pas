@@ -23,6 +23,10 @@ Uses
 
 Type
 
+  TMapCollider = Record
+    p1, p2, p3: TPoint;
+  End;
+
   { TMap }
 
   TMap = Class
@@ -30,7 +34,8 @@ Type
     fBackTexFilename: String; // Wird Relativ gespeichert, ist zur Laufzeit aber Absolut !
     fBackTex: TGraphikItem;
     fFixedBoltTex: TGraphikItem;
-
+    fColliders: Array Of TMapCollider;
+    fDeadZone: Array Of TMapCollider;
     fFixedEdges: Array Of TPoint;
 
     Procedure AdjustFinalZone;
@@ -41,10 +46,13 @@ Type
     Offset, Dim: TPoint;
     Filename: String;
     ShowGrid: Boolean;
+    ShowCollider: Boolean;
+    ShowDeadZones: Boolean;
     FinalZone: Array[0..3] Of TVector2;
     EditMode: Boolean;
 
     fFixedBolts: Array Of TVector2;
+    Zoom: Single;
 
     Property StartPoint: TVector2 read getStartPoint write SetStartPoint;
 
@@ -60,6 +68,14 @@ Type
 
     Procedure ToggleFixedEdge(StartNodeIndex, EndNodeIndex: Integer);
 
+    Procedure ToggleCollider(p1, p2, p3: TPoint);
+    Function FindColliderPoint(x, y: integer): Tpoint;
+    Procedure SetColliderpoint(Col, P: TPoint);
+
+    Procedure ToggleDeadzone(p1, p2, p3: TPoint);
+    Function FindDeadzonePoint(x, y: integer): Tpoint;
+    Procedure SetDeadzonepoint(Col, P: TPoint);
+
     Function findFinalZoneIndex(x, y: integer): integer;
 
     Procedure Clear; // Löscht einfach alles auf der Karte
@@ -68,6 +84,8 @@ Type
 
     Procedure LoadBackTexture(Const aFilename: String);
     Procedure InitOpenGL;
+
+
   End;
 
 Implementation
@@ -113,6 +131,7 @@ Begin
   fBackTex.Image := -1;
   fFixedBoltTex.Image := -1;
   ShowGrid := false;
+  ShowCollider := false;
   Clear;
 End;
 
@@ -128,7 +147,10 @@ Begin
   glColor4f(1, 1, 1, 1);
   glPushMatrix;
   glTranslatef(-Offset.x, -Offset.y, 0);
-  RenderQuad(0, 0, fBackTex);
+  glScalef(zoom, zoom, zoom);
+  If fBackTex.Image <> -1 Then Begin
+    RenderQuad(0, 0, fBackTex);
+  End;
   If ShowGrid Then Begin
     glPushMatrix;
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -165,6 +187,44 @@ Begin
     RenderAlphaQuad(FinalZone[1].y - fFixedBoltTex.OrigWidth Div 2, FinalZone[1].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
     RenderAlphaQuad(FinalZone[2].y - fFixedBoltTex.OrigWidth Div 2, FinalZone[2].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
     RenderAlphaQuad(FinalZone[3].y - fFixedBoltTex.OrigWidth Div 2, FinalZone[3].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+    If ShowCollider Then Begin
+      glBindTexture(GL_TEXTURE_2D, 0);
+      glColor3f(0.25, 0.25, 0.25);
+      For i := 0 To high(fColliders) Do Begin
+        glBegin(GL_TRIANGLES);
+        glVertex2f(fColliders[i].p1.x, fColliders[i].p1.y);
+        glVertex2f(fColliders[i].p2.x, fColliders[i].p2.y);
+        glVertex2f(fColliders[i].p3.x, fColliders[i].p3.y);
+        glend();
+      End;
+      glColor3f(0.5, 0.5, 0.5);
+      For i := 0 To high(fColliders) Do Begin
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(fColliders[i].p1.x, fColliders[i].p1.y);
+        glVertex2f(fColliders[i].p2.x, fColliders[i].p2.y);
+        glVertex2f(fColliders[i].p3.x, fColliders[i].p3.y);
+        glend();
+      End;
+    End;
+    If ShowDeadZones Then Begin
+      glBindTexture(GL_TEXTURE_2D, 0);
+      glColor3f(0.75, 0.5, 0.5);
+      For i := 0 To high(fDeadZone) Do Begin
+        glBegin(GL_TRIANGLES);
+        glVertex2f(fDeadZone[i].p1.x, fDeadZone[i].p1.y);
+        glVertex2f(fDeadZone[i].p2.x, fDeadZone[i].p2.y);
+        glVertex2f(fDeadZone[i].p3.x, fDeadZone[i].p3.y);
+        glend();
+      End;
+      glColor3f(0.75, 0.25, 0.25);
+      For i := 0 To high(fDeadZone) Do Begin
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(fDeadZone[i].p1.x, fDeadZone[i].p1.y);
+        glVertex2f(fDeadZone[i].p2.x, fDeadZone[i].p2.y);
+        glVertex2f(fDeadZone[i].p3.x, fDeadZone[i].p3.y);
+        glend();
+      End;
+    End;
   End;
   glBindTexture(GL_TEXTURE_2D, 0);
   glLineWidth(3);
@@ -216,6 +276,122 @@ Begin
   // Sonst Hinzufügen
   setlength(fFixedEdges, high(fFixedEdges) + 2);
   fFixedEdges[high(fFixedEdges)] := point(StartNodeIndex, EndNodeIndex);
+End;
+
+Procedure TMap.ToggleCollider(p1, p2, p3: TPoint);
+Var
+  i, j: Integer;
+Begin
+  // Prüfen ob es den Colider schon gibt, wenn ja wird dieser Gelöscht
+  For i := 0 To high(fColliders) Do Begin
+    If ((fColliders[i].p1 = p1) And (fColliders[i].p2 = p2) And (fColliders[i].p3 = p3)) Or
+      ((fColliders[i].p1 = p1) And (fColliders[i].p2 = p3) And (fColliders[i].p3 = p2)) Or
+      ((fColliders[i].p1 = p3) And (fColliders[i].p2 = p1) And (fColliders[i].p3 = p2)) Or
+      ((fColliders[i].p1 = p2) And (fColliders[i].p2 = p1) And (fColliders[i].p3 = p3)) Or
+      ((fColliders[i].p1 = p3) And (fColliders[i].p2 = p2) And (fColliders[i].p3 = p1)) Or
+      ((fColliders[i].p1 = p2) And (fColliders[i].p2 = p3) And (fColliders[i].p3 = p1)) Then Begin
+      For j := i To high(fColliders) - 1 Do Begin
+        fColliders[j] := fColliders[j + 1];
+      End;
+      setlength(fColliders, high(fColliders));
+      exit;
+    End;
+  End;
+  setlength(fColliders, high(fColliders) + 2);
+  fColliders[high(fColliders)].p1 := p1;
+  fColliders[high(fColliders)].p2 := p2;
+  fColliders[high(fColliders)].p3 := p3;
+End;
+
+Function TMap.FindColliderPoint(x, y: integer): Tpoint;
+Var
+  i: Integer;
+Begin
+  result := point(-1, -1);
+  For i := 0 To high(fColliders) Do Begin
+    If fColliders[i].p1 = point(x, y) Then Begin
+      result.x := i;
+      result.y := 1;
+      exit;
+    End;
+    If fColliders[i].p2 = point(x, y) Then Begin
+      result.x := i;
+      result.y := 2;
+      exit;
+    End;
+    If fColliders[i].p3 = point(x, y) Then Begin
+      result.x := i;
+      result.y := 3;
+      exit;
+    End;
+  End;
+End;
+
+Procedure TMap.SetColliderpoint(Col, P: TPoint);
+Begin
+  Case col.y Of
+    1: fColliders[col.x].p1 := p;
+    2: fColliders[col.x].p2 := p;
+    3: fColliders[col.x].p3 := p;
+  End;
+End;
+
+Procedure TMap.ToggleDeadzone(p1, p2, p3: TPoint);
+Var
+  i, j: Integer;
+Begin
+  // Prüfen ob es den Colider schon gibt, wenn ja wird dieser Gelöscht
+  For i := 0 To high(fDeadZone) Do Begin
+    If ((fDeadZone[i].p1 = p1) And (fDeadZone[i].p2 = p2) And (fDeadZone[i].p3 = p3)) Or
+      ((fDeadZone[i].p1 = p1) And (fDeadZone[i].p2 = p3) And (fDeadZone[i].p3 = p2)) Or
+      ((fDeadZone[i].p1 = p3) And (fDeadZone[i].p2 = p1) And (fDeadZone[i].p3 = p2)) Or
+      ((fDeadZone[i].p1 = p2) And (fDeadZone[i].p2 = p1) And (fDeadZone[i].p3 = p3)) Or
+      ((fDeadZone[i].p1 = p3) And (fDeadZone[i].p2 = p2) And (fDeadZone[i].p3 = p1)) Or
+      ((fDeadZone[i].p1 = p2) And (fDeadZone[i].p2 = p3) And (fDeadZone[i].p3 = p1)) Then Begin
+      For j := i To high(fDeadZone) - 1 Do Begin
+        fDeadZone[j] := fDeadZone[j + 1];
+      End;
+      setlength(fDeadZone, high(fDeadZone));
+      exit;
+    End;
+  End;
+  setlength(fDeadZone, high(fDeadZone) + 2);
+  fDeadZone[high(fDeadZone)].p1 := p1;
+  fDeadZone[high(fDeadZone)].p2 := p2;
+  fDeadZone[high(fDeadZone)].p3 := p3;
+End;
+
+Function TMap.FindDeadzonePoint(x, y: integer): Tpoint;
+Var
+  i: Integer;
+Begin
+  result := point(-1, -1);
+  For i := 0 To high(fDeadZone) Do Begin
+    If fDeadZone[i].p1 = point(x, y) Then Begin
+      result.x := i;
+      result.y := 1;
+      exit;
+    End;
+    If fDeadZone[i].p2 = point(x, y) Then Begin
+      result.x := i;
+      result.y := 2;
+      exit;
+    End;
+    If fDeadZone[i].p3 = point(x, y) Then Begin
+      result.x := i;
+      result.y := 3;
+      exit;
+    End;
+  End;
+End;
+
+Procedure TMap.SetDeadzonepoint(Col, P: TPoint);
+Begin
+  Case col.y Of
+    1: fDeadZone[col.x].p1 := p;
+    2: fDeadZone[col.x].p2 := p;
+    3: fDeadZone[col.x].p3 := p;
+  End;
 End;
 
 Function TMap.AddFixedBolt(x, y: integer): integer;
@@ -274,6 +450,7 @@ End;
 
 Procedure TMap.Clear;
 Begin
+  zoom := 1.0;
   Offset := Point(0, 0);
   dim := Point(ScreenWidth, ScreenHeight);
   OpenGL_GraphikEngine.RemoveGraphik(fBackTex);
@@ -283,6 +460,8 @@ Begin
   fFixedBolts[0] := v2(10, 10);
   setlength(fFixedEdges, 0);
   AdjustFinalZone;
+  setlength(fColliders, 0);
+  setlength(fDeadZone, 0);
 End;
 
 Procedure TMap.SaveToFile(Const aFilename: String);
@@ -303,6 +482,18 @@ Begin
   ini.WriteInteger('Fixed Edges', 'Count', length(fFixedEdges));
   For i := 0 To high(fFixedEdges) Do Begin
     ini.WriteString('Fixed Edges', 'E' + inttostr(i), format('%d/%d', [fFixedEdges[i].x, fFixedEdges[i].y]));
+  End;
+  ini.WriteInteger('Collider', 'Count', length(fColliders));
+  For i := 0 To high(fColliders) Do Begin
+    ini.WriteString('Collider', 'C' + inttostr(i) + '_1', format('%d/%d', [fColliders[i].p1.x, fColliders[i].p1.y]));
+    ini.WriteString('Collider', 'C' + inttostr(i) + '_2', format('%d/%d', [fColliders[i].p2.x, fColliders[i].p2.y]));
+    ini.WriteString('Collider', 'C' + inttostr(i) + '_3', format('%d/%d', [fColliders[i].p3.x, fColliders[i].p3.y]));
+  End;
+  ini.WriteInteger('Deadzone', 'Count', length(fDeadZone));
+  For i := 0 To high(fDeadZone) Do Begin
+    ini.WriteString('Deadzone', 'D' + inttostr(i) + '_1', format('%d/%d', [fDeadZone[i].p1.x, fDeadZone[i].p1.y]));
+    ini.WriteString('Deadzone', 'D' + inttostr(i) + '_2', format('%d/%d', [fDeadZone[i].p2.x, fDeadZone[i].p2.y]));
+    ini.WriteString('Deadzone', 'D' + inttostr(i) + '_3', format('%d/%d', [fDeadZone[i].p3.x, fDeadZone[i].p3.y]));
   End;
 
   // Hier weiter mit Speichern
@@ -340,6 +531,30 @@ Begin
     s := ini.ReadString('Fixed Edges', 'E' + inttostr(i), '');
     sa := s.Split('/');
     fFixedEdges[i] := point(strtoint(sa[0]), strtoint(sa[1]));
+  End;
+  setlength(fColliders, ini.ReadInteger('Collider', 'Count', 0));
+  For i := 0 To high(fColliders) Do Begin
+    s := ini.ReadString('Collider', 'C' + inttostr(i) + '_1', '');
+    sa := s.Split('/');
+    fColliders[i].p1 := point(strtoint(sa[0]), strtoint(sa[1]));
+    s := ini.ReadString('Collider', 'C' + inttostr(i) + '_2', '');
+    sa := s.Split('/');
+    fColliders[i].p2 := point(strtoint(sa[0]), strtoint(sa[1]));
+    s := ini.ReadString('Collider', 'C' + inttostr(i) + '_3', '');
+    sa := s.Split('/');
+    fColliders[i].p3 := point(strtoint(sa[0]), strtoint(sa[1]));
+  End;
+  setlength(fDeadZone, ini.ReadInteger('Deadzone', 'Count', 0));
+  For i := 0 To high(fDeadZone) Do Begin
+    s := ini.ReadString('Deadzone', 'D' + inttostr(i) + '_1', '');
+    sa := s.Split('/');
+    fDeadZone[i].p1 := point(strtoint(sa[0]), strtoint(sa[1]));
+    s := ini.ReadString('Deadzone', 'D' + inttostr(i) + '_2', '');
+    sa := s.Split('/');
+    fDeadZone[i].p2 := point(strtoint(sa[0]), strtoint(sa[1]));
+    s := ini.ReadString('Deadzone', 'D' + inttostr(i) + '_3', '');
+    sa := s.Split('/');
+    fDeadZone[i].p3 := point(strtoint(sa[0]), strtoint(sa[1]));
   End;
 
   // Hier weiter mit Laden

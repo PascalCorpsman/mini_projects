@@ -66,13 +66,13 @@ Type
     (*
      * Text Dimensionen
      *)
-    Function TextWidth(Text: String): single; virtual;
-    Function TextHeight(text: String): single; virtual;
+    Function TextWidth(Text: String): single; virtual; // abstract
+    Function TextHeight(text: String): single; virtual; // abstract
 
     (*
      * Zeichen Routinen
      *)
-    Procedure Textout(x, y: Integer; Text: String); virtual;
+    Procedure Textout(x, y: Integer; Text: String); virtual; // abstract
   End;
 
 Implementation
