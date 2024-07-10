@@ -6,8 +6,28 @@ I really like the idea of physics simulation and gamification, so i tried to imp
 
 ![](preview.png)
 
+#### Editor
+![](preview_editor.png)
+
+#### In game
+![](preview_ingame.png)
+
 Dependencies:
 - OpenGL ([dglOpenGL](https://github.com/saschawillems/dglopengl) and TOpenGLControl from the LCL)
 
 Ressources:
 - Image creation: https://www.craiyon.com/
+
+## Manual
+### Editor
+| Input | description | 
+| --- | --- |
+| right mouse button | abort / deselect actual operation |
+| right mouse button + mouse movement | scroll the map |
+| CTRL + mouse wheel (up / down) | zoom in / out |
+### In game
+| Input | description | 
+| --- | --- |
+| right mouse button | abort / deselect actual operation |
+| right mouse button + mouse movement | scroll the map |
+| CTRL + mouse wheel (up / down) | zoom in / out |
