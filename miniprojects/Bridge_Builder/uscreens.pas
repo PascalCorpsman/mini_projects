@@ -63,6 +63,7 @@ Type
   TInGameScreen = Class
     LeaveButton: TOpenGl_Button;
     RunButton: TOpenGl_Button;
+    ResetButton: TOpenGl_Button;
   private
     Procedure SetVisible(AValue: Boolean);
   public
@@ -213,24 +214,32 @@ Begin
   RunButton.Top := 10;
   RunButton.Width := 50;
   RunButton.Left := ScreenWidth - RunButton.Width - 10;
+  ResetButton := TOpenGl_Button.Create(Owner);
+  ResetButton.Caption := 'Reset';
+  ResetButton.Top := 10 + RunButton.Height + 10;
+  ResetButton.Width := 50;
+  ResetButton.Left := ScreenWidth - RunButton.Width - 10;
 End;
 
 Destructor TInGameScreen.Destroy;
 Begin
   LeaveButton.Free;
   RunButton.Free;
+  ResetButton.Free;
 End;
 
 Procedure TInGameScreen.SetVisible(AValue: Boolean);
 Begin
   LeaveButton.visible := AValue;
   RunButton.visible := AValue;
+  ResetButton.visible := AValue;
 End;
 
 Procedure TInGameScreen.Render;
 Begin
   LeaveButton.Render();
   RunButton.Render();
+  ResetButton.Render();
 End;
 
 End.

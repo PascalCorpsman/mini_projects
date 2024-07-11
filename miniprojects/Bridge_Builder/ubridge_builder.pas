@@ -65,6 +65,7 @@ Type
     // InGameScreen
     Procedure OnLeaveButtonClick(Sender: TObject);
     Procedure OnRunButtonClick(Sender: TObject);
+    Procedure OnResetButtonClick(Sender: TObject);
 
     // MainScreen
     Procedure OnExitButtonClick(Sender: TObject);
@@ -142,7 +143,12 @@ End;
 
 Procedure TBridgeBuilder.OnRunButtonClick(Sender: TObject);
 Begin
-  // TODO: Implementieren
+   Hier gehts weiter
+End;
+
+Procedure TBridgeBuilder.OnResetButtonClick(Sender: TObject);
+Begin
+  If assigned(Map) Then map.Reset();
 End;
 
 Procedure TBridgeBuilder.OnExitButtonClick(Sender: TObject);
@@ -192,7 +198,36 @@ Begin
     gy := (gy - gy Mod GridSize) + GridSize Div 2;
     Case GameState Of
       gsInGame: Begin
-          Hier weiter mit dem Einfügen / Löschen der Kanten
+          If ssleft In shift Then Begin
+            If StartNode = -1 Then Begin
+              // Der User Begint eine neue Kante zu zeichnen
+              StartNode := map.FindPointIndex(gx, gy);
+              If StartNode = -1 Then Begin
+                StartNode := map.AddPoint(gx, gy);
+              End;
+            End
+            Else Begin
+              // Der User ist Fertig mit der Kante
+              len := LenV2(map.GetPointByIndex(StartNode) - v2(gx, gy));
+              If len <= MaxEdgeLen Then Begin
+                EndNode := map.AddPoint(gx, gy);
+                If EndNode = -1 Then Begin
+                  EndNode := map.AddPoint(gx, gy);
+                End;
+                map.ToggleUserEdge(StartNode, EndNode);
+                If (ssShift In Shift) Then Begin
+                  StartNode := EndNode;
+                End
+                Else Begin
+                  StartNode := -1;
+                End;
+              End;
+            End;
+          End;
+          If ssright In shift Then Begin
+            map.CheckAndMaybeRemovePoint(StartNode);
+            StartNode := -1;
+          End;
         End;
       gsEditor: Begin
           If ssleft In Shift Then Begin
@@ -282,9 +317,6 @@ Begin
             ColliderEdit.PointCount := 0;
             DeadzoneEdit.PointCount := 0;
           End;
-        End;
-      gsInGame: Begin
-
         End;
     End;
   End;
@@ -405,10 +437,8 @@ Begin
   owner.OnMouseMove := @OnMouseMove;
   OnMouseUpCapture := owner.OnMouseUp;
   owner.OnMouseup := @OnMouseUp;
-
   OnMouseWheelDownCapture := owner.OnMouseWheelDown;
   owner.OnMouseWheelDown := @OnMouseWheelDown;
-
   OnMouseWheelUpCapture := owner.OnMouseWheelUp;
   owner.OnMouseWheelUp := @OnMouseWheelUp;
 
@@ -416,6 +446,7 @@ Begin
   MainScreen.ExitButton.OnClick := @OnExitButtonClick;
   MainScreen.EditorButton.OnClick := @OnEditorButtonClick;
   MainScreen.LoadButton.OnClick := @OnLoadButtonClick;
+
   EditorScreen := TEditorScreen.Create(Owner);
   EditorScreen.LoadBackGround.OnClick := @OnLoadBackTexClick;
   EditorScreen.EditCollider.OnChange := @OnSelectEditCollider;
@@ -423,6 +454,8 @@ Begin
 
   InGameScreen := TInGameScreen.Create(Owner);
   InGameScreen.LeaveButton.OnClick := @OnLeaveButtonClick;
+  InGameScreen.ResetButton.OnClick := @OnResetButtonClick;
+  InGameScreen.RunButton.OnClick := @OnRunButtonClick;
 
   map.InitOpenGL;
   SwitchToMainMenu();
@@ -432,10 +465,32 @@ Procedure TBridgeBuilder.Render;
 Var
   len: Single;
   gx, gy: integer;
+  v: TVector2;
 Begin
   Case GameState Of
     gsInGame: Begin
         map.Render();
+        If (StartNode <> -1) Then Begin
+          gx := round((LastMousePos.x + map.Offset.x) / map.Zoom);
+          gy := round((LastMousePos.y + map.Offset.y) / map.Zoom);
+          gx := (gx - gx Mod GridSize) + GridSize Div 2;
+          gy := (gy - gy Mod GridSize) + GridSize Div 2;
+          v := Map.GetPointByIndex(StartNode);
+          len := sqrt(sqr(v.x - gx) + sqr(v.y - gy));
+          If len <= MaxEdgeLen Then Begin
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glLineWidth(3);
+            glColor3f(0.25, 0.25, 0.75);
+            glPushMatrix;
+            glTranslatef(-map.Offset.x, -map.Offset.y, 0);
+            glBegin(GL_LINES);
+            glVertex2f(v.x * map.Zoom, v.y * map.Zoom);
+            glVertex2f(LastMousePos.x + map.Offset.x, LastMousePos.y + map.Offset.y);
+            glEnd;
+            glPopMatrix;
+            glLineWidth(1);
+          End;
+        End;
         InGameScreen.Render;
       End;
     gsMainMenu: Begin
@@ -517,6 +572,7 @@ End;
 Procedure TBridgeBuilder.SwitchToGame;
 Begin
   If assigned(map) Then map.EditMode := false;
+  StartNode := -1;
   GameState := gsInGame;
   MainScreen.visible := false;
   EditorScreen.visible := false;
@@ -528,6 +584,7 @@ Var
   dx, dy: single;
 Begin
   map.LoadFromFile(aFilename);
+  map.Reset();
   // Immer auf "Fullscreen" scrollen
   dx := ScreenWidth / map.Dim.X;
   dy := ScreenHeight / map.Dim.Y;
@@ -535,4 +592,6 @@ Begin
 End;
 
 End.
+
+
 

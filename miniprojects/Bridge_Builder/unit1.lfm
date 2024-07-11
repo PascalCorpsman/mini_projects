@@ -1,11 +1,11 @@
 object Form1: TForm1
   Left = 347
-  Height = 648
+  Height = 692
   Top = 107
   Width = 804
   ActiveControl = OpenGLControl1
   Caption = 'Form1'
-  ClientHeight = 648
+  ClientHeight = 692
   ClientWidth = 804
   Menu = MainMenu1
   Position = poScreenCenter

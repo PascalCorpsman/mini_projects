@@ -262,8 +262,8 @@ Begin
   //  If OpenDialog1.Execute Then
   Begin
     //    game.LoadFromFile(OpenDialog1.FileName);
-            //LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
-    game.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_02.lvl'); // TODO: Debug remove !
+    game.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
+    //    game.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_02.lvl'); // TODO: Debug remove !
     game.SwitchToGame;
   End;
 End;

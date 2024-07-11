@@ -34,9 +34,11 @@ Type
     fBackTexFilename: String; // Wird Relativ gespeichert, ist zur Laufzeit aber Absolut !
     fBackTex: TGraphikItem;
     fFixedBoltTex: TGraphikItem;
+    fUserBolts: Array Of TVector2; // Durch den User angefügte Punkte -> werden nicht gespeichert
     fColliders: Array Of TMapCollider;
     fDeadZone: Array Of TMapCollider;
     fFixedEdges: Array Of TPoint;
+    fUserEdges: Array Of TPoint;
 
     Procedure AdjustFinalZone;
     Function getStartPoint: TVector2;
@@ -45,9 +47,11 @@ Type
     // TODO: Interface aufräumen !
     Offset, Dim: TPoint;
     Filename: String;
+
     ShowGrid: Boolean;
     ShowCollider: Boolean;
     ShowDeadZones: Boolean;
+
     FinalZone: Array[0..3] Of TVector2;
     EditMode: Boolean;
 
@@ -62,6 +66,15 @@ Type
 
     Procedure Render();
 
+    // Game Sachen
+    Procedure Reset();
+    Function FindPointIndex(x, y: integer): integer;
+    Function AddPoint(x, y: integer): Integer;
+    Function GetPointByIndex(Index: integer): TVector2;
+    Procedure ToggleUserEdge(StartNodeIndex, EndNodeIndex: Integer);
+    Procedure CheckAndMaybeRemovePoint(NodeIndex: integer);
+
+    // Editor Sachen
     Function AddFixedBolt(x, y: integer): integer;
     Procedure DelFixedBolt(x, y: integer);
     Function FindFixedBolt(x, y: integer): integer;
@@ -84,8 +97,6 @@ Type
 
     Procedure LoadBackTexture(Const aFilename: String);
     Procedure InitOpenGL;
-
-
   End;
 
 Implementation
@@ -143,6 +154,7 @@ End;
 Procedure TMap.Render;
 Var
   i: Integer;
+  v: TVector2;
 Begin
   glColor4f(1, 1, 1, 1);
   glPushMatrix;
@@ -235,14 +247,127 @@ Begin
     glVertex2f(fFixedBolts[fFixedEdges[i].y].x, fFixedBolts[fFixedEdges[i].y].y);
   End;
   glEnd;
+  glColor3f(0.25, 0.25, 0.75);
+  glBegin(GL_LINES);
+  For i := 0 To high(fUserEdges) Do Begin
+    v := GetPointByIndex(fUserEdges[i].x);
+    glVertex2f(v.x, v.y);
+    v := GetPointByIndex(fUserEdges[i].Y);
+    glVertex2f(v.x, v.y);
+  End;
+  glEnd;
   glLineWidth(1);
   glColor3f(1, 0, 0);
   RenderAlphaQuad(fFixedBolts[0].y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[0].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
   glColor4f(1, 1, 1, 1);
-  For i := 1 To high(fFixedBolts) Do Begin
+  For i := 1 To high(fFixedBolts) Do Begin // Index 0 ist der StartPunkt !
     RenderAlphaQuad(fFixedBolts[i].y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[i].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
   End;
+  glColor4f(0.25, 0.25, 0.75, 1);
+  For i := 0 To high(fUserBolts) Do Begin
+    RenderAlphaQuad(fUserBolts[i].y - fFixedBoltTex.OrigWidth Div 2, fUserBolts[i].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+  End;
   glPopMatrix;
+End;
+
+Procedure TMap.Reset;
+Begin
+  ShowCollider := false;
+  ShowDeadZones := false;
+
+  setlength(fUserBolts, 0);
+  setlength(fUserEdges, 0);
+End;
+
+Function TMap.FindPointIndex(x, y: integer): integer;
+Var
+  i: Integer;
+Begin
+  result := -1;
+  // Ist es ein Fixed Bolt ?
+  For i := 0 To high(fFixedBolts) Do Begin
+    If lenv2(fFixedBolts[i] - v2(x, y)) <= Epsilon Then Begin
+      result := i;
+      exit;
+    End;
+  End;
+  // Nein, dann evtl ein "Dynamischer"
+  For i := 0 To high(fUserBolts) Do Begin
+    If lenv2(fUserBolts[i] - v2(x, y)) <= Epsilon Then Begin
+      result := i + length(fFixedBolts);
+      exit;
+    End;
+  End;
+End;
+
+Function TMap.AddPoint(x, y: integer): Integer;
+Begin
+  result := FindPointIndex(x, y);
+  If result = -1 Then Begin
+    setlength(fUserBolts, high(fUserBolts) + 2);
+    fUserBolts[high(fUserBolts)] := v2(x, y);
+    result := high(fUserBolts) + Length(fFixedBolts);
+  End;
+End;
+
+Function TMap.GetPointByIndex(Index: integer): TVector2;
+Begin
+  result := ZeroV2();
+  If (index >= 0) And (Index <= high(fFixedBolts)) Then Begin
+    result := fFixedBolts[index];
+    exit;
+  End;
+  index := index - length(fFixedBolts);
+  If (index >= 0) And (Index <= high(fUserBolts)) Then Begin
+    result := fUserBolts[index];
+  End;
+End;
+
+Procedure TMap.CheckAndMaybeRemovePoint(NodeIndex: integer);
+Var
+  i: Integer;
+Begin
+  If NodeIndex <= high(fFixedBolts) Then exit; // Fixed Bolts werden nicht gelöscht !
+  // gibt es noch mindestens eine Kante die auf NodeIndex zeigt ?
+  For i := 0 To high(fUserEdges) Do Begin
+    If (fUserEdges[i].X = NodeIndex) Or (fUserEdges[i].Y = NodeIndex) Then Begin
+      exit;
+    End;
+  End;
+  // Der Nodeindex ist "Freigestellt" -> Nu wird er gelöscht.
+  // Erst alle Kanten Indexe anpassen
+  For i := 0 To high(fUserEdges) Do Begin
+    If fUserEdges[i].X > NodeIndex Then fUserEdges[i].X := fUserEdges[i].X - 1;
+    If fUserEdges[i].Y > NodeIndex Then fUserEdges[i].Y := fUserEdges[i].Y - 1;
+  End;
+  // Dann aus den Userbolts raus werfen ..
+  NodeIndex := NodeIndex - length(fFixedBolts);
+  For i := NodeIndex To high(fUserBolts) - 1 Do Begin
+    fUserBolts[i] := fUserBolts[i + 1];
+  End;
+  setlength(fUserBolts, high(fUserBolts));
+End;
+
+Procedure TMap.ToggleUserEdge(StartNodeIndex, EndNodeIndex: Integer);
+Var
+  i, j: Integer;
+Begin
+  // Gibts das Ding schon ? -> Dann löschen
+  For i := 0 To high(fUserEdges) Do Begin
+    If ((fUserEdges[i].x = StartNodeIndex) And (fUserEdges[i].Y = EndNodeIndex)) Or
+      ((fUserEdges[i].Y = StartNodeIndex) And (fUserEdges[i].x = EndNodeIndex)) Then Begin
+      For j := i To high(fUserEdges) - 1 Do Begin
+        fUserEdges[j] := fUserEdges[j + 1];
+      End;
+      SetLength(fUserEdges, high(fUserEdges));
+      CheckAndMaybeRemovePoint(StartNodeIndex);
+      CheckAndMaybeRemovePoint(EndNodeIndex);
+      exit;
+    End;
+  End;
+  // Sonst Hinzufügen
+  setlength(fUserEdges, high(fUserEdges) + 2);
+  fUserEdges[high(fUserEdges)] := point(StartNodeIndex, EndNodeIndex);
 End;
 
 Function TMap.FindFixedBolt(x, y: integer): integer;
@@ -462,6 +587,7 @@ Begin
   AdjustFinalZone;
   setlength(fColliders, 0);
   setlength(fDeadZone, 0);
+  Reset();
 End;
 
 Procedure TMap.SaveToFile(Const aFilename: String);
