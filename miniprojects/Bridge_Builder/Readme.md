@@ -22,12 +22,18 @@ Ressources:
 ### Editor
 | Input | description | 
 | --- | --- |
+| left mouse button | set edge / start with edge |
+| SHIFT + left mouse button | set next edge and select point for next edge |
 | right mouse button | abort / deselect actual operation |
 | right mouse button + mouse movement | scroll the map |
 | CTRL + mouse wheel (up / down) | zoom in / out |
+
 ### In game
+
 | Input | description | 
 | --- | --- |
+| left mouse button | set edge / start with edge |
+| SHIFT + left mouse button | set next edge and select point for next edge |
 | right mouse button | abort / deselect actual operation |
 | right mouse button + mouse movement | scroll the map |
 | CTRL + mouse wheel (up / down) | zoom in / out |
