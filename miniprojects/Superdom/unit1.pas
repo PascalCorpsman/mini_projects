@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Superdom                                                        ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.04                                                         *)
+(* Version     : 0.05                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -32,6 +32,7 @@
 (*               0.04 - Update auf neueste GIT-Version (AI-Strength,          *)
 (*                      persistent units, spoilage, ..)                       *)
 (*                      Anzeige der AVG-Strength via Trackbar                 *)
+(*               0.05 - Apply patch for strength calculation, like orig       *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -180,7 +181,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Superdom remake of the Rockbox version 0.04 by Corpsman | www.Corpsman.de |';
+  caption := 'Superdom remake of the Rockbox version 0.05 by Corpsman | www.Corpsman.de |';
   Randomize;
   SuperDom := tSuperDom.Create;
   superdom.UserUpdateEvent := @form1.UserUpdateEvent;

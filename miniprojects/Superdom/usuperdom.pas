@@ -15,7 +15,7 @@
 (*
  * Eine Reverenz die gefunden wurde liegt unter:
  *   https://git.rockbox.org/cgit/rockbox.git/tree/apps/plugins/superdom.c?id=cb94b3ae2e
- * Codestand: 2020-07-22
+ * Codestand: 2024-07-20
  *)
 
 Unit usuperdom;
@@ -574,15 +574,15 @@ Begin
   (*
    * Betrachtet werden die Umliegenden Felder, Diagonale Felder sind schwächer gewichtet
    *
-   * Gewichtung | Inhalt
-   * ------------------------
-   *      0.133 | 1 Soldat
-   *      1.0   | Besitzrecht
-   *      2.0   | Nuklear Waffe
-   *      3.0   | Panzer
-   *      3.0   | Farm
-   *      4.0   | Flugzeug
-   *      4.0   | Industrie
+   * Gewichtung     | Inhalt
+   * ------------------------------
+   *      0.133     | 1 Soldat
+   *      1.0 / 0.5 | Besitzrecht
+   *      2.0 / 1.0 | Nuklear Waffe
+   *      3.0 / 1.5 | Panzer
+   *      3.0 / 1.5 | Farm
+   *      2.0       | Flugzeug
+   *      2.0       | Industrie
    *)
   For i := -1 To 1 Do
     For j := -1 To 1 Do
@@ -590,11 +590,16 @@ Begin
         If ((i = 0) Or (j = 0)) Then Begin
           // Waagrecht, Senkrecht
           res := res + 10; // Jedes Feld das uns gehört gewichtet
-          If (FField[x + i, y + j].tank) Or (FField[x + i, y + j].Farm) Then
+          If (FField[x + i, y + j].tank) Then
             res := res + 30;
-          If (FField[x + i, y + j].Plane) Or (FField[x + i, y + j].Industries) Then
-            res := res + 40;
-          If (FField[x + i, y + j].Nuke) Then res := res + 20;
+          If (FField[x + i, y + j].Farm) Then
+            res := res + 30;
+          If (FField[x + i, y + j].Plane) Then
+            res := res + 20;
+          If (FField[x + i, y + j].Industries) Then
+            res := res + 20;
+          If (FField[x + i, y + j].Nuke) Then
+            res := res + 20;
           If (FField[x + i, y + j].Men <> 0) Then Begin
             res := res + round(FField[x + i, y + j].Men * 133 / 1000);
           End;
@@ -602,13 +607,18 @@ Begin
         Else Begin
           // Diagonal
           res := res + 5; // Jedes Feld das uns gehört gewichtet
-          If (FField[x + i, y + j].tank) Or (FField[x + i, y + j].Farm) Then
+          If (FField[x + i, y + j].tank) Then
             res := res + 15;
-          If (FField[x + i, y + j].Plane) Or (FField[x + i, y + j].Industries) Then
+          If (FField[x + i, y + j].Farm) Then
+            res := res + 15;
+          If (FField[x + i, y + j].Plane) Then
             res := res + 20;
-          If (FField[x + i, y + j].Nuke) Then res := res + 10;
+          If (FField[x + i, y + j].Industries) Then
+            res := res + 20;
+          If (FField[x + i, y + j].Nuke) Then
+            res := res + 10;
           If (FField[x + i, y + j].Men <> 0) Then Begin
-            res := res + round(FField[x + i, y + j].Men * 133 / 1000); // Ist das ein Bug, dass die Menschen nicht Klein Scalliert werden ?
+            res := res + round(FField[x + i, y + j].Men * 133 / 1000);
           End;
         End;
       End;
@@ -1337,7 +1347,7 @@ Type
     str_diff: integer;
   End;
 Var
-  i, j, k: integer;
+  cnt, i, j, k: integer;
   offensive: Boolean;
   threats: Array[0..3] Of Tthreat;
   targets: Array[0..1] Of Tthreat;
@@ -1384,20 +1394,18 @@ Begin
       End;
     End;
   End;
-  If ((AiToLevel(fsuperdom_settings.compdiff) >= AI_BUILD_INDS_FARMS_LEVEL) And (FPlayer[plComputer].cash >= FarmPrice)) Then Begin
-    //    While (FPlayer[plComputer].cash >= FarmPrice) Do Begin // TODO: Diese While verhindert effektiv, das die AI, Nukes kauft
-    If (FPlayer[plComputer].farms < FPlayer[plComputer].Industries) Then Begin
-      While ((FPlayer[plComputer].farms < FPlayer[plComputer].Industries) And (FPlayer[plComputer].cash >= FarmPrice)) Do Begin // TODO: Das hier wird zu einer Endlosschleife, wenn das Ganze Feld Voll ist mit Farmen
+  If ((AiToLevel(fsuperdom_settings.compdiff) >= AI_BUILD_INDS_FARMS_LEVEL) And (FPlayer[plComputer].cash >= FarmPrice + 100)) Then Begin
+    cnt := 0;
+    Repeat
+      If (FPlayer[plComputer].farms < FPlayer[plComputer].Industries) Then Begin
         i := random(BOARD_SIZE);
         j := Random(BOARD_SIZE);
         If (FField[i, j].Colour = fcComputer) And Not (FField[i, j].Farm) Then Begin
           buy_resources(foFarm, i, j, 0);
           break;
         End;
-      End;
-    End
-    Else Begin
-      While ((FPlayer[plComputer].Industries < FPlayer[plComputer].farms) And (FPlayer[plComputer].cash >= IndustryPrice)) Do Begin // TODO: Das hier wird zu einer Endlosschleife, wenn das Ganze Feld Voll ist mit Industrieen
+      End
+      Else Begin
         i := random(BOARD_SIZE);
         j := Random(BOARD_SIZE);
         If (FField[i, j].Colour = fcComputer) And Not (FField[i, j].Industries) Then Begin
@@ -1405,8 +1413,8 @@ Begin
           break;
         End;
       End;
-    End;
-    //    End; -- End While
+      inc(cnt);
+    Until ((FPlayer[plComputer].cash < IndustryPrice + 100) Or (cnt >= 3));
   End;
   // AI will buy nukes first if possible
   If (FPlayer[plComputer].cash > NukePrice + TankPrice) And (AiToLevel(fsuperdom_settings.compdiff) >= AI_BUILD_NUKES_LEVEL) Then Begin
