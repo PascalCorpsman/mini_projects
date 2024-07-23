@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Sequoia                                                         02.06.2024 *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -24,6 +24,7 @@
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Show file / folder infos                              *)
+(*               0.03 - improove UI                                           *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -70,13 +71,16 @@ Type
   TForm1 = Class(TForm)
     Button1: TButton;
     Button2: TButton;
+    Button3: TButton;
     CheckBox1: TCheckBox;
     Edit1: TEdit;
     GroupBox1: TGroupBox;
+    SelectDirectoryDialog1: TSelectDirectoryDialog;
     StatusBar1: TStatusBar;
     SunburstChart1: TSunburstChart;
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
+    Procedure Button3Click(Sender: TObject);
     Procedure CheckBox1Click(Sender: TObject);
     Procedure Edit1KeyPress(Sender: TObject; Var Key: char);
     Procedure FormCreate(Sender: TObject);
@@ -171,7 +175,7 @@ Procedure TForm1.FormCreate(Sender: TObject);
 Var
   e: TSunBurstChartElement;
 Begin
-  caption := 'Sequoia view ver. 0.01 by Corpsman';
+  caption := 'Sequoia view ver. 0.03 by Corpsman';
   // Create the component by hand, so we do not need to register it into the IDE
   SunburstChart1 := TSunburstChart.Create(self);
   SunburstChart1.Name := 'SunburstChart1';
@@ -353,6 +357,14 @@ Procedure TForm1.Button2Click(Sender: TObject);
 Begin
   If DirectoryExists(Edit1.Text) Then Begin
     LoadDirectory(IncludeTrailingPathDelimiter(Edit1.text));
+  End;
+End;
+
+Procedure TForm1.Button3Click(Sender: TObject);
+Begin
+  If SelectDirectoryDialog1.Execute Then Begin
+    Edit1.Text := SelectDirectoryDialog1.FileName;
+    button2.Click;
   End;
 End;
 
