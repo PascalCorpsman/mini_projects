@@ -40,7 +40,13 @@ Type
     P: TPoint;
   End;
 
-  TGameState = (gsNone, gsMainMenu, gsEditor, gsInGame);
+  TGameState = (
+    gsNone,
+    gsMainMenu,
+    gsEditor,
+    gsInGame,
+    gsInGameSim
+    );
 
   { TBridgeBuilder }
 
@@ -99,6 +105,7 @@ Type
 
     Procedure SwitchToMainMenu;
     Procedure SwitchToGame;
+    Procedure SwitchToGameSim;
     Procedure LoadFromFile(Const aFilename: String);
   End;
 
@@ -143,7 +150,7 @@ End;
 
 Procedure TBridgeBuilder.OnRunButtonClick(Sender: TObject);
 Begin
-   Hier gehts weiter
+  SwitchToGameSim();
 End;
 
 Procedure TBridgeBuilder.OnResetButtonClick(Sender: TObject);
@@ -468,6 +475,9 @@ Var
   v: TVector2;
 Begin
   Case GameState Of
+    gsInGameSim: Begin
+        map.Render();
+      End;
     gsInGame: Begin
         map.Render();
         If (StartNode <> -1) Then Begin
@@ -579,6 +589,15 @@ Begin
   InGameScreen.visible := true;
 End;
 
+Procedure TBridgeBuilder.SwitchToGameSim;
+Begin
+  GameState := gsInGameSim;
+  MainScreen.visible := false;
+  EditorScreen.visible := false;
+  InGameScreen.visible := false;
+  map.StartSim;
+End;
+
 Procedure TBridgeBuilder.LoadFromFile(Const aFilename: String);
 Var
   dx, dy: single;
@@ -592,6 +611,4 @@ Begin
 End;
 
 End.
-
-
 

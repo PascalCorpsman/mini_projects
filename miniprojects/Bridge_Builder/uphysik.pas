@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uPhysik                                                         01.06.2024 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -24,6 +24,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Add UserData                                          *)
 (*                                                                            *)
 (******************************************************************************)
 Unit uphysik;
@@ -55,6 +56,8 @@ Type
     Fixed: Boolean;
     Inertia: TVector2;
     Mass: Single;
+    // Nicht Relevant für die Engine aber ggf nützlich für den user ;)
+    UserData: PtrInt;
   End;
 
   TSpring = Record
@@ -62,11 +65,15 @@ Type
     RestLen: Single; // If there is no force attached to the spring, then this is its len
     BreakForce: Single; // If the Inertia is more than this -> Break
     SpringConst: Single; // The "Force" the Spring is applying to if streched or compressed
+    // Nicht Relevant für die Engine aber ggf nützlich für den user ;)
+    UserData: PtrInt;
   End;
 
   TCollider = Record
     p1, p2, p3: TVector2;
     Bouncines: Single; // 0 =  Bei Kollision, bleibt der Kollidierende quasi "Kleben", 1 = Voll Elastischer Stoß
+    // Nicht Relevant für die Engine aber ggf nützlich für den user ;)
+    UserData: PtrInt;
   End;
 
   TOnRenderSpringEvent = Procedure(Sender: TObject; Const Spring: TSpring) Of Object; // TODO: Umstellen auf Index
@@ -82,9 +89,12 @@ Type
     FCollider: Array Of TCollider;
 
     Function FindPoint(Const P: TVector2): Integer;
-    Function AddPoint(Const P: TVector2; PointMass: Single): Integer;
 
     Function DoCollissionWith(PointIndex, ColliderIndex: Integer): TVector2;
+    Function getColliderCount: integer;
+    Function getGridPointCount: integer;
+    Function getSpring(index: integer): TSpring;
+    Function getSpringCount: integer;
     Procedure ProjectPointTo(Var P: TVector2; Const P1, P2: TVector2);
 
     Function GetGridPoint(index: integer): TGridPoint;
@@ -98,8 +108,14 @@ Type
     OnCollideEvent: TOnCollideEvent;
     OnSpringBreak: TNotifyEvent;
 
-    Property GridPoint[index: integer]: TGridPoint read GetGridPoint write SetGridPoint;
+    Property ColliderCount: integer read getColliderCount;
     Property Collider[index: integer]: TCollider read GetCollider write SetCollider;
+
+    Property GridPointCount: integer read getGridPointCount;
+    Property GridPoint[index: integer]: TGridPoint read GetGridPoint write SetGridPoint;
+
+    Property SpringCount: integer read getSpringCount;
+    Property Spring[index: integer]: TSpring read getSpring;
 
     Procedure SetFixed(index: Integer; aValue: Boolean);
 
@@ -108,8 +124,10 @@ Type
 
     Procedure Clear;
 
-    Procedure AddSpring(p1, p2: TVector2; Mass, SpringConst, SpringBreakForce: Single);
-    Procedure AddCollider(p1, p2, p3: TVector2; Bouncines: Single); overload; // Always fixed
+    Function AddPoint(Const P: TVector2; PointMass: Single; UserData: PtrInt): Integer;
+
+    Procedure AddSpring(p1, p2: TVector2; Mass, SpringConst, SpringBreakForce: Single; UserData: PtrInt);
+    Procedure AddCollider(p1, p2, p3: TVector2; Bouncines: Single; UserData: PtrInt); overload; // Always fixed
     Procedure AddCollider(c: TCollider); overload;
 
     Procedure ResetInertias;
@@ -213,7 +231,8 @@ Begin
   End;
 End;
 
-Function TSpringEngine.AddPoint(Const P: TVector2; PointMass: Single): Integer;
+Function TSpringEngine.AddPoint(Const P: TVector2; PointMass: Single;
+  UserData: PtrInt): Integer;
 Begin
   result := findpoint(p);
   If result = -1 Then Begin
@@ -223,6 +242,7 @@ Begin
     fGridPoints[result].Fixed := false;
     fGridPoints[result].Inertia := ZeroV2();
     fGridPoints[result].Mass := PointMass;
+    fGridPoints[result].UserData := UserData;
   End
   Else Begin
     fGridPoints[result].Mass := fGridPoints[Result].Mass + PointMass;
@@ -256,6 +276,25 @@ Begin
   result := NormV2(result);
 End;
 
+Function TSpringEngine.getColliderCount: integer;
+Begin
+  result := length(FCollider);
+End;
+
+Function TSpringEngine.getGridPointCount: integer;
+Begin
+  result := length(fGridPoints);
+End;
+
+Function TSpringEngine.getSpring(index: integer): TSpring;
+Begin
+  result := fSprings[index];
+End;
+
+Function TSpringEngine.getSpringCount: integer;
+Begin
+  result := length(fSprings);
+End;
 
 (*
  * Projiziert den Punkt P auf den Lotfuspunkt der Geraden durch P1 und P2
@@ -276,16 +315,20 @@ Begin
 End;
 
 Procedure TSpringEngine.AddSpring(p1, p2: TVector2; Mass, SpringConst,
-  SpringBreakForce: Single);
+  SpringBreakForce: Single; UserData: PtrInt);
 Var
   index1, index2, i: Integer;
 Begin
-  index1 := AddPoint(p1, Mass / 2);
-  index2 := AddPoint(p2, Mass / 2);
+  index1 := AddPoint(p1, Mass / 2, 0);
+  index2 := AddPoint(p2, Mass / 2, 0);
   // Check, if Spring already exists.
   For i := 0 To high(fSprings) Do Begin
     If ((fSprings[i].P1 = index1) And (fSprings[i].P2 = index2)) Or
-      ((fSprings[i].P2 = index1) And (fSprings[i].P1 = index2)) Then exit;
+      ((fSprings[i].P2 = index1) And (fSprings[i].P1 = index2)) Then Begin
+      // TODO: ggf, sollte man sich noch um das Free der Userdata kümmern ?
+      fSprings[i].UserData := UserData;
+      exit;
+    End;
   End;
   setlength(fSprings, high(fSprings) + 2);
   fSprings[high(fSprings)].P1 := index1;
@@ -293,15 +336,18 @@ Begin
   fSprings[high(fSprings)].RestLen := LenV2(fGridPoints[index1].Pos - fGridPoints[index2].Pos);
   fSprings[high(fSprings)].BreakForce := SpringBreakForce;
   fSprings[high(fSprings)].SpringConst := SpringConst;
+  fSprings[high(fSprings)].UserData := UserData;
 End;
 
-Procedure TSpringEngine.AddCollider(p1, p2, p3: TVector2; Bouncines: Single);
+Procedure TSpringEngine.AddCollider(p1, p2, p3: TVector2; Bouncines: Single;
+  UserData: PtrInt);
 Begin
   setlength(FCollider, high(FCollider) + 2);
   FCollider[high(FCollider)].p1 := p1;
   FCollider[high(FCollider)].p2 := p2;
   FCollider[high(FCollider)].p3 := p3;
   FCollider[high(FCollider)].Bouncines := Bouncines;
+  FCollider[high(FCollider)].UserData := UserData;
 End;
 
 Procedure TSpringEngine.AddCollider(c: TCollider);

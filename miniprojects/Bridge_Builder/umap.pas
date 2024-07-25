@@ -40,9 +40,13 @@ Type
     fFixedEdges: Array Of TPoint;
     fUserEdges: Array Of TPoint;
 
+    fLastTick: QWord;
+    fEngine: TSpringEngine;
+
     Procedure AdjustFinalZone;
     Function getStartPoint: TVector2;
     Procedure SetStartPoint(AValue: TVector2);
+
   public
     // TODO: Interface aufräumen !
     Offset, Dim: TPoint;
@@ -60,7 +64,6 @@ Type
 
     Property StartPoint: TVector2 read getStartPoint write SetStartPoint;
 
-
     Constructor Create(); virtual;
     Destructor Destroy(); override;
 
@@ -73,6 +76,8 @@ Type
     Function GetPointByIndex(Index: integer): TVector2;
     Procedure ToggleUserEdge(StartNodeIndex, EndNodeIndex: Integer);
     Procedure CheckAndMaybeRemovePoint(NodeIndex: integer);
+
+    Procedure StartSim;
 
     // Editor Sachen
     Function AddFixedBolt(x, y: integer): integer;
@@ -143,6 +148,7 @@ Begin
   fFixedBoltTex.Image := -1;
   ShowGrid := false;
   ShowCollider := false;
+  fEngine := Nil;
   Clear;
 End;
 
@@ -155,7 +161,13 @@ Procedure TMap.Render;
 Var
   i: Integer;
   v: TVector2;
+  n: QWord;
 Begin
+  If assigned(fEngine) Then Begin
+    n := GetTickCount64;
+    fEngine.Simulate((n - fLastTick) / 1000);
+    fLastTick := n;
+  End;
   glColor4f(1, 1, 1, 1);
   glPushMatrix;
   glTranslatef(-Offset.x, -Offset.y, 0);
@@ -249,11 +261,24 @@ Begin
   glEnd;
   glColor3f(0.25, 0.25, 0.75);
   glBegin(GL_LINES);
-  For i := 0 To high(fUserEdges) Do Begin
-    v := GetPointByIndex(fUserEdges[i].x);
-    glVertex2f(v.x, v.y);
-    v := GetPointByIndex(fUserEdges[i].Y);
-    glVertex2f(v.x, v.y);
+  If assigned(fEngine) Then Begin
+    For i := 0 To fEngine.SpringCount - 1 Do Begin
+      //If (fEngine.GridPoint[fEngine.Spring[i].P1].UserData >= Length(fFixedBolts)) Or
+        //(fEngine.GridPoint[fEngine.Spring[i].P2].UserData >= Length(fFixedBolts)) Then Begin
+      v := fEngine.GridPoint[fEngine.Spring[i].P1].Pos;
+      glVertex2f(v.x, v.y);
+      v := fEngine.GridPoint[fEngine.Spring[i].P2].Pos;
+      glVertex2f(v.x, v.y);
+      //End;
+    End;
+  End
+  Else Begin
+    For i := 0 To high(fUserEdges) Do Begin
+      v := GetPointByIndex(fUserEdges[i].x);
+      glVertex2f(v.x, v.y);
+      v := GetPointByIndex(fUserEdges[i].Y);
+      glVertex2f(v.x, v.y);
+    End;
   End;
   glEnd;
   glLineWidth(1);
@@ -264,17 +289,27 @@ Begin
     RenderAlphaQuad(fFixedBolts[i].y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[i].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
   End;
   glColor4f(0.25, 0.25, 0.75, 1);
-  For i := 0 To high(fUserBolts) Do Begin
-    RenderAlphaQuad(fUserBolts[i].y - fFixedBoltTex.OrigWidth Div 2, fUserBolts[i].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+  If assigned(fEngine) Then Begin
+    For i := 0 To fEngine.GridPointCount - 1 Do Begin
+      If fEngine.GridPoint[i].UserData >= Length(fFixedBolts) Then Begin
+        RenderAlphaQuad(fEngine.GridPoint[i].Pos.y - fFixedBoltTex.OrigWidth Div 2, fEngine.GridPoint[i].Pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+      End;
+    End;
+  End
+  Else Begin
+    For i := 0 To high(fUserBolts) Do Begin
+      RenderAlphaQuad(fUserBolts[i].y - fFixedBoltTex.OrigWidth Div 2, fUserBolts[i].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+    End;
   End;
   glPopMatrix;
 End;
 
 Procedure TMap.Reset;
 Begin
+  If assigned(fEngine) Then fEngine.Free;
+  fEngine := Nil;
   ShowCollider := false;
   ShowDeadZones := false;
-
   setlength(fUserBolts, 0);
   setlength(fUserEdges, 0);
 End;
@@ -346,6 +381,43 @@ Begin
     fUserBolts[i] := fUserBolts[i + 1];
   End;
   setlength(fUserBolts, high(fUserBolts));
+End;
+
+Procedure TMap.StartSim;
+Var
+  i, index: Integer;
+  a, b: TVector2;
+Begin
+  fLastTick := GetTickCount64;
+  If assigned(fEngine) Then fEngine.Free;
+  uphysik.Gravity := v2(0, 9.8);
+  fEngine := TSpringEngine.Create;
+  // Set all Points in order to not take care of them anymore ;)
+  For i := 0 To high(fFixedBolts) Do Begin
+    index := fEngine.AddPoint(fFixedBolts[i], 0, i);
+    fEngine.SetFixed(index, true);
+  End;
+  For i := 0 To high(fUserBolts) Do Begin
+    fEngine.AddPoint(fUserBolts[i], 0, length(fFixedBolts) + i);
+  End;
+  // Set all Springs
+  For i := 0 To high(fUserEdges) Do Begin
+    a := GetPointByIndex(fUserEdges[i].x);
+    b := GetPointByIndex(fUserEdges[i].Y);
+    // TODO: Rauskriegen was hier gute Konstanten sind !
+    fEngine.AddSpring(a, b, 50, 5, 100, i);
+  End;
+  // Set All Collider
+  For i := 0 To high(fColliders) Do Begin
+    // TODO: Rauskriegen was hier ne gute Bounciness ist
+    fEngine.AddCollider(
+      fColliders[i].p1,
+      fColliders[i].p2,
+      fColliders[i].p3,
+      0.5,
+      0
+      );
+  End;
 End;
 
 Procedure TMap.ToggleUserEdge(StartNodeIndex, EndNodeIndex: Integer);
@@ -575,6 +647,8 @@ End;
 
 Procedure TMap.Clear;
 Begin
+  If assigned(fEngine) Then fEngine.Free;
+  fEngine := Nil;
   zoom := 1.0;
   Offset := Point(0, 0);
   dim := Point(ScreenWidth, ScreenHeight);
