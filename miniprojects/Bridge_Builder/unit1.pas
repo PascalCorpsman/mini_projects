@@ -259,11 +259,8 @@ End;
 
 Procedure TForm1.LoadLevel(Sender: TObject);
 Begin
-  //  If OpenDialog1.Execute Then
-  Begin
-    //    game.LoadFromFile(OpenDialog1.FileName);
-    game.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
-    //    game.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_02.lvl'); // TODO: Debug remove !
+  If OpenDialog1.Execute Then Begin
+    game.LoadFromFile(OpenDialog1.FileName);
     game.SwitchToGame;
   End;
 End;

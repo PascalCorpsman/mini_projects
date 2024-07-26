@@ -31,6 +31,9 @@ Const
   GridSize = 5;
   MaxEdgeLen = 100;
 
+  // TODO: Dieser Switch spart das ständige Öffnen der Load Dialoge, beim Release muss der natürlich aus sein !
+{$DEFINE IDE_DEBUG_MODE}
+
 Type
 
   TColliderEdit = Record
@@ -74,9 +77,9 @@ Type
     Procedure OnResetButtonClick(Sender: TObject);
 
     // MainScreen
-    Procedure OnExitButtonClick(Sender: TObject);
-    Procedure OnEditorButtonClick(Sender: TObject);
     Procedure OnLoadButtonClick(Sender: TObject);
+    Procedure OnEditorButtonClick(Sender: TObject);
+    Procedure OnExitButtonClick(Sender: TObject);
 
     // EditorScreen
     Procedure OnLoadBackTexClick(Sender: TObject);
@@ -172,8 +175,10 @@ Begin
   EditorScreen.setStartPoint.Checked := true;
   GameState := gsEditor;
   StartNode := -1;
-  //LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
-//  LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_02.lvl'); // TODO: Debug remove !
+{$IFDEF IDE_DEBUG_MODE}
+  LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
+  // LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_02.lvl'); // TODO: Debug remove !
+{$ENDIF}
   MainScreen.visible := false;
   EditorScreen.visible := true;
   InGameScreen.visible := false;
@@ -181,7 +186,13 @@ End;
 
 Procedure TBridgeBuilder.OnLoadButtonClick(Sender: TObject);
 Begin
+{$IFDEF IDE_DEBUG_MODE}
+  LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_01.lvl'); // TODO: Debug remove !
+  //game.LoadFromFile(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Levels' + PathDelim + 'Level_02.lvl'); // TODO: Debug remove !
+  SwitchToGame;
+{$ELSE}
   OnLoadButton(self);
+{$ENDIF}
 End;
 
 Procedure TBridgeBuilder.OnLoadBackTexClick(Sender: TObject);
@@ -204,6 +215,11 @@ Begin
     gx := (gx - gx Mod GridSize) + GridSize Div 2;
     gy := (gy - gy Mod GridSize) + GridSize Div 2;
     Case GameState Of
+      gsInGameSim: Begin
+          If ssLeft In shift Then Begin
+            SwitchToGame;
+          End;
+        End;
       gsInGame: Begin
           If ssleft In shift Then Begin
             If StartNode = -1 Then Begin
@@ -581,7 +597,10 @@ End;
 
 Procedure TBridgeBuilder.SwitchToGame;
 Begin
-  If assigned(map) Then map.EditMode := false;
+  If assigned(map) Then Begin
+    map.StopSim;
+    map.EditMode := false;
+  End;
   StartNode := -1;
   GameState := gsInGame;
   MainScreen.visible := false;

@@ -23,6 +23,8 @@ Uses
 
 Type
 
+  TSimState = (ssIdle, ssCountdown);
+
   TMapCollider = Record
     p1, p2, p3: TPoint;
   End;
@@ -42,6 +44,8 @@ Type
 
     fLastTick: QWord;
     fEngine: TSpringEngine;
+    fSimState: TSimState;
+    fsimStartTime: QWord;
 
     Procedure AdjustFinalZone;
     Function getStartPoint: TVector2;
@@ -78,6 +82,7 @@ Type
     Procedure CheckAndMaybeRemovePoint(NodeIndex: integer);
 
     Procedure StartSim;
+    Procedure StopSim;
 
     // Editor Sachen
     Function AddFixedBolt(x, y: integer): integer;
@@ -106,7 +111,7 @@ Type
 
 Implementation
 
-Uses dglOpenGL, IniFiles, ubridge_builder;
+Uses dglOpenGL, IniFiles, ubridge_builder, uOpenGL_ASCII_Font;
 
 { TMap }
 
@@ -162,6 +167,7 @@ Var
   i: Integer;
   v: TVector2;
   n: QWord;
+  s: String;
 Begin
   If assigned(fEngine) Then Begin
     n := GetTickCount64;
@@ -174,6 +180,28 @@ Begin
   glScalef(zoom, zoom, zoom);
   If fBackTex.Image <> -1 Then Begin
     RenderQuad(0, 0, fBackTex);
+  End;
+  If fSimState = ssCountdown Then Begin
+    n := GetTickCount64 - fsimStartTime;
+    s := inttostr(n Div 1000);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    OpenGL_ASCII_Font.ColorV3 := v3(1, 1, 1);
+    // Da die Karte ja eigentlich gezoomt und mit Offset ist, muss für die "gemittelte" Zeitanzeige, dass hier alles "zurück" gerechnet werden
+    glPushMatrix();
+    glTranslatef(Offset.x / zoom, Offset.y / zoom, 0);
+    OpenGL_ASCII_Font.Size := OpenGL_ASCII_Font.Size * 2 / zoom;
+    glTranslatef((ScreenWidth - OpenGL_ASCII_Font.TextWidth(s)) / (2 * zoom), 15 / Zoom, 0);
+    OpenGL_ASCII_Font.Textout(0, 0, s);
+    OpenGL_ASCII_Font.Size := OpenGL_ASCII_Font.Size / (2 / zoom);
+    glPopMatrix();
+    // TODO: Zeit Dynamisch einstellen
+    If n >= 5000 Then Begin
+      // TODO: Nun geht der Belastungstest los ..
+
+      hier gehts weiter ..
+
+      fSimState := ssIdle;
+    End;
   End;
   If ShowGrid Then Begin
     glPushMatrix;
@@ -306,8 +334,7 @@ End;
 
 Procedure TMap.Reset;
 Begin
-  If assigned(fEngine) Then fEngine.Free;
-  fEngine := Nil;
+  StopSim;
   ShowCollider := false;
   ShowDeadZones := false;
   setlength(fUserBolts, 0);
@@ -388,6 +415,8 @@ Var
   i, index: Integer;
   a, b: TVector2;
 Begin
+  fSimStartTime := GetTickCount64;
+  fSimState := ssCountdown;
   fLastTick := GetTickCount64;
   If assigned(fEngine) Then fEngine.Free;
   uphysik.Gravity := v2(0, 9.8);
@@ -418,6 +447,13 @@ Begin
       0
       );
   End;
+End;
+
+Procedure TMap.StopSim;
+Begin
+  If assigned(fEngine) Then fEngine.Free;
+  fEngine := Nil;
+  fSimState := ssIdle;
 End;
 
 Procedure TMap.ToggleUserEdge(StartNodeIndex, EndNodeIndex: Integer);
