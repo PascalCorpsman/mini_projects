@@ -9,3 +9,7 @@ Features:
 
 Dependencies:
 - OpenGL ([dglOpenGL](https://github.com/saschawillems/dglopengl) and TOpenGLControl from the LCL)
+  
+Needed Lazarus packages:
+
+LazOpenGLContext

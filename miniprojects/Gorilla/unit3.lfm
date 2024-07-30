@@ -1,0 +1,44 @@
+object Form3: TForm3
+  Left = 238
+  Height = 372
+  Top = 114
+  Width = 504
+  Caption = 'Form3'
+  ClientHeight = 372
+  ClientWidth = 504
+  FormStyle = fsStayOnTop
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  object ListBox1: TListBox
+    Left = 8
+    Height = 328
+    Top = 8
+    Width = 484
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    ItemHeight = 0
+    ScrollWidth = 480
+    TabOrder = 2
+    TabStop = False
+  end
+  object Edit1: TEdit
+    Left = 8
+    Height = 23
+    Top = 344
+    Width = 400
+    Anchors = [akLeft, akRight, akBottom]
+    TabOrder = 0
+    Text = 'Edit1'
+    OnKeyPress = Edit1KeyPress
+  end
+  object Button1: TButton
+    Left = 416
+    Height = 25
+    Top = 342
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Send'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+end

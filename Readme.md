@@ -28,6 +28,7 @@ Following is a short description of all listed projects
 | [FIR IIR](miniprojects/FIR_IIR) | Demo to apply FIR and IIR Filter onto arbiture data |
 | [Fixed comma](miniprojects/Fixed_Comma) | Demo to show how fixed comma numbers work |
 | [GIT gui](miniprojects/GIT_gui) | Plattform independent Tortoise Git like GIT-Gui |
+| [Gorilla](miniprojects/Gorilla) | Reimplementation of gorilla.bas from DOS |
 | [Heapsim](miniprojects/Heapsim) | Explore different memory manager and usecases |
 | [Image Multiplication](miniprojects/Image_Multiplication) | Demo to show image manipulations with a matrix |
 | [Imageinspector](miniprojects/Imageinspector) | Programm to manipulate images and measure objects shown in that images |

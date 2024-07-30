@@ -1,0 +1,42 @@
+object Form1: TForm1
+  Left = 250
+  Height = 307
+  Top = 120
+  Width = 351
+  ActiveControl = OpenGLControl1
+  Caption = 'Form1'
+  ClientHeight = 307
+  ClientWidth = 351
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  object OpenGLControl1: TOpenGLControl
+    Left = 8
+    Height = 288
+    Top = 8
+    Width = 288
+    OnKeyDown = OpenGLControl1KeyDown
+    OnMakeCurrent = OpenGLControl1MakeCurrent
+    OnPaint = OpenGLControl1Paint
+    OnResize = OpenGLControl1Resize
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 32
+    Top = 32
+  end
+  object LTCPComponent1: TLTCPComponent
+    Port = 0
+    OnReceive = LTCPComponent1Receive
+    OnError = LTCPComponent1Error
+    OnDisconnect = LTCPComponent1Disconnect
+    OnConnect = LTCPComponent1Connect
+    OnAccept = LTCPComponent1Accept
+    OnCanSend = LTCPComponent1CanSend
+    Timeout = 0
+    ReuseAddress = False
+    Left = 120
+    Top = 32
+  end
+end
