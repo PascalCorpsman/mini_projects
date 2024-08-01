@@ -1,6 +1,6 @@
 # Clickomania
 
-This is the FPC reimplementation of the famous clickomania of from Matthias Schüssler (www.clickomania.ch)
+This is the FPC reimplementation of the famous clickomania of from Matthias Schüssler (https://blog.clickomania.ch/2018/10/16/clickomania-goes-open-source/)
 
 ![](preview.png)
 
