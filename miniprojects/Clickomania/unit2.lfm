@@ -1,0 +1,599 @@
+object Form2: TForm2
+  Left = 237
+  Height = 282
+  Top = 123
+  Width = 366
+  Caption = 'Form2'
+  ClientHeight = 282
+  ClientWidth = 366
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Button1: TButton
+    Left = 8
+    Height = 24
+    Top = 247
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = '&Restore'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 189
+    Height = 24
+    Top = 247
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = '&Save'
+    OnClick = Button2Click
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 277
+    Height = 24
+    Top = 247
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = '&Cancel'
+    OnClick = Button3Click
+    TabOrder = 2
+  end
+  object PageControl1: TPageControl
+    Left = 8
+    Height = 230
+    Top = 8
+    Width = 344
+    ActivePage = TabSheet5
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabIndex = 4
+    TabOrder = 3
+    object TabSheet1: TTabSheet
+      Caption = 'Field'
+      ClientHeight = 199
+      ClientWidth = 340
+      object Label1: TLabel
+        Left = 6
+        Height = 18
+        Top = 11
+        Width = 29
+        Caption = 'Field'
+        ParentColor = False
+      end
+      object Label2: TLabel
+        Left = 62
+        Height = 18
+        Top = 11
+        Width = 32
+        Caption = 'Rows'
+        ParentColor = False
+      end
+      object Label3: TLabel
+        Left = 62
+        Height = 18
+        Top = 43
+        Width = 57
+        Caption = 'Columns'
+        ParentColor = False
+      end
+      object SpinEdit1: TSpinEdit
+        Left = 134
+        Height = 25
+        Top = 11
+        Width = 81
+        MinValue = 8
+        OnChange = SpinEdit3Change
+        TabOrder = 0
+        Value = 8
+      end
+      object SpinEdit2: TSpinEdit
+        Left = 134
+        Height = 25
+        Top = 36
+        Width = 81
+        MinValue = 5
+        OnChange = SpinEdit3Change
+        TabOrder = 1
+        Value = 5
+      end
+      object Label4: TLabel
+        Left = 230
+        Height = 18
+        Top = 11
+        Width = 43
+        Caption = 'Label4'
+        ParentColor = False
+      end
+      object Label5: TLabel
+        Left = 230
+        Height = 18
+        Top = 43
+        Width = 43
+        Caption = 'Label5'
+        ParentColor = False
+      end
+      object Panel1: TPanel
+        Left = 6
+        Height = 4
+        Top = 75
+        Width = 327
+        Anchors = [akTop, akLeft, akRight]
+        BevelInner = bvLowered
+        BevelOuter = bvSpace
+        TabOrder = 2
+      end
+      object Label6: TLabel
+        Left = 6
+        Height = 18
+        Top = 91
+        Width = 46
+        Caption = 'Stones'
+        ParentColor = False
+      end
+      object Label7: TLabel
+        Left = 62
+        Height = 18
+        Top = 91
+        Width = 43
+        Caption = 'Height'
+        ParentColor = False
+      end
+      object Label8: TLabel
+        Left = 62
+        Height = 18
+        Top = 123
+        Width = 36
+        Caption = 'Width'
+        ParentColor = False
+      end
+      object SpinEdit3: TSpinEdit
+        Left = 134
+        Height = 25
+        Top = 91
+        Width = 81
+        MaxValue = 50
+        MinValue = 5
+        OnChange = SpinEdit3Change
+        TabOrder = 3
+        Value = 5
+      end
+      object SpinEdit4: TSpinEdit
+        Left = 134
+        Height = 25
+        Top = 116
+        Width = 81
+        MaxValue = 50
+        MinValue = 5
+        OnChange = SpinEdit3Change
+        TabOrder = 4
+        Value = 5
+      end
+      object Panel2: TPanel
+        Left = 222
+        Height = 50
+        Top = 91
+        Width = 50
+        BevelOuter = bvNone
+        Caption = 'Panel2'
+        Color = clRed
+        ParentColor = False
+        TabOrder = 5
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'Stones'
+      ClientHeight = 199
+      ClientWidth = 340
+      object Panel3: TPanel
+        Left = 6
+        Height = 4
+        Top = 43
+        Width = 327
+        Anchors = [akTop, akLeft, akRight]
+        BevelInner = bvLowered
+        BevelOuter = bvSpace
+        TabOrder = 0
+      end
+      object Panel4: TPanel
+        Left = 6
+        Height = 4
+        Top = 139
+        Width = 327
+        Anchors = [akTop, akLeft, akRight]
+        BevelInner = bvLowered
+        BevelOuter = bvSpace
+        TabOrder = 1
+      end
+      object Label9: TLabel
+        Left = 6
+        Height = 18
+        Top = 11
+        Width = 41
+        Caption = 'Colors'
+        ParentColor = False
+      end
+      object Label10: TLabel
+        Left = 62
+        Height = 18
+        Top = 11
+        Width = 35
+        Caption = 'No of'
+        ParentColor = False
+      end
+      object SpinEdit5: TSpinEdit
+        Left = 138
+        Height = 25
+        Top = 11
+        Width = 81
+        Anchors = [akTop, akRight]
+        MaxValue = 15
+        MinValue = 2
+        TabOrder = 2
+        Value = 2
+      end
+      object CheckBox1: TCheckBox
+        Left = 62
+        Height = 21
+        Top = 59
+        Width = 77
+        Caption = 'Textured'
+        OnChange = CheckBox1Change
+        TabOrder = 3
+      end
+      object CheckBox2: TCheckBox
+        Left = 78
+        Height = 21
+        Top = 81
+        Width = 63
+        Caption = 'Vojeur'
+        Enabled = False
+        TabOrder = 4
+      end
+      object CheckBox3: TCheckBox
+        Left = 62
+        Height = 21
+        Top = 105
+        Width = 89
+        Caption = 'Trace lines'
+        TabOrder = 5
+      end
+      object Label11: TLabel
+        Left = 6
+        Height = 18
+        Top = 62
+        Width = 27
+        Caption = 'F/Xs'
+        ParentColor = False
+      end
+      object Label12: TLabel
+        Left = 6
+        Height = 18
+        Top = 155
+        Width = 49
+        Caption = 'Sounds'
+        ParentColor = False
+      end
+      object CheckBox4: TCheckBox
+        Left = 62
+        Height = 21
+        Top = 155
+        Width = 99
+        Caption = 'Play sounds'
+        Enabled = False
+        TabOrder = 6
+      end
+      object ScrollBar1: TScrollBar
+        Left = 169
+        Height = 16
+        Top = 64
+        Width = 145
+        Anchors = [akTop, akLeft, akRight]
+        PageSize = 0
+        TabOrder = 7
+      end
+      object Label20: TLabel
+        Left = 158
+        Height = 18
+        Top = 43
+        Width = 32
+        Caption = 'opak'
+        ParentColor = False
+      end
+      object Label21: TLabel
+        Left = 250
+        Height = 18
+        Top = 43
+        Width = 78
+        Anchors = [akTop, akRight]
+        Caption = 'see through'
+        ParentColor = False
+      end
+      object Button6: TButton
+        Left = 234
+        Height = 25
+        Top = 11
+        Width = 80
+        Anchors = [akTop, akRight]
+        Caption = 'set colors'
+        OnClick = Button6Click
+        TabOrder = 8
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'Background'
+      ClientHeight = 199
+      ClientWidth = 340
+      object Panel5: TPanel
+        Left = 6
+        Height = 4
+        Top = 107
+        Width = 327
+        Anchors = [akTop, akLeft, akRight]
+        BevelInner = bvLowered
+        BevelOuter = bvSpace
+        TabOrder = 0
+      end
+      object Label13: TLabel
+        Left = 6
+        Height = 18
+        Top = 11
+        Width = 32
+        Caption = 'Back'
+        ParentColor = False
+      end
+      object RadioButton1: TRadioButton
+        Left = 134
+        Height = 21
+        Top = 11
+        Width = 103
+        Caption = 'From picture'
+        OnChange = RadioButton1Change
+        TabOrder = 1
+      end
+      object RadioButton2: TRadioButton
+        Left = 134
+        Height = 21
+        Top = 35
+        Width = 115
+        Caption = 'From directory'
+        OnChange = RadioButton1Change
+        TabOrder = 2
+      end
+      object RadioButton3: TRadioButton
+        Left = 134
+        Height = 21
+        Top = 59
+        Width = 67
+        Caption = 'default'
+        Checked = True
+        OnChange = RadioButton1Change
+        TabOrder = 3
+        TabStop = True
+      end
+      object Label14: TLabel
+        Left = 6
+        Height = 18
+        Top = 123
+        Width = 43
+        Caption = 'Direct.'
+        ParentColor = False
+      end
+      object Button4: TButton
+        Left = 134
+        Height = 25
+        Top = 123
+        Width = 75
+        Caption = 'choose'
+        Enabled = False
+        OnClick = Button4Click
+        TabOrder = 4
+      end
+      object Button5: TButton
+        Left = 134
+        Height = 25
+        Top = 155
+        Width = 75
+        Caption = 'choose'
+        Enabled = False
+        OnClick = Button5Click
+        TabOrder = 5
+      end
+      object Label15: TLabel
+        Left = 222
+        Height = 18
+        Top = 128
+        Width = 51
+        Caption = 'Label15'
+        ParentColor = False
+      end
+      object Label16: TLabel
+        Left = 222
+        Height = 18
+        Top = 156
+        Width = 51
+        Caption = 'Label16'
+        ParentColor = False
+      end
+      object CheckBox9: TCheckBox
+        Left = 134
+        Height = 21
+        Top = 83
+        Width = 174
+        Caption = 'fit image size to window'
+        Checked = True
+        Enabled = False
+        State = cbChecked
+        TabOrder = 6
+      end
+      object RadioButton6: TRadioButton
+        Left = 262
+        Height = 21
+        Top = 59
+        Width = 51
+        Caption = 'gray'
+        TabOrder = 7
+      end
+    end
+    object TabSheet4: TTabSheet
+      Caption = 'Actions'
+      ClientHeight = 199
+      ClientWidth = 340
+      object CheckBox6: TCheckBox
+        Left = 6
+        Height = 21
+        Top = 11
+        Width = 161
+        Caption = 'Enable special stones'
+        TabOrder = 0
+      end
+      object CheckBox7: TCheckBox
+        Left = 6
+        Height = 21
+        Top = 35
+        Width = 141
+        Caption = 'Enable animations'
+        TabOrder = 1
+      end
+      object CheckBox8: TCheckBox
+        Left = 6
+        Height = 21
+        Top = 59
+        Width = 209
+        Caption = 'Enable auto drop/count down'
+        Enabled = False
+        OnChange = CheckBox8Change
+        TabOrder = 2
+      end
+      object Label18: TLabel
+        Left = 30
+        Height = 18
+        Top = 91
+        Width = 56
+        Caption = 'Duration'
+        Enabled = False
+        ParentColor = False
+      end
+      object SpinEdit6: TSpinEdit
+        Left = 134
+        Height = 25
+        Top = 91
+        Width = 81
+        Enabled = False
+        TabOrder = 3
+      end
+      object Label19: TLabel
+        Left = 230
+        Height = 18
+        Top = 91
+        Width = 54
+        Caption = 'seconds'
+        Enabled = False
+        ParentColor = False
+      end
+    end
+    object TabSheet5: TTabSheet
+      Caption = 'Special'
+      ClientHeight = 199
+      ClientWidth = 340
+      object CheckBox5: TCheckBox
+        Left = 6
+        Height = 21
+        Top = 11
+        Width = 169
+        Caption = 'Track the game (Undo)'
+        TabOrder = 0
+      end
+      object Label17: TLabel
+        Left = 6
+        Height = 18
+        Top = 147
+        Width = 64
+        Caption = 'Language'
+        Enabled = False
+        ParentColor = False
+      end
+      object ComboBox1: TComboBox
+        Left = 134
+        Height = 27
+        Top = 147
+        Width = 168
+        Enabled = False
+        ItemHeight = 0
+        ItemIndex = 0
+        Items.Strings = (
+          'English'
+        )
+        TabOrder = 1
+        Text = 'English'
+      end
+      object Panel6: TPanel
+        Left = 6
+        Height = 4
+        Top = 131
+        Width = 327
+        Anchors = [akTop, akLeft, akRight]
+        BevelInner = bvLowered
+        BevelOuter = bvSpace
+        TabOrder = 2
+      end
+      object Panel7: TPanel
+        Left = 6
+        Height = 4
+        Top = 43
+        Width = 327
+        Anchors = [akTop, akLeft, akRight]
+        BevelInner = bvLowered
+        BevelOuter = bvSpace
+        TabOrder = 3
+      end
+      object Label22: TLabel
+        Left = 6
+        Height = 18
+        Top = 51
+        Width = 65
+        Caption = 'Highscore'
+        ParentColor = False
+      end
+      object RadioButton4: TRadioButton
+        Left = 134
+        Height = 21
+        Top = 91
+        Width = 82
+        Caption = 'low score'
+        Checked = True
+        OnChange = RadioButton5Change
+        TabOrder = 4
+        TabStop = True
+      end
+      object RadioButton5: TRadioButton
+        Left = 134
+        Height = 21
+        Top = 59
+        Width = 89
+        Caption = 'high score'
+        OnChange = RadioButton5Change
+        TabOrder = 5
+      end
+      object Button7: TButton
+        Left = 258
+        Height = 25
+        Top = 55
+        Width = 75
+        Anchors = [akTop, akRight]
+        Caption = 'tipp'
+        OnClick = Button7Click
+        TabOrder = 6
+      end
+    end
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    left = 96
+    top = 208
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.png'
+    Filter = 'Portable Network Praphik|*.png|Bitmap|*.bmp|JPEG File|*.jpg|All|*.*'
+    left = 96
+    top = 152
+  end
+end

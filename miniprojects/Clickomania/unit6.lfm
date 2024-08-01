@@ -1,0 +1,349 @@
+object Form6: TForm6
+  Left = 238
+  Height = 257
+  Top = 122
+  Width = 284
+  Caption = 'Form6'
+  ClientHeight = 257
+  ClientWidth = 284
+  OnCreate = FormCreate
+  OnPaint = FormPaint
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Panel1: TPanel
+    Left = 8
+    Height = 208
+    Top = 8
+    Width = 267
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Panel1'
+    ClientHeight = 208
+    ClientWidth = 267
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 16
+      Height = 18
+      Top = 10
+      Width = 43
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel2: TPanel
+      Left = 72
+      Height = 20
+      Top = 8
+      Width = 25
+      Caption = 'Panel2'
+      TabOrder = 0
+      OnClick = Panel2Click
+    end
+    object Label2: TLabel
+      Left = 16
+      Height = 18
+      Top = 34
+      Width = 43
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel3: TPanel
+      Left = 72
+      Height = 20
+      Top = 32
+      Width = 25
+      Caption = 'Panel2'
+      TabOrder = 1
+      OnClick = Panel2Click
+    end
+    object Label3: TLabel
+      Left = 16
+      Height = 18
+      Top = 58
+      Width = 43
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel4: TPanel
+      Left = 72
+      Height = 20
+      Top = 56
+      Width = 25
+      Caption = 'Panel2'
+      TabOrder = 2
+      OnClick = Panel2Click
+    end
+    object Label4: TLabel
+      Left = 16
+      Height = 18
+      Top = 82
+      Width = 43
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel5: TPanel
+      Left = 72
+      Height = 20
+      Top = 80
+      Width = 25
+      Caption = 'Panel2'
+      TabOrder = 3
+      OnClick = Panel2Click
+    end
+    object Label5: TLabel
+      Left = 16
+      Height = 18
+      Top = 106
+      Width = 43
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel6: TPanel
+      Left = 72
+      Height = 20
+      Top = 104
+      Width = 25
+      Caption = 'Panel2'
+      TabOrder = 4
+      OnClick = Panel2Click
+    end
+    object Label6: TLabel
+      Left = 16
+      Height = 18
+      Top = 130
+      Width = 43
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel7: TPanel
+      Left = 72
+      Height = 20
+      Top = 128
+      Width = 25
+      Caption = 'Panel2'
+      TabOrder = 5
+      OnClick = Panel2Click
+    end
+    object Label7: TLabel
+      Left = 16
+      Height = 18
+      Top = 154
+      Width = 43
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel8: TPanel
+      Left = 72
+      Height = 20
+      Top = 152
+      Width = 25
+      Caption = 'Panel2'
+      TabOrder = 6
+      OnClick = Panel2Click
+    end
+    object Label8: TLabel
+      Left = 16
+      Height = 18
+      Top = 178
+      Width = 43
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel9: TPanel
+      Left = 72
+      Height = 20
+      Top = 176
+      Width = 25
+      Caption = 'Panel2'
+      TabOrder = 7
+      OnClick = Panel2Click
+    end
+    object Label9: TLabel
+      Left = 168
+      Height = 18
+      Top = 10
+      Width = 43
+      Anchors = [akTop, akRight]
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel10: TPanel
+      Left = 224
+      Height = 20
+      Top = 8
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Panel2'
+      TabOrder = 8
+      OnClick = Panel2Click
+    end
+    object Label10: TLabel
+      Left = 168
+      Height = 18
+      Top = 34
+      Width = 43
+      Anchors = [akTop, akRight]
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel11: TPanel
+      Left = 224
+      Height = 20
+      Top = 32
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Panel2'
+      TabOrder = 9
+      OnClick = Panel2Click
+    end
+    object Label11: TLabel
+      Left = 168
+      Height = 18
+      Top = 58
+      Width = 43
+      Anchors = [akTop, akRight]
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel12: TPanel
+      Left = 224
+      Height = 20
+      Top = 56
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Panel2'
+      TabOrder = 10
+      OnClick = Panel2Click
+    end
+    object Label12: TLabel
+      Left = 168
+      Height = 18
+      Top = 82
+      Width = 43
+      Anchors = [akTop, akRight]
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel13: TPanel
+      Left = 224
+      Height = 20
+      Top = 80
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Panel2'
+      TabOrder = 11
+      OnClick = Panel2Click
+    end
+    object Label13: TLabel
+      Left = 168
+      Height = 18
+      Top = 106
+      Width = 43
+      Anchors = [akTop, akRight]
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel14: TPanel
+      Left = 224
+      Height = 20
+      Top = 104
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Panel2'
+      TabOrder = 12
+      OnClick = Panel2Click
+    end
+    object Label14: TLabel
+      Left = 168
+      Height = 18
+      Top = 130
+      Width = 43
+      Anchors = [akTop, akRight]
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel15: TPanel
+      Left = 224
+      Height = 20
+      Top = 128
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Panel2'
+      TabOrder = 13
+      OnClick = Panel2Click
+    end
+    object Label15: TLabel
+      Left = 168
+      Height = 18
+      Top = 154
+      Width = 43
+      Anchors = [akTop, akRight]
+      Caption = 'Label1'
+      ParentColor = False
+    end
+    object Panel16: TPanel
+      Left = 224
+      Height = 20
+      Top = 152
+      Width = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Panel2'
+      TabOrder = 14
+      OnClick = Panel2Click
+    end
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 224
+    Width = 75
+    Caption = '&Reset'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 200
+    Height = 25
+    Top = 224
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = '&Cancel'
+    OnClick = Button3Click
+    TabOrder = 2
+  end
+  object Button2: TButton
+    Left = 118
+    Height = 25
+    Top = 224
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = '&Save'
+    OnClick = Button2Click
+    TabOrder = 3
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 125
+    top = 16
+  end
+end

@@ -1,0 +1,396 @@
+object Form4: TForm4
+  Left = 238
+  Height = 368
+  Top = 123
+  Width = 270
+  ActiveControl = Button1
+  Caption = 'Form4'
+  ClientHeight = 368
+  ClientWidth = 270
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 128
+    Top = 0
+    Width = 254
+    Anchors = [akTop, akLeft, akRight]
+    Caption = ' General '
+    ClientHeight = 109
+    ClientWidth = 250
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 14
+      Height = 18
+      Top = 7
+      Width = 124
+      Caption = 'total games played'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 190
+      Height = 18
+      Top = 7
+      Width = 43
+      Caption = 'Label2'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 14
+      Height = 18
+      Top = 31
+      Width = 124
+      Caption = 'average stones left'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 190
+      Height = 18
+      Top = 31
+      Width = 43
+      Caption = 'Label4'
+      ParentColor = False
+    end
+    object Label35: TLabel
+      Left = 14
+      Height = 18
+      Top = 55
+      Width = 109
+      Caption = 'number of colors'
+      ParentColor = False
+    end
+    object Label36: TLabel
+      Left = 190
+      Height = 18
+      Top = 55
+      Width = 51
+      Caption = 'Label36'
+      ParentColor = False
+    end
+    object Label37: TLabel
+      Left = 14
+      Height = 18
+      Top = 79
+      Width = 97
+      Caption = 'field dimension'
+      ParentColor = False
+    end
+    object Label38: TLabel
+      Left = 190
+      Height = 18
+      Top = 79
+      Width = 51
+      Caption = 'Label38'
+      ParentColor = False
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 7
+    Height = 193
+    Top = 136
+    Width = 255
+    Anchors = [akTop, akLeft, akRight]
+    Caption = ' Hall of fame '
+    ClientHeight = 174
+    ClientWidth = 251
+    TabOrder = 1
+    OnResize = GroupBox2Resize
+    object Label5: TLabel
+      Left = 14
+      Height = 18
+      Top = 7
+      Width = 43
+      Caption = 'Label5'
+      ParentColor = False
+    end
+    object Label6: TLabel
+      Left = 14
+      Height = 18
+      Top = 23
+      Width = 43
+      Caption = 'Label6'
+      ParentColor = False
+    end
+    object Label7: TLabel
+      Left = 14
+      Height = 18
+      Top = 39
+      Width = 43
+      Caption = 'Label7'
+      ParentColor = False
+    end
+    object Label8: TLabel
+      Left = 14
+      Height = 18
+      Top = 55
+      Width = 43
+      Caption = 'Label8'
+      ParentColor = False
+    end
+    object Label9: TLabel
+      Left = 14
+      Height = 18
+      Top = 71
+      Width = 43
+      Caption = 'Label9'
+      ParentColor = False
+    end
+    object Label10: TLabel
+      Left = 14
+      Height = 18
+      Top = 87
+      Width = 51
+      Caption = 'Label10'
+      ParentColor = False
+    end
+    object Label11: TLabel
+      Left = 14
+      Height = 18
+      Top = 103
+      Width = 51
+      Caption = 'Label11'
+      ParentColor = False
+    end
+    object Label12: TLabel
+      Left = 14
+      Height = 18
+      Top = 119
+      Width = 51
+      Caption = 'Label12'
+      ParentColor = False
+    end
+    object Label13: TLabel
+      Left = 14
+      Height = 18
+      Top = 135
+      Width = 51
+      Caption = 'Label13'
+      ParentColor = False
+    end
+    object Label14: TLabel
+      Left = 14
+      Height = 18
+      Top = 151
+      Width = 51
+      Caption = 'Label14'
+      ParentColor = False
+    end
+    object Label15: TLabel
+      Left = 87
+      Height = 18
+      Top = 7
+      Width = 51
+      Caption = 'Label15'
+      ParentColor = False
+    end
+    object Label16: TLabel
+      Left = 87
+      Height = 18
+      Top = 23
+      Width = 51
+      Caption = 'Label16'
+      ParentColor = False
+    end
+    object Label17: TLabel
+      Left = 87
+      Height = 18
+      Top = 39
+      Width = 51
+      Caption = 'Label17'
+      ParentColor = False
+    end
+    object Label18: TLabel
+      Left = 87
+      Height = 18
+      Top = 55
+      Width = 51
+      Caption = 'Label18'
+      ParentColor = False
+    end
+    object Label19: TLabel
+      Left = 87
+      Height = 18
+      Top = 71
+      Width = 51
+      Caption = 'Label19'
+      ParentColor = False
+    end
+    object Label20: TLabel
+      Left = 87
+      Height = 18
+      Top = 87
+      Width = 51
+      Caption = 'Label20'
+      ParentColor = False
+    end
+    object Label21: TLabel
+      Left = 87
+      Height = 18
+      Top = 103
+      Width = 51
+      Caption = 'Label21'
+      ParentColor = False
+    end
+    object Label22: TLabel
+      Left = 87
+      Height = 18
+      Top = 119
+      Width = 51
+      Caption = 'Label22'
+      ParentColor = False
+    end
+    object Label23: TLabel
+      Left = 87
+      Height = 18
+      Top = 135
+      Width = 51
+      Caption = 'Label23'
+      ParentColor = False
+    end
+    object Label24: TLabel
+      Left = 87
+      Height = 18
+      Top = 151
+      Width = 51
+      Caption = 'Label24'
+      ParentColor = False
+    end
+    object Label25: TLabel
+      Left = 191
+      Height = 18
+      Top = 7
+      Width = 51
+      Caption = 'Label25'
+      ParentColor = False
+    end
+    object Label26: TLabel
+      Left = 191
+      Height = 18
+      Top = 23
+      Width = 51
+      Caption = 'Label26'
+      ParentColor = False
+    end
+    object Label27: TLabel
+      Left = 191
+      Height = 18
+      Top = 39
+      Width = 51
+      Caption = 'Label27'
+      ParentColor = False
+    end
+    object Label28: TLabel
+      Left = 191
+      Height = 18
+      Top = 55
+      Width = 51
+      Caption = 'Label28'
+      ParentColor = False
+    end
+    object Label29: TLabel
+      Left = 191
+      Height = 18
+      Top = 71
+      Width = 51
+      Caption = 'Label29'
+      ParentColor = False
+    end
+    object Label30: TLabel
+      Left = 191
+      Height = 18
+      Top = 87
+      Width = 51
+      Caption = 'Label30'
+      ParentColor = False
+    end
+    object Label31: TLabel
+      Left = 191
+      Height = 18
+      Top = 103
+      Width = 51
+      Caption = 'Label31'
+      ParentColor = False
+    end
+    object Label32: TLabel
+      Left = 191
+      Height = 18
+      Top = 119
+      Width = 51
+      Caption = 'Label32'
+      ParentColor = False
+    end
+    object Label33: TLabel
+      Left = 191
+      Height = 18
+      Top = 135
+      Width = 51
+      Caption = 'Label33'
+      ParentColor = False
+    end
+    object Label34: TLabel
+      Left = 191
+      Height = 18
+      Top = 151
+      Width = 51
+      Caption = 'Label34'
+      ParentColor = False
+    end
+  end
+  object SpeedButton1: TSpeedButton
+    Left = 8
+    Height = 24
+    Top = 336
+    Width = 24
+    Color = clBtnFace
+    Glyph.Data = {
+      36030000424D3603000000000000360000002800000010000000100000000100
+      1800000000000003000064000000640000000000000000000000C8D0D4C8D0D4
+      C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0
+      D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D40000FF00
+      00FF0000FFC8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+      C8D0D4C8D0D4C8D0D4C8D0D40000FF0000FF0000FFC8D0D4C8D0D4C8D0D4C8D0
+      D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D40000FF00
+      00FF0000FFC8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+      C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0
+      D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D400
+      00FFC8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+      C8D0D4C8D0D4C8D0D4C8D0D4C8D0D40000FFC8D0D4C8D0D4C8D0D4C8D0D4C8D0
+      D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D40000FF00
+      00FF0000FFC8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+      C8D0D4C8D0D4C8D0D4C8D0D40000FF0000FF0000FFC8D0D4C8D0D4C8D0D4C8D0
+      D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D40000FF00
+      00FF0000FFC8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+      C8D0D4C8D0D4C8D0D4C8D0D40000FF0000FF0000FFC8D0D4C8D0D4C8D0D4C8D0
+      D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D40000FF00
+      00FF0000FFC8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+      C8D0D4C8D0D4C8D0D4C8D0D40000FF0000FF0000FFC8D0D4C8D0D4C8D0D4C8D0
+      D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D40000FF00
+      00FF0000FFC8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+      C8D0D4C8D0D4C8D0D4C8D0D40000FF0000FF0000FFC8D0D4C8D0D4C8D0D4C8D0
+      D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8
+      D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+    }
+    NumGlyphs = 0
+    OnClick = SpeedButton1Click
+  end
+  object Button1: TButton
+    Left = 48
+    Height = 24
+    Top = 336
+    Width = 64
+    Caption = '&Clear'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+  object Button2: TButton
+    Left = 230
+    Height = 25
+    Top = 336
+    Width = 32
+    Anchors = [akTop, akRight]
+    Caption = 'X'
+    OnClick = Button2Click
+    TabOrder = 3
+  end
+end

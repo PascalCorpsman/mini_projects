@@ -1,0 +1,68 @@
+object Form5: TForm5
+  Left = 238
+  Height = 125
+  Top = 123
+  Width = 168
+  Caption = 'Form5'
+  ClientHeight = 125
+  ClientWidth = 168
+  OnCreate = FormCreate
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 8
+    Height = 18
+    Top = 8
+    Width = 77
+    Caption = 'stone coord'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 112
+    Height = 18
+    Top = 8
+    Width = 43
+    Caption = 'Label2'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 18
+    Top = 32
+    Width = 78
+    Caption = 'stone group'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 8
+    Height = 18
+    Top = 56
+    Width = 73
+    Caption = 'stone point'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 112
+    Height = 18
+    Top = 32
+    Width = 43
+    Caption = 'Label5'
+    ParentColor = False
+  end
+  object Label6: TLabel
+    Left = 112
+    Height = 18
+    Top = 56
+    Width = 43
+    Caption = 'Label6'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 88
+    Width = 136
+    Caption = '&OK'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+end

@@ -1,0 +1,30 @@
+object Form7: TForm7
+  Left = 238
+  Height = 240
+  Top = 123
+  Width = 339
+  Caption = 'Form7'
+  ClientHeight = 240
+  ClientWidth = 339
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 8
+    Height = 18
+    Top = 8
+    Width = 43
+    Caption = 'Label1'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 200
+    Width = 323
+    Anchors = [akTop, akLeft, akRight]
+    Caption = '&OK'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+end
