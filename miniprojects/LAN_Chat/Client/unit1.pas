@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.14                                                         *)
+(* Version     : 0.15                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -46,6 +46,7 @@
 (*               0.13 - Fix: Crash, when removing multiple users at same time *)
 (*                      Fix: Label2 was not initialized, on start transmission*)
 (*               0.14 - ADD: Serverinfo                                       *)
+(*               0.15 - Fix: Error message when startet via script            *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -271,7 +272,7 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.13';
+  defcaption := 'Lan chat ver. 0.15';
   (*
    * Know Bug: das ding scrollt nicht immer sauber nach unten..
    *)
@@ -305,7 +306,7 @@ Begin
     showmessage('Unable to init the device, Error code :' + inttostr(BASS_ErrorGetCode));
     halt;
   End;
-  NM_Sound := BASS_StreamCreateFile(false, pchar('nm.wav'), 0, 0, 0);
+  NM_Sound := BASS_StreamCreateFile(false, pchar(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'nm.wav'), 0, 0, 0);
   If NM_Sound = 0 Then Begin
     showmessage('Error unable to load : nm.wav' + LineEnding + 'Error code :' + inttostr(BASS_ErrorGetCode));
   End;
