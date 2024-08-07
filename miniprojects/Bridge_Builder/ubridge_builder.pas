@@ -271,7 +271,7 @@ Begin
                 End;
               End
               Else Begin
-                len := LenV2(map.fFixedBolts[StartNode] - v2(gx, gy));
+                len := LenV2(map.fFixedBolts[StartNode].pos - v2(gx, gy));
                 If len <= MaxEdgeLen Then Begin
                   EndNode := map.FindFixedBolt(gx, gy);
                   If EndNode = -1 Then Begin
@@ -529,7 +529,7 @@ Begin
           gy := round((LastMousePos.y + map.Offset.y) / map.Zoom);
           gx := (gx - gx Mod GridSize) + GridSize Div 2;
           gy := (gy - gy Mod GridSize) + GridSize Div 2;
-          len := sqrt(sqr(map.fFixedBolts[StartNode].x - gx) + sqr(map.fFixedBolts[StartNode].y - gy));
+          len := sqrt(sqr(map.fFixedBolts[StartNode].pos.x - gx) + sqr(map.fFixedBolts[StartNode].pos.y - gy));
           If len <= MaxEdgeLen Then Begin
             glBindTexture(GL_TEXTURE_2D, 0);
             glLineWidth(3);
@@ -537,7 +537,7 @@ Begin
             glPushMatrix;
             glTranslatef(-map.Offset.x, -map.Offset.y, 0);
             glBegin(GL_LINES);
-            glVertex2f(map.fFixedBolts[StartNode].x * map.Zoom, map.fFixedBolts[StartNode].y * map.Zoom);
+            glVertex2f(map.fFixedBolts[StartNode].pos.x * map.Zoom, map.fFixedBolts[StartNode].pos.y * map.Zoom);
             glVertex2f(LastMousePos.x + map.Offset.x, LastMousePos.y + map.Offset.y);
             glEnd;
             glPopMatrix;

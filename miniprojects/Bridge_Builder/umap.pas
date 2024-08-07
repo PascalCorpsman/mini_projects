@@ -23,10 +23,15 @@ Uses
 
 Type
 
-  TSimState = (ssIdle, ssCountdown);
+  TSimState = (ssIdle, ssCountdown, ssSimulating);
 
   TMapCollider = Record
     p1, p2, p3: TPoint;
+  End;
+
+  TBolt = Record
+    Pos: TVector2; // Durch den User angefügte Punkte -> werden nicht gespeichert
+    isFinalBolt: Boolean;
   End;
 
   { TMap }
@@ -36,7 +41,7 @@ Type
     fBackTexFilename: String; // Wird Relativ gespeichert, ist zur Laufzeit aber Absolut !
     fBackTex: TGraphikItem;
     fFixedBoltTex: TGraphikItem;
-    fUserBolts: Array Of TVector2; // Durch den User angefügte Punkte -> werden nicht gespeichert
+    fUserBolts: Array Of TBolt;
     fColliders: Array Of TMapCollider;
     fDeadZone: Array Of TMapCollider;
     fFixedEdges: Array Of TPoint;
@@ -50,7 +55,8 @@ Type
     Procedure AdjustFinalZone;
     Function getStartPoint: TVector2;
     Procedure SetStartPoint(AValue: TVector2);
-
+    Procedure StartSimulation; // TODO: Umbenennen in "StartMotionSim" ?
+    Procedure DoSimStep;
   public
     // TODO: Interface aufräumen !
     Offset, Dim: TPoint;
@@ -63,7 +69,7 @@ Type
     FinalZone: Array[0..3] Of TVector2;
     EditMode: Boolean;
 
-    fFixedBolts: Array Of TVector2;
+    fFixedBolts: Array Of TBolt;
     Zoom: Single;
 
     Property StartPoint: TVector2 read getStartPoint write SetStartPoint;
@@ -137,12 +143,39 @@ End;
 
 Function TMap.getStartPoint: TVector2;
 Begin
-  result := fFixedBolts[0];
+  result := fFixedBolts[0].pos;
 End;
 
 Procedure TMap.SetStartPoint(AValue: TVector2);
 Begin
-  fFixedBolts[0] := AValue;
+  fFixedBolts[0].pos := AValue;
+End;
+
+Procedure TMap.StartSimulation;
+Begin
+  fSimState := ssSimulating;
+  DoSimStep;
+End;
+
+Procedure TMap.DoSimStep;
+Var
+  i, index: Integer;
+Begin
+  // 1. Bestimmen aller "endNodes"
+  For i := 0 To fEngine.GridPointCount - 1 Do Begin
+    If fEngine.GridPoint[i].UserData >= Length(fFixedBolts) Then Begin
+      index := fEngine.GridPoint[i].UserData - Length(fFixedBolts);
+      fUserBolts[index].isFinalBolt := PointInPolygon(fEngine.GridPoint[i].Pos, FinalZone);
+    End
+    Else Begin
+      fFixedBolts[fEngine.GridPoint[i].UserData].isFinalBolt := PointInPolygon(fEngine.GridPoint[i].Pos, FinalZone);
+    End;
+  End;
+
+
+  Nun müssen die "wege" von isFinalbolt zum Start gefunden und danach alle "Knoten" bewegt werden
+
+
 End;
 
 Constructor TMap.Create;
@@ -197,10 +230,7 @@ Begin
     // TODO: Zeit Dynamisch einstellen
     If n >= 5000 Then Begin
       // TODO: Nun geht der Belastungstest los ..
-
-      hier gehts weiter ..
-
-      fSimState := ssIdle;
+      StartSimulation;
     End;
   End;
   If ShowGrid Then Begin
@@ -283,8 +313,8 @@ Begin
   glColor3f(0.25, 0.25, 0.25);
   glBegin(GL_LINES);
   For i := 0 To high(fFixedEdges) Do Begin
-    glVertex2f(fFixedBolts[fFixedEdges[i].X].x, fFixedBolts[fFixedEdges[i].X].y);
-    glVertex2f(fFixedBolts[fFixedEdges[i].y].x, fFixedBolts[fFixedEdges[i].y].y);
+    glVertex2f(fFixedBolts[fFixedEdges[i].X].pos.x, fFixedBolts[fFixedEdges[i].X].pos.y);
+    glVertex2f(fFixedBolts[fFixedEdges[i].y].pos.x, fFixedBolts[fFixedEdges[i].y].pos.y);
   End;
   glEnd;
   glColor3f(0.25, 0.25, 0.75);
@@ -311,22 +341,31 @@ Begin
   glEnd;
   glLineWidth(1);
   glColor3f(1, 0, 0);
-  RenderAlphaQuad(fFixedBolts[0].y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[0].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
-  glColor4f(1, 1, 1, 1);
+  RenderAlphaQuad(fFixedBolts[0].pos.y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[0].pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
   For i := 1 To high(fFixedBolts) Do Begin // Index 0 ist der StartPunkt !
-    RenderAlphaQuad(fFixedBolts[i].y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[i].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+    glColor4f(1, 1, 1, 1);
+    If assigned(fEngine) And (fFixedBolts[i].isFinalBolt) Then Begin
+      glColor4f(0.25, 0.75, 0.25, 1);
+    End;
+    RenderAlphaQuad(fFixedBolts[i].pos.y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[i].pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
   End;
-  glColor4f(0.25, 0.25, 0.75, 1);
   If assigned(fEngine) Then Begin
     For i := 0 To fEngine.GridPointCount - 1 Do Begin
       If fEngine.GridPoint[i].UserData >= Length(fFixedBolts) Then Begin
+        If (fUserBolts[fEngine.GridPoint[i].UserData - Length(fFixedBolts)].isFinalBolt) Then Begin
+          glColor4f(0.25, 0.75, 0.25, 1);
+        End
+        Else Begin
+          glColor4f(0.25, 0.25, 0.75, 1);
+        End;
         RenderAlphaQuad(fEngine.GridPoint[i].Pos.y - fFixedBoltTex.OrigWidth Div 2, fEngine.GridPoint[i].Pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
       End;
     End;
   End
   Else Begin
+    glColor4f(0.25, 0.25, 0.75, 1);
     For i := 0 To high(fUserBolts) Do Begin
-      RenderAlphaQuad(fUserBolts[i].y - fFixedBoltTex.OrigWidth Div 2, fUserBolts[i].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+      RenderAlphaQuad(fUserBolts[i].pos.y - fFixedBoltTex.OrigWidth Div 2, fUserBolts[i].pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
     End;
   End;
   glPopMatrix;
@@ -348,14 +387,14 @@ Begin
   result := -1;
   // Ist es ein Fixed Bolt ?
   For i := 0 To high(fFixedBolts) Do Begin
-    If lenv2(fFixedBolts[i] - v2(x, y)) <= Epsilon Then Begin
+    If lenv2(fFixedBolts[i].pos - v2(x, y)) <= Epsilon Then Begin
       result := i;
       exit;
     End;
   End;
   // Nein, dann evtl ein "Dynamischer"
   For i := 0 To high(fUserBolts) Do Begin
-    If lenv2(fUserBolts[i] - v2(x, y)) <= Epsilon Then Begin
+    If lenv2(fUserBolts[i].pos - v2(x, y)) <= Epsilon Then Begin
       result := i + length(fFixedBolts);
       exit;
     End;
@@ -367,7 +406,7 @@ Begin
   result := FindPointIndex(x, y);
   If result = -1 Then Begin
     setlength(fUserBolts, high(fUserBolts) + 2);
-    fUserBolts[high(fUserBolts)] := v2(x, y);
+    fUserBolts[high(fUserBolts)].pos := v2(x, y);
     result := high(fUserBolts) + Length(fFixedBolts);
   End;
 End;
@@ -376,12 +415,12 @@ Function TMap.GetPointByIndex(Index: integer): TVector2;
 Begin
   result := ZeroV2();
   If (index >= 0) And (Index <= high(fFixedBolts)) Then Begin
-    result := fFixedBolts[index];
+    result := fFixedBolts[index].pos;
     exit;
   End;
   index := index - length(fFixedBolts);
   If (index >= 0) And (Index <= high(fUserBolts)) Then Begin
-    result := fUserBolts[index];
+    result := fUserBolts[index].pos;
   End;
 End;
 
@@ -423,11 +462,12 @@ Begin
   fEngine := TSpringEngine.Create;
   // Set all Points in order to not take care of them anymore ;)
   For i := 0 To high(fFixedBolts) Do Begin
-    index := fEngine.AddPoint(fFixedBolts[i], 0, i);
+    index := fEngine.AddPoint(fFixedBolts[i].pos, 0, i);
     fEngine.SetFixed(index, true);
   End;
   For i := 0 To high(fUserBolts) Do Begin
-    fEngine.AddPoint(fUserBolts[i], 0, length(fFixedBolts) + i);
+    fUserBolts[i].isFinalBolt := false;
+    fEngine.AddPoint(fUserBolts[i].pos, 0, length(fFixedBolts) + i);
   End;
   // Set all Springs
   For i := 0 To high(fUserEdges) Do Begin
@@ -484,7 +524,7 @@ Var
 Begin
   result := -1;
   For i := 0 To high(fFixedBolts) Do Begin
-    If lenv2(fFixedBolts[i] - v2(x, y)) <= Epsilon Then Begin
+    If lenv2(fFixedBolts[i].pos - v2(x, y)) <= Epsilon Then Begin
       result := i;
       exit;
     End;
@@ -632,7 +672,7 @@ Begin
   Result := FindFixedBolt(x, y);
   If result <> -1 Then exit;
   SetLength(fFixedBolts, high(fFixedBolts) + 2);
-  fFixedBolts[high(fFixedBolts)] := v2(x, y);
+  fFixedBolts[high(fFixedBolts)].pos := v2(x, y);
   result := high(fFixedBolts);
 End;
 
@@ -641,7 +681,7 @@ Var
   i, j, k: Integer;
 Begin
   For i := 0 To high(fFixedBolts) Do Begin
-    If lenv2(fFixedBolts[i] - v2(x, y)) <= Epsilon Then Begin
+    If lenv2(fFixedBolts[i].pos - v2(x, y)) <= Epsilon Then Begin
       If i = 0 Then exit; // Der StartNode kann nicht gelöscht werden
       // Alle Kanten Berücksichtigen
       For j := high(fFixedEdges) Downto 0 Do Begin
@@ -692,7 +732,7 @@ Begin
   fBackTex.Image := -1;
   Filename := '';
   setlength(fFixedBolts, 1);
-  fFixedBolts[0] := v2(10, 10);
+  fFixedBolts[0].pos := v2(10, 10);
   setlength(fFixedEdges, 0);
   AdjustFinalZone;
   setlength(fColliders, 0);
@@ -710,7 +750,7 @@ Begin
   ini.WriteString('General', 'Texture', ExtractRelativePath(afilename, fBackTexFilename));
   ini.WriteInteger('Fixed Bolts', 'Count', length(fFixedBolts));
   For i := 0 To high(fFixedBolts) Do Begin
-    ini.WriteString('Fixed Bolts', 'Bolt' + inttostr(i), format('%d/%d', [round(fFixedBolts[i].x), round(fFixedBolts[i].y)]));
+    ini.WriteString('Fixed Bolts', 'Bolt' + inttostr(i), format('%d/%d', [round(fFixedBolts[i].pos.x), round(fFixedBolts[i].pos.y)]));
   End;
   For i := 0 To 3 Do Begin
     ini.WriteString('FinalZone', 'P' + inttostr(i + 1), format('%d/%d', [round(FinalZone[i].x), round(FinalZone[i].y)]));
@@ -755,7 +795,7 @@ Begin
   For i := 0 To high(fFixedBolts) Do Begin
     s := ini.ReadString('Fixed Bolts', 'Bolt' + inttostr(i), '');
     sa := s.Split('/');
-    fFixedBolts[i] := v2(strtoint(sa[0]), strtoint(sa[1]));
+    fFixedBolts[i].pos := v2(strtoint(sa[0]), strtoint(sa[1]));
   End;
   For i := 0 To 3 Do Begin
     s := ini.ReadString('FinalZone', 'p' + inttostr(i + 1), '');

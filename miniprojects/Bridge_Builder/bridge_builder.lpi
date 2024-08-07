@@ -9,7 +9,6 @@
       <Title Value="bridge_builder"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
-      <ActiveWindowIndexAtStart Value="1"/>
     </General>
     <VersionInfo>
       <Language Value=""/>
@@ -51,7 +50,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="44" Y="5"/>
-        <UsageCount Value="64"/>
+        <UsageCount Value="66"/>
       </Unit0>
       <Unit1>
         <Filename Value="unit1.pas"/>
@@ -60,10 +59,9 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-        <IsVisibleTab Value="True"/>
-        <TopLine Value="222"/>
-        <CursorPos X="3" Y="252"/>
-        <UsageCount Value="64"/>
+        <TopLine Value="193"/>
+        <CursorPos X="92" Y="211"/>
+        <UsageCount Value="66"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
@@ -96,14 +94,14 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="541"/>
         <CursorPos X="109" Y="548"/>
-        <UsageCount Value="49"/>
+        <UsageCount Value="51"/>
       </Unit6>
       <Unit7>
         <Filename Value="uvectormath.inc"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
-        <UsageCount Value="49"/>
+        <UsageCount Value="51"/>
       </Unit7>
       <Unit8>
         <Filename Value="uphysik.pas"/>
@@ -112,20 +110,22 @@
         <WindowIndex Value="1"/>
         <TopLine Value="10"/>
         <CursorPos Y="50"/>
-        <UsageCount Value="49"/>
+        <UsageCount Value="51"/>
       </Unit8>
       <Unit9>
         <Filename Value="ubridge_builder.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="1"/>
-        <CursorPos X="10" Y="34"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="520"/>
+        <CursorPos X="99" Y="540"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
-          <WindowIndex Value="-1"/>
+          <WindowIndex Value="1"/>
+          <TopLine Value="494"/>
+          <CursorPos X="54" Y="532"/>
         </ExtraEditor1>
-        <UsageCount Value="49"/>
+        <UsageCount Value="51"/>
         <Bookmarks Count="1">
           <Item0 Y="149" ID="1"/>
         </Bookmarks>
@@ -137,21 +137,20 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="22"/>
         <CursorPos X="167" Y="85"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="50"/>
       </Unit10>
       <Unit11>
         <Filename Value="../Sample/Graphik/ugraphics.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="50"/>
       </Unit11>
       <Unit12>
         <Filename Value="uscreens.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="178"/>
+        <EditorIndex Value="3"/>
         <CursorPos X="58" Y="221"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="50"/>
         <Loaded Value="True"/>
       </Unit12>
       <Unit13>
@@ -166,7 +165,7 @@
           <TopLine Value="1045"/>
           <CursorPos Y="1092"/>
         </ExtraEditor1>
-        <UsageCount Value="48"/>
+        <UsageCount Value="50"/>
       </Unit13>
       <Unit14>
         <Filename Value="../Sample/DatenSteuerung/ueventer.pas"/>
@@ -175,14 +174,14 @@
         <WindowIndex Value="1"/>
         <TopLine Value="108"/>
         <CursorPos X="3" Y="77"/>
-        <UsageCount Value="47"/>
+        <UsageCount Value="49"/>
       </Unit14>
       <Unit15>
         <Filename Value="ueventer.inc"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="50"/>
       </Unit15>
       <Unit16>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.pas"/>
@@ -192,13 +191,13 @@
         <WindowIndex Value="1"/>
         <TopLine Value="127"/>
         <CursorPos X="3" Y="131"/>
-        <UsageCount Value="47"/>
+        <UsageCount Value="49"/>
       </Unit16>
       <Unit17>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.ressource"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="47"/>
+        <UsageCount Value="49"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit17>
       <Unit18>
@@ -208,14 +207,14 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="47"/>
+        <UsageCount Value="49"/>
       </Unit18>
       <Unit19>
         <Filename Value="../Sample/OpenGL/uopengl_truetype_font.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="71" Y="22"/>
-        <UsageCount Value="47"/>
+        <UsageCount Value="49"/>
       </Unit19>
       <Unit20>
         <Filename Value="/home/corpsman/lazarus/lcl/menus.pp"/>
@@ -244,16 +243,18 @@
         <Filename Value="umap.pas"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="168"/>
-        <CursorPos X="7" Y="201"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="326"/>
+        <CursorPos X="38" Y="344"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <EditorIndex Value="1"/>
-          <TopLine Value="648"/>
-          <CursorPos X="22" Y="668"/>
+          <IsVisibleTab Value="True"/>
+          <EditorIndex Value="-1"/>
+          <WindowIndex Value="1"/>
+          <TopLine Value="328"/>
+          <CursorPos X="16" Y="361"/>
         </ExtraEditor1>
-        <UsageCount Value="45"/>
+        <UsageCount Value="47"/>
         <Loaded Value="True"/>
       </Unit23>
       <Unit24>
@@ -263,7 +264,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="25"/>
         <CursorPos X="14" Y="62"/>
-        <UsageCount Value="44"/>
+        <UsageCount Value="46"/>
       </Unit24>
       <Unit25>
         <Filename Value="/home/corpsman/lazarus/components/opengl/openglcontext.pas"/>
@@ -285,121 +286,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="umap.pas"/>
-        <Caret TopLine="79"/>
+        <Caret Line="256" Column="25" TopLine="245"/>
       </Position1>
       <Position2>
         <Filename Value="umap.pas"/>
-        <Caret Line="187" Column="28" TopLine="151"/>
+        <Caret Line="80" Column="19" TopLine="60"/>
       </Position2>
       <Position3>
         <Filename Value="umap.pas"/>
-        <Caret Line="189" Column="32" TopLine="151"/>
+        <Caret Line="167" Column="67" TopLine="140"/>
       </Position3>
       <Position4>
         <Filename Value="umap.pas"/>
-        <Caret Line="189" Column="62" TopLine="151"/>
+        <Caret Line="165" TopLine="140"/>
       </Position4>
       <Position5>
         <Filename Value="umap.pas"/>
-        <Caret Line="193" Column="24" TopLine="150"/>
+        <Caret Line="166" TopLine="140"/>
       </Position5>
       <Position6>
         <Filename Value="umap.pas"/>
-        <Caret Line="187" Column="35" TopLine="150"/>
+        <Caret Line="165" TopLine="140"/>
       </Position6>
       <Position7>
         <Filename Value="umap.pas"/>
-        <Caret Line="188" Column="43" TopLine="161"/>
+        <Caret Line="163" TopLine="140"/>
       </Position7>
       <Position8>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="45" Column="140"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="172" Column="50" TopLine="151"/>
       </Position8>
       <Position9>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="15" Column="15"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="72" Column="32" TopLine="36"/>
       </Position9>
       <Position10>
-        <Filename Value="umap.pas"/>
-        <Caret Line="64" Column="46" TopLine="61"/>
+        <Filename Value="ubridge_builder.pas"/>
+        <Caret Line="532" Column="102" TopLine="502"/>
       </Position10>
       <Position11>
-        <Filename Value="umap.pas"/>
-        <Caret Line="682" Column="10" TopLine="642"/>
+        <Filename Value="ubridge_builder.pas"/>
+        <Caret Line="540" Column="99" TopLine="520"/>
       </Position11>
       <Position12>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="171" Column="55" TopLine="159"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="151" Column="21" TopLine="125"/>
       </Position12>
       <Position13>
-        <Filename Value="ubridge_builder.pas"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="312" Column="86" TopLine="291"/>
       </Position13>
       <Position14>
         <Filename Value="umap.pas"/>
-        <Caret Line="195" Column="39" TopLine="161"/>
+        <Caret Line="343" Column="39" TopLine="319"/>
       </Position14>
       <Position15>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="161" Column="42" TopLine="143"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="383" Column="32" TopLine="362"/>
       </Position15>
       <Position16>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="77" Column="16" TopLine="55"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="411" Column="37" TopLine="390"/>
       </Position16>
       <Position17>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="184" Column="3" TopLine="182"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="458" Column="49" TopLine="437"/>
       </Position17>
       <Position18>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="71" Column="24" TopLine="64"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="520" Column="32" TopLine="499"/>
       </Position18>
       <Position19>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="34" Column="10"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="668" Column="37" TopLine="647"/>
       </Position19>
       <Position20>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="576" Column="41" TopLine="549"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="677" Column="32" TopLine="656"/>
       </Position20>
       <Position21>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="79" Column="24" TopLine="59"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="728" Column="21" TopLine="707"/>
       </Position21>
       <Position22>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="189" Column="16" TopLine="185"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="746" Column="128" TopLine="725"/>
       </Position22>
       <Position23>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="80" Column="16" TopLine="41"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="791" Column="23" TopLine="770"/>
       </Position23>
       <Position24>
-        <Filename Value="unit1.pas"/>
-        <Caret Line="234" Column="59" TopLine="221"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="90" Column="20" TopLine="70"/>
       </Position24>
       <Position25>
-        <Filename Value="unit1.pas"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="450" Column="3" TopLine="445"/>
       </Position25>
       <Position26>
-        <Filename Value="unit1.pas"/>
-        <Caret Line="167" Column="24" TopLine="127"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="80" Column="18" TopLine="75"/>
       </Position26>
       <Position27>
-        <Filename Value="unit1.pas"/>
-        <Caret Line="81" Column="16" TopLine="57"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="201" Column="3" TopLine="194"/>
       </Position27>
       <Position28>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="180" Column="29" TopLine="157"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="58" Column="16" TopLine="46"/>
       </Position28>
       <Position29>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="34" Column="11"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="163" Column="27" TopLine="154"/>
       </Position29>
       <Position30>
-        <Filename Value="ubridge_builder.pas"/>
-        <Caret Line="190" Column="3" TopLine="152"/>
+        <Filename Value="umap.pas"/>
+        <Caret Line="80" Column="18" TopLine="59"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -410,6 +413,9 @@
       <OtherUnitFiles Value="../../Graphik;../../DatenSteuerung;../Sample/OpenGL;../Sample/DatenSteuerung;../Sample/Graphik"/>
     </SearchPaths>
     <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
