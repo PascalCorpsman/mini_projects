@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* Button_Tool                                                     ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.07                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
 (* Support     : www.Corpsman.de                                              *)
 (*                                                                            *)
-(* Description : Tool to create images of "buttons" with fancy fonts settings *)
+(* Description : Tool to create button graphics for OpenGL applications       *)
 (*                                                                            *)
 (* License     : See the file license.md, located under:                      *)
 (*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
@@ -23,10 +23,11 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - 0.03 : Initial version / Porting to Lazarus / Linux   *)
-(*               0.04 - OpenSource / Insert the "Underlay texture"            *)
-(*               0.05 - Bugfix in load settings routine.                      *)
-(*               0.06 - Kleinere Schönheitsfehler korrigiert (Nil-Pointer,    *)
+(*               0.04 : OpenSource / Insert the "Underlay texture"            *)
+(*               0.05 : Bugfix in load settings routine.                      *)
+(*               0.06 : Kleinere Schönheitsfehler korrigiert (Nil-Pointer,    *)
 (*                      zusätzliche Fehlermeldungen..)                        *)
+(*               0.07 : Switch to ini files                                   *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -38,6 +39,13 @@ Interface
 Uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, Math, IntfGraphics, fpImage, LCLType, lazpng, lazjpg;
+
+Const
+  (*
+   * History : 0 - Textfile
+   *           1 - Inifile
+   *)
+  FileVersion: Integer = 1;
 
 Type
 
@@ -115,6 +123,9 @@ Type
     Procedure ScrollBar1Change(Sender: TObject);
   private
     { private declarations }
+    Procedure LoadSettingsDeprecated(Const Filename: String); Deprecated;
+    Procedure LoadSettings(Const Filename: String);
+    Procedure SaveSettings(Const Filename: String);
   public
     { public declarations }
     Procedure RenderCaption(Color_: TColor; Const BM: TBitmap);
@@ -138,7 +149,7 @@ Implementation
 
 { TForm1 }
 
-Uses LazFileUtils;
+Uses LazFileUtils, IniFiles;
 
 (*
 Installiert eine TTF im System
@@ -572,128 +583,16 @@ Begin
 End;
 
 Procedure TForm1.Button8Click(Sender: TObject);
-Var
-  f: Textfile;
-  s: String;
-  fs: TFontStyles;
 Begin
   If OpenDialog2.Execute Then Begin
-    opendialog2.InitialDir := extractfilepath(opendialog2.Filename);
-    SaveDialog2.InitialDir := extractfilepath(opendialog2.Filename);
-    assignfile(f, opendialog2.Filename);
-    reset(f);
-    // Maske
-    readln(f, s);
-    If Fileexists(s) Then Begin
-      LoadMask(s);
-    End
-    Else Begin
-      showmessage('Error unable to locate : ' + LineEnding + s);
-    End;
-    // Font
-    readln(f, s);
-    If Fileexists(s) Then Begin
-      LoadFontByString(s);
-      Edit2.Text := ExtractFileNameOnly(s);
-      ButtonFont.Name := Edit2.Text;
-    End
-    Else Begin
-      fontfile := '';
-      Edit2.Text := s;
-    End;
-    readln(f, s);
-    edit2.font.color := stringtoColor(s);
-    ButtonFont.color := stringtoColor(s);
-    readln(f, s);
-    edit3.Text := s;
-    readln(f, s);
-    checkbox1.Checked := s = '1';
-    readln(f, s);
-    checkbox2.Checked := s = '1';
-    fs := [];
-    If CheckBox1.Checked Then fs := fs + [fsBold];
-    If CheckBox2.Checked Then fs := fs + [fsItalic];
-    UpdateFont(edit2.text, strtointdef(edit3.text, 12), fs);
-    // textborder
-    readln(f, s);
-    checkbox4.Checked := s = '1';
-    CheckBox4Change(Nil);
-    readln(f, s);
-    edit4.Text := s;
-    readln(f, s);
-    label5.font.color := stringtoColor(s);
-    readln(f, s);
-    radiobutton1.Checked := s = '1';
-    radiobutton2.Checked := Not radiobutton1.Checked;
-    // Underline Options
-    readln(f, s);
-    edit6.Text := s;
-    readln(f, s);
-    edit7.Text := s;
-    If Not EOF(f) Then Begin
-      // Textborder Schwellwert, damits zu alten Versionen Kompatibel bleibt
-      readln(f, s);
-      ScrollBar1.Position := StrToInt(s);
-    End
-    Else
-      ScrollBar1.Position := 128;
-    Schwellwert := ScrollBar1.Position;
-    ScrollBar1.Hint := IntToStr(Schwellwert);
-    readln(f, s);
-    If FileExistsUTF8(s) Then Begin
-      LoadOverlay(s);
-    End
-    Else Begin
-      If s <> '' Then Begin
-        showmessage('Error unable to locate : ' + LineEnding + s);
-      End;
-    End;
-    readln(f, s);
-    If s <> '' Then Begin
-      CheckBox3.Checked := odd(StrToInt(s));
-    End
-    Else Begin
-      CheckBox3.Checked := false;
-    End;
-    closefile(f);
-    button2.onclick(Nil);
+    LoadSettings(OpenDialog2.FileName);
   End;
 End;
 
 Procedure TForm1.Button9Click(Sender: TObject);
-Var
-  f: Textfile;
 Begin
   If SaveDialog2.Execute Then Begin
-    SaveDialog2.InitialDir := ExtractFilePath(SaveDialog2.FileName);
-    OpenDialog2.InitialDir := ExtractFilePath(SaveDialog2.FileName);
-    assignfile(f, SaveDialog2.Filename);
-    rewrite(f);
-    // Maske
-    writeln(f, ButtonMaskFile);
-    // Font
-    If length(fontfile) <> 0 Then
-      writeln(f, fontfile)
-    Else
-      writeln(f, edit2.Text);
-    writeln(f, colortostring(edit2.font.color));
-    writeln(f, edit3.Text);
-    writeln(f, IntToStr(Ord(checkbox1.Checked)));
-    writeln(f, IntToStr(Ord(checkbox2.Checked)));
-    // textborder
-    writeln(f, IntToStr(Ord(checkbox4.Checked)));
-    writeln(f, edit4.Text);
-    writeln(f, colortostring(label5.font.color));
-    writeln(f, IntToStr(Ord(radiobutton1.Checked)));
-    // Underline Options
-    writeln(f, edit6.Text);
-    writeln(f, edit7.Text);
-    // Textborder Schwellwert, damits zu alten Versionen Kompatibel bleibt
-    writeln(f, IntToStr(ScrollBar1.Position));
-    // Overlaytex
-    writeln(f, ButtonOverlayFile);
-    writeln(f, IntToStr(Ord(CheckBox3.Checked)));
-    closefile(f);
+    SaveSettings(SaveDialog2.FileName);
   End;
 End;
 
@@ -788,8 +687,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-
-  Caption := 'Buttontool ver.: 0.06 by Corpsman support : www.Corpsman.de';
+  Caption := 'Buttontool ver.: 0.07 by Corpsman Support : www.Corpsman.de';
   Constraints.MinHeight := Height;
   Constraints.MaxHeight := Height;
   Constraints.MinWidth := Width;
@@ -823,6 +721,200 @@ Begin
   // Aktualisieren der Ausgabe
   Button2.OnClick(Nil);
   ScrollBar1.Hint := IntToStr(Schwellwert);
+End;
+
+Procedure TForm1.LoadSettingsDeprecated(Const Filename: String);
+Var
+  f: Textfile;
+  s: String;
+  fs: TFontStyles;
+Begin
+  assignfile(f, Filename);
+  reset(f);
+  // Maske
+  readln(f, s);
+  If Fileexists(s) Then Begin
+    LoadMask(s);
+  End
+  Else Begin
+    showmessage('Error unable to locate : ' + LineEnding + s);
+  End;
+  // Font
+  readln(f, s);
+  If Fileexists(s) Then Begin
+    LoadFontByString(s);
+    Edit2.Text := ExtractFileNameOnly(s);
+    ButtonFont.Name := Edit2.Text;
+  End
+  Else Begin
+    fontfile := '';
+    Edit2.Text := s;
+  End;
+  readln(f, s);
+  edit2.font.color := stringtoColor(s);
+  ButtonFont.color := stringtoColor(s);
+  readln(f, s);
+  edit3.Text := s;
+  readln(f, s);
+  checkbox1.Checked := s = '1';
+  readln(f, s);
+  checkbox2.Checked := s = '1';
+  fs := [];
+  If CheckBox1.Checked Then fs := fs + [fsBold];
+  If CheckBox2.Checked Then fs := fs + [fsItalic];
+  UpdateFont(edit2.text, strtointdef(edit3.text, 12), fs);
+  // textborder
+  readln(f, s);
+  checkbox4.Checked := s = '1';
+  CheckBox4Change(Nil);
+  readln(f, s);
+  edit4.Text := s;
+  readln(f, s);
+  label5.font.color := stringtoColor(s);
+  readln(f, s);
+  radiobutton1.Checked := s = '1';
+  radiobutton2.Checked := Not radiobutton1.Checked;
+  // Underline Options
+  readln(f, s);
+  edit6.Text := s;
+  readln(f, s);
+  edit7.Text := s;
+  If Not EOF(f) Then Begin
+    // Textborder Schwellwert, damits zu alten Versionen Kompatibel bleibt
+    readln(f, s);
+    ScrollBar1.Position := StrToInt(s);
+  End
+  Else
+    ScrollBar1.Position := 128;
+  Schwellwert := ScrollBar1.Position;
+  ScrollBar1.Hint := IntToStr(Schwellwert);
+  readln(f, s);
+  If FileExistsUTF8(s) Then Begin
+    LoadOverlay(s);
+  End
+  Else Begin
+    If s <> '' Then Begin
+      showmessage('Error unable to locate underlaytexture: ' + LineEnding + s);
+    End;
+  End;
+  readln(f, s);
+  If trim(s) <> '' Then Begin
+    CheckBox3.Checked := odd(StrToInt(s));
+  End
+  Else Begin
+    CheckBox3.Checked := false;
+  End;
+  closefile(f);
+  button2.onclick(Nil); // Recreate Image
+End;
+
+Procedure TForm1.LoadSettings(Const Filename: String);
+Var
+  ini: TIniFile;
+  s: String;
+  fs: TFontStyles;
+Begin
+  opendialog2.InitialDir := extractfilepath(Filename);
+  SaveDialog2.InitialDir := extractfilepath(Filename);
+  ini := TIniFile.Create(Filename);
+  If ini.ReadInteger('General', 'Fileversion', 0) = 0 Then Begin
+    ini.free;
+    LoadSettingsDeprecated(Filename);
+    exit;
+  End;
+  // Maske
+  s := ini.ReadString('General', 'Mask', '');
+  If (s <> '') And (FileExists(s)) Then Begin
+    LoadMask(s);
+  End
+  Else Begin
+    showmessage('Error unable to locate mask image: ' + LineEnding + s);
+  End;
+  // Font
+  s := ini.ReadString('Font', 'Name', 'Sans');
+  If Fileexists(s) Then Begin
+    LoadFontByString(s);
+    Edit2.Text := ExtractFileNameOnly(s);
+    ButtonFont.Name := Edit2.Text;
+  End
+  Else Begin
+    fontfile := '';
+    Edit2.Text := s;
+  End;
+  // FontColor
+  s := ini.ReadString('Font', 'Color', 'clgreen');
+  edit2.font.color := stringtoColor(s);
+  ButtonFont.color := stringtoColor(s);
+  edit3.text := ini.ReadString('Font', 'Size', '24');
+  CheckBox1.Checked := ini.ReadBool('Font', 'Bold', false);
+  CheckBox2.Checked := ini.ReadBool('Font', 'Italic', false);
+  fs := [];
+  If CheckBox1.Checked Then fs := fs + [fsBold];
+  If CheckBox2.Checked Then fs := fs + [fsItalic];
+  UpdateFont(edit2.text, strtointdef(edit3.text, 24), fs);
+  // textborder
+  CheckBox4.Checked := ini.ReadBool('Textborder', 'Use', true);
+  CheckBox4Change(Nil);
+  edit4.text := ini.ReadString('Textborder', 'Width', '1');
+  s := ini.ReadString('Textborder', 'Color', 'clred');
+  label5.font.color := stringtoColor(s);
+  RadioButton1.Checked := ini.ReadBool('Textborder', 'Cornered', false);
+  radiobutton2.Checked := Not radiobutton1.Checked;
+  // Underline Options
+  edit5.text := ''; // Warum wird das nicht geladen  / gespeichert ?
+  edit6.text := ini.ReadString('Underline_Options', 'Distance', '-4');
+  edit7.text := ini.ReadString('Underline_Options', 'Width', '1');
+  ScrollBar1.Position := ini.ReadInteger('Underline_Options', 'Threshold', 128);
+  ScrollBar1.Hint := inttostr(ScrollBar1.Position);
+  s := ini.ReadString('General', 'Underlay', '');
+  If FileExistsUTF8(s) Then Begin
+    LoadOverlay(s);
+  End
+  Else Begin
+    If s <> '' Then Begin
+      showmessage('Error unable to locate : ' + LineEnding + s);
+    End;
+  End;
+  CheckBox3.Checked := ini.ReadBool('Font', 'UseUnderlay', false);
+  ini.free;
+  button2.onclick(Nil); // Recreate Image
+End;
+
+Procedure TForm1.SaveSettings(Const Filename: String);
+Var
+  ini: TIniFile;
+Begin
+  SaveDialog2.InitialDir := ExtractFilePath(FileName);
+  OpenDialog2.InitialDir := ExtractFilePath(FileName);
+  ini := TIniFile.Create(Filename);
+  ini.WriteInteger('General', 'Fileversion', FileVersion);
+  // Maske
+  ini.WriteString('General', 'Mask', ButtonMaskFile);
+  // Font
+  If length(fontfile) <> 0 Then Begin
+    ini.WriteString('Font', 'Name', fontfile);
+  End
+  Else Begin
+    ini.WriteString('Font', 'Name', edit2.Text);
+  End;
+  ini.WriteString('Font', 'Color', colortostring(edit2.font.color));
+  ini.WriteString('Font', 'Size', edit3.Text);
+  ini.WriteBool('Font', 'Bold', checkbox1.Checked);
+  ini.WriteBool('Font', 'Italic', checkbox2.Checked);
+  // textborder
+  ini.WriteBool('Textborder', 'Use', checkbox4.Checked);
+  ini.WriteString('Textborder', 'Width', edit4.Text);
+  ini.WriteString('Textborder', 'Color', colortostring(label5.font.color));
+  ini.WriteBool('Textborder', 'Cornered', radiobutton1.Checked);
+  // Underline Options
+  //edit5.text // Warum wird das nicht geladen  / gespeichert ?
+  ini.WriteString('Underline_Options', 'Distance', edit6.text);
+  ini.WriteString('Underline_Options', 'Width', edit7.text);
+  ini.WriteInteger('Underline_Options', 'Threshold', ScrollBar1.Position);
+  // Overlaytex
+  ini.WriteString('General', 'Underlay', ButtonOverlayFile);
+  ini.WriteBool('Font', 'UseUnderlay', CheckBox3.Checked);
+  ini.free;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);

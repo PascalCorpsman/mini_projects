@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 347
+  Left = 338
   Height = 522
-  Top = 107
+  Top = 119
   Width = 624
   ActiveControl = Button1
   Caption = 'Form1'
@@ -295,8 +295,8 @@ object Form1: TForm1
         Left = 178
         Height = 16
         Top = 7
-        Width = 87
-        Caption = 'treshold value'
+        Width = 95
+        Caption = 'threshold value'
         ParentColor = False
       end
     end
