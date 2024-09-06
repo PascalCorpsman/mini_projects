@@ -27,6 +27,7 @@ Following is a short description of all listed projects
 | [Einstein](miniprojects/Einstein) | Solver for Einstein puzzles |
 | [Episode manager](miniprojects/Episode_manager) | Database to store and organise movies / TV-series |
 | [FIR IIR](miniprojects/FIR_IIR) | Demo to apply FIR and IIR Filter onto arbiture data |
+| [Freischichtkalender](miniprojects/Freischichtkalender) | Demo to print a yeargrid on a double sided DinA5 page |
 | [Fixed comma](miniprojects/Fixed_Comma) | Demo to show how fixed comma numbers work |
 | [GIT gui](miniprojects/GIT_gui) | Plattform independent Tortoise Git like GIT-Gui |
 | [Gorilla](miniprojects/Gorilla) | Reimplementation of gorilla.bas from DOS |

@@ -1,0 +1,156 @@
+object Form2: TForm2
+  Left = 287
+  Height = 233
+  Top = 117
+  Width = 445
+  Caption = 'Form2'
+  ClientHeight = 233
+  ClientWidth = 445
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.0.8.0'
+  object RadioGroup1: TRadioGroup
+    Left = 8
+    Height = 48
+    Hint = 'Holidays:'#13#10'  Days that are complete gray (like sunday), typically with text'#13#10'School free:'#13#10'  Days with blue mark on the left, typically no text'#13#10'Label:'#13#10'  Days that are labeled with a text'
+    Top = 0
+    Width = 432
+    AutoFill = True
+    Caption = ' Select Kind '
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 3
+    ClientHeight = 28
+    ClientWidth = 428
+    Columns = 3
+    ItemIndex = 0
+    Items.Strings = (
+      'Holiday'
+      'School free'
+      'Label'
+    )
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 0
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 15
+    Top = 56
+    Width = 24
+    Caption = 'Start'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 64
+    Height = 15
+    Top = 56
+    Width = 20
+    Caption = 'Day'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 64
+    Height = 15
+    Top = 88
+    Width = 36
+    Caption = 'Month'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 120
+    Height = 23
+    Top = 56
+    Width = 80
+    OnChange = Edit1Change
+    TabOrder = 1
+    Text = 'Edit1'
+  end
+  object Edit2: TEdit
+    Left = 120
+    Height = 23
+    Top = 88
+    Width = 80
+    OnChange = Edit2Change
+    TabOrder = 2
+    Text = 'Edit2'
+  end
+  object Label4: TLabel
+    Left = 64
+    Height = 15
+    Top = 120
+    Width = 22
+    Caption = 'Titel'
+    ParentColor = False
+  end
+  object Edit3: TEdit
+    Left = 120
+    Height = 23
+    Top = 120
+    Width = 80
+    TabOrder = 3
+    Text = 'Edit3'
+  end
+  object Label5: TLabel
+    Left = 256
+    Height = 15
+    Top = 56
+    Width = 20
+    Caption = 'End'
+    ParentColor = False
+  end
+  object Edit4: TEdit
+    Left = 360
+    Height = 23
+    Top = 56
+    Width = 80
+    TabOrder = 4
+    Text = 'Edit4'
+  end
+  object Label6: TLabel
+    Left = 304
+    Height = 15
+    Top = 56
+    Width = 20
+    Caption = 'Day'
+    ParentColor = False
+  end
+  object Label7: TLabel
+    Left = 304
+    Height = 15
+    Top = 88
+    Width = 36
+    Caption = 'Month'
+    ParentColor = False
+  end
+  object Edit5: TEdit
+    Left = 360
+    Height = 23
+    Top = 88
+    Width = 80
+    TabOrder = 5
+    Text = 'Edit5'
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 160
+    Width = 432
+    Caption = 'Add'
+    OnClick = Button1Click
+    TabOrder = 6
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 200
+    Width = 432
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 7
+  end
+end

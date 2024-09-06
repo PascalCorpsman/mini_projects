@@ -1,0 +1,183 @@
+object Form1: TForm1
+  Left = 361
+  Height = 517
+  Top = 114
+  Width = 521
+  Caption = 'Form1'
+  ClientHeight = 517
+  ClientWidth = 521
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object Button1: TButton
+    Left = 9
+    Height = 25
+    Top = 208
+    Width = 75
+    Caption = 'Preview'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object PaintBox1: TPaintBox
+    Left = 92
+    Height = 297
+    Top = 208
+    Width = 420
+  end
+  object Button2: TButton
+    Left = 9
+    Height = 25
+    Top = 248
+    Width = 75
+    Caption = 'Print'
+    TabOrder = 1
+    OnClick = Button2Click
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 8
+    Width = 26
+    Caption = 'Year'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 92
+    Height = 26
+    Top = 8
+    Width = 80
+    TabOrder = 2
+    Text = 'Edit1'
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 16
+    Top = 38
+    Width = 27
+    Caption = 'Title'
+    ParentColor = False
+  end
+  object Edit2: TEdit
+    Left = 92
+    Height = 26
+    Top = 38
+    Width = 420
+    TabOrder = 3
+    Text = 'Edit2'
+  end
+  object Button3: TButton
+    Left = 9
+    Height = 25
+    Top = 360
+    Width = 75
+    Caption = 'Debug'
+    TabOrder = 4
+    Visible = False
+    OnClick = Button3Click
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 16
+    Top = 80
+    Width = 56
+    Caption = 'Footnote'
+    ParentColor = False
+  end
+  object Edit3: TEdit
+    Left = 92
+    Height = 26
+    Top = 70
+    Width = 420
+    TabOrder = 5
+    Text = 'Edit3'
+  end
+  object Button4: TButton
+    Left = 8
+    Height = 25
+    Top = 416
+    Width = 75
+    Caption = 'Save'
+    TabOrder = 6
+    OnClick = Button4Click
+  end
+  object Button5: TButton
+    Left = 9
+    Height = 25
+    Top = 448
+    Width = 75
+    Caption = 'Load'
+    TabOrder = 7
+    OnClick = Button5Click
+  end
+  object Button6: TButton
+    Left = 8
+    Height = 25
+    Top = 480
+    Width = 75
+    Caption = 'Close'
+    TabOrder = 8
+    OnClick = Button6Click
+  end
+  object Label4: TLabel
+    Left = 8
+    Height = 16
+    Top = 104
+    Width = 73
+    Caption = 'Special days'
+    ParentColor = False
+  end
+  object ListBox1: TListBox
+    Left = 92
+    Height = 96
+    Top = 104
+    Width = 364
+    ItemHeight = 0
+    ScrollWidth = 362
+    TabOrder = 9
+    TopIndex = -1
+  end
+  object Button7: TButton
+    Left = 461
+    Height = 25
+    Top = 104
+    Width = 50
+    Caption = 'Add'
+    TabOrder = 10
+    OnClick = Button7Click
+  end
+  object Button8: TButton
+    Left = 461
+    Height = 25
+    Top = 175
+    Width = 50
+    Caption = 'Del'
+    TabOrder = 11
+    OnClick = Button8Click
+  end
+  object CheckBox1: TCheckBox
+    Left = 9
+    Height = 22
+    Top = 181
+    Width = 74
+    Caption = 'Snd half'
+    TabOrder = 12
+  end
+  object PrintDialog1: TPrintDialog
+    Left = 17
+    Top = 256
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.cal'
+    Filter = 'Calender|*.cal|All|*.*'
+    Left = 17
+    Top = 400
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.cal'
+    Filter = 'Calender|*.cal|All|*.*'
+    Left = 56
+    Top = 440
+  end
+end
