@@ -32,8 +32,8 @@ object Form1: TForm1
   object Button1: TButton
     Left = 8
     Height = 25
-    Top = 463
-    Width = 264
+    Top = 431
+    Width = 280
     Caption = 'Start / Stop'
     TabOrder = 2
     OnClick = Button1Click
@@ -42,14 +42,14 @@ object Form1: TForm1
     Left = 8
     Height = 25
     Top = 495
-    Width = 264
+    Width = 280
     Caption = 'Close'
     TabOrder = 3
     OnClick = Button2Click
   end
   object ListBox1: TListBox
     Left = 8
-    Height = 264
+    Height = 208
     Top = 192
     Width = 232
     ItemHeight = 0
@@ -61,19 +61,21 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 248
-    Height = 96
+    Height = 62
     Top = 192
     Width = 40
     Caption = '/\'
     TabOrder = 5
+    OnClick = Button3Click
   end
   object Button4: TButton
     Left = 248
-    Height = 96
-    Top = 360
+    Height = 62
+    Top = 338
     Width = 40
     Caption = '\/'
     TabOrder = 6
+    OnClick = Button4Click
   end
   object GroupBox1: TGroupBox
     Left = 8
@@ -143,12 +145,46 @@ object Form1: TForm1
   end
   object Button5: TButton
     Left = 248
-    Height = 57
-    Top = 296
+    Height = 62
+    Top = 264
     Width = 40
     Caption = 'Del'
     TabOrder = 8
     OnClick = Button5Click
+  end
+  object Button8: TButton
+    Left = 8
+    Height = 25
+    Top = 464
+    Width = 120
+    Caption = 'Load'
+    TabOrder = 9
+    OnClick = Button8Click
+  end
+  object Button9: TButton
+    Left = 168
+    Height = 25
+    Top = 464
+    Width = 120
+    Caption = 'Save'
+    TabOrder = 10
+    OnClick = Button9Click
+  end
+  object ScrollBar1: TScrollBar
+    Left = 72
+    Height = 14
+    Top = 408
+    Width = 216
+    Max = 99
+    PageSize = 0
+    TabOrder = 11
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 16
+    Top = 408
+    Width = 57
+    Caption = 'Simspeed'
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer

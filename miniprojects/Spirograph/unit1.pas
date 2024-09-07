@@ -81,6 +81,8 @@ Type
     Button5: TButton;
     Button6: TButton;
     Button7: TButton;
+    Button8: TButton;
+    Button9: TButton;
     CheckBox1: TCheckBox;
     CheckBox3: TCheckBox;
     Edit1: TEdit;
@@ -88,14 +90,20 @@ Type
     GroupBox1: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     ListBox1: TListBox;
     OpenGLControl1: TOpenGLControl;
+    ScrollBar1: TScrollBar;
     Timer1: TTimer;
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
+    Procedure Button3Click(Sender: TObject);
+    Procedure Button4Click(Sender: TObject);
     Procedure Button5Click(Sender: TObject);
     Procedure Button6Click(Sender: TObject);
     Procedure Button7Click(Sender: TObject);
+    Procedure Button8Click(Sender: TObject);
+    Procedure Button9Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure ListBox1Click(Sender: TObject);
     Procedure ListBox1DrawItem(Control: TWinControl; Index: Integer;
@@ -115,6 +123,7 @@ Type
     Procedure AddLCLElement;
     Procedure LoadLCLElement;
     Procedure UpdateLclElement;
+    Procedure Reset;
   public
     { public declarations }
     Procedure Go2d();
@@ -265,8 +274,18 @@ Begin
   close;
 End;
 
+Procedure TForm1.Button3Click(Sender: TObject);
+Begin
+  // TODO: Implementieren
+End;
+
+Procedure TForm1.Button4Click(Sender: TObject);
+Begin
+  // TODO: Implementieren
+End;
+
 Procedure TForm1.Button5Click(Sender: TObject);
-var
+Var
   i: Integer;
 Begin
   If ListBox1.ItemIndex <> -1 Then Begin
@@ -286,6 +305,16 @@ End;
 Procedure TForm1.Button7Click(Sender: TObject);
 Begin
   UpdateLclElement;
+End;
+
+Procedure TForm1.Button8Click(Sender: TObject);
+Begin
+  // Todo: Implementieren
+End;
+
+Procedure TForm1.Button9Click(Sender: TObject);
+Begin
+  // Todo: Implementieren
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);
@@ -323,6 +352,7 @@ Begin
     n := GetTickCount64;
     //    caption := inttostr(n - StartTime);
     d := (n - LastRenderTime) / 1000;
+    d := d * (100 - ScrollBar1.Position) / 100;
     LastRenderTime := n;
     For i := 0 To high(Spiral) Do Begin
       If Spiral[i].Direction Then Begin
@@ -410,7 +440,7 @@ Begin
     Spiral[high(Spiral)].Len, IfThen(Spiral[high(Spiral)].Direction, -1.0, 1.0) * Spiral[high(Spiral)].Rotation_Speed
     ]));
   ListBox1.ItemIndex := ListBox1.Items.Count - 1;
-  setlength(pts, 0);
+  Reset;
 End;
 
 Procedure TForm1.LoadLCLElement;
@@ -431,6 +461,7 @@ Procedure TForm1.UpdateLclElement;
 Var
   index: integer;
 Begin
+
   If ListBox1.ItemIndex <> -1 Then Begin
     index := ListBox1.ItemIndex;
     Spiral[index].Rotation := 0;
@@ -440,9 +471,19 @@ Begin
     ListBox1.Items[index] := format(
       '%0.2f %0.2f'
       , [
-      Spiral[high(Spiral)].Len, IfThen(Spiral[high(Spiral)].Direction, -1.0, 1.0) * Spiral[high(Spiral)].Rotation_Speed
-      ]);
-    setlength(pts, 0);
+      Spiral[index].Len, IfThen(Spiral[index].Direction, -1.0, 1.0) * Spiral[index].Rotation_Speed
+        ]);
+    Reset;
+  End;
+End;
+
+Procedure TForm1.Reset;
+Var
+  i: Integer;
+Begin
+  setlength(pts, 0);
+  For i := 0 To high(Spiral) Do Begin
+    Spiral[i].Rotation := 0;
   End;
 End;
 
