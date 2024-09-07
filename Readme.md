@@ -50,6 +50,7 @@ Following is a short description of all listed projects
 | [Pentago](miniprojects/Pentago) | Implementation of the board game Pentago |
 | [SFXR](miniprojects/SFXR) | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
 | [Simple Search](miniprojects/Simple_Search) | Win98 style search dialog |
+| [Spirograph](miniprojects/Spirograph) | Demo to paint funny rotational graphics |
 | [Superdom](miniprojects/Superdom) | FPC-Port of the Super domination game which is part of [Rockbox](https://www.rockbox.org/) |
 | [TuringMachine](miniprojects/TuringMachine) | Implementation of a Turing machine |
 | [Wave function collaps](miniprojects/Wave_function_collapse/) | different implementations of the wave function collapse algorithms

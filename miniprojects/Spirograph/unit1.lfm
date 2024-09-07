@@ -1,0 +1,158 @@
+object Form1: TForm1
+  Left = 347
+  Height = 531
+  Top = 107
+  Width = 815
+  ActiveControl = OpenGLControl1
+  Caption = 'Form1'
+  ClientHeight = 531
+  ClientWidth = 815
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  object OpenGLControl1: TOpenGLControl
+    Left = 296
+    Height = 512
+    Top = 8
+    Width = 512
+    OnMakeCurrent = OpenGLControl1MakeCurrent
+    OnPaint = OpenGLControl1Paint
+    OnResize = OpenGLControl1Resize
+  end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Height = 22
+    Top = 8
+    Width = 93
+    Caption = 'Render radi'
+    Checked = True
+    State = cbChecked
+    TabOrder = 1
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 463
+    Width = 264
+    Caption = 'Start / Stop'
+    TabOrder = 2
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 495
+    Width = 264
+    Caption = 'Close'
+    TabOrder = 3
+    OnClick = Button2Click
+  end
+  object ListBox1: TListBox
+    Left = 8
+    Height = 264
+    Top = 192
+    Width = 232
+    ItemHeight = 0
+    Style = lbOwnerDrawFixed
+    TabOrder = 4
+    TopIndex = -1
+    OnClick = ListBox1Click
+    OnDrawItem = ListBox1DrawItem
+  end
+  object Button3: TButton
+    Left = 248
+    Height = 96
+    Top = 192
+    Width = 40
+    Caption = '/\'
+    TabOrder = 5
+  end
+  object Button4: TButton
+    Left = 248
+    Height = 96
+    Top = 360
+    Width = 40
+    Caption = '\/'
+    TabOrder = 6
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 144
+    Top = 40
+    Width = 280
+    Caption = ' Element '
+    ClientHeight = 127
+    ClientWidth = 278
+    TabOrder = 7
+    object CheckBox3: TCheckBox
+      Left = 8
+      Height = 22
+      Top = 72
+      Width = 83
+      Caption = 'Clockwise'
+      TabOrder = 0
+    end
+    object Label1: TLabel
+      Left = 8
+      Height = 16
+      Top = 16
+      Width = 22
+      Caption = 'Len'
+    end
+    object Edit1: TEdit
+      Left = 128
+      Height = 26
+      Top = 8
+      Width = 144
+      TabOrder = 1
+      Text = 'Edit1'
+    end
+    object Label2: TLabel
+      Left = 8
+      Height = 16
+      Top = 48
+      Width = 110
+      Caption = 'Rotspeed [2*pi / s]'
+    end
+    object Edit2: TEdit
+      Left = 128
+      Height = 26
+      Top = 44
+      Width = 144
+      TabOrder = 2
+      Text = 'Edit2'
+    end
+    object Button6: TButton
+      Left = 144
+      Height = 25
+      Top = 96
+      Width = 60
+      Caption = 'Add'
+      TabOrder = 3
+      OnClick = Button6Click
+    end
+    object Button7: TButton
+      Left = 212
+      Height = 25
+      Top = 95
+      Width = 60
+      Caption = 'Update'
+      TabOrder = 4
+      OnClick = Button7Click
+    end
+  end
+  object Button5: TButton
+    Left = 248
+    Height = 57
+    Top = 296
+    Width = 40
+    Caption = 'Del'
+    TabOrder = 8
+    OnClick = Button5Click
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 312
+    Top = 24
+  end
+end
