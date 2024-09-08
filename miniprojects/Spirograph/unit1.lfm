@@ -156,16 +156,16 @@ object Form1: TForm1
     Left = 8
     Height = 25
     Top = 464
-    Width = 120
+    Width = 80
     Caption = 'Load'
     TabOrder = 9
     OnClick = Button8Click
   end
   object Button9: TButton
-    Left = 168
+    Left = 96
     Height = 25
     Top = 464
-    Width = 120
+    Width = 80
     Caption = 'Save'
     TabOrder = 10
     OnClick = Button9Click
@@ -185,6 +185,15 @@ object Form1: TForm1
     Top = 408
     Width = 57
     Caption = 'Simspeed'
+  end
+  object Button10: TButton
+    Left = 213
+    Height = 25
+    Top = 464
+    Width = 75
+    Caption = 'Export'
+    TabOrder = 12
+    OnClick = Button10Click
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer

@@ -75,6 +75,7 @@ Type
 
   TForm1 = Class(TForm)
     Button1: TButton;
+    Button10: TButton;
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
@@ -95,6 +96,7 @@ Type
     OpenGLControl1: TOpenGLControl;
     ScrollBar1: TScrollBar;
     Timer1: TTimer;
+    procedure Button10Click(Sender: TObject);
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
@@ -147,7 +149,6 @@ Begin
   glMatrixMode(GL_PROJECTION);
   glPushMatrix(); // Store The Projection Matrix
   glLoadIdentity(); // Reset The Projection Matrix
-  //  glOrtho(0, 640, 0, 480, -1, 1); // Set Up An Ortho Screen
   glOrtho(0, OpenGLControl1.Width, OpenGLControl1.height, 0, -1, 1); // Set Up An Ortho Screen
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix(); // Store old Modelview Matrix
@@ -182,12 +183,6 @@ Begin
     Man bedenke, jedesmal wenn der Renderingcontext neu erstellt wird, müssen sämtliche Graphiken neu Geladen werden.
     Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
     *)
-    {
-    OpenGL_GraphikEngine.clear;
-    glenable(GL_TEXTURE_2D); // Texturen
-    glEnable(GL_DEPTH_TEST); // Tiefentest
-    glDepthFunc(gl_less);
-    }
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
     OpenGLControl1Resize(Nil);
@@ -269,25 +264,51 @@ Begin
   End;
 End;
 
+procedure TForm1.Button10Click(Sender: TObject);
+begin
+  // Export Image
+end;
+
 Procedure TForm1.Button2Click(Sender: TObject);
 Begin
   close;
 End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
+Var
+  t: TSpiral;
 Begin
-  // TODO: Implementieren
+  // Move Up
+  If ListBox1.ItemIndex > 0 Then Begin
+    t := Spiral[ListBox1.ItemIndex - 1];
+    Spiral[ListBox1.ItemIndex - 1] := Spiral[ListBox1.ItemIndex];
+    Spiral[ListBox1.ItemIndex] := t;
+    ListBox1.Items.Exchange(ListBox1.ItemIndex, ListBox1.ItemIndex - 1);
+    ListBox1.ItemIndex := ListBox1.ItemIndex - 1;
+    Reset;
+  End;
 End;
 
 Procedure TForm1.Button4Click(Sender: TObject);
+Var
+  t: TSpiral;
 Begin
-  // TODO: Implementieren
+  // Move Down
+  If ListBox1.ItemIndex < listbox1.items.count - 1 Then Begin
+    t := Spiral[ListBox1.ItemIndex + 1];
+    Spiral[ListBox1.ItemIndex + 1] := Spiral[ListBox1.ItemIndex];
+    Spiral[ListBox1.ItemIndex] := t;
+    ListBox1.Items.Exchange(ListBox1.ItemIndex, ListBox1.ItemIndex + 1);
+    ListBox1.ItemIndex := ListBox1.ItemIndex + 1;
+    Reset;
+  End;
 End;
 
 Procedure TForm1.Button5Click(Sender: TObject);
 Var
   i: Integer;
 Begin
+  // Del Entry
   If ListBox1.ItemIndex <> -1 Then Begin
     For i := ListBox1.ItemIndex To high(Spiral) - 1 Do Begin
       Spiral[i] := Spiral[i + 1];
@@ -309,11 +330,13 @@ End;
 
 Procedure TForm1.Button8Click(Sender: TObject);
 Begin
+  // Load Settings
   // Todo: Implementieren
 End;
 
 Procedure TForm1.Button9Click(Sender: TObject);
 Begin
+  // Save Settings
   // Todo: Implementieren
 End;
 
