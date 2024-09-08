@@ -93,10 +93,13 @@ Type
     Label2: TLabel;
     Label3: TLabel;
     ListBox1: TListBox;
+    OpenDialog1: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
+    SaveDialog1: TSaveDialog;
+    SaveDialog2: TSaveDialog;
     ScrollBar1: TScrollBar;
     Timer1: TTimer;
-    procedure Button10Click(Sender: TObject);
+    Procedure Button10Click(Sender: TObject);
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
@@ -140,7 +143,7 @@ Implementation
 
 {$R *.lfm}
 
-Uses math;
+Uses math, IniFiles;
 
 { TForm1 }
 
@@ -264,10 +267,10 @@ Begin
   End;
 End;
 
-procedure TForm1.Button10Click(Sender: TObject);
-begin
+Procedure TForm1.Button10Click(Sender: TObject);
+Begin
   // Export Image
-end;
+End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
 Begin
@@ -329,15 +332,41 @@ Begin
 End;
 
 Procedure TForm1.Button8Click(Sender: TObject);
+Var
+  ini: TIniFile;
+  i: Integer;
 Begin
   // Load Settings
-  // Todo: Implementieren
+  If OpenDialog1.Execute Then Begin
+    ini := TIniFile.Create(OpenDialog1.FileName);
+    SetLength(Spiral, 0);
+    ListBox1.Clear;
+    For i := 0 To ini.ReadInteger('Spiral', 'Count', 0) - 1 Do Begin
+      Edit1.text := FloatToStr(ini.ReadFloat('Spiral', 'Len' + inttostr(i), 0));
+      Edit2.text := FloatToStr(ini.ReadFloat('Spiral', 'RotSpeed' + inttostr(i), 0));
+      CheckBox3.Checked := ini.ReadBool('Spiral', 'Clockwise' + inttostr(i), false);
+      button6.Click;
+    End;
+    ini.free;
+  End;
 End;
 
 Procedure TForm1.Button9Click(Sender: TObject);
+Var
+  ini: TIniFile;
+  i: Integer;
 Begin
   // Save Settings
-  // Todo: Implementieren
+  If SaveDialog1.Execute Then Begin
+    ini := TIniFile.Create(SaveDialog1.FileName);
+    ini.WriteInteger('Spiral', 'Count', length(Spiral));
+    For i := 0 To high(Spiral) Do Begin
+      ini.WriteFloat('Spiral', 'Len' + inttostr(i), spiral[i].Len);
+      ini.WriteFloat('Spiral', 'RotSpeed' + inttostr(i), spiral[i].Rotation_Speed);
+      ini.WriteBool('Spiral', 'Clockwise' + inttostr(i), spiral[i].Direction);
+    End;
+    ini.Free;
+  End;
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);
