@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Lan chat                                                        03.12.2023 *)
 (*                                                                            *)
-(* Version     : 0.15                                                         *)
+(* Version     : 0.16                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -47,6 +47,7 @@
 (*                      Fix: Label2 was not initialized, on start transmission*)
 (*               0.14 - ADD: Serverinfo                                       *)
 (*               0.15 - Fix: Error message when startet via script            *)
+(*               0.16 - Fix: Bring to front on new message                    *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -272,7 +273,7 @@ Begin
   //- Auto Update
   //- CI/CD in GIT
   //- Deaktivieren des Connect Timers bei falschen Settings.!
-  defcaption := 'Lan chat ver. 0.15';
+  defcaption := 'Lan chat ver. 0.16';
   (*
    * Know Bug: das ding scrollt nicht immer sauber nach unten..
    *)
@@ -976,17 +977,20 @@ Begin
   End
   Else Begin
     If IniPropStorage1.ReadBoolean('Show_on_new_message', false) Then Begin
-      If Not visible Then Begin
-        // Wir sollen Hoch popen, dann wählen wir auch gleich den Richtigen an ..
-        For i := 0 To ListBox1.Items.Count - 1 Do Begin
-          If lowercase(ListBox1.Items[i]) = LowerCase(aSender) Then Begin
-            ListBox1.ItemIndex := i;
-            break;
-          End;
+      // Wir sollen Hoch popen, dann wählen wir auch gleich den Richtigen an ..
+      For i := 0 To ListBox1.Items.Count - 1 Do Begin
+        If lowercase(ListBox1.Items[i]) = LowerCase(aSender) Then Begin
+          ListBox1.ItemIndex := i;
+          break;
         End;
-        ListBox1.Click;
-        ListBox1.Invalidate;
+      End;
+      ListBox1.Click;
+      ListBox1.Invalidate;
+      If Not visible Then Begin
         TrayIcon1.OnClick(Nil);
+      End
+      Else Begin
+        BringToFront;
       End;
     End;
   End;
