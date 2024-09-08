@@ -85,6 +85,7 @@ Type
     Button8: TButton;
     Button9: TButton;
     CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
@@ -122,6 +123,7 @@ Type
     Spiral: TSpirals;
     State: TState;
     pts: Tpts; // Leider funktioniert der Accumulationbuffer von OpenGL nicht mit OpenGlControl -> Also muss das von Hand nachgebildet werden.
+    ptsStack: Array Of TPTS;
     StartTime, LastRenderTime: QWord;
     Procedure RenderScene();
     Procedure StartSim;
@@ -235,6 +237,7 @@ Begin
   Spiral := Nil;
   State := sIdle;
   pts := Nil;
+  ptsStack := Nil;
   edit1.text := '50';
   edit2.text := '1';
   Button6.Click;
@@ -415,7 +418,7 @@ End;
 
 Procedure TForm1.RenderScene;
 Var
-  i: Integer;
+  i, j: Integer;
   n: QWord;
   d: Extended;
   m: TMatrix4x4;
@@ -458,7 +461,6 @@ Begin
     pts[high(pts)] := v2(m[3, 0], m[3, 1]);
   End;
   glPopMatrix;
-
   // Render der Linien falls gewünscht
   If CheckBox1.Checked Then Begin
     glPushMatrix;
@@ -474,7 +476,6 @@ Begin
     End;
     glPopMatrix;
   End;
-  //  If State = sSimulate Then Begin
   glPushMatrix;
   glTranslatef(-OpenGLControl1.Width / 2, -OpenGLControl1.Height / 2, 0);
   glColor3f(1, 1, 1);
@@ -483,21 +484,23 @@ Begin
     glVertex2fv(@pts[i]);
   End;
   glend;
+  For j := 0 To high(ptsStack) Do Begin
+    glColor3f(1, 1, 1);
+    glBegin(GL_LINE_STRIP);
+    For i := 0 To high(ptsStack[j]) Do Begin
+      glVertex2fv(@ptsStack[j, i]);
+    End;
+    glend;
+  End;
   glPopMatrix;
-  //  End;
 End;
 
 Procedure TForm1.StartSim;
-Var
-  i: Integer;
 Begin
   State := sSimulate;
   LastRenderTime := GetTickCount64;
   StartTime := LastRenderTime;
-  setlength(pts, 0);
-  For i := 0 To high(Spiral) Do Begin
-    Spiral[i].Rotation := 0;
-  End;
+  Reset;
 End;
 
 Procedure TForm1.AddLCLElement;
@@ -554,6 +557,15 @@ Procedure TForm1.Reset;
 Var
   i: Integer;
 Begin
+  If CheckBox2.Checked Then Begin
+    setlength(ptsStack, 0);
+  End
+  Else Begin
+    setlength(ptsStack, high(ptsStack) + 2);
+    setlength(ptsStack[high(ptsStack)], length(pts));
+    For i := 0 To high(pts) Do
+      ptsStack[high(ptsStack)][i] := pts[i];
+  End;
   setlength(pts, 0);
   For i := 0 To high(Spiral) Do Begin
     Spiral[i].Rotation := 0;
