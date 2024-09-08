@@ -213,6 +213,8 @@ object Form1: TForm1
     Top = 469
   end
   object SaveDialog2: TSaveDialog
+    DefaultExt = '.bmp'
+    Filter = 'Windows Bitmap|*.bmp|All|*'
     Left = 227
     Top = 475
   end

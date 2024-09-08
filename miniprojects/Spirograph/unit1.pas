@@ -268,8 +268,29 @@ Begin
 End;
 
 Procedure TForm1.Button10Click(Sender: TObject);
+Var
+  a: Array Of Integer;
+  b: TBitmap;
+  c: TColor;
+  i, j: Integer;
 Begin
   // Export Image
+  If SaveDialog2.Execute Then Begin
+    a := Nil;
+    setlength(a, OpenGLControl1.Width * OpenGLControl1.Height);
+    glReadPixels(0, 0, OpenGLControl1.Width, OpenGLControl1.Height, GL_RGBA, GL_UNSIGNED_BYTE, @a[0]);
+    b := TBitmap.Create;
+    b.Height := OpenGLControl1.Height;
+    b.Width := OpenGLControl1.Width;
+    For i := 0 To OpenGLControl1.Width - 1 Do Begin
+      For j := 0 To OpenGLControl1.Height - 1 Do Begin
+        c := a[j * OpenGLControl1.Width + i] And $FFFFFF;
+        b.canvas.pixels[i, b.Height - j - 1] := c;
+      End;
+    End;
+    b.SaveToFile(SaveDialog2.FileName);
+    b.free;
+  End;
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
