@@ -1,0 +1,27 @@
+Hidden = true
+Time = 660
+UnlockPW = 123
+Colored = True
+The brown fox walks over the street.
+The crazy man drives in his car.
+The weather is sunny.
+Hello my name is Bob, how are you?
+This is Clara can you hear me?
+Yes of course!
+The yellow apple lies in front of the red book.
+This is a long and boring text i need to type.
+The kids dream is to be a hero.
+The mans dream is to be a kid.
+The mother says "Son clean your room now".
+The boy is driving with his bycicle.
+The sun is ricing.
+The dog make's some strange noices, is he OK?
+When is school finished today?
+I want to play chess now, do you want to join?
+This is boring, isn't there something better?
+This is a longer text it goes over
+multiple lines and is still only one 
+sentence.
+It is nearly done.
+Gongratulation you made it.
+The test is over now, press return and call the teacher.

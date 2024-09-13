@@ -52,6 +52,7 @@ Following is a short description of all listed projects
 | [Simple Search](miniprojects/Simple_Search) | Win98 style search dialog |
 | [Spirograph](miniprojects/Spirograph) | Demo to paint funny rotational graphics |
 | [Superdom](miniprojects/Superdom) | FPC-Port of the Super domination game which is part of [Rockbox](https://www.rockbox.org/) |
+| [Tippsy3](miniprojects/Tippsy3) | Leanprogram for 10 finger writing |
 | [TuringMachine](miniprojects/TuringMachine) | Implementation of a Turing machine |
 | [Wave function collaps](miniprojects/Wave_function_collapse/) | different implementations of the wave function collapse algorithms
 

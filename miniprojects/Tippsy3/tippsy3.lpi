@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="12"/>
+    <General>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <BuildModes Count="1" Active="Default">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <LaunchingApplication PathPlusParams="/usr/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+          </local>
+        </Mode0>
+      </Modes>
+    </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="6">
+      <Unit0>
+        <Filename Value="tippsy3.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos Y="15"/>
+        <UsageCount Value="26"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="unit1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit1"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="165"/>
+        <CursorPos X="26" Y="95"/>
+        <UsageCount Value="26"/>
+        <Bookmarks Count="1">
+          <Item0 ID="1"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="/home/corpsman/lazarus/lcl/stdctrls.pp"/>
+        <UnitName Value="StdCtrls"/>
+        <TopLine Value="671"/>
+        <CursorPos X="15" Y="708"/>
+        <UsageCount Value="10"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="/home/corpsman/lazarus/lcl/include/customedit.inc"/>
+        <TopLine Value="342"/>
+        <CursorPos X="33" Y="352"/>
+        <UsageCount Value="10"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="/home/corpsman/lazarus/lcl/lclproc.pas"/>
+        <UnitName Value="LCLProc"/>
+        <TopLine Value="3701"/>
+        <CursorPos X="3" Y="3696"/>
+        <UsageCount Value="10"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="unit2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form2"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit2"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="36" Y="29"/>
+        <UsageCount Value="24"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit5>
+    </Units>
+    <JumpHistory Count="29" HistoryIndex="28">
+      <Position1>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="293" Column="10" TopLine="283"/>
+      </Position1>
+      <Position2>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="288" Column="91" TopLine="258"/>
+      </Position2>
+      <Position3>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="434" Column="94" TopLine="419"/>
+      </Position3>
+      <Position4>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="428" Column="16" TopLine="418"/>
+      </Position4>
+      <Position5>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="181" TopLine="155"/>
+      </Position5>
+      <Position6>
+        <Filename Value="unit1.pas"/>
+        <Caret Column="31"/>
+      </Position6>
+      <Position7>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="114" Column="41" TopLine="85"/>
+      </Position7>
+      <Position8>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="116" Column="18" TopLine="87"/>
+      </Position8>
+      <Position9>
+        <Filename Value="unit1.pas"/>
+        <Caret Column="41"/>
+      </Position9>
+      <Position10>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="236" Column="18" TopLine="207"/>
+      </Position10>
+      <Position11>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="260" Column="18" TopLine="232"/>
+      </Position11>
+      <Position12>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="261" Column="16" TopLine="232"/>
+      </Position12>
+      <Position13>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="441" Column="27" TopLine="419"/>
+      </Position13>
+      <Position14>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="449" Column="54" TopLine="398"/>
+      </Position14>
+      <Position15>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="68" Column="19" TopLine="57"/>
+      </Position15>
+      <Position16>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="270" Column="27" TopLine="264"/>
+      </Position16>
+      <Position17>
+        <Filename Value="unit1.pas"/>
+      </Position17>
+      <Position18>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="141" Column="31" TopLine="124"/>
+      </Position18>
+      <Position19>
+        <Filename Value="unit2.pas"/>
+        <Caret Line="12" Column="15" TopLine="7"/>
+      </Position19>
+      <Position20>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="7" Column="20"/>
+      </Position20>
+      <Position21>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="95" Column="51" TopLine="88"/>
+      </Position21>
+      <Position22>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="385" Column="3" TopLine="377"/>
+      </Position22>
+      <Position23>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="465" Column="11" TopLine="443"/>
+      </Position23>
+      <Position24>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="381" Column="23" TopLine="400"/>
+      </Position24>
+      <Position25>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="457" TopLine="445"/>
+      </Position25>
+      <Position26>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="122" Column="4" TopLine="111"/>
+      </Position26>
+      <Position27>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="213" Column="45" TopLine="199"/>
+      </Position27>
+      <Position28>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="214" Column="62" TopLine="199"/>
+      </Position28>
+      <Position29>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="213" Column="45" TopLine="199"/>
+      </Position29>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <Target>
+      <Filename Value="tippsy3"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Linking>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

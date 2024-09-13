@@ -1,0 +1,110 @@
+object Form1: TForm1
+  Left = 333
+  Height = 176
+  Top = 114
+  Width = 1169
+  ActiveControl = Edit1
+  Caption = 'Form1'
+  ClientHeight = 176
+  ClientWidth = 1169
+  Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  object Label1: TLabel
+    Left = 12
+    Height = 45
+    Top = 16
+    Width = 71
+    Caption = 'Edit1'
+    Font.Height = -32
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label2: TLabel
+    Left = 96
+    Height = 45
+    Top = 16
+    Width = 92
+    Caption = 'Label2'
+    Font.Height = -32
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label3: TLabel
+    Left = 96
+    Height = 15
+    Top = 138
+    Width = 30
+    Caption = 'Info : '
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 144
+    Height = 15
+    Top = 138
+    Width = 34
+    Caption = 'Label4'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 8
+    Height = 53
+    Top = 72
+    Width = 1149
+    Anchors = [akTop, akLeft, akRight]
+    Font.Height = -32
+    ParentFont = False
+    TabOrder = 0
+    Text = 'Edit1'
+    OnKeyDown = Edit1KeyDown
+    OnKeyUp = Edit1KeyUp
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 136
+    Width = 75
+    Caption = '&Start'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+  object MainMenu1: TMainMenu
+    Left = 216
+    Top = 24
+    object MenuItem1: TMenuItem
+      Caption = '&File'
+      object MenuItem2: TMenuItem
+        Caption = '&Load'
+        OnClick = MenuItem2Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = '&Save result as'
+        OnClick = MenuItem3Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = '&Close'
+        OnClick = MenuItem4Click
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.txt'
+    Filter = 'Unit|*.txt|All|*.*'
+    Left = 352
+    Top = 24
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.txt'
+    Filter = 'Textfile|*.txt|All|*.*'
+    Left = 544
+    Top = 24
+  end
+  object Timer1: TTimer
+    Enabled = False
+    OnTimer = Timer1Timer
+    Left = 448
+    Top = 24
+  end
+end
