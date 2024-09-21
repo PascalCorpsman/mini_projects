@@ -7,6 +7,3 @@ This is a most simple demo, on how to write ball <-> ball, ball <-> brick, ball 
 Features: 
 - adjust simulation speed
 - toggle "barrier"
-
-Dependencies:
-- 
