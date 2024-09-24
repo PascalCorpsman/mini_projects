@@ -1,0 +1,160 @@
+object Form1: TForm1
+  Left = 350
+  Height = 528
+  Top = 111
+  Width = 645
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Form1'
+  ClientHeight = 528
+  ClientWidth = 645
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnResize = FormResize
+  object Label1: TLabel
+    Left = 528
+    Height = 14
+    Top = 168
+    Width = 37
+    Caption = 'Label1'
+    Font.Color = clRed
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentColor = False
+    ParentFont = False
+    Visible = False
+  end
+  object RadioGroup1: TRadioGroup
+    Left = 528
+    Height = 153
+    Top = 8
+    Width = 105
+    Anchors = [akTop, akRight]
+    AutoFill = True
+    Caption = ' Select '
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.TopBottomSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 138
+    ClientWidth = 103
+    ItemIndex = 0
+    Items.Strings = (
+      'Cube'
+      'Piece 1'
+      'Piece 2'
+      'Piece 3'
+      'Piece 4'
+      'Piece 5'
+      'Piece 6'
+    )
+    TabOrder = 0
+    OnClick = RadioGroup1Click
+  end
+  object Button1: TButton
+    Left = 528
+    Height = 25
+    Top = 176
+    Width = 105
+    Anchors = [akTop, akRight]
+    Caption = '&Reset Movement'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 528
+    Height = 25
+    Top = 488
+    Width = 105
+    Caption = '&Close'
+    TabOrder = 2
+    OnClick = Button2Click
+  end
+  object Button3: TButton
+    Left = 528
+    Height = 25
+    Top = 240
+    Width = 105
+    Anchors = [akTop, akRight]
+    Caption = '&Calculate Cube'
+    TabOrder = 3
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    Left = 528
+    Height = 25
+    Top = 272
+    Width = 105
+    Anchors = [akTop, akRight]
+    Caption = '&Load Pieces'
+    TabOrder = 4
+    OnClick = Button4Click
+  end
+  object Button5: TButton
+    Left = 528
+    Height = 25
+    Top = 304
+    Width = 105
+    Anchors = [akTop, akRight]
+    Caption = '&Save Pieces'
+    TabOrder = 5
+    OnClick = Button5Click
+  end
+  object Button7: TButton
+    Left = 528
+    Height = 25
+    Top = 208
+    Width = 105
+    Anchors = [akTop, akRight]
+    Caption = 'Reset &Pieces'
+    TabOrder = 6
+    OnClick = Button7Click
+  end
+  object CheckBox1: TCheckBox
+    Left = 527
+    Height = 22
+    Top = 336
+    Width = 62
+    Anchors = [akTop, akRight]
+    Caption = 'lighted'
+    Checked = True
+    State = cbChecked
+    TabOrder = 7
+  end
+  object OpenGLControl1: TOpenGLControl
+    Left = 8
+    Height = 505
+    Top = 8
+    Width = 512
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    OnMakeCurrent = OpenGLControl1MakeCurrent
+    OnMouseDown = Panel1MouseDown
+    OnMouseMove = Panel1MouseMove
+    OnPaint = OpenGLControl1Paint
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.cp'
+    Filter = 'CubePiece|*.cp|All|*.*'
+    Left = 192
+    Top = 24
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.cp'
+    Filter = 'CubePiece|*.cp|All|*.*'
+    Left = 104
+    Top = 24
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 32
+    Top = 24
+  end
+end

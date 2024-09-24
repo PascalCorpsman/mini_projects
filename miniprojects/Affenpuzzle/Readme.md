@@ -19,6 +19,8 @@ The clever strategy for solving this puzzle is to "prune" the search space as so
 with this the search tree can be pruned much faster and therefore the solution can be computed fast enough.
 
 
+There is also a [3D-Puzzle](../3d_puzzle) version of this puzzle available
+
 ![](preview.png)
 
 Features: 
