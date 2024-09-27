@@ -62,7 +62,6 @@ Type
     Images: TWVCImageArray;
 
     InvalidResult: Boolean;
-    InvalidPos: TPoint;
     gs: TGridStack;
 
     Connections: Array[0..3] Of TBoolMatrix; // Die Verbindungsmatrix der Bilder
@@ -77,6 +76,8 @@ Type
   public
     Grid: TGrid;
     Cancel: Boolean;
+    StopOnMis: Boolean;
+    InvalidPos: TPoint; // TODO: sollte von außen nur Read Only sein !
 
     OnUpdate: TNotifyEvent;
     OnRenderTooLong: TNotifyEvent;
@@ -96,7 +97,7 @@ Type
 
 Implementation
 
-Uses math, forms;
+Uses math, forms, dialogs;
 
 { Twfc }
 
@@ -376,6 +377,12 @@ Begin
     pl := GetLeastProbList();
     If InvalidResult Then Begin
       If assigned(OnUpdate) Then OnUpdate(self);
+      If StopOnMis Then Begin
+        showmessage(format('Unable to find a matching part for position (%d/%d)', [InvalidPos.X, InvalidPos.y]));
+        ClearGridstack();
+        gs.free;
+        exit;
+      End;
       For i := 0 To BackJumpCounter - 1 Do Begin
         PopGrid();
       End;
@@ -402,6 +409,7 @@ Begin
   End;
   ClearGridstack();
   gs.free;
+  InvalidPos := point(-1, -1);
 End;
 
 Procedure Twfc.ResetGrid();

@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (tile model)                             17.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.03                                                         *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -26,6 +26,7 @@
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Backjumping (like backtracking but with jumps)        *)
 (*               0.03 - Cleanup                                               *)
+(*               0.04 - Add feature stop on miss                              *)
 (*                                                                            *)
 (******************************************************************************)
 // Inspired by https://www.youtube.com/watch?v=rI_y2GAlQFM
@@ -60,6 +61,7 @@ Type
     Button9: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
+    CheckBox3: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -89,6 +91,7 @@ Type
     Procedure Button8Click(Sender: TObject);
     Procedure Button9Click(Sender: TObject);
     Procedure CheckBox2Click(Sender: TObject);
+    Procedure CheckBox3Click(Sender: TObject);
     Procedure Edit1KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit2KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit3KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
@@ -132,7 +135,7 @@ Uses IniFiles;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Wave Function Collapse Demo ver. 0.03';
+  caption := 'Wave Function Collapse Demo ver. 0.04';
   // Aufräumen, der Entwickler Hilfen
   edit1.free;
   edit2.free;
@@ -207,8 +210,13 @@ Begin
       If wfc.Grid[i, j].Index <> -1 Then Begin
         PaintBox1.Canvas.Draw(i * Images[0].Bitmap.Width, j * Images[0].Bitmap.Height, Images[wfc.Grid[i, j].Index].Bitmap);
       End;
-      If wfc.Grid[i, j].Forced And CheckBox2.Checked Then Begin
+      If (wfc.Grid[i, j].Forced And CheckBox2.Checked) Or
+        (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j))
+        Then Begin
         PaintBox1.Canvas.Pen.Color := clred;
+        If (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j)) Then Begin
+          PaintBox1.Canvas.Pen.Color := clblue;
+        End;
         PaintBox1.Canvas.MoveTo((i + 0) * Images[0].Bitmap.Width, (j + 0) * Images[0].Bitmap.Height);
 
         PaintBox1.Canvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 0) * Images[0].Bitmap.Height);
@@ -286,9 +294,6 @@ Begin
 End;
 
 Procedure TForm1.Button6Click(Sender: TObject);
-Var
-  i, cnt: Integer;
-  t: String;
 Begin
   // Create
   If button6.caption = 'Cancel' Then Begin
@@ -309,6 +314,7 @@ Begin
   End;
 
   wfc.LoadImages(Images);
+  wfc.StopOnMis := CheckBox3.Checked;
   wfc.Run();
 
   PaintBox1.Invalidate;
@@ -365,6 +371,12 @@ End;
 
 Procedure TForm1.CheckBox2Click(Sender: TObject);
 Begin
+  PaintBox1.Invalidate;
+End;
+
+Procedure TForm1.CheckBox3Click(Sender: TObject);
+Begin
+  wfc.StopOnMis := CheckBox3.Checked;
   PaintBox1.Invalidate;
 End;
 
@@ -583,7 +595,7 @@ Begin
     images[i].Filename := ini.ReadString('Images', 'Image' + IntToStr(i), '');
     images[i].Bitmap := TBitmap.Create;
     images[i].Bitmap.LoadFromFile(images[i].Filename);
-    images[i].Prop := ini.ReadInteger('Images', 'ImageP' + IntToStr(i), images[i].Prop);
+    images[i].Prop := ini.ReadInteger('Images', 'ImageP' + IntToStr(i), 100);
     images[i].Connectors[ConLeft] := ini.ReadString('Images', 'ImageL' + IntToStr(i), '');
     images[i].Connectors[ConRight] := ini.ReadString('Images', 'ImageR' + IntToStr(i), '');
     images[i].Connectors[ConUp] := ini.ReadString('Images', 'ImageU' + IntToStr(i), '');
