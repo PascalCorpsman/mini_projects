@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (tile model)                             17.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.04                                                         *)
+(* Version     : 0.05                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -27,6 +27,7 @@
 (*               0.02 - Backjumping (like backtracking but with jumps)        *)
 (*               0.03 - Cleanup                                               *)
 (*               0.04 - Add feature stop on miss                              *)
+(*               0.05 - Export as PNG                                         *)
 (*                                                                            *)
 (******************************************************************************)
 // Inspired by https://www.youtube.com/watch?v=rI_y2GAlQFM
@@ -135,7 +136,7 @@ Uses IniFiles;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Wave Function Collapse Demo ver. 0.04';
+  caption := 'Wave Function Collapse Demo ver. 0.05';
   // Aufräumen, der Entwickler Hilfen
   edit1.free;
   edit2.free;
@@ -345,6 +346,7 @@ End;
 Procedure TForm1.Button9Click(Sender: TObject);
 Var
   bm: TBitmap;
+  png: TPortableNetworkGraphic;
   f: Boolean;
 Begin
   // Export Image
@@ -364,7 +366,15 @@ Begin
       PaintBox1.Invalidate;
       Application.ProcessMessages;
     End;
-    bm.SaveToFile(SaveDialog2.FileName);
+    If lowercase(ExtractFileExt(SaveDialog2.FileName)) = '.png' Then Begin
+      png := TPortableNetworkGraphic.Create;
+      png.Assign(bm);
+      png.SaveToFile(SaveDialog2.FileName);
+      png.free;
+    End
+    Else Begin
+      bm.SaveToFile(SaveDialog2.FileName);
+    End;
     bm.free;
   End;
 End;

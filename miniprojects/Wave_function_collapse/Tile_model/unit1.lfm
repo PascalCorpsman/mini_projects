@@ -264,7 +264,7 @@ object Form1: TForm1
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = '.bmp'
-    Filter = 'Bitmap|*.bmp|All|*.*'
+    Filter = 'Bitmap|*.bmp|Portable Network Graphik|*.png|All|*.*'
     Left = 264
     Top = 496
   end
