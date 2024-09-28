@@ -7,14 +7,14 @@ object Form1: TForm1
   Caption = 'Form1'
   ClientHeight = 805
   ClientWidth = 1042
+  LCLVersion = '3.99.0.0'
   OnCreate = FormCreate
   OnDropFiles = FormDropFiles
-  LCLVersion = '2.3.0.0'
   object Label1: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 17
-    Width = 48
+    Width = 54
     Caption = 'Filename'
   end
   object Image1: TImage
@@ -31,14 +31,14 @@ object Form1: TForm1
     Top = 592
     Width = 264
     Caption = '\->'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object Label3: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 392
-    Width = 34
+    Width = 39
     Caption = 'Matrix'
   end
   object StringGrid1: TStringGrid
@@ -69,8 +69,8 @@ object Form1: TForm1
     Top = 40
     Width = 264
     Caption = 'Load'
-    OnClick = Button2Click
     TabOrder = 2
+    OnClick = Button2Click
   end
   object Button3: TButton
     Left = 288
@@ -78,14 +78,14 @@ object Form1: TForm1
     Top = 8
     Width = 264
     Caption = '<-\'
-    OnClick = Button3Click
     TabOrder = 3
+    OnClick = Button3Click
   end
   object Label4: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 344
-    Width = 48
+    Width = 55
     Caption = 'Rotation:'
   end
   object ScrollBar1: TScrollBar
@@ -100,31 +100,31 @@ object Form1: TForm1
   end
   object Label5: TLabel
     Left = 80
-    Height = 15
+    Height = 16
     Top = 344
-    Width = 34
+    Width = 41
     Caption = 'Label5'
   end
   object Label6: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 625
-    Width = 29
+    Width = 32
     Caption = 'Time:'
   end
   object Label7: TLabel
     Left = 80
-    Height = 15
+    Height = 16
     Top = 625
-    Width = 34
+    Width = 41
     Caption = 'Label7'
   end
   object ComboBox1: TComboBox
     Left = 80
-    Height = 23
+    Height = 26
     Top = 488
     Width = 200
-    ItemHeight = 15
+    ItemHeight = 0
     ItemIndex = 1
     Items.Strings = (
       'None'
@@ -139,16 +139,16 @@ object Form1: TForm1
   end
   object Label8: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 496
-    Width = 34
+    Width = 38
     Caption = 'iMode'
   end
   object RadioButton1: TRadioButton
     Left = 16
-    Height = 19
+    Height = 22
     Top = 560
-    Width = 62
+    Width = 75
     Caption = 'Multiply'
     Checked = True
     TabOrder = 6
@@ -156,21 +156,22 @@ object Form1: TForm1
   end
   object RadioButton2: TRadioButton
     Left = 128
-    Height = 19
+    Height = 22
     Top = 560
-    Width = 41
+    Width = 51
     Caption = 'Fold'
     TabOrder = 7
   end
   object ComboBox2: TComboBox
     Left = 80
-    Height = 23
+    Height = 26
     Top = 520
     Width = 200
-    ItemHeight = 15
+    ItemHeight = 0
     ItemIndex = 0
     Items.Strings = (
       'None'
+      'Fuchsia'
       'Clamp'
       'Wrap'
     )
@@ -180,41 +181,41 @@ object Form1: TForm1
   end
   object Label9: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 528
-    Width = 40
+    Width = 45
     Caption = 'wMode'
   end
   object CheckBox1: TCheckBox
     Left = 193
-    Height = 19
+    Height = 22
     Top = 560
-    Width = 87
+    Width = 105
     Caption = 'abs after fold'
     TabOrder = 9
   end
   object ComboBox3: TComboBox
     Left = 72
-    Height = 23
+    Height = 28
     Top = 10
     Width = 208
-    ItemHeight = 15
+    ItemHeight = 0
     PopupMenu = PopupMenu1
     TabOrder = 10
     Text = 'ComboBox3'
   end
   object Label2: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 648
-    Width = 36
+    Width = 40
     Caption = 'Image:'
   end
   object Label10: TLabel
     Left = 80
-    Height = 15
+    Height = 16
     Top = 648
-    Width = 40
+    Width = 49
     Caption = 'Label10'
   end
   object PopupMenu1: TPopupMenu

@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Image_Multiplication                                            ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.03                                                         *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -25,6 +25,7 @@
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - Anzeigen diverser Infos                               *)
 (*               0.03 - FileDragDrop Support                                  *)
+(*               0.04 - add wmFuchsia                                         *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -102,7 +103,7 @@ Procedure TForm1.FormCreate(Sender: TObject);
 Var
   i, j: Integer;
 Begin
-  caption := 'Image Matrix Multiplication demo, ver. 0.03';
+  caption := 'Image Matrix Multiplication demo, ver. 0.04';
   //ComboBox3.Items.Add('..' + PathDelim + 'ImageInspector' + PathDelim + 'Images' + PathDelim + 'Bikubik.bmp');
   //ComboBox3.Items.Add('..' + PathDelim + 'ImageInspector' + PathDelim + 'Images' + PathDelim + 'Checkboard.bmp');
   //ComboBox3.Items.Add('..' + PathDelim + 'ImageInspector' + PathDelim + 'Images' + PathDelim + 'Face.bmp');
@@ -216,8 +217,9 @@ Begin
   wm := wmBlack;
   Case ComboBox2.ItemIndex Of
     0: wm := wmBlack;
-    1: wm := wmClamp;
-    2: wm := wmWrap;
+    1: wm := wmFuchsia;
+    2: wm := wmClamp;
+    3: wm := wmWrap;
   End;
   im := imNone;
   Case ComboBox1.ItemIndex Of

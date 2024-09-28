@@ -38,6 +38,8 @@
 (*               0.09 - added floodfill                                       *)
 (*               0.10 - FIX: revert 90* Rotation images back to old algorithm *)
 (*               0.11 - FIX: revert 90* Rotations to matrix multiplications   *)
+(*               0.12 - add wmFuchsia                                         *)
+(*                      FIX: glitch on rotating images                        *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -68,6 +70,7 @@ Type
 
   TWrapMode = (
     wmBlack, // Ist ein Pixel nicht Teil des Bildes wird er Schwarz eingefärbt
+    wmFuchsia, // Ist ein Pixel nicht Teil des Bildes wird er mit clFuchsia eingefärbt
     wmClamp, // Ist ein Pixel nicht Teil des Bildes wird seine Koordinate auf den Nächsten Pixel im Bild zurück Projiziert x >= Image.Width => Image.Width -1
     wmWrap //   Ist ein Pixel nicht Teil des Bildes wird seine Koordinate mittels Modulo in das Bild zurück Projiziert
     );
@@ -615,6 +618,17 @@ Function GetPixel(Const Image: TLazIntfImage; x, y: Single; wMode: TWrapMode; iM
   Function PointToColor(p: TPoint): TFPColor;
   Begin
     Case wMode Of
+      wmFuchsia: Begin
+          If (p.x < 0) Or (p.y < 0) Or (p.x >= Image.Width) Or (p.y >= Image.Height) Then Begin
+            result.Red := 255 Shl 8;
+            result.Green := 0;
+            result.Blue := 255 Shl 8;
+            result.Alpha := 0;
+          End
+          Else Begin
+            result := Image.Colors[p.x, p.y];
+          End;
+        End;
       wmBlack: Begin
           If (p.x < 0) Or (p.y < 0) Or (p.x >= Image.Width) Or (p.y >= Image.Height) Then Begin
             result.Red := 0;
@@ -1124,8 +1138,8 @@ Begin
   Else Begin
     // Ist die Matrix Invertierbar kann über die Zielbild Koordinaten Iteriert werden
     // => kein Oversampling notwendig ;)
-    For i := trunc(mi.x) To ceil(ma.x) - 1 Do Begin
-      For j := trunc(mi.y) To ceil(ma.y) - 1 Do Begin
+    For i := trunc(mi.x) To ceil(ma.x) Do Begin
+      For j := trunc(mi.y) To ceil(ma.y) Do Begin
         (*
          * Unter Windows sind die Pixel Links oben Angeschlagen,
          * Damit das aber "Gut" aus sieht, muss ein Pixel mittig Zentriert sein.
