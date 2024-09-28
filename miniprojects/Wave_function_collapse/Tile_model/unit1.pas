@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (tile model)                             17.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.05                                                         *)
+(* Version     : 0.06                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -28,6 +28,7 @@
 (*               0.03 - Cleanup                                               *)
 (*               0.04 - Add feature stop on miss                              *)
 (*               0.05 - Export as PNG                                         *)
+(*               0.06 - Export of big images                                  *)
 (*                                                                            *)
 (******************************************************************************)
 // Inspired by https://www.youtube.com/watch?v=rI_y2GAlQFM
@@ -119,6 +120,7 @@ Type
 
     Procedure OnCollapseCell(Sender: TObject);
     Procedure OnRenderTooLong(Sender: TObject);
+    Procedure RenderWFCToCanvas(Const aCanvas: TCanvas);
   public
 
   End;
@@ -136,7 +138,7 @@ Uses IniFiles;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Wave Function Collapse Demo ver. 0.05';
+  caption := 'Wave Function Collapse Demo ver. 0.06';
   // Aufräumen, der Entwickler Hilfen
   edit1.free;
   edit2.free;
@@ -199,34 +201,11 @@ Begin
 End;
 
 Procedure TForm1.PaintBox1Paint(Sender: TObject);
-Var
-  i, j: Integer;
 Begin
   // Clear Back
-  PaintBox1.Canvas.Brush.Color := clRed;
-  PaintBox1.Canvas.Rectangle(-1, -1, PaintBox1.Width + 1, PaintBox1.Height + 1);
-  If Not assigned(wfc.Grid) Then exit;
-  For i := 0 To high(wfc.Grid) Do Begin
-    For j := 0 To high(wfc.Grid[i]) Do Begin
-      If wfc.Grid[i, j].Index <> -1 Then Begin
-        PaintBox1.Canvas.Draw(i * Images[0].Bitmap.Width, j * Images[0].Bitmap.Height, Images[wfc.Grid[i, j].Index].Bitmap);
-      End;
-      If (wfc.Grid[i, j].Forced And CheckBox2.Checked) Or
-        (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j))
-        Then Begin
-        PaintBox1.Canvas.Pen.Color := clred;
-        If (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j)) Then Begin
-          PaintBox1.Canvas.Pen.Color := clblue;
-        End;
-        PaintBox1.Canvas.MoveTo((i + 0) * Images[0].Bitmap.Width, (j + 0) * Images[0].Bitmap.Height);
-
-        PaintBox1.Canvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 0) * Images[0].Bitmap.Height);
-        PaintBox1.Canvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 1) * Images[0].Bitmap.Height - 1);
-        PaintBox1.Canvas.LineTo((i + 0) * Images[0].Bitmap.Width, (j + 1) * Images[0].Bitmap.Height - 1);
-        PaintBox1.Canvas.LineTo((i + 0) * Images[0].Bitmap.Width, (j + 0) * Images[0].Bitmap.Height);
-      End;
-    End;
-  End;
+  paintbox1.Canvas.Brush.Color := clRed;
+  paintbox1.Canvas.Rectangle(-1, -1, PaintBox1.Width + 1, PaintBox1.Height + 1);
+  RenderWFCToCanvas(PaintBox1.Canvas);
 End;
 
 Procedure TForm1.Button1Click(Sender: TObject);
@@ -360,7 +339,8 @@ Begin
       PaintBox1.Invalidate;
       Application.ProcessMessages;
     End;
-    bm.Canvas.CopyRect(rect(0, 0, bm.Width, bm.Height), PaintBox1.Canvas, rect(0, 0, bm.Width, bm.Height));
+    //    bm.Canvas.CopyRect(rect(0, 0, bm.Width, bm.Height), PaintBox1.Canvas, rect(0, 0, bm.Width, bm.Height));
+    RenderWFCToCanvas(bm.Canvas);
     If f Then Begin
       CheckBox2.Checked := true;
       PaintBox1.Invalidate;
@@ -637,6 +617,35 @@ Begin
   CheckBox1.Checked := true;
   edit8.text := '1';
   Button6.Enabled := true;
+End;
+
+Procedure TForm1.RenderWFCToCanvas(Const aCanvas: TCanvas);
+Var
+  i, j: Integer;
+Begin
+  If Not assigned(wfc.Grid) Then exit;
+  For i := 0 To high(wfc.Grid) Do Begin
+    For j := 0 To high(wfc.Grid[i]) Do Begin
+      If wfc.Grid[i, j].Index <> -1 Then Begin
+        aCanvas.Draw(i * Images[0].Bitmap.Width, j * Images[0].Bitmap.Height, Images[wfc.Grid[i, j].Index].Bitmap);
+      End;
+      If (wfc.Grid[i, j].Forced And CheckBox2.Checked) Or
+        (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j))
+        Then Begin
+        aCanvas.Pen.Color := clred;
+        If (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j)) Then Begin
+          aCanvas.Pen.Color := clblue;
+        End;
+        aCanvas.MoveTo((i + 0) * Images[0].Bitmap.Width, (j + 0) * Images[0].Bitmap.Height);
+
+        aCanvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 0) * Images[0].Bitmap.Height);
+        aCanvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 1) * Images[0].Bitmap.Height - 1);
+        aCanvas.LineTo((i + 0) * Images[0].Bitmap.Width, (j + 1) * Images[0].Bitmap.Height - 1);
+        aCanvas.LineTo((i + 0) * Images[0].Bitmap.Width, (j + 0) * Images[0].Bitmap.Height);
+      End;
+    End;
+  End;
+
 End;
 
 Procedure TForm1.Button4Click(Sender: TObject);
