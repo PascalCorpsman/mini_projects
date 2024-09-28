@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* PNG Editor                                                      ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.04                                                         *)
+(* Version     : 0.06                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -28,6 +28,8 @@
 (*                      via clFuchsia                                         *)
 (*               0.04 - Umstellung auf eigene Zoom Algorithmen beim Rendern   *)
 (*               0.05 - start mit drag / drop                                 *)
+(*               0.06 - improove drag / drop                                  *)
+(*                                                                            *)
 (******************************************************************************)
 
 Unit Unit1;
@@ -73,6 +75,8 @@ Type
   private
     fNormalImage: TBitmap; // Original unscalliert
     fAlphaImage: TBitmap; // Original unscalliert
+    Procedure LoadAlpha(Const FileName: String);
+    Procedure LoadNormal(Const FileName: String);
     Procedure RefreshDimensions();
     Procedure Clear(Normal, Alpha: Boolean);
     Function CreateScaledImage(Const Source: TBitmap): TBitmap;
@@ -90,7 +94,7 @@ Implementation
 {$R *.lfm}
 
 Uses
-  IntfGraphics, fpImage, LCLType, ugraphics, GraphType, Math;
+  IntfGraphics, fpImage, LCLType, ugraphics, GraphType, Math, types;
 
 { TForm1 }
 
@@ -104,69 +108,18 @@ Begin
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
-Var
-  ScaledImage: TBitmap;
 Begin
   // Load Normal
   If OpenDialog2.Execute Then Begin
-    Clear(true, false);
-    fNormalImage := LoadImage(OpenDialog2.FileName);
-    fNormalImage.Transparent := false;
-    ScaledImage := CreateScaledImage(fNormalImage);
-    Image1.Picture.Assign(ScaledImage);
-    ScaledImage.free;
-    RefreshDimensions();
+    LoadNormal(OpenDialog2.FileName);
   End;
 End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
-  Procedure BinariseByCLFuchsia(Const Bitmap: TBitmap);
-  Var
-    TempIntfImg: TLazIntfImage;
-    ImgHandle, ImgMaskHandle: HBitmap;
-    fuchsia, CurColor: TFPColor;
-    i, j: Integer;
-  Begin
-    TempIntfImg := TLazIntfImage.Create(0, 0);
-    TempIntfImg.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
-    For j := 0 To bitmap.height - 1 Do
-      For i := 0 To bitmap.width - 1 Do Begin
-        fuchsia := ColorToFPColor(clFuchsia);
-        If TempIntfImg.Colors[i, j] = fuchsia Then Begin
-          curcolor.red := 0;
-        End
-        Else Begin
-          curcolor.red := 255 * 256;
-        End;
-        curcolor.green := curcolor.red;
-        curcolor.blue := curcolor.red;
-        curcolor.alpha := 255 * 256;
-        TempIntfImg.Colors[i, j] := curcolor;
-      End;
-    TempIntfImg.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-    Bitmap.Handle := ImgHandle;
-    Bitmap.MaskHandle := ImgMaskHandle;
-    TempIntfImg.free;
-  End;
-
-Var
-  ScaledImage: TBitmap;
 Begin
   // Load Alpha
   If OpenDialog2.Execute Then Begin
-    Clear(false, true);
-    fAlphaImage := LoadImage(OpenDialog2.FileName);
-    fAlphaImage.Transparent := false;
-    If CheckBox1.Checked Then Begin
-      BinariseByCLFuchsia(fAlphaImage);
-    End
-    Else Begin
-      ConvertToGrayscale(fAlphaImage);
-    End;
-    ScaledImage := CreateScaledImage(fAlphaImage);
-    Image2.Picture.Assign(ScaledImage);
-    ScaledImage.free;
-    RefreshDimensions();
+    LoadAlpha(OpenDialog2.FileName);
   End;
 End;
 
@@ -258,7 +211,7 @@ End;
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Label2.Caption := '';
-  caption := 'PNG-Editor ver. 0.05 by Corpsman';
+  caption := 'PNG-Editor ver. 0.06 by Corpsman';
   Application.Title := caption;
   fNormalImage := Nil;
   fAlphaImage := Nil;
@@ -267,9 +220,19 @@ End;
 Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
   );
 Begin
-  // TODO: Das könnte viel differenzierter sein
+  // Differenzieren nach "ziel" und "quelle" ;)
   If FileExists(FileNames[0]) Then Begin
-    LoadPNG(FileNames[0]);
+    If lowercase(ExtractFileExt(FileNames[0])) = '.png' Then Begin
+      LoadPNG(FileNames[0]);
+    End
+    Else Begin
+      If PtInRect(Image1.BoundsRect, ScreenToClient(Mouse.CursorPos)) Then Begin
+        LoadNormal(FileNames[0]);
+      End
+      Else Begin
+        LoadAlpha(FileNames[0]);
+      End;
+    End;
   End;
 End;
 
@@ -286,6 +249,66 @@ Begin
     s := s + format('Alpha: %d x %d', [fAlphaImage.Width, fAlphaImage.Height]);
   End;
   label2.caption := s;
+End;
+
+Procedure TForm1.LoadNormal(Const FileName: String);
+Var
+  ScaledImage: TBitmap;
+Begin
+  Clear(true, false);
+  fNormalImage := LoadImage(FileName);
+  fNormalImage.Transparent := false;
+  ScaledImage := CreateScaledImage(fNormalImage);
+  Image1.Picture.Assign(ScaledImage);
+  ScaledImage.free;
+  RefreshDimensions();
+End;
+
+Procedure TForm1.LoadAlpha(Const FileName: String);
+  Procedure BinariseByCLFuchsia(Const Bitmap: TBitmap);
+  Var
+    TempIntfImg: TLazIntfImage;
+    ImgHandle, ImgMaskHandle: HBitmap;
+    fuchsia, CurColor: TFPColor;
+    i, j: Integer;
+  Begin
+    TempIntfImg := TLazIntfImage.Create(0, 0);
+    TempIntfImg.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
+    For j := 0 To bitmap.height - 1 Do
+      For i := 0 To bitmap.width - 1 Do Begin
+        fuchsia := ColorToFPColor(clFuchsia);
+        If TempIntfImg.Colors[i, j] = fuchsia Then Begin
+          curcolor.red := 0;
+        End
+        Else Begin
+          curcolor.red := 255 * 256;
+        End;
+        curcolor.green := curcolor.red;
+        curcolor.blue := curcolor.red;
+        curcolor.alpha := 255 * 256;
+        TempIntfImg.Colors[i, j] := curcolor;
+      End;
+    TempIntfImg.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
+    Bitmap.Handle := ImgHandle;
+    Bitmap.MaskHandle := ImgMaskHandle;
+    TempIntfImg.free;
+  End;
+Var
+  ScaledImage: TBitmap;
+Begin
+  Clear(false, true);
+  fAlphaImage := LoadImage(FileName);
+  fAlphaImage.Transparent := false;
+  If CheckBox1.Checked Then Begin
+    BinariseByCLFuchsia(fAlphaImage);
+  End
+  Else Begin
+    ConvertToGrayscale(fAlphaImage);
+  End;
+  ScaledImage := CreateScaledImage(fAlphaImage);
+  Image2.Picture.Assign(ScaledImage);
+  ScaledImage.free;
+  RefreshDimensions();
 End;
 
 Procedure TForm1.Clear(Normal, Alpha: Boolean);
