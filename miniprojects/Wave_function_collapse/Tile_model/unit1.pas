@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Wave function collapse (tile model)                             17.01.2024 *)
 (*                                                                            *)
-(* Version     : 0.06                                                         *)
+(* Version     : 0.07                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -29,6 +29,7 @@
 (*               0.04 - Add feature stop on miss                              *)
 (*               0.05 - Export as PNG                                         *)
 (*               0.06 - Export of big images                                  *)
+(*               0.07 - show grid option                                      *)
 (*                                                                            *)
 (******************************************************************************)
 // Inspired by https://www.youtube.com/watch?v=rI_y2GAlQFM
@@ -53,6 +54,8 @@ Type
 
   TForm1 = Class(TForm)
     Button1: TButton;
+    Button10: TButton;
+    Button11: TButton;
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
@@ -64,6 +67,7 @@ Type
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
+    CheckBox4: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -77,12 +81,16 @@ Type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
     OpenPictureDialog1: TOpenPictureDialog;
     PaintBox1: TPaintBox;
     SaveDialog1: TSaveDialog;
     SaveDialog2: TSaveDialog;
+    SaveDialog3: TSaveDialog;
     ScrollBox1: TScrollBox;
+    Procedure Button10Click(Sender: TObject);
+    Procedure Button11Click(Sender: TObject);
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
@@ -94,11 +102,13 @@ Type
     Procedure Button9Click(Sender: TObject);
     Procedure CheckBox2Click(Sender: TObject);
     Procedure CheckBox3Click(Sender: TObject);
+    Procedure CheckBox4Click(Sender: TObject);
     Procedure Edit1KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit2KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit3KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit4KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit5KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
+    Procedure Edit6KeyPress(Sender: TObject; Var Key: char);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
@@ -138,7 +148,7 @@ Uses IniFiles;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Wave Function Collapse Demo ver. 0.06';
+  caption := 'Wave Function Collapse Demo ver. 0.07';
   // Aufräumen, der Entwickler Hilfen
   edit1.free;
   edit2.free;
@@ -237,6 +247,54 @@ Begin
       SetSelectedImage(-1);
     End;
     button3.click;
+  End;
+End;
+
+Procedure TForm1.Button10Click(Sender: TObject);
+Var
+  sl: TStringList;
+  i, j: Integer;
+Begin
+  If SaveDialog3.Execute Then Begin
+    sl := TStringList.Create;
+    sl.Clear;
+    sl.add(edit6.text);
+    sl.add(edit7.text);
+    For i := 0 To high(wfc.Grid) Do Begin
+      For j := 0 To high(wfc.Grid[i]) Do Begin
+        If wfc.Grid[i, j].Forced Then Begin
+          sl.Add(format('%d %d %d', [i, j, wfc.Grid[i, j].Index]));
+        End;
+      End;
+    End;
+    sl.SaveToFile(SaveDialog3.FileName);
+    sl.free;
+  End;
+End;
+
+Procedure TForm1.Button11Click(Sender: TObject);
+Var
+  sl: TStringList;
+  i: Integer;
+  sa: TStringArray;
+  x, y, z: LongInt;
+Begin
+  If OpenDialog1.Execute Then Begin
+    sl := TStringList.Create;
+    sl.LoadFromFile(OpenDialog1.FileName);
+    edit6.Text := sl[0];
+    edit7.Text := sl[1];
+    Button3.Click;
+    For i := 2 To sl.count - 1 Do Begin
+      sa := sl[i].Split(' ');
+      x := strtoint(sa[0]);
+      y := strtoint(sa[1]);
+      z := strtoint(sa[2]);
+      wfc.Grid[x, y].Forced := true;
+      wfc.Grid[x, y].Index := z;
+    End;
+    PaintBox1.Invalidate;
+    sl.free;
   End;
 End;
 
@@ -370,6 +428,11 @@ Begin
   PaintBox1.Invalidate;
 End;
 
+Procedure TForm1.CheckBox4Click(Sender: TObject);
+Begin
+  PaintBox1.Invalidate;
+End;
+
 Procedure TForm1.Edit1KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
 Var
   index: integer;
@@ -408,6 +471,11 @@ Var
 Begin
   index := Tedit(sender).Tag;
   Images[index].Prop := strtointdef(Tedit(sender).Text, 0);
+End;
+
+Procedure TForm1.Edit6KeyPress(Sender: TObject; Var Key: char);
+Begin
+  If key = #13 Then button3.Click;
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -630,14 +698,17 @@ Begin
         aCanvas.Draw(i * Images[0].Bitmap.Width, j * Images[0].Bitmap.Height, Images[wfc.Grid[i, j].Index].Bitmap);
       End;
       If (wfc.Grid[i, j].Forced And CheckBox2.Checked) Or
-        (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j))
+        (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j)) Or
+        (CheckBox4.Checked)
         Then Begin
         aCanvas.Pen.Color := clred;
         If (CheckBox3.Checked And (wfc.InvalidPos.X = i) And (wfc.InvalidPos.Y = j)) Then Begin
           aCanvas.Pen.Color := clblue;
         End;
+        If CheckBox4.Checked Then Begin
+          aCanvas.Pen.Color := cllime;
+        End;
         aCanvas.MoveTo((i + 0) * Images[0].Bitmap.Width, (j + 0) * Images[0].Bitmap.Height);
-
         aCanvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 0) * Images[0].Bitmap.Height);
         aCanvas.LineTo((i + 1) * Images[0].Bitmap.Width - 1, (j + 1) * Images[0].Bitmap.Height - 1);
         aCanvas.LineTo((i + 0) * Images[0].Bitmap.Width, (j + 1) * Images[0].Bitmap.Height - 1);

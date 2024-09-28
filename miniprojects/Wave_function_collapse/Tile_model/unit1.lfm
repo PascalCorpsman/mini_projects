@@ -118,6 +118,7 @@ object Form1: TForm1
     Width = 50
     TabOrder = 4
     Text = 'Edit6'
+    OnKeyPress = Edit6KeyPress
   end
   object Edit7: TEdit
     Left = 368
@@ -126,6 +127,7 @@ object Form1: TForm1
     Width = 50
     TabOrder = 5
     Text = 'Edit7'
+    OnKeyPress = Edit6KeyPress
   end
   object Button4: TButton
     Left = 112
@@ -250,6 +252,36 @@ object Form1: TForm1
     TabOrder = 15
     OnClick = CheckBox3Click
   end
+  object CheckBox4: TCheckBox
+    Left = 332
+    Height = 22
+    Top = 547
+    Width = 83
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'show grid'
+    TabOrder = 16
+    OnClick = CheckBox4Click
+  end
+  object Button10: TButton
+    Left = 440
+    Height = 25
+    Top = 544
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save Grid'
+    TabOrder = 17
+    OnClick = Button10Click
+  end
+  object Button11: TButton
+    Left = 528
+    Height = 25
+    Top = 544
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Load Grid'
+    TabOrder = 18
+    OnClick = Button11Click
+  end
   object OpenDialog2: TOpenDialog
     DefaultExt = '.sys'
     Filter = 'System|*.sys|All|*.*'
@@ -274,5 +306,13 @@ object Form1: TForm1
     Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
     Left = 56
     Top = 184
+  end
+  object SaveDialog3: TSaveDialog
+    Left = 464
+    Top = 496
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 552
+    Top = 496
   end
 end

@@ -70,7 +70,7 @@ Type
     Function GetLeastProbList(): TPointList;
     Procedure InitGrid();
     Procedure PushGrid();
-    Procedure PopGrid();
+    Function PopGrid(): boolean;
     Procedure ClearGridstack();
 
   public
@@ -259,7 +259,7 @@ Begin
 
 End;
 
-Procedure Twfc.PopGrid;
+Function Twfc.PopGrid: boolean;
 Var
   g: TGrid;
   i, j: Integer;
@@ -267,8 +267,10 @@ Begin
   If gs.IsEmpty Then Begin
     // Der Jump ist derart Riesig, dass wir nichts mehr zum "popen" haben
     InitGrid();
+    result := false;
   End
   Else Begin
+    result := true;
     g := gs.Pop;
     For i := 0 To high(Grid) Do Begin
       For j := 0 To high(Grid[0]) Do Begin
@@ -384,7 +386,11 @@ Begin
         exit;
       End;
       For i := 0 To BackJumpCounter - 1 Do Begin
-        PopGrid();
+        If Not PopGrid() Then Begin
+          // Der Stack war leer, also muss auch nicht mehr gepoppt werden ;)
+          BackJumpCounter := 1;
+          break;
+        End;
       End;
       InvalidResult := false;
       WasInvalid := true;
@@ -412,7 +418,7 @@ Begin
   InvalidPos := point(-1, -1);
 End;
 
-Procedure Twfc.ResetGrid();
+Procedure Twfc.ResetGrid;
 Var
   i, j: Integer;
 Begin
