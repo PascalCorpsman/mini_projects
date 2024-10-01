@@ -51,7 +51,7 @@ Following is a short description of all listed projects
 | [Parken](miniprojects/Parken) | Demo for trectric curves |
 | [Pentago](miniprojects/Pentago) | Implementation of the board game Pentago |
 | [PingPong](miniprojects/PingPong) | Demo of a billard/ breakout engine |
-| [Pixeleditor](miniprojects/Pixeleditor) | tool to create pixelart images |
+| [Pixeleditor](miniprojects/PixelEditor) | tool to create pixelart images |
 | [SFXR](miniprojects/SFXR) | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
 | [Simple Search](miniprojects/Simple_Search) | Win98 style search dialog |
 | [Spirograph](miniprojects/Spirograph) | Demo to paint funny rotational graphics |
