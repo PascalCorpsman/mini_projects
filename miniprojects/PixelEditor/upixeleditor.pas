@@ -99,6 +99,14 @@ Type
     // Menüleiste unten
 
     SelectTransparentColor: TOpenGL_Bevel;
+    Color1: TOpenGL_ColorBox;
+    Color2: TOpenGL_ColorBox;
+    Color3: TOpenGL_ColorBox;
+    Color4: TOpenGL_ColorBox;
+    Color5: TOpenGL_ColorBox;
+    Color6: TOpenGL_ColorBox;
+    Color7: TOpenGL_ColorBox;
+    Color8: TOpenGL_ColorBox;
 
     SelectLayerButton: TOpenGL_Bevel;
 
@@ -145,6 +153,14 @@ Type
     Procedure OnColorPickButtonClick(Sender: TObject);
 
     Procedure OnSelectTransparentColorClick(Sender: TObject);
+    Procedure OnColor1Click(Sender: TObject);
+    Procedure OnColor2Click(Sender: TObject);
+    Procedure OnColor3Click(Sender: TObject);
+    Procedure OnColor4Click(Sender: TObject);
+    Procedure OnColor5Click(Sender: TObject);
+    Procedure OnColor6Click(Sender: TObject);
+    Procedure OnColor7Click(Sender: TObject);
+    Procedure OnColor8Click(Sender: TObject);
 
     Procedure OnSelectLayerButtonClick(Sender: TObject);
 
@@ -165,7 +181,7 @@ Type
 
 Implementation
 
-Uses dglOpenGL, Graphics, uOpenGL_ASCII_Font, uopengl_graphikengine;
+Uses dglOpenGL, Graphics, uOpenGL_ASCII_Font, uopengl_graphikengine, ugraphics;
 
 // for debuging ;)
 
@@ -399,6 +415,46 @@ Begin
 End;
 
 Procedure TPixelEditor.OnSelectTransparentColorClick(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnColor1Click(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnColor2Click(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnColor3Click(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnColor4Click(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnColor5Click(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnColor6Click(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnColor7Click(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnColor8Click(Sender: TObject);
 Begin
 
 End;

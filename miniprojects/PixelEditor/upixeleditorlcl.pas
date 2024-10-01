@@ -5,7 +5,7 @@ Unit upixeleditorlcl;
 Interface
 
 Uses
-  Classes, controls, SysUtils, OpenGLContext, uopengl_widgetset,
+  Classes, controls, SysUtils, OpenGLContext, uopengl_widgetset, ugraphics,
   uopengl_graphikengine, ExtCtrls;
 
 Type
@@ -42,6 +42,29 @@ Type
     Procedure SetDownImage(OpenGLIndex: integer); overload;
   End;
 
+
+  { TOpenGL_ColorBox }
+
+  TOpenGL_ColorBox = Class(TOpenGL_BaseClass)
+  protected
+    fStyle: TBevelStyle;
+    fColor: TRGB;
+    fmDown: Boolean;
+    FOwner: TOpenGLControl;
+    Procedure OnRender(); override;
+
+    Procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    Procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+
+  public
+    Property Color: TRGB read fColor write fColor;
+    Property Style: TBevelStyle read fStyle write fStyle;
+
+    Property OnClick;
+
+    Constructor Create(Owner: TOpenGLControl); override;
+  End;
+
 Implementation
 
 Uses dglOpenGL, math;
@@ -68,15 +91,15 @@ Begin
   Else Begin
     glColor3ub($0, $0, $0);
   End;
-  //glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
-  glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 1); // Debug, zum Ausmessen der Positionen !
+  glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
+  // glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 1); // Debug, zum Ausmessen der Positionen !
   glBegin(GL_LINE_LOOP);
   glVertex2f(0, 1);
   glVertex2f(Width - 1, 1);
   glVertex2f(Width - 1, Height);
   glVertex2f(0, Height);
   glend;
-  glPointSize(1);
+  glLineWidth(1);
   glPopMatrix;
 End;
 
@@ -143,6 +166,66 @@ End;
 Procedure TOpenGL_ToggleButton.SetDownImage(OpenGLIndex: integer);
 Begin
   fDownImage := OpenGL_GraphikEngine.GetInfo(OpenGLIndex);
+End;
+
+{ TOpenGL_ColorBox }
+
+Procedure TOpenGL_ColorBox.OnRender;
+Begin
+  If Not Visible Then exit;
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glPushMatrix;
+  glTranslatef(Left, Top, 0);
+
+  glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
+  //  glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 1); // Debug, zum Ausmessen der Positionen !
+
+  glColor3ub(fColor.r, fColor.g, fColor.b);
+  glBegin(GL_QUADS);
+  glVertex2f(0, 0);
+  glVertex2f(Width - 1, 0);
+  glVertex2f(Width - 1, Height - 1);
+  glVertex2f(0, Height - 1);
+  glend;
+
+  If (fStyle = bsRaised) Or (fmDown) Then Begin
+    glColor3ub($FF, $FF, $00);
+  End
+  Else Begin
+    glColor3ub($0, $0, $0);
+  End;
+
+  glBegin(GL_LINE_LOOP);
+  glVertex2f(0, 1);
+  glVertex2f(Width - 1, 1);
+  glVertex2f(Width - 1, Height);
+  glVertex2f(0, Height);
+  glend;
+
+  glLineWidth(1);
+  glPopMatrix;
+End;
+
+Procedure TOpenGL_ColorBox.MouseDown(Button: TMouseButton; Shift: TShiftState;
+  X, Y: Integer);
+Begin
+  Inherited MouseDown(Button, Shift, X, Y);
+  fmDown := true;
+End;
+
+Procedure TOpenGL_ColorBox.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
+  Y: Integer);
+Begin
+  Inherited MouseUp(Button, Shift, X, Y);
+  fmDown := false;
+End;
+
+Constructor TOpenGL_ColorBox.Create(Owner: TOpenGLControl);
+Begin
+  Inherited Create(Owner);
+  FOwner := Owner;
+  fColor := RGB(0, 0, 0);
 End;
 
 End.

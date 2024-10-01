@@ -110,7 +110,7 @@ ZoomInButton.Height := 16;
 ZoomInButton.OnClick := @OnZoomInButtonClick;
 AddElement(ZoomInButton);
 
-// TODO: Es fehlt noch das algemeine Textinfo feld
+// TODO: Es fehlt noch das allgemeine Textinfo feld
 
 UndoButton := TOpenGL_Bevel.Create(Owner);
 UndoButton.Left := 605;
@@ -487,6 +487,78 @@ SelectTransparentColor.Width := 16;
 SelectTransparentColor.Height := 16;
 SelectTransparentColor.OnClick := @OnSelectTransparentColorClick;
 AddElement(SelectTransparentColor);
+
+Color1 := TOpenGL_ColorBox.Create(Owner);
+Color1.Left := 147;
+Color1.Top := 428;
+Color1.Width := 32;
+Color1.Height := 32;
+Color1.OnClick := @OnColor1Click;
+Color1.Color := rgb(0, 102, 153);
+AddElement(Color1);
+
+Color2 := TOpenGL_ColorBox.Create(Owner);
+Color2.Left := 182;
+Color2.Top := 428;
+Color2.Width := 32;
+Color2.Height := 32;
+Color2.OnClick := @OnColor2Click;
+Color2.Color := rgb(51, 51, 255);
+AddElement(Color2);
+
+Color3 := TOpenGL_ColorBox.Create(Owner);
+Color3.Left := 217;
+Color3.Top := 428;
+Color3.Width := 32;
+Color3.Height := 32;
+Color3.OnClick := @OnColor3Click;
+Color3.Color := rgb(204, 0, 204);
+AddElement(Color3);
+
+Color4 := TOpenGL_ColorBox.Create(Owner);
+Color4.Left := 252;
+Color4.Top := 428;
+Color4.Width := 32;
+Color4.Height := 32;
+Color4.OnClick := @OnColor4Click;
+Color4.Color := rgb(204, 0, 0);
+AddElement(Color4);
+
+Color5 := TOpenGL_ColorBox.Create(Owner);
+Color5.Left := 287;
+Color5.Top := 428;
+Color5.Width := 32;
+Color5.Height := 32;
+Color5.OnClick := @OnColor5Click;
+Color5.Color := rgb(204, 153, 0 );
+AddElement(Color5);
+
+Color6 := TOpenGL_ColorBox.Create(Owner);
+Color6.Left := 322;
+Color6.Top := 428;
+Color6.Width := 32;
+Color6.Height := 32;
+Color6.OnClick := @OnColor6Click;
+Color6.Color := rgb(0, 153, 51);
+AddElement(Color6);
+
+Color7 := TOpenGL_ColorBox.Create(Owner);
+Color7.Left := 357;
+Color7.Top := 428;
+Color7.Width := 32;
+Color7.Height := 32;
+Color7.OnClick := @OnColor7Click;
+Color7.Color := rgb(255, 255, 255);
+AddElement(Color7);
+
+Color8 := TOpenGL_ColorBox.Create(Owner);
+Color8.Left := 392;
+Color8.Top := 428;
+Color8.Width := 32;
+Color8.Height := 32;
+Color8.OnClick := @OnColor8Click;
+Color8.Color := rgb(0, 0, 0);
+AddElement(Color8);
 
 SelectLayerButton := TOpenGL_Bevel.Create(Owner);
 SelectLayerButton.Left := 640 - 35;
