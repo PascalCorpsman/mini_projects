@@ -85,6 +85,44 @@ GridButton.Height := 32;
 GridButton.OnClick := @OnGridButtonClick;
 AddElement(GridButton);
 
+
+ZoomOutButton := TOpenGL_Bevel.Create(Owner);
+ZoomOutButton.Left := 262;
+ZoomOutButton.Top := 10;
+//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
+//ZoomOutButton.SetImage(image);
+ZoomOutButton.Transparent := true;
+ZoomOutButton.Width := 16;
+ZoomOutButton.Height := 16;
+ZoomOutButton.OnClick := @OnZoomOutButtonClick;
+AddElement(ZoomOutButton);
+
+// TODO: Es fehlt noch das Zoom InfoLabel
+
+ZoomInButton := TOpenGL_Bevel.Create(Owner);
+ZoomInButton.Left := 353;
+ZoomInButton.Top := 10;
+//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
+//ZoomInButton.SetImage(image);
+ZoomInButton.Transparent := true;
+ZoomInButton.Width := 16;
+ZoomInButton.Height := 16;
+ZoomInButton.OnClick := @OnZoomInButtonClick;
+AddElement(ZoomInButton);
+
+// TODO: Es fehlt noch das algemeine Textinfo feld
+
+UndoButton := TOpenGL_Bevel.Create(Owner);
+UndoButton.Left := 605;
+UndoButton.Top := 3;
+//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
+//UndoButton.SetImage(image);
+UndoButton.Transparent := true;
+UndoButton.Width := 32;
+UndoButton.Height := 32;
+UndoButton.OnClick := @OnUndoButtonClick;
+AddElement(UndoButton);
+
 SelectButton := TOpenGL_Bevel.Create(Owner);
 SelectButton.Left := 3;
 SelectButton.Top := 41;
@@ -439,7 +477,16 @@ ColorPickButton.Height := 32;
 ColorPickButton.OnClick := @OnColorPickButtonClick;
 AddElement(ColorPickButton);
 
-// Hier weiter
+SelectTransparentColor := TOpenGL_Bevel.Create(Owner);
+SelectTransparentColor.Left := 128;
+SelectTransparentColor.Top := 428;
+//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
+//SelectTransparentColor.SetImage(image);
+SelectTransparentColor.Transparent := true;
+SelectTransparentColor.Width := 16;
+SelectTransparentColor.Height := 16;
+SelectTransparentColor.OnClick := @OnSelectTransparentColorClick;
+AddElement(SelectTransparentColor);
 
 SelectLayerButton := TOpenGL_Bevel.Create(Owner);
 SelectLayerButton.Left := 640 - 35;

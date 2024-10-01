@@ -58,6 +58,9 @@ Type
     SaveAsButton: TOpenGL_Bevel;
     ExitButton: TOpenGL_Bevel;
     GridButton: TOpenGL_Bevel;
+    ZoomInButton: TOpenGL_Bevel;
+    ZoomOutButton: TOpenGL_Bevel;
+    UndoButton: TOpenGL_Bevel;
 
     // Menüleiste Links
     SelectButton: TOpenGL_Bevel;
@@ -94,6 +97,9 @@ Type
     ColorPickButton: TOpenGL_Bevel;
 
     // Menüleiste unten
+
+    SelectTransparentColor: TOpenGL_Bevel;
+
     SelectLayerButton: TOpenGL_Bevel;
 
     Procedure OnNewButtonClick(Sender: TObject);
@@ -102,6 +108,9 @@ Type
     Procedure OnSaveAsButtonClick(Sender: TObject);
     Procedure OnExitButtonClick(Sender: TObject);
     Procedure OnGridButtonClick(Sender: TObject);
+    Procedure OnZoomOutButtonClick(Sender: TObject);
+    Procedure OnZoomInButtonClick(Sender: TObject);
+    Procedure OnUndoButtonClick(Sender: TObject);
 
     Procedure OnSelectButtonClick(Sender: TObject);
     Procedure OnRotateCounterClockwise90ButtonClick(Sender: TObject);
@@ -114,7 +123,6 @@ Type
     Procedure OnCurserSize2ButtonClick(Sender: TObject);
     Procedure OnCurserSize3ButtonClick(Sender: TObject);
     Procedure OnCurserSize4ButtonClick(Sender: TObject);
-    Procedure OnSelectLayerButtonClick(Sender: TObject);
     Procedure OnEraserButtonClick(Sender: TObject);
     Procedure OnPencilButtonClick(Sender: TObject);
     Procedure OnCursorRoundSize1Click(Sender: TObject);
@@ -135,6 +143,10 @@ Type
     Procedure OnFloodFillButtonClick(Sender: TObject);
     Procedure OnFloodFillModeButtonClick(Sender: TObject);
     Procedure OnColorPickButtonClick(Sender: TObject);
+
+    Procedure OnSelectTransparentColorClick(Sender: TObject);
+
+    Procedure OnSelectLayerButtonClick(Sender: TObject);
 
     Procedure RenderLCL;
 
@@ -190,6 +202,21 @@ Begin
 End;
 
 Procedure TPixelEditor.OnGridButtonClick(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnZoomOutButtonClick(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnZoomInButtonClick(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnUndoButtonClick(Sender: TObject);
 Begin
 
 End;
@@ -367,6 +394,11 @@ Begin
 End;
 
 Procedure TPixelEditor.OnColorPickButtonClick(Sender: TObject);
+Begin
+
+End;
+
+Procedure TPixelEditor.OnSelectTransparentColorClick(Sender: TObject);
 Begin
 
 End;

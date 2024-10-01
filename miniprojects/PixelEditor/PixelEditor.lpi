@@ -84,8 +84,8 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="192"/>
-        <CursorPos X="3" Y="194"/>
+        <TopLine Value="109"/>
+        <CursorPos X="67" Y="126"/>
         <UsageCount Value="37"/>
         <Loaded Value="True"/>
       </Unit5>
@@ -187,19 +187,19 @@
         <Filename Value="upixeleditor_constructor.inc"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="49"/>
-        <CursorPos X="41" Y="85"/>
+        <TopLine Value="454"/>
+        <CursorPos X="55" Y="499"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <IsVisibleTab Value="True"/>
           <EditorIndex Value="4"/>
           <WindowIndex Value="1"/>
-          <TopLine Value="258"/>
-          <CursorPos X="27" Y="275"/>
+          <TopLine Value="296"/>
+          <CursorPos X="27" Y="313"/>
         </ExtraEditor1>
         <UsageCount Value="35"/>
         <Bookmarks Count="1">
-          <Item0 Y="342" ID="1"/>
+          <Item0 Y="125" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
       </Unit18>
@@ -231,123 +231,122 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="108" Column="33" TopLine="82"/>
+        <Caret Line="106" Column="16" TopLine="88"/>
       </Position1>
       <Position2>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="247" Column="3" TopLine="245"/>
+        <Caret Line="253" Column="9" TopLine="232"/>
       </Position2>
       <Position3>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="110" Column="34" TopLine="88"/>
+        <Caret Line="249" Column="15" TopLine="232"/>
       </Position3>
       <Position4>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="265" Column="3" TopLine="263"/>
+        <Caret Line="115" Column="16" TopLine="91"/>
       </Position4>
       <Position5>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="201" Column="48" TopLine="185"/>
+        <Caret Line="289" Column="3" TopLine="287"/>
       </Position5>
       <Position6>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="362" TopLine="326"/>
+        <Caret Line="116" Column="15" TopLine="97"/>
       </Position6>
       <Position7>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="117" Column="16" TopLine="99"/>
+        <Caret Line="295" Column="15" TopLine="293"/>
       </Position7>
       <Position8>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="327" Column="24" TopLine="325"/>
+        <Caret Line="117" Column="16" TopLine="98"/>
       </Position8>
       <Position9>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="117" Column="19" TopLine="90"/>
+        <Caret Line="316" Column="13" TopLine="299"/>
       </Position9>
       <Position10>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="329" Column="32" TopLine="325"/>
+        <Caret Line="120" Column="16" TopLine="100"/>
       </Position10>
       <Position11>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="106" Column="16" TopLine="88"/>
+        <Caret Line="311" Column="17" TopLine="293"/>
       </Position11>
       <Position12>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="253" Column="9" TopLine="232"/>
+        <Caret Line="128" Column="15" TopLine="100"/>
       </Position12>
       <Position13>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="249" Column="15" TopLine="232"/>
+        <Filename Value="upixeleditor_constructor.inc"/>
+        <Caret Line="373" Column="40" TopLine="353"/>
       </Position13>
       <Position14>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="115" Column="16" TopLine="91"/>
+        <Caret Line="138" Column="21" TopLine="116"/>
       </Position14>
       <Position15>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="289" Column="3" TopLine="287"/>
+        <Caret Line="396" Column="32" TopLine="391"/>
       </Position15>
       <Position16>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="116" Column="15" TopLine="97"/>
+        <Caret Line="133" Column="16" TopLine="115"/>
       </Position16>
       <Position17>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="295" Column="15" TopLine="293"/>
+        <Caret Line="403" Column="10" TopLine="397"/>
       </Position17>
       <Position18>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="117" Column="16" TopLine="98"/>
+        <Caret Line="134" Column="16" TopLine="112"/>
       </Position18>
       <Position19>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="316" Column="13" TopLine="299"/>
+        <Caret Line="359" Column="3" TopLine="357"/>
       </Position19>
       <Position20>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="120" Column="16" TopLine="100"/>
+        <Caret Line="104" Column="16" TopLine="79"/>
       </Position20>
       <Position21>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="311" Column="17" TopLine="293"/>
+        <Filename Value="upixeleditor_constructor.inc"/>
+        <Caret Line="104" Column="23" TopLine="79"/>
       </Position21>
       <Position22>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="128" Column="15" TopLine="100"/>
+        <Caret Line="108" Column="16" TopLine="100"/>
       </Position22>
       <Position23>
-        <Filename Value="upixeleditor_constructor.inc"/>
-        <Caret Line="373" Column="40" TopLine="353"/>
+        <Filename Value="upixeleditor.pas"/>
+        <Caret Line="219" Column="21" TopLine="201"/>
       </Position23>
       <Position24>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="138" Column="21" TopLine="116"/>
+        <Caret Line="110" Column="16" TopLine="82"/>
       </Position24>
       <Position25>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="396" Column="32" TopLine="391"/>
+        <Filename Value="upixeleditor_constructor.inc"/>
+        <Caret Line="122" Column="22" TopLine="88"/>
       </Position25>
       <Position26>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="133" Column="16" TopLine="115"/>
+        <Filename Value="upixeleditor_constructor.inc"/>
+        <Caret Line="480" TopLine="454"/>
       </Position26>
       <Position27>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="403" Column="10" TopLine="397"/>
+        <Caret Line="148" Column="16" TopLine="108"/>
       </Position27>
       <Position28>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="134" Column="16" TopLine="112"/>
+        <Caret Line="402" Column="3" TopLine="400"/>
       </Position28>
       <Position29>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="359" Column="3" TopLine="357"/>
+        <Caret Line="137" Column="45" TopLine="116"/>
       </Position29>
       <Position30>
         <Filename Value="upixeleditor.pas"/>
-        <Caret Line="104" Column="16" TopLine="79"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
