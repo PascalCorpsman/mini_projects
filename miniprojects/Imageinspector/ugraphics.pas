@@ -100,6 +100,7 @@ Type
   // Farb Konvertierungen
 Function Color565ToRGB(value: Word): TRGB; // Wandelt eine 2Byte Farbe in eine 3 Byte RGB Farbe um
 Function RGB(r, g, b: Byte): TRGB;
+Function RGBA(R, G, B, A: Byte): TRGBA;
 Function ColorToRGB(c: TColor): TRGB;
 Function ColorToRGBA(c: TColor; AlphaValue: byte = 0): TRGBA;
 Function RGBToColor(rgb: TRGB): TColor;
@@ -268,6 +269,14 @@ Begin
   result.r := r;
   result.g := g;
   result.b := b;
+End;
+
+Function RGBA(R, G, B, A: Byte): TRGBA;
+Begin
+  result.r := r;
+  result.g := g;
+  result.b := b;
+  result.a := a;
 End;
 
 Function ColorToRGB(c: TColor): TRGB;

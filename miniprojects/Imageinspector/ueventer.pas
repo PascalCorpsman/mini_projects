@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Eventer                                                         09.05.2019 *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,7 @@
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - IterateAllEventClasses                                *)
+(*               0.03 - improve .click detection                              *)
 (*                                                                            *)
 (* Known Bugs  : none                                                         *)
 (*                                                                            *)
@@ -371,7 +372,7 @@ Var
 Begin
   ox := x;
   oy := y;
-  If ssleft In shift Then fskipMouseUp := true;
+  // If ssleft In shift Then fskipMouseUp := true; -- Deactivated, makes click event much more intuitive
   If Assigned(TransformRoutine) Then Begin
     p := TransformRoutine(x, y);
     x := p.x;
@@ -659,4 +660,5 @@ Finalization;
   EventerHandler.free;
 
 End.
+
 
