@@ -117,7 +117,7 @@ Procedure TOpenGL_Bevel.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 Begin
   Inherited MouseDown(Button, Shift, X, Y);
-  fmDown := true;
+  fmDown := ssLeft In Shift;
 End;
 
 Procedure TOpenGL_Bevel.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
@@ -220,7 +220,7 @@ Procedure TOpenGL_ColorBox.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 Begin
   Inherited MouseDown(Button, Shift, X, Y);
-  fmDown := true;
+  fmDown := ssLeft In Shift;;
 End;
 
 Procedure TOpenGL_ColorBox.MouseUp(Button: TMouseButton; Shift: TShiftState; X,

@@ -45,9 +45,18 @@ Const
 
 Type
 
+  TTool = (
+    tSelect,
+    tBrighten, tDarken,
+    tEraser, tPen, tLine, tEllipse, tRectangle, tMirror, tBucket, tPincette);
+
   TCursor = Record
     LeftColor: TRGBA;
     RightColor: TRGBA;
+    LastTool: TTool;
+    Tool: TTool;
+    PixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln
+    Pos: Tpoint; // "Raw" Position auf dem Screen
   End;
 
   { TPixelEditor }
@@ -55,7 +64,6 @@ Type
   TPixelEditor = Class
   private
     fCursor: TCursor;
-    fPixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln
     FOwner: TOpenGLControl;
     fZoom: integer; // Akruelle Zoomstufe in %
     fAktualLayer: TLayer;
@@ -90,12 +98,12 @@ Type
     CurserSize4: TOpenGL_Bevel;
     EraserButton: TOpenGL_Bevel;
     PencilButton: TOpenGL_Bevel;
-    CursorRoundSize1: TOpenGL_Bevel;
-    CursorRoundSize2: TOpenGL_Bevel;
-    CursorRoundSize3: TOpenGL_Bevel;
-    CursorSquareSize1: TOpenGL_Bevel;
-    CursorSquareSize2: TOpenGL_Bevel;
-    CursorSquareSize3: TOpenGL_Bevel;
+    CursorRoundShape1: TOpenGL_Bevel;
+    CursorRoundShape2: TOpenGL_Bevel;
+    CursorRoundShape3: TOpenGL_Bevel;
+    CursorSquareShape1: TOpenGL_Bevel;
+    CursorSquareShape2: TOpenGL_Bevel;
+    CursorSquareShape3: TOpenGL_Bevel;
     LineButton: TOpenGL_Bevel;
     CircleButton: TOpenGL_Bevel;
     SquareButton: TOpenGL_Bevel;
@@ -143,18 +151,10 @@ Type
     Procedure OnRotateAngleButtonClick(Sender: TObject);
     Procedure OnBrightenButtonClick(Sender: TObject);
     Procedure OnDarkenButtonClick(Sender: TObject);
-    Procedure OnCurserSize1ButtonClick(Sender: TObject);
-    Procedure OnCurserSize2ButtonClick(Sender: TObject);
-    Procedure OnCurserSize3ButtonClick(Sender: TObject);
-    Procedure OnCurserSize4ButtonClick(Sender: TObject);
+    Procedure OnCurserSizeButtonClick(Sender: TObject);
     Procedure OnEraserButtonClick(Sender: TObject);
     Procedure OnPencilButtonClick(Sender: TObject);
-    Procedure OnCursorRoundSize1Click(Sender: TObject);
-    Procedure OnCursorRoundSize2Click(Sender: TObject);
-    Procedure OnCursorRoundSize3Click(Sender: TObject);
-    Procedure OnCursorSquareSize1Click(Sender: TObject);
-    Procedure OnCursorSquareSize2Click(Sender: TObject);
-    Procedure OnCursorSquareSize3Click(Sender: TObject);
+    Procedure OnCursorShapeClick(Sender: TObject);
     Procedure OnLineButtonClick(Sender: TObject);
     Procedure OnCircleButtonClick(Sender: TObject);
     Procedure OnSquareButtonClick(Sender: TObject);
@@ -194,6 +194,7 @@ Type
     Function CursorToPixel(x, y: integer): TPoint;
     Procedure SetLeftColor(Const C: TRGBA);
     Procedure UpdateInfoLabel;
+    Procedure SelectTool(aTool: TTool);
   public
     FormCloseEvent: TNotifyEvent; // Um der Besitzerklasse mit zu teilen, dass die Anwendung beendet werden will
     Constructor Create; virtual;
@@ -215,6 +216,16 @@ Uses math, dglOpenGL, Graphics, uOpenGL_ASCII_Font
 Procedure Nop();
 Begin
 
+End;
+
+Function IfThen(value: Boolean; trueCase, falseCase: TBevelStyle): TBevelStyle;
+Begin
+  If value Then Begin
+    result := trueCase;
+  End
+  Else Begin
+    result := falseCase;
+  End;
 End;
 
 { TPixelEditor }
@@ -272,7 +283,7 @@ End;
 
 Procedure TPixelEditor.OnSelectButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(tSelect);
 End;
 
 Procedure TPixelEditor.OnRotateCounterClockwise90ButtonClick(Sender: TObject);
@@ -305,36 +316,12 @@ Begin
 
 End;
 
-Procedure TPixelEditor.OnCurserSize1ButtonClick(Sender: TObject);
+Procedure TPixelEditor.OnCurserSizeButtonClick(Sender: TObject);
 Begin
-  CurserSize1.Style := bsRaised;
-  CurserSize2.Style := bsLowered;
-  CurserSize3.Style := bsLowered;
-  CurserSize4.Style := bsLowered;
-End;
-
-Procedure TPixelEditor.OnCurserSize2ButtonClick(Sender: TObject);
-Begin
-  CurserSize1.Style := bsLowered;
-  CurserSize2.Style := bsRaised;
-  CurserSize3.Style := bsLowered;
-  CurserSize4.Style := bsLowered;
-End;
-
-Procedure TPixelEditor.OnCurserSize3ButtonClick(Sender: TObject);
-Begin
-  CurserSize1.Style := bsLowered;
-  CurserSize2.Style := bsLowered;
-  CurserSize3.Style := bsRaised;
-  CurserSize4.Style := bsLowered;
-End;
-
-Procedure TPixelEditor.OnCurserSize4ButtonClick(Sender: TObject);
-Begin
-  CurserSize1.Style := bsLowered;
-  CurserSize2.Style := bsLowered;
-  CurserSize3.Style := bsLowered;
-  CurserSize4.Style := bsRaised;
+  CurserSize1.Style := ifthen(sender = CurserSize1, bsRaised, bsLowered);
+  CurserSize2.Style := ifthen(sender = CurserSize2, bsRaised, bsLowered);
+  CurserSize3.Style := ifthen(sender = CurserSize3, bsRaised, bsLowered);
+  CurserSize4.Style := ifthen(sender = CurserSize4, bsRaised, bsLowered);
 End;
 
 Procedure TPixelEditor.OnSelectLayerButtonClick(Sender: TObject);
@@ -345,10 +332,11 @@ End;
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 Begin
-  fPixelPos := CursorToPixel(x, y);
+  fCursor.PixelPos := CursorToPixel(x, y);
+  fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
-    If fPixelPos.X <> -1 Then Begin
-      fImage.SetColorAt(fPixelPos.X, fPixelPos.y, fAktualLayer, fCursor.LeftColor);
+    If fCursor.PixelPos.X <> -1 Then Begin
+      fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor);
     End;
   End;
   If ssRight In shift Then Begin
@@ -359,10 +347,11 @@ End;
 Procedure TPixelEditor.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
 Begin
-  fPixelPos := CursorToPixel(x, y);
+  fCursor.PixelPos := CursorToPixel(x, y);
+  fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
-    If fPixelPos.X <> -1 Then Begin
-      fImage.SetColorAt(fPixelPos.X, fPixelPos.y, fAktualLayer, fCursor.LeftColor);
+    If fCursor.PixelPos.X <> -1 Then Begin
+      fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor);
     End;
   End;
   If ssRight In shift Then Begin
@@ -398,14 +387,26 @@ Begin
   glVertex2f(640, 480);
   glVertex2f(0, 480);
   glEnd;
+  zf := (fZoom / 100);
+  // Der Rahmen um die Graphik für "niedrige" Zoom stufen
+  glTranslatef(75, 38, 0.01); // Anfahren obere Linke Ecke
+  glColor3ub(102, 102, 102);
+  glLineWidth(1);
+  glBegin(GL_LINES);
+  glVertex2f(0, 0);
+  glVertex2f(0, fImage.Height * zf);
+  glend;
+  glBegin(GL_LINES);
+  glVertex2f(fImage.Width * zf, 0);
+  glVertex2f(fImage.Width * zf, fImage.Height * zf);
+  glVertex2f(0, fImage.Height * zf);
+  glVertex2f(fImage.Width * zf, fImage.Height * zf);
+  glend;
   // Kein Grid gewünscht / Sinnvoll
-  If (GridButton.Style = bsLowered) Or (fZoom <= 5 - 00) Then Begin
+  If (GridButton.Style = bsLowered) Or (fZoom <= 100) Then Begin
     glPopMatrix;
     exit;
   End;
-  glTranslatef(75, 38, 0.01); // Anfahren obere Linke Ecke
-  glColor3ub(102, 102, 102);
-  zf := (fZoom / 100);
   For i := 0 To ceil(640 / zf) Do Begin
     If i Mod 5 = 0 Then glLineWidth(2);
     glBegin(GL_LINES);
@@ -435,62 +436,37 @@ End;
 
 Procedure TPixelEditor.OnEraserButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(tEraser);
 End;
 
 Procedure TPixelEditor.OnPencilButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(TPen);
 End;
 
-Procedure TPixelEditor.OnCursorRoundSize1Click(Sender: TObject);
+Procedure TPixelEditor.OnCursorShapeClick(Sender: TObject);
 Begin
-  CursorRoundSize1.Style := bsRaised;
-  CursorRoundSize2.Style := bsLowered;
-  CursorRoundSize3.Style := bsLowered;
-  CursorSquareSize1.Style := bsLowered;
-  CursorSquareSize2.Style := bsLowered;
-  CursorSquareSize3.Style := bsLowered;
-End;
-
-Procedure TPixelEditor.OnCursorRoundSize2Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnCursorRoundSize3Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnCursorSquareSize1Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnCursorSquareSize2Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnCursorSquareSize3Click(Sender: TObject);
-Begin
-
+  CursorRoundShape1.Style := ifthen(sender = CursorRoundShape1, bsRaised, bsLowered);
+  CursorRoundShape2.Style := ifthen(sender = CursorRoundShape2, bsRaised, bsLowered);
+  CursorRoundShape3.Style := ifthen(sender = CursorRoundShape3, bsRaised, bsLowered);
+  CursorSquareShape1.Style := ifthen(sender = CursorSquareShape1, bsRaised, bsLowered);
+  CursorSquareShape2.Style := ifthen(sender = CursorSquareShape2, bsRaised, bsLowered);
+  CursorSquareShape3.Style := ifthen(sender = CursorSquareShape3, bsRaised, bsLowered);
 End;
 
 Procedure TPixelEditor.OnLineButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(tLine);
 End;
 
 Procedure TPixelEditor.OnCircleButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(tEllipse);
 End;
 
 Procedure TPixelEditor.OnSquareButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(tRectangle);
 End;
 
 Procedure TPixelEditor.OnOutlineButtonClick(Sender: TObject);
@@ -505,7 +481,7 @@ End;
 
 Procedure TPixelEditor.OnMirrorButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(tMirror);
 End;
 
 Procedure TPixelEditor.OnMirror4ButtonClick(Sender: TObject);
@@ -525,7 +501,7 @@ End;
 
 Procedure TPixelEditor.OnFloodFillButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(tBucket);
 End;
 
 Procedure TPixelEditor.OnFloodFillModeButtonClick(Sender: TObject);
@@ -535,12 +511,12 @@ End;
 
 Procedure TPixelEditor.OnColorPickButtonClick(Sender: TObject);
 Begin
-
+  SelectTool(tPincette);
 End;
 
 Procedure TPixelEditor.OnSelectTransparentColorClick(Sender: TObject);
 Begin
-
+  SetLeftColor(Transparent);
 End;
 
 Procedure TPixelEditor.OnColorClick(Sender: TObject);
@@ -607,15 +583,10 @@ End;
 Procedure TPixelEditor.NewImage(aWidth, aHeight: Integer);
 Begin
   // Reset aller Curser
-  OnCurserSize1ButtonClick(Nil);
-  OnCursorRoundSize1Click(Nil);
-  OnOutlineButtonClick(Nil);
-  OnMirrorVertButtonClick(Nil);
   SetZoom(1000);
   fImage.SetSize(aWidth, aHeight);
   fImage.Clear(lAll);
   CenterAt(aWidth Div 2, aHeight Div 2);
-  GridButton.Style := bsRaised;
   fAktualLayer := lMiddle;
   UpdateInfoLabel();
 End;
@@ -691,18 +662,68 @@ Procedure TPixelEditor.UpdateInfoLabel;
 Var
   c: TRGBA;
 Begin
-  If fPixelPos.x = -1 Then Begin
+  If (fCursor.PixelPos.x < 0) Or
+    (fCursor.PixelPos.y < 0) Or
+    (fCursor.Pos.y > FOwner.Height - FOwner.Height * 56 / 480) Or
+    (fCursor.Pos.x > FOwner.Width - FOwner.Width * 3 / 640)
+    Then Begin
     InfoLabel.caption := '';
     InfoDetailLabel.Caption := '';
   End
   Else Begin
-    c := fImage.GetColorAt(fPixelPos.x, fPixelPos.y, fAktualLayer);
-    InfoLabel.caption := format('%d,%d', [fPixelPos.x, fPixelPos.y]);
+    c := fImage.GetColorAt(fCursor.PixelPos.x, fCursor.PixelPos.y, fAktualLayer);
+    InfoLabel.caption := format('%d,%d', [fCursor.PixelPos.x, fCursor.PixelPos.y]);
     If c.a = 0 Then Begin
       InfoLabel.caption := InfoLabel.caption + LineEnding + format('%d/%d/%d', [c.r, c.g, c.b]);
     End;
     // TODO: InfoDetailLabel.Caption befüllen
   End;
+End;
+
+Procedure TPixelEditor.SelectTool(aTool: TTool);
+Const
+  PenTools = [tEraser, tPen, tLine, tEllipse, tRectangle, tMirror];
+Begin
+  SelectButton.Style := ifThen(atool = tSelect, bsRaised, bsLowered);
+  SelectModeButton.Visible := atool = tSelect;
+  RotateCounterClockwise90.Visible := atool = tSelect;
+  RotateClockwise90.Visible := atool = tSelect;
+  Rotate180.Visible := atool = tSelect;
+  RotateAngle.Visible := atool = tSelect;
+
+  BrightenButton.Style := ifThen(atool = tBrighten, bsRaised, bsLowered);
+  DarkenButton.Style := ifThen(atool = tDarken, bsRaised, bsLowered);
+
+  CurserSize1.Visible := atool In PenTools;
+  CurserSize2.Visible := atool In PenTools;
+  CurserSize3.Visible := atool In PenTools;
+  CurserSize4.Visible := atool In PenTools;
+
+  EraserButton.Style := ifThen(atool = tEraser, bsRaised, bsLowered);
+  PencilButton.Style := ifThen(atool = TPen, bsRaised, bsLowered);
+  LineButton.Style := ifThen(atool = tLine, bsRaised, bsLowered);
+  CircleButton.Style := ifThen(atool = tEllipse, bsRaised, bsLowered);
+  SquareButton.Style := ifThen(atool = tRectangle, bsRaised, bsLowered);
+  MirrorButton.Style := ifThen(atool = tMirror, bsRaised, bsLowered);
+  CursorRoundShape1.Visible := atool In PenTools;
+  CursorRoundShape2.Visible := atool In PenTools;
+  CursorRoundShape3.Visible := atool In PenTools;
+  CursorSquareShape1.Visible := atool In PenTools;
+  CursorSquareShape2.Visible := atool In PenTools;
+  CursorSquareShape3.Visible := atool In PenTools;
+  OutlineButton.Visible := aTool In [tEllipse, tRectangle];
+  FilledButton.Visible := aTool In [tEllipse, tRectangle];
+  MirrorHorButton.Visible := aTool = tMirror;
+  MirrorVertButton.Visible := aTool = tMirror;
+  Mirror4Button.Visible := aTool = tMirror;
+
+  FloodFillButton.Style := ifThen(atool = tBucket, bsRaised, bsLowered);
+  FloodFillModeButton.Visible := aTool = tBucket;
+
+  ColorPickButton.Style := ifThen(atool = tPincette, bsRaised, bsLowered);
+  // Übernehmen des Cursor Tools ;)
+  fCursor.LastTool := fCursor.Tool;
+  fCursor.Tool := aTool;
 End;
 
 Constructor TPixelEditor.Create;
@@ -725,7 +746,7 @@ End;
 
 Procedure TPixelEditor.MakeCurrent(Owner: TOpenGLControl);
 Var
-  image, i: Integer;
+  image: Integer;
 Begin
 
   FOwner := Owner;
@@ -741,16 +762,15 @@ Begin
 
   NewImage(128, 128);
 
-  fCursor.LeftColor := Color1.Color;
+  // Settings die nur 1 mal pro Programstart zurück gesetzt werden
+  OnCurserSizeButtonClick(CurserSize1);
+  OnCursorShapeClick(CursorRoundShape1);
+  OnOutlineButtonClick(Nil);
+  OnMirrorVertButtonClick(Nil);
+  GridButton.Style := bsRaised;
+  OnColorClick(Color1);
+  SelectTool(TPen);
   fCursor.RightColor := Transparent;
-
-  // (* TODO: Debug to be removed
-  NewImage(32, 32);
-  For i := 0 To 9 Do Begin
-    fImage.SetColorAt(i, i, fAktualLayer, rgba(255, 0, 0, 0));
-  End;
-  // *)
-
 End;
 
 Procedure TPixelEditor.Render;
