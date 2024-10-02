@@ -19,8 +19,8 @@ Unit upixeleditor;
 Interface
 
 Uses
-  Classes, SysUtils, OpenGLContext, uopengl_widgetset, upixeleditorlcl,
-  ExtCtrls;
+  Classes, SysUtils, Controls, OpenGLContext, uopengl_widgetset, upixeleditorlcl,
+  ExtCtrls, uimage, ugraphics;
 
 Const
   (*
@@ -30,24 +30,36 @@ Const
 
 
   (*
-   * Es folgt the "Tiefe" der verschiedenen Render Ebenen [-1 .. 1]
+   * Es folgt the "Tiefe" der verschiedenen Render Ebenen [-0.9 .. 0.9]
    *
    * Jede Ebene sollte sich zur nächst höheren / tieferen um mindestens 0.01 unterscheiden !
    *)
 
-  LayerBackGroundGrid = -1.0; // Das Grid das hinter allem sein soll und nur bei Transparenten Pixeln zu sehen ist
-  LayerImage = -0.9; // Die Eigentliche vom User erstellte Textur
+  LayerBackGroundGrid = -0.9; // Das Grid das hinter allem sein soll und nur bei Transparenten Pixeln zu sehen ist
+  LayerImage = -0.8; // Die Eigentliche vom User erstellte Textur
   LayerForeGroundGrid = -0.05;
   LayerFormColor = -0.01;
   LayerLCL = 0.0;
 
+  ZoomLevels: Array Of integer = (100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000); // in %
+
 Type
 
+  TCursor = Record
+    LeftColor: TRGBA;
+    RightColor: TRGBA;
+  End;
 
   { TPixelEditor }
 
   TPixelEditor = Class
   private
+    fCursor: TCursor;
+    fPixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln
+    FOwner: TOpenGLControl;
+    fZoom: integer; // Akruelle Zoomstufe in %
+    fAktualLayer: TLayer;
+    fImage: TImage; // Das Object um das es hier eigentlich geht ;)
 
     FElements: Array Of TOpenGL_BaseClass;
 
@@ -59,6 +71,7 @@ Type
     ExitButton: TOpenGL_Bevel;
     GridButton: TOpenGL_Bevel;
     ZoomInButton: TOpenGL_Bevel;
+    ZoomInfoTextbox: TOpenGL_Textbox;
     ZoomOutButton: TOpenGL_Bevel;
     UndoButton: TOpenGL_Bevel;
 
@@ -108,6 +121,9 @@ Type
     Color7: TOpenGL_ColorBox;
     Color8: TOpenGL_ColorBox;
 
+    InfoLabel: TOpenGl_Label; // Anzeige Aktuelle Position und Pixelfarbe unter Position
+    InfoDetailLabel: TOpenGl_Label; // Zeigt beim Linien/ Ellipse/ Rechteck tool die "Delta's" an
+
     SelectLayerButton: TOpenGL_Bevel;
 
     Procedure OnNewButtonClick(Sender: TObject);
@@ -153,22 +169,31 @@ Type
     Procedure OnColorPickButtonClick(Sender: TObject);
 
     Procedure OnSelectTransparentColorClick(Sender: TObject);
-    Procedure OnColor1Click(Sender: TObject);
-    Procedure OnColor2Click(Sender: TObject);
-    Procedure OnColor3Click(Sender: TObject);
-    Procedure OnColor4Click(Sender: TObject);
-    Procedure OnColor5Click(Sender: TObject);
-    Procedure OnColor6Click(Sender: TObject);
-    Procedure OnColor7Click(Sender: TObject);
-    Procedure OnColor8Click(Sender: TObject);
+    Procedure OnColorClick(Sender: TObject);
 
     Procedure OnSelectLayerButtonClick(Sender: TObject);
 
+    Procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    Procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+
+    Procedure OpenGLControlMouseWheelDown(Sender: TObject; Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
+    Procedure OpenGLControlMouseWheelUp(Sender: TObject; Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
+
+    Procedure RenderGrid;
+    Procedure RenderImage;
     Procedure RenderLCL;
 
     Procedure AddElement(Const value: TOpenGL_BaseClass);
 
     Procedure NewImage(aWidth, aHeight: Integer);
+    Procedure SetZoom(ZoomValue: integer);
+    Procedure CenterAt(aX, aY: integer);
+    Procedure ZoomIn();
+    Procedure ZoomOut();
+
+    Function CursorToPixel(x, y: integer): TPoint;
+    Procedure SetLeftColor(Const C: TRGBA);
+    Procedure UpdateInfoLabel;
   public
     FormCloseEvent: TNotifyEvent; // Um der Besitzerklasse mit zu teilen, dass die Anwendung beendet werden will
     Constructor Create; virtual;
@@ -181,7 +206,9 @@ Type
 
 Implementation
 
-Uses dglOpenGL, Graphics, uOpenGL_ASCII_Font, uopengl_graphikengine, ugraphics;
+Uses math, dglOpenGL, Graphics, uOpenGL_ASCII_Font
+  , uopengl_graphikengine
+  , uvectormath;
 
 // for debuging ;)
 
@@ -219,7 +246,13 @@ End;
 
 Procedure TPixelEditor.OnGridButtonClick(Sender: TObject);
 Begin
-
+  // Der Gridbutton togglet eigentlich nur, den Rest macht ja Render :)
+  If GridButton.Style = bsLowered Then Begin
+    GridButton.Style := bsRaised;
+  End
+  Else Begin
+    GridButton.Style := bsLowered;
+  End;
 End;
 
 Procedure TPixelEditor.OnZoomOutButtonClick(Sender: TObject);
@@ -307,6 +340,97 @@ End;
 Procedure TPixelEditor.OnSelectLayerButtonClick(Sender: TObject);
 Begin
 
+End;
+
+Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+Begin
+  fPixelPos := CursorToPixel(x, y);
+  If ssLeft In shift Then Begin
+    If fPixelPos.X <> -1 Then Begin
+      fImage.SetColorAt(fPixelPos.X, fPixelPos.y, fAktualLayer, fCursor.LeftColor);
+    End;
+  End;
+  If ssRight In shift Then Begin
+  End;
+  UpdateInfoLabel();
+End;
+
+Procedure TPixelEditor.OpenGLControlMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+Begin
+  fPixelPos := CursorToPixel(x, y);
+  If ssLeft In shift Then Begin
+    If fPixelPos.X <> -1 Then Begin
+      fImage.SetColorAt(fPixelPos.X, fPixelPos.y, fAktualLayer, fCursor.LeftColor);
+    End;
+  End;
+  If ssRight In shift Then Begin
+  End;
+  UpdateInfoLabel();
+End;
+
+Procedure TPixelEditor.OpenGLControlMouseWheelDown(Sender: TObject;
+  Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
+Begin
+  ZoomIn();
+End;
+
+Procedure TPixelEditor.OpenGLControlMouseWheelUp(Sender: TObject;
+  Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
+Begin
+  ZoomOut();
+End;
+
+Procedure TPixelEditor.RenderGrid;
+Var
+  zf: Single;
+  i: Integer;
+Begin
+  // Der Generelle Hintergrund
+  glPushMatrix;
+  glTranslatef(0, 0, LayerBackGroundGrid);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glColor3ub(51, 51, 51);
+  glbegin(GL_QUADS);
+  glVertex2f(0, 0);
+  glVertex2f(640, 0);
+  glVertex2f(640, 480);
+  glVertex2f(0, 480);
+  glEnd;
+  // Kein Grid gewünscht / Sinnvoll
+  If (GridButton.Style = bsLowered) Or (fZoom <= 5 - 00) Then Begin
+    glPopMatrix;
+    exit;
+  End;
+  glTranslatef(75, 38, 0.01); // Anfahren obere Linke Ecke
+  glColor3ub(102, 102, 102);
+  zf := (fZoom / 100);
+  For i := 0 To ceil(640 / zf) Do Begin
+    If i Mod 5 = 0 Then glLineWidth(2);
+    glBegin(GL_LINES);
+    If i <= fImage.Width Then Begin
+      glVertex2f(i * zf, 0);
+      glVertex2f(i * zf, fImage.Height * zf);
+    End;
+    If i <= fImage.Height Then Begin
+      glVertex2f(0, i * zf);
+      glVertex2f(fImage.Width * zf, i * zf);
+    End;
+    glend;
+    glLineWidth(1);
+  End;
+  glPopMatrix;
+End;
+
+Procedure TPixelEditor.RenderImage;
+Begin
+  glPushMatrix;
+  glTranslatef(75, 38, LayerImage); // Anfahren der Linken Oberen Ecke
+  glColor4f(1, 1, 1, 1);
+  glScalef(fZoom / 100, fZoom / 100, 1);
+  fImage.Render();
+  glPopMatrix;
 End;
 
 Procedure TPixelEditor.OnEraserButtonClick(Sender: TObject);
@@ -419,44 +543,17 @@ Begin
 
 End;
 
-Procedure TPixelEditor.OnColor1Click(Sender: TObject);
+Procedure TPixelEditor.OnColorClick(Sender: TObject);
+Var
+  c: TRGBA;
 Begin
-
-End;
-
-Procedure TPixelEditor.OnColor2Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnColor3Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnColor4Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnColor5Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnColor6Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnColor7Click(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnColor8Click(Sender: TObject);
-Begin
-
+  c := (sender As TOpenGL_ColorBox).Color;
+  If fCursor.LeftColor = c Then Begin
+    // TODO: Den ColorPick Dialog auf machen ;)
+  End
+  Else Begin
+    SetLeftColor(C);
+  End;
 End;
 
 Procedure TPixelEditor.RenderLCL;
@@ -464,6 +561,7 @@ Var
   i: integer;
 Begin
   // 1. Rendern des Grauen Hintergrunds
+  glBindTexture(GL_TEXTURE_2D, 0);
   glPushMatrix;
   glTranslatef(0, 0, LayerFormColor);
   glColor3ub($80, $80, $80);
@@ -513,11 +611,104 @@ Begin
   OnCursorRoundSize1Click(Nil);
   OnOutlineButtonClick(Nil);
   OnMirrorVertButtonClick(Nil);
+  SetZoom(1000);
+  fImage.SetSize(aWidth, aHeight);
+  fImage.Clear(lAll);
+  CenterAt(aWidth Div 2, aHeight Div 2);
+  GridButton.Style := bsRaised;
+  fAktualLayer := lMiddle;
+  UpdateInfoLabel();
+End;
+
+Procedure TPixelEditor.SetZoom(ZoomValue: integer);
+Begin
+  fZoom := ZoomValue;
+  ZoomInfoTextbox.Caption := inttostr(ZoomValue) + '%';
+End;
+
+Procedure TPixelEditor.CenterAt(aX, aY: integer);
+Begin
+
+End;
+
+Procedure TPixelEditor.ZoomIn;
+Var
+  i: integer;
+Begin
+  For i := 0 To high(ZoomLevels) Do Begin
+    If fZoom = ZoomLevels[i] Then Begin
+      SetZoom(ZoomLevels[max(0, i - 1)]);
+      break;
+    End;
+  End;
+End;
+
+Procedure TPixelEditor.ZoomOut;
+Var
+  i: integer;
+Begin
+  For i := 0 To high(ZoomLevels) Do Begin
+    If fZoom = ZoomLevels[i] Then Begin
+      SetZoom(ZoomLevels[min(high(ZoomLevels), i + 1)]);
+      break;
+    End;
+  End;
+End;
+
+Function TPixelEditor.CursorToPixel(x, y: integer): TPoint;
+Var
+  rx, ry: Single;
+  riy, rix: Integer;
+Begin
+  result := point(-1, -1);
+  // 1. Translation auf 0 / 0
+  rx := x - (75 * FOwner.Width / 640);
+  ry := y - (37 * FOwner.Height / 480);
+  // 2. Raus Rechnen der Form Verzerrung
+  rx := rx / FOwner.Width * 640;
+  ry := ry * 100 / fZoom;
+  // 3. Berücksichtigen des Zooms
+  rx := rx * 100 / fZoom;
+  ry := ry / FOwner.Height * 480;
+  // 4. Anpassen Pixel Mittelpunkt
+  rx := rx - 0.5;
+  ry := ry - 0.5;
+  // Limitieren auf die Image Größe
+  rix := round(rx);
+  riy := round(ry);
+  If (rix >= 0) And (rix < fImage.Width) And
+    (riy >= 0) And (riy < fImage.Height) Then Begin
+    result := point(rix, riy);
+  End;
+End;
+
+Procedure TPixelEditor.SetLeftColor(Const C: TRGBA);
+Begin
+  fCursor.LeftColor := c;
+End;
+
+Procedure TPixelEditor.UpdateInfoLabel;
+Var
+  c: TRGBA;
+Begin
+  If fPixelPos.x = -1 Then Begin
+    InfoLabel.caption := '';
+    InfoDetailLabel.Caption := '';
+  End
+  Else Begin
+    c := fImage.GetColorAt(fPixelPos.x, fPixelPos.y, fAktualLayer);
+    InfoLabel.caption := format('%d,%d', [fPixelPos.x, fPixelPos.y]);
+    If c.a = 0 Then Begin
+      InfoLabel.caption := InfoLabel.caption + LineEnding + format('%d/%d/%d', [c.r, c.g, c.b]);
+    End;
+    // TODO: InfoDetailLabel.Caption befüllen
+  End;
 End;
 
 Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
+  fImage := TImage.Create();
   FormCloseEvent := Nil;
 End;
 
@@ -525,6 +716,7 @@ Destructor TPixelEditor.Destroy;
 Var
   i: Integer;
 Begin
+  fImage.Free;
   For i := 0 To high(FElements) Do Begin
     FElements[i].Free;
   End;
@@ -533,17 +725,39 @@ End;
 
 Procedure TPixelEditor.MakeCurrent(Owner: TOpenGLControl);
 Var
-  image: Integer;
+  image, i: Integer;
 Begin
+
+  FOwner := Owner;
+
+  FElements := Nil;
+
+  owner.OnMouseWheelDown := @OpenGLControlMouseWheelDown;
+  owner.OnMouseWheelup := @OpenGLControlMouseWheelUp;
+  owner.OnMouseDown := @OpenGLControlMouseDown;
+  owner.OnMouseMove := @OpenGLControlMouseMove;
 
 {$I upixeleditor_constructor.inc}
 
   NewImage(128, 128);
+
+  fCursor.LeftColor := Color1.Color;
+  fCursor.RightColor := Transparent;
+
+  // (* TODO: Debug to be removed
+  NewImage(32, 32);
+  For i := 0 To 9 Do Begin
+    fImage.SetColorAt(i, i, fAktualLayer, rgba(255, 0, 0, 0));
+  End;
+  // *)
+
 End;
 
 Procedure TPixelEditor.Render;
 Begin
   RenderLCL;
+  RenderGrid;
+  RenderImage;
 End;
 
 End.

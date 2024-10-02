@@ -23,7 +23,8 @@ Uses
   Interfaces, // this includes the LCL widgetset
   Forms, imagesforlazarus, Unit1, upixeleditor, uopengl_widgetset,
   uOpenGL_ASCII_Font, uopengl_font_common, uopengl_graphikengine,
-  uopengl_truetype_font, uvectormath, ueventer, ugraphics, upixeleditorlcl;
+  uopengl_truetype_font, uvectormath, ueventer, ugraphics, upixeleditorlcl,
+  uimage;
 
 Begin
   Application.Initialize;

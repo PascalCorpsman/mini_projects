@@ -13,8 +13,6 @@
 (*                                                                            *)
 (******************************************************************************)
 
-FElements := Nil;
-
 // This code es extracted from the upixeleditor.MakeCurrent function in order
 // to not disturb the read flow of the user, in a typical LCL-Application all
 // this content would be defined in the .lfm file
@@ -97,7 +95,14 @@ ZoomOutButton.Height := 16;
 ZoomOutButton.OnClick := @OnZoomOutButtonClick;
 AddElement(ZoomOutButton);
 
-// TODO: Es fehlt noch das Zoom InfoLabel
+ZoomInfoTextbox := TOpenGL_Textbox.Create(Owner, '');
+ZoomInfoTextbox.Left := 283;
+ZoomInfoTextbox.Top := 3;
+ZoomInfoTextbox.Width := 67;
+ZoomInfoTextbox.Height := 32;
+ZoomInfoTextbox.Layout := tlCenter;
+ZoomInfoTextbox.Alignment := taCenter;
+AddElement(ZoomInfoTextbox);
 
 ZoomInButton := TOpenGL_Bevel.Create(Owner);
 ZoomInButton.Left := 353;
@@ -493,8 +498,8 @@ Color1.Left := 147;
 Color1.Top := 428;
 Color1.Width := 32;
 Color1.Height := 32;
-Color1.OnClick := @OnColor1Click;
-Color1.Color := rgb(0, 102, 153);
+Color1.OnClick := @OnColorClick;
+Color1.Color := rgba(0, 102, 153, 0);
 AddElement(Color1);
 
 Color2 := TOpenGL_ColorBox.Create(Owner);
@@ -502,8 +507,8 @@ Color2.Left := 182;
 Color2.Top := 428;
 Color2.Width := 32;
 Color2.Height := 32;
-Color2.OnClick := @OnColor2Click;
-Color2.Color := rgb(51, 51, 255);
+Color2.OnClick := @OnColorClick;
+Color2.Color := rgba(51, 51, 255, 0);
 AddElement(Color2);
 
 Color3 := TOpenGL_ColorBox.Create(Owner);
@@ -511,8 +516,8 @@ Color3.Left := 217;
 Color3.Top := 428;
 Color3.Width := 32;
 Color3.Height := 32;
-Color3.OnClick := @OnColor3Click;
-Color3.Color := rgb(204, 0, 204);
+Color3.OnClick := @OnColorClick;
+Color3.Color := rgba(204, 0, 204, 0);
 AddElement(Color3);
 
 Color4 := TOpenGL_ColorBox.Create(Owner);
@@ -520,8 +525,8 @@ Color4.Left := 252;
 Color4.Top := 428;
 Color4.Width := 32;
 Color4.Height := 32;
-Color4.OnClick := @OnColor4Click;
-Color4.Color := rgb(204, 0, 0);
+Color4.OnClick := @OnColorClick;
+Color4.Color := rgba(204, 0, 0, 0);
 AddElement(Color4);
 
 Color5 := TOpenGL_ColorBox.Create(Owner);
@@ -529,8 +534,8 @@ Color5.Left := 287;
 Color5.Top := 428;
 Color5.Width := 32;
 Color5.Height := 32;
-Color5.OnClick := @OnColor5Click;
-Color5.Color := rgb(204, 153, 0 );
+Color5.OnClick := @OnColorClick;
+Color5.Color := rgba(204, 153, 0, 0);
 AddElement(Color5);
 
 Color6 := TOpenGL_ColorBox.Create(Owner);
@@ -538,8 +543,8 @@ Color6.Left := 322;
 Color6.Top := 428;
 Color6.Width := 32;
 Color6.Height := 32;
-Color6.OnClick := @OnColor6Click;
-Color6.Color := rgb(0, 153, 51);
+Color6.OnClick := @OnColorClick;
+Color6.Color := rgba(0, 153, 51, 0);
 AddElement(Color6);
 
 Color7 := TOpenGL_ColorBox.Create(Owner);
@@ -547,8 +552,8 @@ Color7.Left := 357;
 Color7.Top := 428;
 Color7.Width := 32;
 Color7.Height := 32;
-Color7.OnClick := @OnColor7Click;
-Color7.Color := rgb(255, 255, 255);
+Color7.OnClick := @OnColorClick;
+Color7.Color := rgba(255, 255, 255, 0);
 AddElement(Color7);
 
 Color8 := TOpenGL_ColorBox.Create(Owner);
@@ -556,9 +561,23 @@ Color8.Left := 392;
 Color8.Top := 428;
 Color8.Width := 32;
 Color8.Height := 32;
-Color8.OnClick := @OnColor8Click;
-Color8.Color := rgb(0, 0, 0);
+Color8.OnClick := @OnColorClick;
+Color8.Color := rgba(0, 0, 0, 0);
 AddElement(Color8);
+
+InfoLabel := TOpenGl_Label.Create(owner, '');
+InfoLabel.Left := 427;
+InfoLabel.Top := 445;
+InfoLabel.Caption := '';
+InfoLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
+AddElement(InfoLabel);
+
+InfoDetailLabel := TOpenGl_Label.Create(owner, '');
+InfoDetailLabel.Left := 523;
+InfoDetailLabel.Top := 445;
+InfoDetailLabel.Caption := '';
+InfoDetailLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
+AddElement(InfoDetailLabel);
 
 SelectLayerButton := TOpenGL_Bevel.Create(Owner);
 SelectLayerButton.Left := 640 - 35;

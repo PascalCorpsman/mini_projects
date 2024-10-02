@@ -6,7 +6,7 @@ Interface
 
 Uses
   Classes, controls, SysUtils, OpenGLContext, uopengl_widgetset, ugraphics,
-  uopengl_graphikengine, ExtCtrls;
+  uopengl_graphikengine, ExtCtrls, Graphics;
 
 Type
 
@@ -16,7 +16,6 @@ Type
 
   TOpenGL_Bevel = Class(TOpenGl_Image)
   protected
-    FOwner: TOpenGLControl;
     fmDown: Boolean;
     fStyle: TBevelStyle;
     Procedure OnRender(); override;
@@ -48,21 +47,32 @@ Type
   TOpenGL_ColorBox = Class(TOpenGL_BaseClass)
   protected
     fStyle: TBevelStyle;
-    fColor: TRGB;
+    fColor: TRGBA;
     fmDown: Boolean;
-    FOwner: TOpenGLControl;
     Procedure OnRender(); override;
 
     Procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     Procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 
   public
-    Property Color: TRGB read fColor write fColor;
+    Property Color: TRGBA read fColor write fColor;
     Property Style: TBevelStyle read fStyle write fStyle;
 
     Property OnClick;
 
     Constructor Create(Owner: TOpenGLControl); override;
+  End;
+
+  { TOpenGL_Textbox }
+
+  TOpenGL_Textbox = Class(TOpenGl_Label)
+  protected
+    Procedure Setcaption(value: String); override;
+    Procedure OnRender(); override;
+  public
+    Alignment: TAlignment;
+    Layout: TTextLayout;
+    Constructor Create(Owner: TOpenGLControl; FontFile: String); override;
   End;
 
 Implementation
@@ -119,7 +129,6 @@ End;
 
 Constructor TOpenGL_Bevel.Create(Owner: TOpenGLControl);
 Begin
-  FOwner := Owner;
   Inherited Create(Owner);
   fStyle := bsLowered;
   fmDown := false;
@@ -224,8 +233,66 @@ End;
 Constructor TOpenGL_ColorBox.Create(Owner: TOpenGLControl);
 Begin
   Inherited Create(Owner);
-  FOwner := Owner;
-  fColor := RGB(0, 0, 0);
+  fColor := RGBA(0, 0, 0, 0);
+End;
+
+{ TOpenGL_Textbox }
+
+Procedure TOpenGL_Textbox.Setcaption(value: String);
+Begin
+  // inherited Setcaption(value); -- Das würde die Größe anpassen, was wir hier explizit nicht wollen !
+  fcaption := value;
+End;
+
+Procedure TOpenGL_Textbox.OnRender;
+Begin
+  glPushMatrix;
+  Case Layout Of
+    tlTop: Begin
+        // Nichts zu tun
+      End;
+    tlCenter: Begin
+        gltranslatef(0, (Height - FFont.TextHeight(fcaption)) / 2, 0);
+      End;
+    tlBottom: Begin
+        gltranslatef(0, (Height - FFont.TextHeight(fcaption)), 0);
+      End;
+  End;
+  Case Alignment Of
+    taLeftJustify: Begin
+        // Nichts zu tun
+      End;
+    taCenter: Begin
+        gltranslatef((Width - FFont.TextWidth(fcaption)) / 2, 0, 0);
+      End;
+    taRightJustify: Begin
+        gltranslatef((Width - FFont.TextWidth(fcaption)), 0, 0);
+      End;
+  End;
+  Inherited OnRender();
+  glPopMatrix;
+  // Den Rahmen Rendern
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glPushMatrix;
+  glTranslatef(Left, Top, 0);
+  glColor3ub($0, $0, $0);
+  glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
+  // glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 1); // Debug, zum Ausmessen der Positionen !
+  glBegin(GL_LINE_LOOP);
+  glVertex2f(0, 1);
+  glVertex2f(Width - 1, 1);
+  glVertex2f(Width - 1, Height);
+  glVertex2f(0, Height);
+  glend;
+  glLineWidth(1);
+  glPopMatrix;
+End;
+
+Constructor TOpenGL_Textbox.Create(Owner: TOpenGLControl; FontFile: String);
+Begin
+  Inherited Create(Owner, FontFile);
+  Layout := tlTop;
+  Alignment := taLeftJustify;
 End;
 
 End.
