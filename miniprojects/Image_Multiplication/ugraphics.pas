@@ -227,6 +227,8 @@ Procedure RenderArrow(Const Canvas: TCanvas; StartPoint: TPoint; EndPoint: TPoin
 Function StringToInterpolationMode(Value: String): TInterpolationMode;
 Function InterpolationModeToString(Value: TInterpolationMode): String;
 
+Operator = (a, b: TRGBA): Boolean;
+
 Implementation
 
 Uses sysutils, ufifo; // Exception
@@ -255,6 +257,15 @@ Begin
       result := 'InterpolationModeToString: missing implementation.';
     End;
   End;
+End;
+
+Operator = (a, b: TRGBA): Boolean;
+Begin
+  result :=
+    (a.r = b.r) And
+    (a.g = b.g) And
+    (a.b = b.b) And
+    (a.a = b.a);
 End;
 
 Function Color565ToRGB(value: Word): TRGB;

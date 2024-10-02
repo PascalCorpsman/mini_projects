@@ -90,6 +90,7 @@ Type
     fOnMouseDown: TMouseEvent;
     fOnKeyPress: TKeyPressEvent;
   protected
+    fOwner: TOwnerClass;
     FFocus: Boolean; // Hat das Kontrollelement gerade den Focus ( Achtung wird nur mittels MouseDown bestimmt, ist also nur bedingt zuverlässig )
     FMouseDown: Boolean; // Wurde die Maus gedrückt ( auf dem Kontollelement )
     FMouseHover: Boolean; // Befindet sich die Maus gerade über dem Kontrollelement
@@ -499,6 +500,7 @@ End;
 Constructor TEventerClass.Create(Owner: TOwnerClass);
 Begin
   Inherited create;
+  fOwner := Owner;
   fVisible := true;
   fEnabled := true;
   EventerHandler.RegisterEventer(owner, self);
@@ -660,5 +662,4 @@ Finalization;
   EventerHandler.free;
 
 End.
-
 

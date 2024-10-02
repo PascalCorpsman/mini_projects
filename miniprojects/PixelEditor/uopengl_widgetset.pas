@@ -69,7 +69,6 @@ Type
   { TOpenGl_BaseClass }
 
   TOpenGl_BaseClass = Class(TEventerClass) // Die Basisklasse, welche die ganzen Captures und Events Handled, alles im Protected Teil steht zum freien "Override" bereit.
-  private
   protected
     Procedure OnRender(); virtual; abstract;
   public
@@ -122,11 +121,10 @@ Type
   { TOpenGL_Label }
 
   TOpenGl_Label = Class(TOpenGL_BaseFontClass)
-  private
-    fcaption: String;
   protected
+    fcaption: String;
     Procedure OnRender(); override;
-    Procedure Setcaption(value: String);
+    Procedure Setcaption(value: String); virtual;
   public
     Property Caption: String read fcaption write Setcaption;
     Property FontColor;
