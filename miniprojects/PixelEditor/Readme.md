@@ -16,6 +16,8 @@ As this is a work in progress i do not have a screenshot of the project yet, ins
 Features:
 - create pixelart
 
+If you want to get more informations about "How to use the PixelEditor" read the [manual](manual.md)
+
 Dependencies:
 - OpenGL ([dglOpenGL](https://github.com/saschawillems/dglopengl) and TOpenGLControl from the LCL)
   
