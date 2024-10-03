@@ -28,7 +28,11 @@ Const
    *)
   Version = '0.01';
 
-  Fileversion: integer = 1;
+  (*
+   * History: 1 - Initialversion
+   *          2 - ADD Colorpalette
+   *)
+  Fileversion: integer = 2;
 
 
   (*
@@ -954,6 +958,14 @@ Begin
         m := TMemoryStream.Create;
         m.Write(Fileversion, sizeof(Fileversion));
         m.Write(fAktualLayer, sizeof(TLayer));
+        m.Write(Color1.Color, sizeof(Color1.Color));
+        m.Write(Color2.Color, sizeof(Color2.Color));
+        m.Write(Color3.Color, sizeof(Color3.Color));
+        m.Write(Color4.Color, sizeof(Color4.Color));
+        m.Write(Color5.Color, sizeof(Color5.Color));
+        m.Write(Color6.Color, sizeof(Color6.Color));
+        m.Write(Color7.Color, sizeof(Color7.Color));
+        m.Write(Color8.Color, sizeof(Color8.Color));
         fImage.AppendToPEStream(m, aFilename);
         m.SaveToFile(aFilename);
         m.free;
@@ -969,7 +981,8 @@ End;
 Procedure TPixelEditor.LoadImage(Const aFilename: String);
 Var
   m: TMemoryStream;
-  i: Integer;
+  LoadedFileVersion, i: Integer;
+  c: TRGBA;
 Begin
   If fImage.Changed Then Begin
     If ID_NO = Application.MessageBox('There are unsaved changes which will get lost. Do you really want to load without saving?', 'Question', MB_YESNO Or MB_ICONQUESTION) Then Begin
@@ -996,16 +1009,37 @@ Begin
     '.pe': Begin
         m := TMemoryStream.Create;
         m.LoadFromFile(aFilename);
-        i := -1;
-        m.Read(i, sizeof(i));
-        If i <> Fileversion Then Begin
+        LoadedFileVersion := -1;
+        m.Read(LoadedFileVersion, sizeof(i));
+        // TODO: In Zukunft kann hier dann ein Fileversion angepasster Lader sein Werk tun ;)
+        If LoadedFileVersion > Fileversion Then Begin
           showmessage('Error, invalid file version.');
           m.free;
           exit;
         End;
         m.Read(fAktualLayer, SizeOf(fAktualLayer));
+        If LoadedFileVersion >= 2 Then Begin
+          c := RGBA(0, 0, 0, 255);
+          m.Read(C, sizeof(C));
+          color1.Color := c;
+          m.Read(C, sizeof(C));
+          color2.Color := c;
+          m.Read(C, sizeof(C));
+          color3.Color := c;
+          m.Read(C, sizeof(C));
+          color4.Color := c;
+          m.Read(C, sizeof(C));
+          color5.Color := c;
+          m.Read(C, sizeof(C));
+          color6.Color := c;
+          m.Read(C, sizeof(C));
+          color7.Color := c;
+          m.Read(C, sizeof(C));
+          color8.Color := c;
+        End;
         fImage.LoadFromPEStream(m, aFilename, fAktualLayer);
         m.free;
+
       End;
   Else Begin
       showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be loaded.');
