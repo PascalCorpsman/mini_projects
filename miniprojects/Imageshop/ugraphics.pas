@@ -108,6 +108,7 @@ Function FPColorToColor(Const Color: TFPColor): TColor; // Wandelt eine FPColor 
 Function ColorToFPColor(Const Color: TColor): TFPColor; // Wandelt eine TColor in eine FPColor um
 Function FPColorToV4(Const Color: TFPColor): TVector4; // Wandelt eine FPColor in TVector4 um
 Function V4ToFPColor(Const V: TVector4): TFPColor; // Wandelt eine TVector4 in eine FPColor um
+Function RGBAToFPColor(Const Color: TRGBA): TFPColor;
 
 Function FPColorToHSL(Const Color: TFPColor): THSL;
 Function HSLToFPColor(Const hsl: THSL): TFPColor;
@@ -340,6 +341,14 @@ Begin
   result.Green := clamp(round(v.y * 255), 0, 255) Shl 8;
   result.Blue := clamp(round(v.z * 255), 0, 255) Shl 8;
   result.Alpha := clamp(round(v.w * 255), 0, 255) Shl 8;
+End;
+
+Function RGBAToFPColor(Const Color: TRGBA): TFPColor;
+Begin
+  result.Red := Color.r Shl 8;
+  result.Green := Color.g Shl 8;
+  result.Blue := Color.b Shl 8;
+  result.Alpha := Color.a Shl 8;
 End;
 
 // Quelle: https://www.pocketmagic.net/enhance-saturation-in-images-programatically/
