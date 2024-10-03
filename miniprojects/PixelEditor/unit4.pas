@@ -16,9 +16,7 @@ Type
     ColorDialog1: TColorDialog;
     Label1: TLabel;
     Shape1: TShape;
-    Procedure FormCreate(Sender: TObject);
     Procedure Shape1Click(Sender: TObject);
-    //    Procedure OnShapeClic
   private
 
   public
@@ -33,11 +31,6 @@ Implementation
 {$R *.lfm}
 
 { TForm4 }
-
-Procedure TForm4.FormCreate(Sender: TObject);
-Begin
-  caption := 'BMP export settings';
-End;
 
 Procedure TForm4.Shape1Click(Sender: TObject);
 Begin

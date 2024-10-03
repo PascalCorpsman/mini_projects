@@ -41,6 +41,7 @@ Type
     Procedure Render();
 
     Procedure ExportAsBMP(aFilename: String; aLayer: TLayer; TransparentColor: TRGBA);
+    Procedure ImportFromBMP(aFilename: String; TransparentColor: TRGBA);
   End;
 
 Const
@@ -209,7 +210,6 @@ Var
   j, i: Integer;
   c: TRGBA;
 Begin
-  Filename := aFilename;
   b := TBitmap.Create;
   b.Width := Width;
   b.Height := Height;
@@ -233,6 +233,37 @@ Begin
   b.SaveToFile(aFilename);
   b.free;
   fChanged := false;
+  Filename := aFilename;
+End;
+
+Procedure TImage.ImportFromBMP(aFilename: String; TransparentColor: TRGBA);
+Var
+  b: TBitmap;
+  i, j: Integer;
+  TempIntfImg: TLazIntfImage;
+  c: TRGBA;
+Begin
+  b := TBitmap.Create;
+  b.LoadFromFile(aFilename);
+  SetSize(b.Width, b.Height);
+  TempIntfImg := TLazIntfImage.Create(0, 0);
+  TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  For j := 0 To height - 1 Do Begin
+    For i := 0 To Width - 1 Do Begin
+      c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
+      c.a := 0;
+      If c = TransparentColor Then Begin
+        SetColorAt(i, j, lMiddle, TRANSPARENT);
+      End
+      Else Begin
+        SetColorAt(i, j, lMiddle, c);
+      End;
+    End;
+  End;
+  TempIntfImg.free;
+  b.free;
+  fChanged := false;
+  Filename := aFilename;
 End;
 
 End.

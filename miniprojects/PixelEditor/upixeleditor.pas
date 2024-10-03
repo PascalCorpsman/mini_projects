@@ -242,7 +242,7 @@ Type
 Implementation
 
 Uses
-  Dialogs, LCLType, math, Graphics // LCL- Units
+  Forms, Dialogs, LCLType, math, Graphics // LCL- Units
   , dglOpenGL // OpenGL Header
   , uOpenGL_ASCII_Font, uopengl_graphikengine // Corspan OpenGL-Engine
   , uvectormath // Math library
@@ -287,6 +287,11 @@ End;
 
 Procedure TPixelEditor.OnOpenButtonClick(Sender: TObject);
 Begin
+  If fImage.Changed Then Begin
+    If ID_NO = Application.MessageBox('There are unsaved changes which will get lost. Do you really want to load without saving?', 'Question', MB_YESNO Or MB_ICONQUESTION) Then Begin
+      exit
+    End;
+  End;
   If Form1.OpenDialog1.Execute Then Begin
     LoadImage(Form1.OpenDialog1.FileName);
   End;
@@ -881,6 +886,7 @@ Begin
       End;
     '.bmp': Begin
         form4.Shape1.Brush.Color := clFuchsia;
+        form4.caption := 'BMP export settings';
         If form4.ShowModal = mrOK Then Begin
           fImage.ExportAsBMP(aFilename, fAktualLayer, ColorToRGBA(form4.Shape1.Brush.Color));
         End
@@ -904,15 +910,29 @@ Begin
 
       End;
     '.bmp': Begin
-
+        form4.Shape1.Brush.Color := clFuchsia;
+        form4.caption := 'BMP import settings';
+        If form4.ShowModal = mrOK Then Begin
+          fAktualLayer := lMiddle;
+          fImage.ImportFromBMP(aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
+        End
+        Else Begin
+          showmessage('Skip, nothing loaded.');
+          exit;
+        End;
       End;
     '.pe': Begin
 
       End;
   Else Begin
       showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be loaded.');
+      exit;
     End;
   End;
+  fScrollInfo.GlobalXOffset := 0;
+  fScrollInfo.GlobalYOffset := 0;
+  CheckScrollBorders;
+  UpdateInfoLabel;
 End;
 
 Constructor TPixelEditor.Create;

@@ -34,14 +34,14 @@ object Form1: TForm1
     Top = 24
   end
   object SaveDialog1: TSaveDialog
-    DefaultExt = '.pe;.png;.bmp'
-    Filter = 'PixelEditor|*.pe|Portable Network Graphik|*.png|Windows Bitmap|*.bmp|All|*'
+    DefaultExt = '.pe'
+    Filter = 'Supported|*.pe;*.png;*.bmp|PixelEditor|*.pe|Portable Network Graphik|*.png|Windows Bitmap|*.bmp|All|*'
     Left = 272
     Top = 24
   end
   object OpenDialog1: TOpenDialog
-    DefaultExt = '.pe;.png;.bmp'
-    Filter = 'PixelEditor|*.pe|Portable Network Graphik|*.png|Windows Bitmap|*.bmp|All|*'
+    DefaultExt = '.pe'
+    Filter = 'Supported|*.pe;*.png;*.bmp|PixelEditor|*.pe|Portable Network Graphik|*.png|Windows Bitmap|*.bmp|All|*'
     Left = 192
     Top = 24
   end

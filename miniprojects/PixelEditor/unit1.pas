@@ -176,7 +176,7 @@ End;
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
 Begin
   If Editor.Changed Then Begin
-    If id_no = Application.MessageBox('There are unsaved changes which will get lost. Do you want to close without saving?', 'Question', MB_YESNO Or MB_iconQuestion) Then Begin
+    If id_no = Application.MessageBox('There are unsaved changes which will get lost. Do you really want to close without saving?', 'Question', MB_YESNO Or MB_iconQuestion) Then Begin
       canclose := false;
       exit;
     End;
