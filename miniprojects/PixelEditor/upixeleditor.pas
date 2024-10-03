@@ -223,7 +223,6 @@ Type
     Procedure SetLeftColor(Const C: TRGBA);
     Procedure UpdateInfoLabel;
     Procedure SelectTool(aTool: TTool);
-    Procedure CheckScrollBorders;
     Procedure LoadSettings;
     Procedure SaveImage(Const aFilename: String);
     Procedure LoadImage(Const aFilename: String);
@@ -237,6 +236,8 @@ Type
     Procedure MakeCurrent(Owner: TOpenGLControl);
 
     Procedure Render();
+
+    Procedure CheckScrollBorders;
   End;
 
 Implementation
@@ -483,6 +484,8 @@ Begin
   // Der Rahmen um die Graphik für "niedrige" Zoom stufen
   glPushMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0); // Anfahren obere Linke Ecke
+  // Verzerrung Raus Rechnen
+  glScalef(ScreenWidth / FOwner.Width, ScreenHeight / FOwner.Height, 1);
   If fSettings.GridAboveImage Then Begin
     glTranslatef(0, 0, LayerForeGroundGrid);
   End
@@ -528,7 +531,8 @@ Begin
   glPushMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerImage); // Anfahren der Linken Oberen Ecke
   glColor4f(1, 1, 1, 1);
-  glScalef(fZoom / 100, fZoom / 100, 1);
+  // Zoom und Verzerrung rausrechnen
+  glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
   fImage.Render();
   glPopMatrix;
 End;
@@ -677,6 +681,7 @@ Procedure TPixelEditor.RenderCursor;
 Begin
   glPushMatrix;
   glTranslatef(0, 0, LayerCursor);
+  // glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
   Case fCursor.Tool Of
     tPen: Begin
         glColor4ub(fCursor.LeftColor.r, fCursor.LeftColor.g, fCursor.LeftColor.b, 128);
@@ -752,22 +757,19 @@ Begin
   result := point(-1, -1);
   rx := x;
   ry := y;
-  // 0. Scrolling Raus Rechnen
+  // 1. Scrolling Raus Rechnen
   rx := rx + fScrollInfo.GlobalXOffset * FOwner.Width Div ScreenWidth;
   ry := ry + fScrollInfo.GlobalYOffset * FOwner.Height Div ScreenHeight;
-  // 1. Translation auf 0 / 0
+  // 2. Translation auf 0 / 0
   rx := rx - (WindowLeft * FOwner.Width / ScreenWidth);
   ry := ry - (WindowTop * FOwner.Height / ScreenHeight);
-  // 2. Raus Rechnen der Form Verzerrung
-  rx := rx / FOwner.Width * ScreenWidth;
-  ry := ry * 100 / fZoom;
   // 3. Berücksichtigen des Zooms
   rx := rx * 100 / fZoom;
-  ry := ry / FOwner.Height * ScreenHeight;
+  ry := ry * 100 / fZoom;
   // 4. Anpassen Pixel Mittelpunkt
   rx := rx - 0.5;
   ry := ry - 0.5;
-  // Limitieren auf die Image Größe
+  // 5. Limitieren auf die Image Größe
   rix := round(rx);
   riy := round(ry);
   If (rix >= 0) And (rix < fImage.Width) And
@@ -793,6 +795,8 @@ Var
 Begin
   If (fCursor.Pos.x < WindowLeft * FOwner.Width / ScreenWidth) Or
     (fCursor.Pos.y < WindowTop * fowner.Height / ScreenHeight) Or
+    (fCursor.Pos.x - WindowLeft * FOwner.Width / ScreenWidth >= fImage.Width * fZoom Div 100) Or
+    (fCursor.Pos.y - WindowTop * fowner.Height / ScreenHeight >= fImage.Height * fZoom Div 100) Or
     (fCursor.Pos.x > FOwner.Width - FOwner.Width * (ScreenWidth - WindowRight + 1) / ScreenWidth) Or
     (fCursor.Pos.y > FOwner.Height - FOwner.Height * (ScreenHeight - WindowBottom + 1) / ScreenHeight)
     Then Begin
@@ -856,20 +860,19 @@ Begin
 End;
 
 Procedure TPixelEditor.CheckScrollBorders;
+Var
+  z, WindowWidthInPixel, WindowHeightInPixel: integer;
 Begin
-  fScrollInfo.GlobalXOffset := max(0, fScrollInfo.GlobalXOffset);
-  fScrollInfo.GlobalYOffset := max(0, fScrollInfo.GlobalYOffset);
-  If fImage.width * fZoom / 100 - WindowRight + WindowLeft > 0 Then Begin
-    fScrollInfo.GlobalXOffset := min(fScrollInfo.GlobalXOffset, fImage.width * fZoom Div 100 - WindowRight + WindowLeft);
-  End
-  Else Begin
-    fScrollInfo.GlobalXOffset := 0;
+  z := fZoom Div 100;
+  fScrollInfo.GlobalXOffset := max(fScrollInfo.GlobalXOffset, 0);
+  fScrollInfo.GlobalYOffset := max(fScrollInfo.GlobalYOffset, 0);
+  WindowWidthInPixel := (ScreenWidth - WindowLeft - (ScreenWidth - WindowRight)) * FOwner.Width Div ScreenWidth;
+  WindowHeightInPixel := (ScreenHeight - WindowTop - (ScreenHeight - WindowBottom)) * FOwner.Height Div ScreenHeight;
+  If (fScrollInfo.GlobalXOffset) * FOwner.Width / ScreenWidth > fImage.width * z - WindowWidthInPixel Then Begin
+    fScrollInfo.GlobalXOffset := max(0, (fImage.width * z - WindowWidthInPixel) * ScreenWidth Div FOwner.Width);
   End;
-  If fImage.Height * fZoom / 100 - WindowBottom + WindowTop > 0 Then Begin
-    fScrollInfo.GlobalYOffset := min(fScrollInfo.GlobalYOffset, fImage.Height * fZoom Div 100 - WindowBottom + WindowTop);
-  End
-  Else Begin
-    fScrollInfo.GlobalYOffset := 0;
+  If (fScrollInfo.GlobalyOffset) * FOwner.Height / ScreenHeight > fImage.Height * z - WindowHeightInPixel Then Begin
+    fScrollInfo.GlobalyOffset := max(0, (fImage.Height * z - WindowHeightInPixel) * ScreenHeight Div FOwner.Height);
   End;
 End;
 

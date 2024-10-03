@@ -153,6 +153,7 @@ Begin
     glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
     gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
+    Editor.CheckScrollBorders;
   End;
 End;
 
