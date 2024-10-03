@@ -24,13 +24,14 @@ Uses
   Forms, imagesforlazarus, Unit1, upixeleditor, uopengl_widgetset,
   uOpenGL_ASCII_Font, uopengl_font_common, uopengl_graphikengine,
   uopengl_truetype_font, uvectormath, ueventer, ugraphics, upixeleditorlcl,
-  uimage, unit2, unit3;
+  uimage, unit2, unit3, unit4;
 
 Begin
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TForm2, Form2);
   Application.CreateForm(TForm3, Form3);
+  Application.CreateForm(TForm4, Form4);
   Application.Run;
 End.
 

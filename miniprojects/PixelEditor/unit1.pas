@@ -52,7 +52,9 @@ Type
 
   TForm1 = Class(TForm)
     IniPropStorage1: TIniPropStorage;
+    OpenDialog1: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
+    SaveDialog1: TSaveDialog;
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
@@ -81,7 +83,9 @@ Implementation
 
 {$R *.lfm}
 
-Uses uopengl_graphikengine, uOpenGL_ASCII_Font;
+Uses
+  LCLType,
+  uopengl_graphikengine, uOpenGL_ASCII_Font;
 
 { TForm1 }
 
@@ -171,7 +175,12 @@ End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
 Begin
-  // TODO: Abfragen ob überhaupt beendet werden darf ..
+  If Editor.Changed Then Begin
+    If id_no = Application.MessageBox('There are unsaved changes which will get lost. Do you want to close without saving?', 'Question', MB_YESNO Or MB_iconQuestion) Then Begin
+      canclose := false;
+      exit;
+    End;
+  End;
   Initialized := false;
 End;
 

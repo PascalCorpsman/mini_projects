@@ -159,6 +159,7 @@ Type
 
     SelectLayerButton: TOpenGL_Bevel;
 
+    Function getChanged: Boolean;
     Procedure OnNewButtonClick(Sender: TObject);
     Procedure OnOpenButtonClick(Sender: TObject);
     Procedure OnSaveButtonClick(Sender: TObject);
@@ -224,7 +225,12 @@ Type
     Procedure SelectTool(aTool: TTool);
     Procedure CheckScrollBorders;
     Procedure LoadSettings;
+    Procedure SaveImage(Const aFilename: String);
+    Procedure LoadImage(Const aFilename: String);
   public
+
+    Property Changed: Boolean read getChanged;
+
     Constructor Create; virtual;
     Destructor Destroy; override;
 
@@ -236,13 +242,14 @@ Type
 Implementation
 
 Uses
-  LCLType, math, Graphics // LCL- Units
+  Dialogs, LCLType, math, Graphics // LCL- Units
   , dglOpenGL // OpenGL Header
   , uOpenGL_ASCII_Font, uopengl_graphikengine // Corspan OpenGL-Engine
   , uvectormath // Math library
   , unit1 // Dialogs / Close
   , unit2 // Options
   , unit3 // Neu
+  , unit4 // Export BMP Settings Dialog
   ;
 
 // for debuging ;)
@@ -273,19 +280,33 @@ Begin
   End;
 End;
 
+Function TPixelEditor.getChanged: Boolean;
+Begin
+  result := fImage.Changed;
+End;
+
 Procedure TPixelEditor.OnOpenButtonClick(Sender: TObject);
 Begin
-
+  If Form1.OpenDialog1.Execute Then Begin
+    LoadImage(Form1.OpenDialog1.FileName);
+  End;
 End;
 
 Procedure TPixelEditor.OnSaveButtonClick(Sender: TObject);
 Begin
-
+  If fImage.Filename = '' Then Begin
+    OnSaveAsButtonClick(SaveAsButton);
+  End
+  Else Begin
+    SaveImage(fImage.Filename);
+  End;
 End;
 
 Procedure TPixelEditor.OnSaveAsButtonClick(Sender: TObject);
 Begin
-
+  If form1.SaveDialog1.Execute Then Begin
+    SaveImage(form1.SaveDialog1.Filename);
+  End;
 End;
 
 Procedure TPixelEditor.OnExitButtonClick(Sender: TObject);
@@ -378,12 +399,10 @@ End;
 Procedure TPixelEditor.OpenGLControlKeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Begin
-  If (key = VK_N) And (ssCtrl In Shift) Then Begin
-    OnNewButtonClick(NewButton);
-  End;
-  If (key = VK_O) And (ssCtrl In Shift) Then Begin
-    OnOptionsButtonClick(OptionsButton);
-  End;
+  // Global Hotkeys
+  If (key = VK_N) And (ssCtrl In Shift) Then OnNewButtonClick(NewButton);
+  If (key = VK_O) And (ssCtrl In Shift) Then OnOptionsButtonClick(OptionsButton);
+  If (key = VK_S) And (ssCtrl In Shift) Then OnSaveButtonClick(SaveButton);
 
 End;
 
@@ -852,6 +871,48 @@ End;
 Procedure TPixelEditor.LoadSettings;
 Begin
   fSettings.GridAboveImage := GetValue('GridAboveImage', '0') = '1'
+End;
+
+Procedure TPixelEditor.SaveImage(Const aFilename: String);
+Begin
+  Case LowerCase(ExtractFileExt(aFilename)) Of
+    '.png': Begin
+
+      End;
+    '.bmp': Begin
+        form4.Shape1.Brush.Color := clFuchsia;
+        If form4.ShowModal = mrOK Then Begin
+          fImage.ExportAsBMP(aFilename, fAktualLayer, ColorToRGBA(form4.Shape1.Brush.Color));
+        End
+        Else Begin
+          showmessage('Skip, nothing saved.');
+        End;
+      End;
+    '.pe': Begin
+
+      End;
+  Else Begin
+      showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be saved.');
+    End;
+  End;
+End;
+
+Procedure TPixelEditor.LoadImage(Const aFilename: String);
+Begin
+  Case LowerCase(ExtractFileExt(aFilename)) Of
+    '.png': Begin
+
+      End;
+    '.bmp': Begin
+
+      End;
+    '.pe': Begin
+
+      End;
+  Else Begin
+      showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be loaded.');
+    End;
+  End;
 End;
 
 Constructor TPixelEditor.Create;

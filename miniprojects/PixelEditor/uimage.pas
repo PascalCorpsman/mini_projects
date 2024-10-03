@@ -21,6 +21,7 @@ Type
     Function getHeight: integer;
     Function getWidth: integer;
   public
+    Filename: String;
 
     Property Changed: Boolean read fChanged;
 
@@ -38,6 +39,8 @@ Type
     Procedure Clear(aLayer: TLayer);
 
     Procedure Render();
+
+    Procedure ExportAsBMP(aFilename: String; aLayer: TLayer; TransparentColor: TRGBA);
   End;
 
 Const
@@ -45,7 +48,11 @@ Const
 
 Implementation
 
-Uses dglOpenGL, uopengl_graphikengine;
+Uses
+  IntfGraphics, fpImage, Graphics
+  , LCLType
+  , dglOpenGL, uopengl_graphikengine
+  ;
 
 { TImage }
 
@@ -65,6 +72,7 @@ Begin
   setlength(fPixels, 0, 0);
   fOpenGLImage := 0;
   fChanged := false;
+  Clear(lAll);
 End;
 
 Destructor TImage.Destroy;
@@ -162,6 +170,7 @@ Begin
       End;
     End;
   End;
+  Filename := '';
 End;
 
 Procedure TImage.Render;
@@ -189,6 +198,41 @@ Begin
   glend;
   If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
     gldisable(gl_blend);
+End;
+
+Procedure TImage.ExportAsBMP(aFilename: String; aLayer: TLayer;
+  TransparentColor: TRGBA);
+Var
+  b: Tbitmap;
+  TempIntfImg: TLazIntfImage;
+  ImgHandle, ImgMaskHandle: HBitmap;
+  j, i: Integer;
+  c: TRGBA;
+Begin
+  Filename := aFilename;
+  b := TBitmap.Create;
+  b.Width := Width;
+  b.Height := Height;
+  TempIntfImg := TLazIntfImage.Create(0, 0);
+  TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  For j := 0 To height - 1 Do Begin
+    For i := 0 To Width - 1 Do Begin
+      c := GetColorAt(i, j, aLayer);
+      If c = Transparent Then Begin
+        TempIntfImg.Colors[i, j] := RGBAToFPColor(TransparentColor);
+      End
+      Else Begin
+        TempIntfImg.Colors[i, j] := RGBAToFPColor(c);
+      End;
+    End;
+  End;
+  TempIntfImg.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
+  b.Handle := ImgHandle;
+  b.MaskHandle := ImgMaskHandle;
+  TempIntfImg.free;
+  b.SaveToFile(aFilename);
+  b.free;
+  fChanged := false;
 End;
 
 End.
