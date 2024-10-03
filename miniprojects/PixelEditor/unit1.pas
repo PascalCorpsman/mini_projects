@@ -59,6 +59,7 @@ Type
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
+    Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
@@ -161,7 +162,8 @@ Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   Constraints.MinWidth := 640;
   Constraints.MinHeight := 480;
-  caption := 'PixelEditor ver. ' + Version + ' by Uwe Schächterle, www.Corpsman.de';
+  defcaption := 'PixelEditor ver. ' + Version + ' by Uwe Schächterle, www.Corpsman.de';
+  caption := defcaption;
   Application.Title := 'PixelEditor';
   // Init dglOpenGL.pas , Teil 1
   If Not InitOpenGl Then Begin
@@ -188,6 +190,12 @@ End;
 Procedure TForm1.FormDestroy(Sender: TObject);
 Begin
   editor.Free;
+End;
+
+Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
+  );
+Begin
+  Editor.LoadImage(FileNames[0]);
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);

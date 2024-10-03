@@ -230,8 +230,8 @@ AddElement(DarkenButton);
 CurserSize1 := TOpenGL_Bevel.Create(Owner);
 CurserSize1.Left := 3;
 CurserSize1.Top := 130;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//CurserSize1.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Size1.bmp', Fuchsia, smClamp);
+CurserSize1.SetImage(image);
 CurserSize1.Transparent := true;
 CurserSize1.Width := 16;
 CurserSize1.Height := 16;
@@ -241,8 +241,8 @@ AddElement(CurserSize1);
 CurserSize2 := TOpenGL_Bevel.Create(Owner);
 CurserSize2.Left := 21;
 CurserSize2.Top := 130;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//CurserSize2.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Size2.bmp', Fuchsia, smClamp);
+CurserSize2.SetImage(image);
 CurserSize2.Transparent := true;
 CurserSize2.Width := 16;
 CurserSize2.Height := 16;
@@ -252,8 +252,8 @@ AddElement(CurserSize2);
 CurserSize3 := TOpenGL_Bevel.Create(Owner);
 CurserSize3.Left := 21 + 18;
 CurserSize3.Top := 130;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//CurserSize3.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Size3.bmp', Fuchsia, smClamp);
+CurserSize3.SetImage(image);
 CurserSize3.Transparent := true;
 CurserSize3.Width := 16;
 CurserSize3.Height := 16;
@@ -263,8 +263,8 @@ AddElement(CurserSize3);
 CurserSize4 := TOpenGL_Bevel.Create(Owner);
 CurserSize4.Left := 21 + 18 + 18;
 CurserSize4.Top := 130;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//CurserSize4.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Size4.bmp', Fuchsia, smClamp);
+CurserSize4.SetImage(image);
 CurserSize4.Transparent := true;
 CurserSize4.Width := 16;
 CurserSize4.Height := 16;
@@ -605,4 +605,12 @@ SelectLayerButton.Width := 32;
 SelectLayerButton.Height := 32;
 SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
 AddElement(SelectLayerButton);
+
+
+
+
+
+
+
+
 

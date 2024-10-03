@@ -84,14 +84,7 @@ Uses dglOpenGL, math;
 Procedure TOpenGL_Bevel.OnRender;
 Begin
   If Not Visible Then exit;
-  glPushMatrix;
-  glTranslatef(1, 1, 0);
-  Width := Width - 2;
-  Height := Height - 2;
   Inherited OnRender();
-  Width := Width + 2;
-  Height := Height + 2;
-  glPopMatrix;
   glBindTexture(GL_TEXTURE_2D, 0);
   glPushMatrix;
   glTranslatef(Left, Top, 0);
@@ -220,7 +213,7 @@ Procedure TOpenGL_ColorBox.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 Begin
   Inherited MouseDown(Button, Shift, X, Y);
-  fmDown := ssLeft In Shift;;
+  fmDown := ssLeft In Shift;
 End;
 
 Procedure TOpenGL_ColorBox.MouseUp(Button: TMouseButton; Shift: TShiftState; X,

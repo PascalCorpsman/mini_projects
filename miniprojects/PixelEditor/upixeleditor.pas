@@ -42,7 +42,11 @@ Const
   LayerFormColor = -0.01;
   LayerLCL = 0.0;
 
-  ZoomLevels: Array Of integer = (100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000); // in %
+  ZoomLevels: Array Of integer = (
+    100, 500,
+    1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000,
+    5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500,
+    10000); // in %
 
   (*
    * Die Koordinaten des Image Edit bereichs in Absoluten unscallierten Fenster Koordinaten
@@ -225,7 +229,6 @@ Type
     Procedure SelectTool(aTool: TTool);
     Procedure LoadSettings;
     Procedure SaveImage(Const aFilename: String);
-    Procedure LoadImage(Const aFilename: String);
   public
 
     Property Changed: Boolean read getChanged;
@@ -238,7 +241,11 @@ Type
     Procedure Render();
 
     Procedure CheckScrollBorders;
+    Procedure LoadImage(Const aFilename: String);
   End;
+
+Var
+  defcaption: String;
 
 Implementation
 
@@ -333,12 +340,12 @@ End;
 
 Procedure TPixelEditor.OnZoomOutButtonClick(Sender: TObject);
 Begin
-
+  Zoom(false);
 End;
 
 Procedure TPixelEditor.OnZoomInButtonClick(Sender: TObject);
 Begin
-
+  Zoom(true);
 End;
 
 Procedure TPixelEditor.OnOptionsButtonClick(Sender: TObject);
@@ -902,8 +909,10 @@ Begin
       End;
   Else Begin
       showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be saved.');
+      exit;
     End;
   End;
+  form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
 End;
 
 Procedure TPixelEditor.LoadImage(Const aFilename: String);
@@ -933,6 +942,7 @@ Begin
       exit;
     End;
   End;
+  form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
   CheckScrollBorders;
