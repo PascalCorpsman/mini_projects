@@ -34,14 +34,25 @@ Const
    *
    * Jede Ebene sollte sich zur nächst höheren / tieferen um mindestens 0.01 unterscheiden !
    *)
-
+  LayerBackGroundColor = -0.91;
   LayerBackGroundGrid = -0.9; // Das Grid das hinter allem sein soll und nur bei Transparenten Pixeln zu sehen ist
   LayerImage = -0.8; // Die Eigentliche vom User erstellte Textur
   LayerForeGroundGrid = -0.05;
+  LayerCursor = -0.02;
   LayerFormColor = -0.01;
   LayerLCL = 0.0;
 
   ZoomLevels: Array Of integer = (100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000); // in %
+
+  (*
+   * Die Koordinaten des Image Edit bereichs in Absoluten unscallierten Fenster Koordinaten
+   *)
+  WindowLeft = 75;
+  WindowTop = 38;
+  WindowRight = 636;
+  WindowBottom = 424;
+  ScreenWidth = 640;
+  ScreenHeight = 480;
 
 Type
 
@@ -59,12 +70,18 @@ Type
     Pos: Tpoint; // "Raw" Position auf dem Screen
   End;
 
+  TScrollInfo = Record
+    GlobalXOffset, GlobalYOffset: integer; // In ScreenKoordinaten
+    ScrollPos: Tpoint; // In ScreenKoordinaten
+  End;
+
   { TPixelEditor }
 
   TPixelEditor = Class
   private
     fCursor: TCursor;
     FOwner: TOpenGLControl;
+    fScrollInfo: TScrollInfo;
     fZoom: integer; // Akruelle Zoomstufe in %
     fAktualLayer: TLayer;
     fImage: TImage; // Das Object um das es hier eigentlich geht ;)
@@ -182,19 +199,19 @@ Type
     Procedure RenderGrid;
     Procedure RenderImage;
     Procedure RenderLCL;
+    Procedure RenderCursor;
 
     Procedure AddElement(Const value: TOpenGL_BaseClass);
 
     Procedure NewImage(aWidth, aHeight: Integer);
     Procedure SetZoom(ZoomValue: integer);
-    Procedure CenterAt(aX, aY: integer);
-    Procedure ZoomIn();
-    Procedure ZoomOut();
+    Procedure Zoom(ZoomIn: Boolean);
 
     Function CursorToPixel(x, y: integer): TPoint;
     Procedure SetLeftColor(Const C: TRGBA);
     Procedure UpdateInfoLabel;
     Procedure SelectTool(aTool: TTool);
+    Procedure CheckScrollBorders;
   public
     FormCloseEvent: TNotifyEvent; // Um der Besitzerklasse mit zu teilen, dass die Anwendung beendet werden will
     Constructor Create; virtual;
@@ -332,6 +349,7 @@ End;
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 Begin
+  fScrollInfo.ScrollPos := point(x, y);
   fCursor.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
@@ -346,6 +364,8 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
+Var
+  dx, dy: integer;
 Begin
   fCursor.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
@@ -355,20 +375,26 @@ Begin
     End;
   End;
   If ssRight In shift Then Begin
+    dx := (fScrollInfo.ScrollPos.x - x) * ScreenWidth Div FOwner.Width;
+    dy := (fScrollInfo.ScrollPos.y - y) * ScreenHeight Div FOwner.Height;
+    fScrollInfo.GlobalXOffset := fScrollInfo.GlobalXOffset + dx;
+    fScrollInfo.GlobalYOffset := fScrollInfo.GlobalyOffset + dy;
+    CheckScrollBorders();
   End;
+  fScrollInfo.ScrollPos := point(x, y);
   UpdateInfoLabel();
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseWheelDown(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
 Begin
-  ZoomIn();
+  Zoom(true);
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseWheelUp(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
 Begin
-  ZoomOut();
+  Zoom(false);
 End;
 
 Procedure TPixelEditor.RenderGrid;
@@ -378,7 +404,7 @@ Var
 Begin
   // Der Generelle Hintergrund
   glPushMatrix;
-  glTranslatef(0, 0, LayerBackGroundGrid);
+  glTranslatef(0, 0, LayerBackGroundColor);
   glBindTexture(GL_TEXTURE_2D, 0);
   glColor3ub(51, 51, 51);
   glbegin(GL_QUADS);
@@ -387,9 +413,11 @@ Begin
   glVertex2f(640, 480);
   glVertex2f(0, 480);
   glEnd;
+  glPopMatrix;
   zf := (fZoom / 100);
   // Der Rahmen um die Graphik für "niedrige" Zoom stufen
-  glTranslatef(75, 38, 0.01); // Anfahren obere Linke Ecke
+  glPushMatrix;
+  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerBackGroundGrid); // Anfahren obere Linke Ecke
   glColor3ub(102, 102, 102);
   glLineWidth(1);
   glBegin(GL_LINES);
@@ -407,7 +435,7 @@ Begin
     glPopMatrix;
     exit;
   End;
-  For i := 0 To ceil(640 / zf) Do Begin
+  For i := 0 To max(fImage.Width, fImage.Height) Do Begin
     If i Mod 5 = 0 Then glLineWidth(2);
     glBegin(GL_LINES);
     If i <= fImage.Width Then Begin
@@ -427,7 +455,7 @@ End;
 Procedure TPixelEditor.RenderImage;
 Begin
   glPushMatrix;
-  glTranslatef(75, 38, LayerImage); // Anfahren der Linken Oberen Ecke
+  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerImage); // Anfahren der Linken Oberen Ecke
   glColor4f(1, 1, 1, 1);
   glScalef(fZoom / 100, fZoom / 100, 1);
   fImage.Render();
@@ -574,6 +602,19 @@ Begin
   glPopMatrix;
 End;
 
+Procedure TPixelEditor.RenderCursor;
+Begin
+  glPushMatrix;
+  glTranslatef(0, 0, LayerCursor);
+  Case fCursor.Tool Of
+    tPen: Begin
+        glColor4ub(fCursor.LeftColor.r, fCursor.LeftColor.g, fCursor.LeftColor.b, 128);
+         //       hier weiter die Cursorform Rendern
+      End;
+  End;
+  glPopMatrix;
+End;
+
 Procedure TPixelEditor.AddElement(Const value: TOpenGL_BaseClass);
 Begin
   setlength(FElements, high(FElements) + 2);
@@ -586,9 +627,11 @@ Begin
   SetZoom(1000);
   fImage.SetSize(aWidth, aHeight);
   fImage.Clear(lAll);
-  CenterAt(aWidth Div 2, aHeight Div 2);
   fAktualLayer := lMiddle;
   UpdateInfoLabel();
+  fScrollInfo.GlobalXOffset := 0;
+  fScrollInfo.GlobalYOffset := 0;
+  // CheckScrollBorders(); // Braucht man glaubig nich ;)
 End;
 
 Procedure TPixelEditor.SetZoom(ZoomValue: integer);
@@ -597,33 +640,37 @@ Begin
   ZoomInfoTextbox.Caption := inttostr(ZoomValue) + '%';
 End;
 
-Procedure TPixelEditor.CenterAt(aX, aY: integer);
-Begin
-
-End;
-
-Procedure TPixelEditor.ZoomIn;
+Procedure TPixelEditor.Zoom(ZoomIn: Boolean);
 Var
   i: integer;
+  p1, p2: TPoint;
 Begin
-  For i := 0 To high(ZoomLevels) Do Begin
-    If fZoom = ZoomLevels[i] Then Begin
-      SetZoom(ZoomLevels[max(0, i - 1)]);
-      break;
+  // Store the old position
+  p1 := CursorToPixel(fCursor.Pos.X, fCursor.Pos.Y);
+  // Do the Zoom
+  If ZoomIn Then Begin
+    For i := 0 To high(ZoomLevels) Do Begin
+      If fZoom = ZoomLevels[i] Then Begin
+        SetZoom(ZoomLevels[max(0, i - 1)]);
+        break;
+      End;
+    End;
+  End
+  Else Begin
+    For i := 0 To high(ZoomLevels) Do Begin
+      If fZoom = ZoomLevels[i] Then Begin
+        SetZoom(ZoomLevels[min(high(ZoomLevels), i + 1)]);
+        break;
+      End;
     End;
   End;
-End;
-
-Procedure TPixelEditor.ZoomOut;
-Var
-  i: integer;
-Begin
-  For i := 0 To high(ZoomLevels) Do Begin
-    If fZoom = ZoomLevels[i] Then Begin
-      SetZoom(ZoomLevels[min(high(ZoomLevels), i + 1)]);
-      break;
-    End;
-  End;
+  // Calc the new "wrong" position
+  p2 := CursorToPixel(fCursor.Pos.X, fCursor.Pos.y);
+  // "Scroll" so that the new position is the old one ;)
+  fScrollInfo.GlobalXOffset := fScrollInfo.GlobalXOffset + (p1.x - p2.x) * fZoom Div 100;
+  fScrollInfo.GlobalyOffset := fScrollInfo.GlobalyOffset + (p1.Y - p2.Y) * fZoom Div 100;
+  // Let the scrollbars do their constraint thing
+  CheckScrollBorders();
 End;
 
 Function TPixelEditor.CursorToPixel(x, y: integer): TPoint;
@@ -632,15 +679,20 @@ Var
   riy, rix: Integer;
 Begin
   result := point(-1, -1);
+  rx := x;
+  ry := y;
+  // 0. Scrolling Raus Rechnen
+  rx := rx + fScrollInfo.GlobalXOffset * FOwner.Width Div ScreenWidth;
+  ry := ry + fScrollInfo.GlobalYOffset * FOwner.Height Div ScreenHeight;
   // 1. Translation auf 0 / 0
-  rx := x - (75 * FOwner.Width / 640);
-  ry := y - (37 * FOwner.Height / 480);
+  rx := rx - (WindowLeft * FOwner.Width / ScreenWidth);
+  ry := ry - (WindowTop * FOwner.Height / ScreenHeight);
   // 2. Raus Rechnen der Form Verzerrung
-  rx := rx / FOwner.Width * 640;
+  rx := rx / FOwner.Width * ScreenWidth;
   ry := ry * 100 / fZoom;
   // 3. Berücksichtigen des Zooms
   rx := rx * 100 / fZoom;
-  ry := ry / FOwner.Height * 480;
+  ry := ry / FOwner.Height * ScreenHeight;
   // 4. Anpassen Pixel Mittelpunkt
   rx := rx - 0.5;
   ry := ry - 0.5;
@@ -662,10 +714,10 @@ Procedure TPixelEditor.UpdateInfoLabel;
 Var
   c: TRGBA;
 Begin
-  If (fCursor.PixelPos.x < 0) Or
-    (fCursor.PixelPos.y < 0) Or
-    (fCursor.Pos.y > FOwner.Height - FOwner.Height * 56 / 480) Or
-    (fCursor.Pos.x > FOwner.Width - FOwner.Width * 3 / 640)
+  If (fCursor.Pos.x < WindowLeft * FOwner.Width / ScreenWidth) Or
+    (fCursor.Pos.y < WindowTop * fowner.Height / ScreenHeight) Or
+    (fCursor.Pos.x > FOwner.Width - FOwner.Width * (ScreenWidth - WindowRight + 1) / ScreenWidth) Or
+    (fCursor.Pos.y > FOwner.Height - FOwner.Height * (ScreenHeight - WindowBottom + 1) / ScreenHeight)
     Then Begin
     InfoLabel.caption := '';
     InfoDetailLabel.Caption := '';
@@ -726,6 +778,24 @@ Begin
   fCursor.Tool := aTool;
 End;
 
+Procedure TPixelEditor.CheckScrollBorders;
+Begin
+  fScrollInfo.GlobalXOffset := max(0, fScrollInfo.GlobalXOffset);
+  fScrollInfo.GlobalYOffset := max(0, fScrollInfo.GlobalYOffset);
+  If fImage.width * fZoom / 100 - WindowRight + WindowLeft > 0 Then Begin
+    fScrollInfo.GlobalXOffset := min(fScrollInfo.GlobalXOffset, fImage.width * fZoom Div 100 - WindowRight + WindowLeft);
+  End
+  Else Begin
+    fScrollInfo.GlobalXOffset := 0;
+  End;
+  If fImage.Height * fZoom / 100 - WindowBottom + WindowTop > 0 Then Begin
+    fScrollInfo.GlobalYOffset := min(fScrollInfo.GlobalYOffset, fImage.Height * fZoom Div 100 - WindowBottom + WindowTop);
+  End
+  Else Begin
+    fScrollInfo.GlobalYOffset := 0;
+  End;
+End;
+
 Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
@@ -778,6 +848,7 @@ Begin
   RenderLCL;
   RenderGrid;
   RenderImage;
+  RenderCursor;
 End;
 
 End.
