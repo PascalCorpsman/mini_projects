@@ -14,3 +14,4 @@ This is the usermanual for Pixeleditor, mainly to show the "hidden" features lik
 | --- | ---
 | CTRL + N | New image
 | CTRL + O | Options
+| CTRL + S | Save
