@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uGraphiks.pas                                                   ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.11                                                         *)
+(* Version     : 0.13                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -40,6 +40,7 @@
 (*               0.11 - FIX: revert 90* Rotations to matrix multiplications   *)
 (*               0.12 - add wmFuchsia                                         *)
 (*                      FIX: glitch on rotating images                        *)
+(*               0.13 - RGBAToFPColor, FPColorToRGBA                          *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -109,6 +110,7 @@ Function ColorToFPColor(Const Color: TColor): TFPColor; // Wandelt eine TColor i
 Function FPColorToV4(Const Color: TFPColor): TVector4; // Wandelt eine FPColor in TVector4 um
 Function V4ToFPColor(Const V: TVector4): TFPColor; // Wandelt eine TVector4 in eine FPColor um
 Function RGBAToFPColor(Const Color: TRGBA): TFPColor;
+Function FPColorToRGBA(Const Color: TFPColor): TRGBA;
 
 Function FPColorToHSL(Const Color: TFPColor): THSL;
 Function HSLToFPColor(Const hsl: THSL): TFPColor;
@@ -349,6 +351,14 @@ Begin
   result.Green := Color.g Shl 8;
   result.Blue := Color.b Shl 8;
   result.Alpha := Color.a Shl 8;
+End;
+
+Function FPColorToRGBA(Const Color: TFPColor): TRGBA;
+Begin
+  result.r := Color.Red Shr 8;
+  result.g := Color.Green Shr 8;
+  result.b := Color.Blue Shr 8;
+  result.a := Color.Alpha Shr 8;
 End;
 
 // Quelle: https://www.pocketmagic.net/enhance-saturation-in-images-programatically/
