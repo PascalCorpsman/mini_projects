@@ -44,7 +44,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="31">
       <Unit0>
         <Filename Value="PixelEditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -183,9 +183,10 @@
       </Unit14>
       <Unit15>
         <Filename Value="uvectormath.inc"/>
+        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="21"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="20"/>
       </Unit15>
       <Unit16>
         <Filename Value="../Sample/Graphik/ugraphics.pas"/>
@@ -221,15 +222,15 @@
       <Unit19>
         <Filename Value="upixeleditorlcl.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
-        <TopLine Value="259"/>
-        <CursorPos Y="282"/>
+        <IsVisibleTab Value="True"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="166"/>
+        <CursorPos X="69" Y="177"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <IsVisibleTab Value="True"/>
-          <WindowIndex Value="1"/>
-          <TopLine Value="166"/>
-          <CursorPos X="69" Y="177"/>
+          <EditorIndex Value="5"/>
+          <TopLine Value="259"/>
+          <CursorPos Y="282"/>
         </ExtraEditor1>
         <UsageCount Value="72"/>
         <Loaded Value="True"/>
@@ -339,6 +340,15 @@
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="../Sample/DatenSteuerung/ufifo.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit30>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
