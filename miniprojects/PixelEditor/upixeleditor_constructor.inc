@@ -102,6 +102,7 @@ ZoomInfoTextbox.Width := 67;
 ZoomInfoTextbox.Height := 32;
 ZoomInfoTextbox.Layout := tlCenter;
 ZoomInfoTextbox.Alignment := taCenter;
+ZoomInfoTextbox.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
 AddElement(ZoomInfoTextbox);
 
 ZoomInButton := TOpenGL_Bevel.Create(Owner);
@@ -491,6 +492,12 @@ ColorPickButton.Height := 32;
 ColorPickButton.OnClick := @OnColorPickButtonClick;
 AddElement(ColorPickButton);
 
+ColorPicDialog := TOpenGL_ColorPicDialog.Create(Owner);
+ColorPicDialog.left := 147;
+ColorPicDialog.Top := 131;
+ColorPicDialog.OnSetColor := @SetLeftColor;
+AddElement(ColorPicDialog);
+
 SelectTransparentColor := TOpenGL_Bevel.Create(Owner);
 SelectTransparentColor.Left := 128;
 SelectTransparentColor.Top := 428;
@@ -500,6 +507,8 @@ SelectTransparentColor.Transparent := true;
 SelectTransparentColor.Width := 16;
 SelectTransparentColor.Height := 16;
 SelectTransparentColor.OnClick := @OnSelectTransparentColorClick;
+SelectTransparentColor.LoweredColor := rgba(0, 0, 0, 0);
+SelectTransparentColor.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(SelectTransparentColor);
 
 Color1 := TOpenGL_ColorBox.Create(Owner);
@@ -509,6 +518,8 @@ Color1.Width := 32;
 Color1.Height := 32;
 Color1.OnClick := @OnColorClick;
 Color1.Color := rgba(0, 102, 153, 0);
+Color1.LoweredColor := rgba(0, 0, 0, 0);
+Color1.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(Color1);
 
 Color2 := TOpenGL_ColorBox.Create(Owner);
@@ -518,6 +529,8 @@ Color2.Width := 32;
 Color2.Height := 32;
 Color2.OnClick := @OnColorClick;
 Color2.Color := rgba(51, 51, 255, 0);
+Color2.LoweredColor := rgba(0, 0, 0, 0);
+Color2.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(Color2);
 
 Color3 := TOpenGL_ColorBox.Create(Owner);
@@ -527,6 +540,8 @@ Color3.Width := 32;
 Color3.Height := 32;
 Color3.OnClick := @OnColorClick;
 Color3.Color := rgba(204, 0, 204, 0);
+Color3.LoweredColor := rgba(0, 0, 0, 0);
+Color3.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(Color3);
 
 Color4 := TOpenGL_ColorBox.Create(Owner);
@@ -536,6 +551,8 @@ Color4.Width := 32;
 Color4.Height := 32;
 Color4.OnClick := @OnColorClick;
 Color4.Color := rgba(204, 0, 0, 0);
+Color4.LoweredColor := rgba(0, 0, 0, 0);
+Color4.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(Color4);
 
 Color5 := TOpenGL_ColorBox.Create(Owner);
@@ -545,6 +562,8 @@ Color5.Width := 32;
 Color5.Height := 32;
 Color5.OnClick := @OnColorClick;
 Color5.Color := rgba(204, 153, 0, 0);
+Color5.LoweredColor := rgba(0, 0, 0, 0);
+Color5.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(Color5);
 
 Color6 := TOpenGL_ColorBox.Create(Owner);
@@ -554,6 +573,8 @@ Color6.Width := 32;
 Color6.Height := 32;
 Color6.OnClick := @OnColorClick;
 Color6.Color := rgba(0, 153, 51, 0);
+Color6.LoweredColor := rgba(0, 0, 0, 0);
+Color6.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(Color6);
 
 Color7 := TOpenGL_ColorBox.Create(Owner);
@@ -563,6 +584,8 @@ Color7.Width := 32;
 Color7.Height := 32;
 Color7.OnClick := @OnColorClick;
 Color7.Color := rgba(255, 255, 255, 0);
+Color7.LoweredColor := rgba(0, 0, 0, 0);
+Color7.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(Color7);
 
 Color8 := TOpenGL_ColorBox.Create(Owner);
@@ -572,6 +595,8 @@ Color8.Width := 32;
 Color8.Height := 32;
 Color8.OnClick := @OnColorClick;
 Color8.Color := rgba(0, 0, 0, 0);
+Color8.LoweredColor := rgba(0, 0, 0, 0);
+Color8.RaisedColor := rgba(0, 0, 0, 0);
 AddElement(Color8);
 
 AktColorInfoLabel := TOpenGl_Label.Create(owner, '');
@@ -605,12 +630,4 @@ SelectLayerButton.Width := 32;
 SelectLayerButton.Height := 32;
 SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
 AddElement(SelectLayerButton);
-
-
-
-
-
-
-
-
 

@@ -36,7 +36,7 @@ Type
     Procedure SetColorAt(x, y: integer; aLayer: TLayer; c: TRGBA);
 
     Procedure SetSize(aWidth, aHeight: Integer);
-    Procedure Clear(aLayer: TLayer);
+    Procedure Clear();
 
     Procedure Render();
 
@@ -62,7 +62,12 @@ Uses
 
 Function TImage.getHeight: integer;
 Begin
-  result := length(fPixels[0]);
+  If assigned(fPixels) Then Begin
+    result := length(fPixels[0]);
+  End
+  Else Begin
+    result := 0;
+  End;
 End;
 
 Function TImage.getWidth: integer;
@@ -76,7 +81,7 @@ Begin
   setlength(fPixels, 0, 0);
   fOpenGLImage := 0;
   fChanged := false;
-  Clear(lAll);
+  Clear();
 End;
 
 Destructor TImage.Destroy;
@@ -128,16 +133,11 @@ End;
 Procedure TImage.SetSize(aWidth, aHeight: Integer);
 Var
   data: Array Of Byte;
-  i: Integer;
+  i, j: Integer;
 Begin
-  setlength(fPixels, aWidth, aHeight);
-  // Der OpenGL part
-  // 1. ggf aufräumen
-  If fOpenGLImage <> 0 Then Begin
-    glDeleteTextures(1, @fOpenGLImage);
-    fOpenGLImage := 0;
-  End;
+  Clear();
   // 2. Neu erstellen
+  setlength(fPixels, aWidth, aHeight);
   glGenTextures(1, @fOpenGLImage);
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, fOpenGLImage);
@@ -154,26 +154,33 @@ Begin
     End;
   End;
   glTexImage2D(GL_TEXTURE_2D, 0, gl_RGBA, aWidth, Aheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, @Data[0]);
-  Clear(lAll);
+  For i := 0 To high(fPixels) Do Begin
+    For j := 0 To high(fPixels[i]) Do Begin
+      fPixels[i, j][lBackground] := Transparent;
+      fPixels[i, j][lMiddle] := Transparent;
+      fPixels[i, j][lForeground] := Transparent;
+    End;
+  End;
 End;
 
-Procedure TImage.Clear(aLayer: TLayer);
+Procedure TImage.Clear();
 Var
   i, j: Integer;
 Begin
-  fChanged := false;
   For i := 0 To high(fPixels) Do Begin
     For j := 0 To high(fPixels[i]) Do Begin
-      If aLayer = lAll Then Begin
-        fPixels[i, j][lBackground] := Transparent;
-        fPixels[i, j][lMiddle] := Transparent;
-        fPixels[i, j][lForeground] := Transparent;
-      End
-      Else Begin
-        fPixels[i, j][aLayer] := Transparent;
-      End;
+      fPixels[i, j][lBackground] := Transparent;
+      fPixels[i, j][lMiddle] := Transparent;
+      fPixels[i, j][lForeground] := Transparent;
     End;
+    SetLength(fPixels[i], 0);
   End;
+  SetLength(fPixels, 0);
+  If fOpenGLImage <> 0 Then Begin
+    glDeleteTextures(1, @fOpenGLImage);
+    fOpenGLImage := 0;
+  End;
+  fChanged := false;
   Filename := '';
 End;
 
@@ -182,6 +189,7 @@ Var
   b: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
   w, h: integer;
 Begin
+  If fOpenGLImage = 0 Then exit;
   w := length(fPixels);
   h := length(fPixels[0]);
   glColor4f(1, 1, 1, 1);

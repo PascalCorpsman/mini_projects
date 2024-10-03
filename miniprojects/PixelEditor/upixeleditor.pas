@@ -145,6 +145,7 @@ Type
     ColorPickButton: TOpenGL_Bevel;
 
     // Menüleiste unten
+    ColorPicDialog: TOpenGL_ColorPicDialog;
 
     SelectTransparentColor: TOpenGL_Bevel;
     Color1: TOpenGL_ColorBox;
@@ -301,6 +302,7 @@ Begin
     End;
   End;
   If Form1.OpenDialog1.Execute Then Begin
+    fImage.Clear(); // Sicherstellen dass das Changed Flag zurück gesetzt ist.
     LoadImage(Form1.OpenDialog1.FileName);
   End;
 End;
@@ -426,7 +428,7 @@ Begin
   fCursor.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
-    If fCursor.PixelPos.X <> -1 Then Begin
+    If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
       fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor);
     End;
   End;
@@ -443,7 +445,7 @@ Begin
   fCursor.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
-    If fCursor.PixelPos.X <> -1 Then Begin
+    If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
       fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor);
     End;
   End;
@@ -626,6 +628,7 @@ End;
 
 Procedure TPixelEditor.OnSelectTransparentColorClick(Sender: TObject);
 Begin
+  ColorPicDialog.Visible := false;
   SetLeftColor(uimage.Transparent);
 End;
 
@@ -634,8 +637,34 @@ Var
   c: TRGBA;
 Begin
   c := (sender As TOpenGL_ColorBox).Color;
+  // Der User schaltet direkt die Colorpicbox um
+  If ColorPicDialog.Visible And (ColorPicDialog.Shower <> Sender) Then Begin
+    If sender = Color1 Then ColorPicDialog.SelectorPos := 0;
+    If sender = Color2 Then ColorPicDialog.SelectorPos := 1;
+    If sender = Color3 Then ColorPicDialog.SelectorPos := 2;
+    If sender = Color4 Then ColorPicDialog.SelectorPos := 3;
+    If sender = Color5 Then ColorPicDialog.SelectorPos := 4;
+    If sender = Color6 Then ColorPicDialog.SelectorPos := 5;
+    If sender = Color7 Then ColorPicDialog.SelectorPos := 6;
+    If sender = Color8 Then ColorPicDialog.SelectorPos := 7;
+    ColorPicDialog.Shower := Sender As TOpenGL_ColorBox;
+    ColorPicDialog.LoadColor(c);
+    exit;
+  End;
   If fCursor.LeftColor = c Then Begin
-    // TODO: Den ColorPick Dialog auf machen ;)
+    ColorPicDialog.Visible := Not ColorPicDialog.Visible;
+    If sender = Color1 Then ColorPicDialog.SelectorPos := 0;
+    If sender = Color2 Then ColorPicDialog.SelectorPos := 1;
+    If sender = Color3 Then ColorPicDialog.SelectorPos := 2;
+    If sender = Color4 Then ColorPicDialog.SelectorPos := 3;
+    If sender = Color5 Then ColorPicDialog.SelectorPos := 4;
+    If sender = Color6 Then ColorPicDialog.SelectorPos := 5;
+    If sender = Color7 Then ColorPicDialog.SelectorPos := 6;
+    If sender = Color8 Then ColorPicDialog.SelectorPos := 7;
+    If ColorPicDialog.Visible Then Begin
+      ColorPicDialog.Shower := Sender As TOpenGL_ColorBox;
+      ColorPicDialog.LoadColor(c);
+    End;
   End
   Else Begin
     SetLeftColor(C);
@@ -709,12 +738,12 @@ Begin
   // Reset aller Curser
   SetZoom(1000);
   fImage.SetSize(aWidth, aHeight);
-  fImage.Clear(lAll);
   fAktualLayer := lMiddle;
   UpdateInfoLabel();
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
-  // CheckScrollBorders(); // Braucht man glaubig nich ;)
+  ColorPicDialog.Visible := false;
+  CheckScrollBorders();
 End;
 
 Procedure TPixelEditor.SetZoom(ZoomValue: integer);
@@ -824,6 +853,7 @@ Procedure TPixelEditor.SelectTool(aTool: TTool);
 Const
   PenTools = [tEraser, tPen, tLine, tEllipse, tRectangle, tMirror];
 Begin
+  ColorPicDialog.Visible := false;
   SelectButton.Style := ifThen(atool = tSelect, bsRaised, bsLowered);
   SelectModeButton.Visible := atool = tSelect;
   RotateCounterClockwise90.Visible := atool = tSelect;
@@ -885,7 +915,7 @@ End;
 
 Procedure TPixelEditor.LoadSettings;
 Begin
-  fSettings.GridAboveImage := GetValue('GridAboveImage', '0') = '1'
+  fSettings.GridAboveImage := GetValue('GridAboveImage', '1') = '1'
 End;
 
 Procedure TPixelEditor.SaveImage(Const aFilename: String);
@@ -917,6 +947,11 @@ End;
 
 Procedure TPixelEditor.LoadImage(Const aFilename: String);
 Begin
+  If fImage.Changed Then Begin
+    If ID_NO = Application.MessageBox('There are unsaved changes which will get lost. Do you really want to load without saving?', 'Question', MB_YESNO Or MB_ICONQUESTION) Then Begin
+      exit
+    End;
+  End;
   Case LowerCase(ExtractFileExt(aFilename)) Of
     '.png': Begin
         fImage.ImportFromPNG(aFilename);
@@ -1000,10 +1035,10 @@ End;
 
 Procedure TPixelEditor.Render;
 Begin
-  RenderLCL;
   RenderGrid;
   RenderImage;
   RenderCursor;
+  RenderLCL;
 End;
 
 End.
