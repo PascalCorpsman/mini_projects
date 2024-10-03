@@ -40,6 +40,8 @@ Type
 
     Procedure Render();
 
+    Procedure AppendToPEStream(Const Stream: TStream);
+
     Procedure ExportAsBMP(aFilename: String; aLayer: TLayer; TransparentColor: TRGBA);
     Procedure ImportFromBMP(aFilename: String; TransparentColor: TRGBA);
 
@@ -163,7 +165,7 @@ Begin
   End;
 End;
 
-Procedure TImage.Clear();
+Procedure TImage.Clear;
 Var
   i, j: Integer;
 Begin
@@ -210,6 +212,21 @@ Begin
   glend;
   If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
     gldisable(gl_blend);
+End;
+
+Procedure TImage.AppendToPEStream(Const Stream: TStream);
+Var
+  i, j: integer;
+Begin
+  i := Width;
+  stream.Write(i, SizeOf(i));
+  j := Height;
+  stream.Write(j, SizeOf(j));
+  For j := 0 To Height - 1 Do Begin
+    For i := 0 To Width - 1 Do Begin
+      stream.Write(fPixels[i, j], sizeof(fPixels[i, j]));
+    End;
+  End;
 End;
 
 Procedure TImage.ExportAsBMP(aFilename: String; aLayer: TLayer;

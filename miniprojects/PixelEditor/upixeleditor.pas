@@ -28,6 +28,8 @@ Const
    *)
   Version = '0.01';
 
+  Fileversion: integer = 1;
+
 
   (*
    * Es folgt the "Tiefe" der verschiedenen Render Ebenen [-0.9 .. 0.9]
@@ -66,7 +68,7 @@ Type
     tEraser, tPen, tLine, tEllipse, tRectangle, tMirror, tBucket, tPincette);
 
   TCursor = Record
-    LeftColor: TRGBA;
+    LeftColor: TOpenGL_ColorBox;
     RightColor: TRGBA;
     LastTool: TTool;
     Tool: TTool;
@@ -147,7 +149,7 @@ Type
     // Menüleiste unten
     ColorPicDialog: TOpenGL_ColorPicDialog;
 
-    SelectTransparentColor: TOpenGL_Bevel;
+    ColorTransparent: TOpenGL_TransparentColorBox;
     Color1: TOpenGL_ColorBox;
     Color2: TOpenGL_ColorBox;
     Color3: TOpenGL_ColorBox;
@@ -225,11 +227,13 @@ Type
     Procedure Zoom(ZoomIn: Boolean);
 
     Function CursorToPixel(x, y: integer): TPoint;
-    Procedure SetLeftColor(Const C: TRGBA);
+    Procedure SetLeftColor(Const c: TOpenGL_ColorBox);
     Procedure UpdateInfoLabel;
     Procedure SelectTool(aTool: TTool);
     Procedure LoadSettings;
+    Procedure PasteImageFromClipboard;
     Procedure SaveImage(Const aFilename: String);
+    Procedure SavePeProject(Const aFilename: String);
   public
 
     Property Changed: Boolean read getChanged;
@@ -251,7 +255,7 @@ Var
 Implementation
 
 Uses
-  Forms, Dialogs, LCLType, math, Graphics // LCL- Units
+  Forms, Dialogs, LCLType, math, Graphics, Clipbrd, LCLIntf // LCL- Units
   , dglOpenGL // OpenGL Header
   , uOpenGL_ASCII_Font, uopengl_graphikengine // Corspan OpenGL-Engine
   , uvectormath // Math library
@@ -418,7 +422,7 @@ Begin
   If (key = VK_N) And (ssCtrl In Shift) Then OnNewButtonClick(NewButton);
   If (key = VK_O) And (ssCtrl In Shift) Then OnOptionsButtonClick(OptionsButton);
   If (key = VK_S) And (ssCtrl In Shift) Then OnSaveButtonClick(SaveButton);
-
+  If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
@@ -429,7 +433,7 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor);
+      fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor.Color);
     End;
   End;
   If ssRight In shift Then Begin
@@ -446,7 +450,7 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor);
+      fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor.Color);
     End;
   End;
   If ssRight In shift Then Begin
@@ -629,45 +633,36 @@ End;
 Procedure TPixelEditor.OnSelectTransparentColorClick(Sender: TObject);
 Begin
   ColorPicDialog.Visible := false;
-  SetLeftColor(uimage.Transparent);
+  SetLeftColor(ColorTransparent);
 End;
 
 Procedure TPixelEditor.OnColorClick(Sender: TObject);
-Var
-  c: TRGBA;
+  Procedure LoadColorDialogColor;
+  Begin
+    If sender = Color1 Then ColorPicDialog.SelectorPos := 0;
+    If sender = Color2 Then ColorPicDialog.SelectorPos := 1;
+    If sender = Color3 Then ColorPicDialog.SelectorPos := 2;
+    If sender = Color4 Then ColorPicDialog.SelectorPos := 3;
+    If sender = Color5 Then ColorPicDialog.SelectorPos := 4;
+    If sender = Color6 Then ColorPicDialog.SelectorPos := 5;
+    If sender = Color7 Then ColorPicDialog.SelectorPos := 6;
+    If sender = Color8 Then ColorPicDialog.SelectorPos := 7;
+    ColorPicDialog.LoadColor(sender As TOpenGL_ColorBox);
+  End;
+
 Begin
-  c := (sender As TOpenGL_ColorBox).Color;
   // Der User schaltet direkt die Colorpicbox um
   If ColorPicDialog.Visible And (ColorPicDialog.Shower <> Sender) Then Begin
-    If sender = Color1 Then ColorPicDialog.SelectorPos := 0;
-    If sender = Color2 Then ColorPicDialog.SelectorPos := 1;
-    If sender = Color3 Then ColorPicDialog.SelectorPos := 2;
-    If sender = Color4 Then ColorPicDialog.SelectorPos := 3;
-    If sender = Color5 Then ColorPicDialog.SelectorPos := 4;
-    If sender = Color6 Then ColorPicDialog.SelectorPos := 5;
-    If sender = Color7 Then ColorPicDialog.SelectorPos := 6;
-    If sender = Color8 Then ColorPicDialog.SelectorPos := 7;
-    ColorPicDialog.Shower := Sender As TOpenGL_ColorBox;
-    ColorPicDialog.LoadColor(c);
+    SetLeftColor(sender As TOpenGL_ColorBox);
+    LoadColorDialogColor;
     exit;
   End;
-  If fCursor.LeftColor = c Then Begin
+  If fCursor.LeftColor = sender Then Begin
     ColorPicDialog.Visible := Not ColorPicDialog.Visible;
-    If sender = Color1 Then ColorPicDialog.SelectorPos := 0;
-    If sender = Color2 Then ColorPicDialog.SelectorPos := 1;
-    If sender = Color3 Then ColorPicDialog.SelectorPos := 2;
-    If sender = Color4 Then ColorPicDialog.SelectorPos := 3;
-    If sender = Color5 Then ColorPicDialog.SelectorPos := 4;
-    If sender = Color6 Then ColorPicDialog.SelectorPos := 5;
-    If sender = Color7 Then ColorPicDialog.SelectorPos := 6;
-    If sender = Color8 Then ColorPicDialog.SelectorPos := 7;
-    If ColorPicDialog.Visible Then Begin
-      ColorPicDialog.Shower := Sender As TOpenGL_ColorBox;
-      ColorPicDialog.LoadColor(c);
-    End;
+    If ColorPicDialog.Visible Then LoadColorDialogColor;
   End
   Else Begin
-    SetLeftColor(C);
+    SetLeftColor(sender As TOpenGL_ColorBox);
   End;
 End;
 
@@ -720,7 +715,7 @@ Begin
   // glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
   Case fCursor.Tool Of
     tPen: Begin
-        glColor4ub(fCursor.LeftColor.r, fCursor.LeftColor.g, fCursor.LeftColor.b, 128);
+        glColor4ub(fCursor.LeftColor.Color.r, fCursor.LeftColor.Color.g, fCursor.LeftColor.Color.b, 128);
         //        hier weiter die Cursorform Rendern
       End;
   End;
@@ -814,11 +809,11 @@ Begin
   End;
 End;
 
-Procedure TPixelEditor.SetLeftColor(Const C: TRGBA);
+Procedure TPixelEditor.SetLeftColor(Const c: TOpenGL_ColorBox);
 Begin
   fCursor.LeftColor := c;
-  If c.a = 0 Then Begin
-    AktColorInfoLabel.caption := format('%d/%d/%d', [c.r, c.g, c.b]);
+  If c.Color.a = 0 Then Begin
+    AktColorInfoLabel.caption := format('%d/%d/%d', [c.color.r, c.color.g, c.color.b]);
   End
   Else Begin
     AktColorInfoLabel.caption := '';
@@ -918,6 +913,26 @@ Begin
   fSettings.GridAboveImage := GetValue('GridAboveImage', '1') = '1'
 End;
 
+Procedure TPixelEditor.PasteImageFromClipboard;
+Var
+  b: Tbitmap;
+  i, j: Integer;
+Begin
+  If Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) Then Begin
+    b := TBitmap.Create;
+    b.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
+    // TODO: Paste secondary Color as Transparent ..
+    // TODO: Remove, only for testing, paste content from Clipboard *g*
+    fImage.SetSize(b.Width, b.Height);
+    For i := 0 To b.Width - 1 Do Begin
+      For j := 0 To b.Height - 1 Do Begin
+        fImage.SetColorAt(i, j, fAktualLayer, ColorToRGBA(b.Canvas.Pixels[i, j], 0));
+      End;
+    End;
+    b.free;
+  End;
+End;
+
 Procedure TPixelEditor.SaveImage(Const aFilename: String);
 Begin
   Case LowerCase(ExtractFileExt(aFilename)) Of
@@ -935,6 +950,7 @@ Begin
         End;
       End;
     '.pe': Begin
+        SavePeProject(aFilename);
 
       End;
   Else Begin
@@ -943,6 +959,18 @@ Begin
     End;
   End;
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
+End;
+
+Procedure TPixelEditor.SavePeProject(Const aFilename: String);
+Var
+  m: TMemoryStream;
+Begin
+  m := TMemoryStream.Create;
+  m.Write(Fileversion, sizeof(Fileversion));
+  m.Write(fAktualLayer, sizeof(TLayer));
+  fImage.AppendToPEStream(m);
+  m.SaveToFile(aFilename);
+  m.free;
 End;
 
 Procedure TPixelEditor.LoadImage(Const aFilename: String);

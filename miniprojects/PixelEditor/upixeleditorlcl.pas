@@ -11,7 +11,6 @@ Uses
 Type
 
   TBevelStyle = ExtCtrls.TBevelStyle;
-  TColorEvent = Procedure(Const C: TRGBA) Of Object;
 
   { TOpenGL_Bevel }
 
@@ -45,10 +44,12 @@ Type
     Procedure SetDownImage(OpenGLIndex: integer); overload;
   End;
 
-
   { TOpenGL_ColorBox }
 
   TOpenGL_ColorBox = Class(TOpenGL_BaseClass)
+  private
+    fLoweredColor: TRGBA;
+    fRaisedColor: TRGBA;
   protected
     fStyle: TBevelStyle;
     fColor: TRGBA;
@@ -58,15 +59,54 @@ Type
     Procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     Procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 
+    Function getcolor: TRGBA; virtual;
+    Procedure setColor(AValue: TRGBA); virtual;
+    Function getLoweredColor: TRGBA; virtual;
+    Function getRaisedColor: TRGBA; virtual;
+    Procedure setLoweredColor(AValue: TRGBA); virtual;
+    Procedure setRaisedColor(AValue: TRGBA); virtual;
   public
-    RaisedColor: TRGBA;
-    LoweredColor: TRGBA;
+    Property RaisedColor: TRGBA read getLoweredColor write setRaisedColor;
+    Property LoweredColor: TRGBA read getRaisedColor write setLoweredColor;
 
-    Property Color: TRGBA read fColor write fColor;
+    Property Color: TRGBA read getcolor write setColor;
     Property Style: TBevelStyle read fStyle write fStyle;
 
     Property OnClick;
 
+    Constructor Create(Owner: TOpenGLControl); override;
+  End;
+
+  TColorEvent = Procedure(Const C: TOpenGL_ColorBox) Of Object;
+
+  { TOpenGL_TransparentColorBox }
+
+  TOpenGL_TransparentColorBox = Class(TOpenGL_ColorBox)
+  private
+    fBevel: TOpenGL_Bevel;
+    Function getOnClick: TNotifyEvent;
+    Function getTransparent: Boolean;
+    Procedure setOnClick(AValue: TNotifyEvent);
+    Procedure setTransparent(AValue: Boolean);
+  protected
+    Procedure OnRender(); override;
+
+    Function getLoweredColor: TRGBA; override;
+    Function getRaisedColor: TRGBA; override;
+    Procedure setLoweredColor(AValue: TRGBA); override;
+    Procedure setRaisedColor(AValue: TRGBA); override;
+
+    Function getColor: TRGBA; override;
+    Procedure SetHeight(AValue: integer); override;
+    Procedure SetLeft(AValue: integer); override;
+    Procedure SetTop(AValue: integer); override;
+    Procedure SetWidth(AValue: integer); override;
+
+  public
+    Property OnClick: TNotifyEvent read getOnClick write setOnClick;
+    Property Transparent: Boolean read getTransparent write setTransparent;
+    Procedure SetImage(aImage: integer);
+    Property Color: TRGBA read getColor;
     Constructor Create(Owner: TOpenGLControl); override;
   End;
 
@@ -109,6 +149,9 @@ Type
   { TOpenGL_ColorPicDialog }
 
   TOpenGL_ColorPicDialog = Class(TOpenGl_Image)
+  private
+    Procedure ApplyColor(Const Color: TRGBA);
+    Function getShower: TOpenGL_ColorBox;
   protected
     fSelectorTex: TGraphikItem;
     fColorTable: TOpenGl_Image;
@@ -135,6 +178,7 @@ Type
     fGreenMinus: TMinus;
     fBlueMinus: TMinus;
     fWhiteMinus: TMinus;
+    fShower: TOpenGL_ColorBox;
 
     Procedure OnRender(); override;
     Procedure SetVisible(AValue: Boolean); override;
@@ -146,11 +190,13 @@ Type
     Procedure OpenColorTableMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   public
     SelectorPos: integer;
-    Shower: TOpenGL_ColorBox;
     OnSetColor: TColorEvent;
+
+    Property Shower: TOpenGL_ColorBox read getShower;
+
     Constructor Create(Owner: TOpenGLControl); override;
     Destructor Destroy; override;
-    Procedure LoadColor(aColor: TRGBA);
+    Procedure LoadColor(aColor: TOpenGL_ColorBox);
   End;
 
 Implementation
@@ -256,6 +302,28 @@ End;
 
 { TOpenGL_ColorBox }
 
+Procedure TOpenGL_ColorBox.setLoweredColor(AValue: TRGBA);
+Begin
+  If fLoweredColor = AValue Then Exit;
+  fLoweredColor := AValue;
+End;
+
+Procedure TOpenGL_ColorBox.setRaisedColor(AValue: TRGBA);
+Begin
+  If fRaisedColor = AValue Then Exit;
+  fRaisedColor := AValue;
+End;
+
+Function TOpenGL_ColorBox.getcolor: TRGBA;
+Begin
+  result := fColor;
+End;
+
+Procedure TOpenGL_ColorBox.setColor(AValue: TRGBA);
+Begin
+  fColor := AValue;
+End;
+
 Procedure TOpenGL_ColorBox.OnRender;
 Begin
   If Not Visible Then exit;
@@ -307,12 +375,109 @@ Begin
   fmDown := false;
 End;
 
+Function TOpenGL_ColorBox.getLoweredColor: TRGBA;
+Begin
+  result := fLoweredColor;
+End;
+
+Function TOpenGL_ColorBox.getRaisedColor: TRGBA;
+Begin
+  result := RaisedColor;
+End;
+
 Constructor TOpenGL_ColorBox.Create(Owner: TOpenGLControl);
 Begin
   Inherited Create(Owner);
   fColor := RGBA(0, 0, 0, 0);
   RaisedColor := RGBA($FF, $FF, 0, 0);
   LoweredColor := RGBA(0, 0, 0, 0);
+End;
+
+{ TOpenGL_TransparentColorBox }
+
+Function TOpenGL_TransparentColorBox.getTransparent: Boolean;
+Begin
+  result := fBevel.Transparent;
+End;
+
+Function TOpenGL_TransparentColorBox.getOnClick: TNotifyEvent;
+Begin
+  result := fBevel.OnClick;
+End;
+
+Function TOpenGL_TransparentColorBox.getColor: TRGBA;
+Begin
+  result := RGBA(0, 0, 0, 255);
+End;
+
+Procedure TOpenGL_TransparentColorBox.setOnClick(AValue: TNotifyEvent);
+Begin
+  fBevel.OnClick := AValue;
+End;
+
+Procedure TOpenGL_TransparentColorBox.setTransparent(AValue: Boolean);
+Begin
+  fBevel.Transparent := AValue;
+End;
+
+Procedure TOpenGL_TransparentColorBox.OnRender;
+Begin
+  fBevel.Render();
+End;
+
+Function TOpenGL_TransparentColorBox.getLoweredColor: TRGBA;
+Begin
+  Result := fBevel.LoweredColor;
+End;
+
+Function TOpenGL_TransparentColorBox.getRaisedColor: TRGBA;
+Begin
+  Result := fBevel.RaisedColor;
+End;
+
+Procedure TOpenGL_TransparentColorBox.setLoweredColor(AValue: TRGBA);
+Begin
+  fBevel.LoweredColor := AValue;
+End;
+
+Procedure TOpenGL_TransparentColorBox.setRaisedColor(AValue: TRGBA);
+Begin
+  fBevel.RaisedColor := AValue;
+End;
+
+Procedure TOpenGL_TransparentColorBox.SetHeight(AValue: integer);
+Begin
+  Inherited SetHeight(AValue);
+  fBevel.Height := AValue;
+End;
+
+Procedure TOpenGL_TransparentColorBox.SetLeft(AValue: integer);
+Begin
+  Inherited SetLeft(AValue);
+  fBevel.Left := AValue;
+End;
+
+Procedure TOpenGL_TransparentColorBox.SetTop(AValue: integer);
+Begin
+  Inherited SetTop(AValue);
+  fBevel.Top := AValue;
+End;
+
+Procedure TOpenGL_TransparentColorBox.SetWidth(AValue: integer);
+Begin
+  Inherited SetWidth(AValue);
+  fBevel.Width := AValue;
+End;
+
+Procedure TOpenGL_TransparentColorBox.SetImage(aImage: integer);
+Begin
+  fBevel.SetImage(aImage);
+End;
+
+Constructor TOpenGL_TransparentColorBox.Create(Owner: TOpenGLControl);
+Begin
+  fBevel := TOpenGL_Bevel.Create(Owner);
+  Inherited Create(Owner);
 End;
 
 { TOpenGL_Textbox }
@@ -438,6 +603,17 @@ End;
 
 { TOpenGL_ColorPicDialog }
 
+Procedure TOpenGL_ColorPicDialog.ApplyColor(Const Color: TRGBA);
+Begin
+  fPicColorButton.FontColor := v3(Color.r / 255, Color.g / 255, Color.b / 255);
+  fColorInfo.caption := format('%d/%d/%d', [Color.r, Color.g, Color.b]);
+End;
+
+Function TOpenGL_ColorPicDialog.getShower: TOpenGL_ColorBox;
+Begin
+  result := fShower;
+End;
+
 Procedure TOpenGL_ColorPicDialog.OnRender;
 Begin
   Inherited OnRender();
@@ -554,14 +730,14 @@ End;
 
 Procedure TOpenGL_ColorPicDialog.OnPicColorClick(Sender: TObject);
 Begin
-  If assigned(Shower) Then Begin
-    Shower.Color := RGBA(
+  If assigned(fShower) Then Begin
+    fShower.Color := RGBA(
       min(255, max(0, round(fPicColorButton.FontColor.x * 255))),
       min(255, max(0, round(fPicColorButton.FontColor.y * 255))),
       min(255, max(0, round(fPicColorButton.FontColor.z * 255))), 0);
-    OnSetColor(Shower.Color);
+    OnSetColor(fShower);
   End;
-  Shower := Nil;
+  fShower := Nil;
   visible := false;
 End;
 
@@ -581,7 +757,7 @@ Begin
     c := fColorTableRaw.Canvas.Pixels[x, y];
   End;
   If c <> clBlack Then Begin
-    LoadColor(ColorToRGBA(c, 0));
+    ApplyColor(ColorToRGBA(c, 0));
   End;
 End;
 
@@ -633,7 +809,7 @@ Begin
   fPicColorButton.Width := 86;
   fPicColorButton.OnClick := @OnPicColorClick;
   fColorInfo.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
-  Shower := Nil;
+  fShower := Nil;
   OnSetColor := Nil;
 
   fBlack.RaisedColor := RGBA(192, 192, 192, 0);
@@ -754,10 +930,10 @@ Begin
   Inherited Destroy;
 End;
 
-Procedure TOpenGL_ColorPicDialog.LoadColor(aColor: TRGBA);
+Procedure TOpenGL_ColorPicDialog.LoadColor(aColor: TOpenGL_ColorBox);
 Begin
-  fPicColorButton.FontColor := v3(aColor.r / 255, aColor.g / 255, aColor.b / 255);
-  fColorInfo.caption := format('%d/%d/%d', [aColor.r, aColor.g, aColor.b]);
+  fShower := aColor;
+  ApplyColor(fShower.Color);
 End;
 
 End.
