@@ -233,7 +233,6 @@ Type
     Procedure LoadSettings;
     Procedure PasteImageFromClipboard;
     Procedure SaveImage(Const aFilename: String);
-    Procedure SavePeProject(Const aFilename: String);
   public
 
     Property Changed: Boolean read getChanged;
@@ -934,6 +933,8 @@ Begin
 End;
 
 Procedure TPixelEditor.SaveImage(Const aFilename: String);
+Var
+  m: TMemoryStream;
 Begin
   Case LowerCase(ExtractFileExt(aFilename)) Of
     '.png': Begin
@@ -950,8 +951,12 @@ Begin
         End;
       End;
     '.pe': Begin
-        SavePeProject(aFilename);
-
+        m := TMemoryStream.Create;
+        m.Write(Fileversion, sizeof(Fileversion));
+        m.Write(fAktualLayer, sizeof(TLayer));
+        fImage.AppendToPEStream(m, aFilename);
+        m.SaveToFile(aFilename);
+        m.free;
       End;
   Else Begin
       showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be saved.');
@@ -961,19 +966,10 @@ Begin
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
 End;
 
-Procedure TPixelEditor.SavePeProject(Const aFilename: String);
+Procedure TPixelEditor.LoadImage(Const aFilename: String);
 Var
   m: TMemoryStream;
-Begin
-  m := TMemoryStream.Create;
-  m.Write(Fileversion, sizeof(Fileversion));
-  m.Write(fAktualLayer, sizeof(TLayer));
-  fImage.AppendToPEStream(m);
-  m.SaveToFile(aFilename);
-  m.free;
-End;
-
-Procedure TPixelEditor.LoadImage(Const aFilename: String);
+  i: Integer;
 Begin
   If fImage.Changed Then Begin
     If ID_NO = Application.MessageBox('There are unsaved changes which will get lost. Do you really want to load without saving?', 'Question', MB_YESNO Or MB_ICONQUESTION) Then Begin
@@ -998,7 +994,18 @@ Begin
         End;
       End;
     '.pe': Begin
-
+        m := TMemoryStream.Create;
+        m.LoadFromFile(aFilename);
+        i := -1;
+        m.Read(i, sizeof(i));
+        If i <> Fileversion Then Begin
+          showmessage('Error, invalid file version.');
+          m.free;
+          exit;
+        End;
+        m.Read(fAktualLayer, SizeOf(fAktualLayer));
+        fImage.LoadFromPEStream(m, aFilename, fAktualLayer);
+        m.free;
       End;
   Else Begin
       showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be loaded.');

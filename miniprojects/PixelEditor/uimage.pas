@@ -40,7 +40,8 @@ Type
 
     Procedure Render();
 
-    Procedure AppendToPEStream(Const Stream: TStream);
+    Procedure AppendToPEStream(Const Stream: TStream; Const aFilename: String);
+    Procedure LoadFromPEStream(Const Stream: TStream; Const aFilename: String; aLayer: TLayer);
 
     Procedure ExportAsBMP(aFilename: String; aLayer: TLayer; TransparentColor: TRGBA);
     Procedure ImportFromBMP(aFilename: String; TransparentColor: TRGBA);
@@ -214,7 +215,8 @@ Begin
     gldisable(gl_blend);
 End;
 
-Procedure TImage.AppendToPEStream(Const Stream: TStream);
+Procedure TImage.AppendToPEStream(Const Stream: TStream; Const aFilename: String
+  );
 Var
   i, j: integer;
 Begin
@@ -227,6 +229,37 @@ Begin
       stream.Write(fPixels[i, j], sizeof(fPixels[i, j]));
     End;
   End;
+  fChanged := false;
+  Filename := aFilename;
+End;
+
+Procedure TImage.LoadFromPEStream(Const Stream: TStream;
+  Const aFilename: String; aLayer: TLayer);
+Var
+  i, j: integer;
+  c: TRGBA;
+Begin
+  i := -1;
+  j := -1;
+  stream.Read(i, SizeOf(i));
+  stream.Read(j, SizeOf(j));
+  SetSize(i, j);
+  For j := 0 To Height - 1 Do Begin
+    For i := 0 To Width - 1 Do Begin
+      stream.Read(fPixels[i, j], sizeof(fPixels[i, j]));
+      // Sieht unsinnig aus, aber initialisiert das OpenGL Bild ;)
+      c := GetColorAt(i, j, aLayer);
+      If c.r = 255 Then Begin
+        fPixels[i, j][aLayer].r := 0;
+      End
+      Else Begin
+        fPixels[i, j][aLayer].r := 255;
+      End;
+      SetColorAt(i, j, aLayer, c);
+    End;
+  End;
+  fChanged := false;
+  Filename := aFilename;
 End;
 
 Procedure TImage.ExportAsBMP(aFilename: String; aLayer: TLayer;

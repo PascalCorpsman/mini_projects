@@ -50,7 +50,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
-        <UsageCount Value="91"/>
+        <UsageCount Value="92"/>
       </Unit0>
       <Unit1>
         <Filename Value="unit1.pas"/>
@@ -61,7 +61,7 @@
         <UnitName Value="Unit1"/>
         <TopLine Value="152"/>
         <CursorPos X="13" Y="165"/>
-        <UsageCount Value="91"/>
+        <UsageCount Value="92"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
@@ -84,14 +84,14 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="607"/>
-        <CursorPos X="50" Y="638"/>
+        <TopLine Value="958"/>
+        <CursorPos X="32" Y="1007"/>
         <ExtraEditorCount Value="2"/>
         <ExtraEditor1>
-          <EditorIndex Value="-1"/>
-          <WindowIndex Value="-1"/>
-          <TopLine Value="671"/>
-          <CursorPos X="65" Y="689"/>
+          <EditorIndex Value="3"/>
+          <WindowIndex Value="1"/>
+          <TopLine Value="930"/>
+          <CursorPos X="27" Y="958"/>
         </ExtraEditor1>
         <ExtraEditor2>
           <EditorIndex Value="-1"/>
@@ -99,12 +99,12 @@
           <TopLine Value="630"/>
           <CursorPos X="9" Y="650"/>
         </ExtraEditor2>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
         <Bookmarks Count="4">
-          <Item0 Y="636" ID="1"/>
-          <Item1 Y="459" ID="2"/>
-          <Item2 Y="897" ID="4"/>
-          <Item3 Y="718" ID="9"/>
+          <Item0 Y="458" ID="2"/>
+          <Item1 Y="896" ID="4"/>
+          <Item2 Y="717" ID="9"/>
+          <Item3 Y="999" Left="1" Top="969" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
       </Unit5>
@@ -114,7 +114,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="49"/>
         <CursorPos Y="74"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
         <Bookmarks Count="1">
           <Item0 Y="286" ID="8"/>
         </Bookmarks>
@@ -125,7 +125,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="941"/>
         <CursorPos Y="976"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit7>
       <Unit8>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.pas"/>
@@ -134,13 +134,13 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="79"/>
         <CursorPos X="28" Y="100"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit8>
       <Unit9>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.ressource"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit9>
       <Unit10>
@@ -149,7 +149,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="101"/>
         <CursorPos Y="151"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit10>
       <Unit11>
         <Filename Value="../Sample/OpenGL/uopengl_graphikengine.pas"/>
@@ -157,13 +157,13 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="113"/>
         <CursorPos X="29" Y="135"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit11>
       <Unit12>
         <Filename Value="../Sample/OpenGL/uopengl_truetype_font.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit12>
       <Unit13>
         <Filename Value="../Sample/DatenSteuerung/ueventer.pas"/>
@@ -172,7 +172,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="94"/>
         <CursorPos Y="110"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
         <Loaded Value="True"/>
       </Unit13>
       <Unit14>
@@ -180,14 +180,14 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit14>
       <Unit15>
         <Filename Value="uvectormath.inc"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="21"/>
-        <UsageCount Value="22"/>
+        <UsageCount Value="23"/>
       </Unit15>
       <Unit16>
         <Filename Value="../Sample/Graphik/ugraphics.pas"/>
@@ -195,7 +195,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="90"/>
         <CursorPos X="21" Y="111"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit16>
       <Unit17>
         <Filename Value="../../Lazarus/components/opengl/openglcontext.pas"/>
@@ -208,7 +208,7 @@
       <Unit18>
         <Filename Value="upixeleditor_constructor.inc"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="6"/>
         <TopLine Value="482"/>
         <CursorPos X="44" Y="509"/>
         <ExtraEditorCount Value="1"/>
@@ -217,22 +217,20 @@
           <TopLine Value="491"/>
           <CursorPos X="21" Y="511"/>
         </ExtraEditor1>
-        <UsageCount Value="74"/>
+        <UsageCount Value="75"/>
         <Loaded Value="True"/>
       </Unit18>
       <Unit19>
         <Filename Value="upixeleditorlcl.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="612"/>
-        <CursorPos X="20" Y="614"/>
+        <EditorIndex Value="5"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <EditorIndex Value="6"/>
-          <TopLine Value="119"/>
+          <WindowIndex Value="1"/>
+          <TopLine Value="612"/>
+          <CursorPos X="20" Y="614"/>
         </ExtraEditor1>
-        <UsageCount Value="74"/>
+        <UsageCount Value="75"/>
         <Loaded Value="True"/>
       </Unit19>
       <Unit20>
@@ -262,16 +260,18 @@
       <Unit23>
         <Filename Value="uimage.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="22"/>
-        <CursorPos X="24" Y="53"/>
+        <TopLine Value="181"/>
+        <CursorPos Y="258"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <EditorIndex Value="5"/>
-          <TopLine Value="4"/>
+          <EditorIndex Value="-1"/>
+          <TopLine Value="91"/>
+          <CursorPos X="27" Y="99"/>
         </ExtraEditor1>
-        <UsageCount Value="56"/>
+        <UsageCount Value="57"/>
         <Loaded Value="True"/>
       </Unit23>
       <Unit24>
@@ -299,7 +299,7 @@
         <UnitName Value="Unit2"/>
         <EditorIndex Value="1"/>
         <CursorPos X="70" Y="37"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="38"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit26>
@@ -312,7 +312,7 @@
         <UnitName Value="Unit3"/>
         <EditorIndex Value="2"/>
         <CursorPos X="17" Y="47"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="38"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit27>
@@ -333,7 +333,7 @@
         <UnitName Value="Unit4"/>
         <EditorIndex Value="3"/>
         <CursorPos Y="20"/>
-        <UsageCount Value="36"/>
+        <UsageCount Value="37"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit29>
@@ -344,7 +344,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="22"/>
+        <UsageCount Value="23"/>
       </Unit30>
       <Unit31>
         <Filename Value="/home/corpsman/lazarus/lcl/clipbrd.pp"/>
@@ -365,124 +365,124 @@
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="636" TopLine="628"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="105" TopLine="77"/>
       </Position1>
       <Position2>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="822" TopLine="800"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="106" TopLine="77"/>
       </Position2>
       <Position3>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="823" TopLine="800"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="107" TopLine="77"/>
       </Position3>
       <Position4>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="824" TopLine="800"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="108" TopLine="77"/>
       </Position4>
       <Position5>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="636" TopLine="614"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="109" TopLine="77"/>
       </Position5>
       <Position6>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="822" TopLine="800"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="106" Column="9" TopLine="77"/>
       </Position6>
       <Position7>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="823" TopLine="800"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="113" TopLine="77"/>
       </Position7>
       <Position8>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="824" TopLine="800"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="247" TopLine="221"/>
       </Position8>
       <Position9>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="95" Column="21" TopLine="74"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="248" TopLine="221"/>
       </Position9>
       <Position10>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="85" Column="15" TopLine="74"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="249" TopLine="221"/>
       </Position10>
       <Position11>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="392" Column="3" TopLine="390"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="103" TopLine="77"/>
       </Position11>
       <Position12>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="72" Column="50" TopLine="38"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="104" TopLine="77"/>
       </Position12>
       <Position13>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="318" Column="16" TopLine="311"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="105" TopLine="77"/>
       </Position13>
       <Position14>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="100" Column="15" TopLine="73"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="106" TopLine="77"/>
       </Position14>
       <Position15>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="824" TopLine="800"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="107" TopLine="77"/>
       </Position15>
       <Position16>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="404" TopLine="375"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="108" TopLine="77"/>
       </Position16>
       <Position17>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="405" Column="32" TopLine="375"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="109" TopLine="77"/>
       </Position17>
       <Position18>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="194" Column="23" TopLine="148"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="110" TopLine="77"/>
       </Position18>
       <Position19>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="921" Column="58" TopLine="866"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="113" TopLine="77"/>
       </Position19>
       <Position20>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="724" Column="4" TopLine="688"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="120" TopLine="95"/>
       </Position20>
       <Position21>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="744" Column="32" TopLine="715"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="121" TopLine="95"/>
       </Position21>
       <Position22>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="931" TopLine="884"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="44" Column="23" TopLine="16"/>
       </Position22>
       <Position23>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="603" Column="44" TopLine="591"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="251" Column="20" TopLine="233"/>
       </Position23>
       <Position24>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="752" Column="15" TopLine="727"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="258" TopLine="225"/>
       </Position24>
       <Position25>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="804" Column="4" TopLine="779"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="120" TopLine="94"/>
       </Position25>
       <Position26>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="928" Column="27" TopLine="883"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="121" TopLine="94"/>
       </Position26>
       <Position27>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="925" Column="24" TopLine="883"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="122" TopLine="94"/>
       </Position27>
       <Position28>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="195" Column="52" TopLine="172"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="123" TopLine="94"/>
       </Position28>
       <Position29>
-        <Filename Value="upixeleditorlcl.pas"/>
-        <Caret Line="614" Column="20" TopLine="612"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="124" TopLine="94"/>
       </Position29>
       <Position30>
-        <Filename Value="upixeleditor.pas"/>
-        <Caret Line="654" TopLine="632"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="126" TopLine="94"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -518,6 +518,14 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
+    <Watches Count="2">
+      <Item1>
+        <Expression Value="fPixels[i, j]"/>
+      </Item1>
+      <Item2>
+        <Expression Value="result"/>
+      </Item2>
+    </Watches>
     <Exceptions Count="3">
       <Item1>
         <Name Value="EAbort"/>
