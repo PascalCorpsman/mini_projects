@@ -882,7 +882,7 @@ Procedure TPixelEditor.SaveImage(Const aFilename: String);
 Begin
   Case LowerCase(ExtractFileExt(aFilename)) Of
     '.png': Begin
-
+        fImage.ExportAsPNG(aFilename, fAktualLayer);
       End;
     '.bmp': Begin
         form4.Shape1.Brush.Color := clFuchsia;
@@ -907,14 +907,15 @@ Procedure TPixelEditor.LoadImage(Const aFilename: String);
 Begin
   Case LowerCase(ExtractFileExt(aFilename)) Of
     '.png': Begin
-
+        fImage.ImportFromPNG(aFilename);
+        fAktualLayer := lMiddle;
       End;
     '.bmp': Begin
         form4.Shape1.Brush.Color := clFuchsia;
         form4.caption := 'BMP import settings';
         If form4.ShowModal = mrOK Then Begin
-          fAktualLayer := lMiddle;
           fImage.ImportFromBMP(aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
+          fAktualLayer := lMiddle;
         End
         Else Begin
           showmessage('Skip, nothing loaded.');

@@ -82,9 +82,10 @@
       <Unit5>
         <Filename Value="upixeleditor.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="902"/>
-        <CursorPos Y="935"/>
+        <TopLine Value="884"/>
+        <CursorPos X="41" Y="910"/>
         <ExtraEditorCount Value="2"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
@@ -185,10 +186,9 @@
       <Unit16>
         <Filename Value="../Sample/Graphik/ugraphics.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="7"/>
-        <TopLine Value="345"/>
-        <CursorPos X="9" Y="362"/>
+        <TopLine Value="342"/>
+        <CursorPos Y="354"/>
         <UsageCount Value="62"/>
         <Loaded Value="True"/>
       </Unit16>
@@ -257,11 +257,11 @@
         <Filename Value="uimage.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="6"/>
-        <TopLine Value="236"/>
-        <CursorPos X="17" Y="258"/>
+        <TopLine Value="290"/>
+        <CursorPos X="15" Y="298"/>
         <UsageCount Value="42"/>
         <Bookmarks Count="1">
-          <Item0 Y="249" Left="1" Top="222" ID="1"/>
+          <Item0 Y="252" Left="1" Top="225" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
       </Unit23>
@@ -332,123 +332,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="uimage.pas"/>
-        <Caret Line="244" Column="12" TopLine="219"/>
+        <Caret Line="247" Column="21" TopLine="230"/>
       </Position1>
       <Position2>
         <Filename Value="uimage.pas"/>
-        <Caret Line="38" Column="19" TopLine="27"/>
+        <Caret Line="252" Column="25" TopLine="210"/>
       </Position2>
       <Position3>
         <Filename Value="uimage.pas"/>
-        <Caret Line="44" Column="19" TopLine="27"/>
+        <Caret Line="253" Column="7" TopLine="234"/>
       </Position3>
       <Position4>
         <Filename Value="uimage.pas"/>
-        <Caret Line="246" Column="3" TopLine="222"/>
+        <Caret Line="258" Column="44" TopLine="235"/>
       </Position4>
       <Position5>
         <Filename Value="uimage.pas"/>
-        <Caret Line="38" Column="16" TopLine="21"/>
+        <Caret Line="36" Column="16" TopLine="19"/>
       </Position5>
       <Position6>
         <Filename Value="uimage.pas"/>
-        <Caret Line="154" Column="39" TopLine="155"/>
+        <Caret Line="44" Column="17" TopLine="19"/>
       </Position6>
       <Position7>
         <Filename Value="uimage.pas"/>
-        <Caret Line="248" Column="14" TopLine="222"/>
+        <Caret Line="246" Column="3" TopLine="236"/>
       </Position7>
       <Position8>
         <Filename Value="uimage.pas"/>
-        <Caret Line="249" Column="8" TopLine="225"/>
+        <Caret Line="254" TopLine="236"/>
       </Position8>
       <Position9>
         <Filename Value="uimage.pas"/>
-        <Caret Line="253" Column="35" TopLine="227"/>
+        <Caret Line="258" TopLine="236"/>
       </Position9>
       <Position10>
         <Filename Value="uimage.pas"/>
-        <Caret Line="245" Column="45" TopLine="227"/>
+        <Caret Line="109" TopLine="92"/>
       </Position10>
       <Position11>
         <Filename Value="uimage.pas"/>
-        <Caret Line="248" Column="3" TopLine="230"/>
+        <Caret Line="110" TopLine="92"/>
       </Position11>
       <Position12>
         <Filename Value="uimage.pas"/>
-        <Caret Line="260" Column="22" TopLine="233"/>
+        <Caret Line="111" TopLine="92"/>
       </Position12>
       <Position13>
         <Filename Value="uimage.pas"/>
-        <Caret Line="247" Column="21" TopLine="230"/>
+        <Caret Line="123" TopLine="95"/>
       </Position13>
       <Position14>
         <Filename Value="uimage.pas"/>
-        <Caret Line="252" Column="25" TopLine="210"/>
+        <Caret Line="254" Column="7" TopLine="235"/>
       </Position14>
       <Position15>
-        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
-        <Caret Line="113" Column="15" TopLine="82"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="258" Column="17" TopLine="236"/>
       </Position15>
       <Position16>
-        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
-        <Caret Line="361" Column="26" TopLine="338"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="204" Column="25" TopLine="179"/>
       </Position16>
       <Position17>
         <Filename Value="uimage.pas"/>
-        <Caret Line="253" Column="7" TopLine="234"/>
+        <Caret Line="46" Column="25" TopLine="19"/>
       </Position17>
       <Position18>
         <Filename Value="uimage.pas"/>
-        <Caret Line="258" Column="44" TopLine="235"/>
+        <Caret Line="302" TopLine="257"/>
       </Position18>
       <Position19>
-        <Filename Value="uimage.pas"/>
-        <Caret Line="36" Column="16" TopLine="19"/>
+        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
+        <Caret Line="112" Column="11" TopLine="88"/>
       </Position19>
       <Position20>
         <Filename Value="uimage.pas"/>
-        <Caret Line="44" Column="17" TopLine="19"/>
+        <Caret Line="302" TopLine="257"/>
       </Position20>
       <Position21>
         <Filename Value="uimage.pas"/>
-        <Caret Line="246" Column="3" TopLine="236"/>
+        <Caret Line="288" TopLine="257"/>
       </Position21>
       <Position22>
-        <Filename Value="uimage.pas"/>
-        <Caret Line="254" TopLine="236"/>
+        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
+        <Caret Line="350" TopLine="342"/>
       </Position22>
       <Position23>
-        <Filename Value="uimage.pas"/>
-        <Caret Line="258" TopLine="236"/>
+        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
+        <Caret Line="351" TopLine="342"/>
       </Position23>
       <Position24>
-        <Filename Value="uimage.pas"/>
-        <Caret Line="109" TopLine="92"/>
+        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
+        <Caret Line="352" TopLine="342"/>
       </Position24>
       <Position25>
-        <Filename Value="uimage.pas"/>
-        <Caret Line="110" TopLine="92"/>
+        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
+        <Caret Line="353" TopLine="342"/>
       </Position25>
       <Position26>
-        <Filename Value="uimage.pas"/>
-        <Caret Line="111" TopLine="92"/>
+        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
+        <Caret Line="354" TopLine="342"/>
       </Position26>
       <Position27>
         <Filename Value="uimage.pas"/>
-        <Caret Line="123" TopLine="95"/>
+        <Caret Line="255" Column="45" TopLine="241"/>
       </Position27>
       <Position28>
         <Filename Value="uimage.pas"/>
-        <Caret Line="254" Column="7" TopLine="235"/>
+        <Caret Line="47" Column="16" TopLine="20"/>
       </Position28>
       <Position29>
         <Filename Value="uimage.pas"/>
-        <Caret Line="258" Column="17" TopLine="236"/>
+        <Caret Line="319" Column="12" TopLine="286"/>
       </Position29>
       <Position30>
-        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
-        <Caret Line="113" Column="19" TopLine="96"/>
+        <Filename Value="uimage.pas"/>
+        <Caret Line="318" Column="15" TopLine="294"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

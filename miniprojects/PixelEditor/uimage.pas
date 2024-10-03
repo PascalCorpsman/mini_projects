@@ -42,6 +42,9 @@ Type
 
     Procedure ExportAsBMP(aFilename: String; aLayer: TLayer; TransparentColor: TRGBA);
     Procedure ImportFromBMP(aFilename: String; TransparentColor: TRGBA);
+
+    Procedure ExportAsPNG(aFilename: String; aLayer: TLayer);
+    Procedure ImportFromPNG(aFilename: String);
   End;
 
 Const
@@ -258,6 +261,70 @@ Begin
       Else Begin
         SetColorAt(i, j, lMiddle, c);
       End;
+    End;
+  End;
+  TempIntfImg.free;
+  b.free;
+  fChanged := false;
+  Filename := aFilename;
+End;
+
+Procedure TImage.ExportAsPNG(aFilename: String; aLayer: TLayer);
+Var
+  png: TPortableNetworkGraphic;
+  b: Tbitmap;
+  TempIntfImg: TLazIntfImage;
+  ImgHandle, ImgMaskHandle: HBitmap;
+  j, i: Integer;
+  c: TRGBA;
+Begin
+  b := TBitmap.Create;
+  b.Width := Width;
+  b.Height := Height;
+  b.PixelFormat := pf32bit;
+  TempIntfImg := TLazIntfImage.Create(0, 0);
+  TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  For j := 0 To height - 1 Do Begin
+    For i := 0 To Width - 1 Do Begin
+      c := GetColorAt(i, j, aLayer);
+      c.a := 255 - c.a;
+      TempIntfImg.Colors[i, j] := RGBAToFPColor(c);
+    End;
+  End;
+  TempIntfImg.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
+  b.Handle := ImgHandle;
+  b.MaskHandle := ImgMaskHandle;
+  TempIntfImg.free;
+  png := TPortableNetworkGraphic.Create;
+  png.Assign(b);
+  png.SaveToFile(aFilename);
+  png.free;
+  b.free;
+  fChanged := false;
+  Filename := aFilename;
+End;
+
+Procedure TImage.ImportFromPNG(aFilename: String);
+Var
+  png: TPortableNetworkGraphic;
+  b: TBitmap;
+  i, j: Integer;
+  TempIntfImg: TLazIntfImage;
+  c: TRGBA;
+Begin
+  b := TBitmap.Create;
+  png := TPortableNetworkGraphic.Create;
+  png.LoadFromFile(aFilename);
+  b.Assign(png);
+  png.free;
+  SetSize(b.Width, b.Height);
+  TempIntfImg := TLazIntfImage.Create(0, 0);
+  TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  For j := 0 To height - 1 Do Begin
+    For i := 0 To Width - 1 Do Begin
+      c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
+      c.a := 255 - c.a;
+      SetColorAt(i, j, lMiddle, c);
     End;
   End;
   TempIntfImg.free;
