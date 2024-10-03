@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uOpenGL_WidgetSet.pas                                           ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.11                                                         *)
+(* Version     : 0.12                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -37,6 +37,7 @@
 (*               0.09 = TOpenGL_Radiobutton                                   *)
 (*               0.10 = Fix Textglitch of TOpenGL_Radiobutton                 *)
 (*               0.11 = OnChange für TOpenGL_Radiobutton                      *)
+(*               0.12 = Fix Font colors where not per instance                *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -83,10 +84,10 @@ Type
 
   TOpenGl_BaseFontClass = Class(TOpenGL_BaseClass)
   protected
-    Function fGetFontColor: TVector3;
-    Procedure fSetFontColor(Value: TVector3);
-    Function FGetFontSize: single;
-    Procedure FSetFontSize(value: Single);
+    Function fGetFontColor: TVector3; virtual;
+    Procedure fSetFontColor(Value: TVector3); virtual;
+    Function FGetFontSize: single; virtual;
+    Procedure FSetFontSize(value: Single); virtual;
   protected
     FFont: TOpenGL_Font; // Das Kontrollelement bekommt noch zusätzlich eine OpenGLFont
     Property FontColor: TVector3 read fGetFontColor write fSetFontColor;
@@ -106,6 +107,7 @@ Type
   public
     Transparent: Boolean; // Das ist noch nicht wirklich schön funktionert aber erst mal ..
     Property OnClick;
+    Property OnDblClick;
     Property OnMouseDown;
     Property OnMouseMove;
     Property OnMouseUp;
@@ -123,12 +125,16 @@ Type
   TOpenGl_Label = Class(TOpenGL_BaseFontClass)
   protected
     fcaption: String;
+    FFontColor: TVector3;
     Procedure OnRender(); override;
     Procedure Setcaption(value: String); virtual;
+    Function fGetFontColor: TVector3; override;
+    Procedure fSetFontColor(Value: TVector3); override;
   public
     Property Caption: String read fcaption write Setcaption;
     Property FontColor;
     Property FontSize;
+    Constructor Create(Owner: TOpenGLControl; FontFile: String); override;
   End;
 
   { TOpenGL_Button }
@@ -271,10 +277,13 @@ Type
   private
     FLastTimeStamp: Dword;
     FDashVisible: Boolean;
+    FFontColor: TVector3;
   protected
     Procedure OnRender(); override;
     Function GetHeight: Integer; override;
     Procedure SetHeight(AValue: integer); override;
+    Function fGetFontColor: TVector3; override;
+    Procedure fSetFontColor(Value: TVector3); override;
 
     Procedure KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState); override;
   public
@@ -282,6 +291,7 @@ Type
     Color: TVector3; // Die Hintergrundfarbe
     BorderColor: TVector3; // Die "RandFarbe"
     PassWordChar: Char;
+    Property FontColor;
     Property OnKeyPress;
     Constructor Create(Owner: TOpenGLControl; FontFile: String); override;
   End;
@@ -1155,13 +1165,14 @@ End;
 
 { TOpenGL_Label }
 
-Procedure TOpenGL_Label.OnRender;
+Procedure TOpenGl_Label.OnRender;
 Var
   nw, ps: Single;
   d: Boolean;
   dim: Array[0..3] Of Integer;
 Begin
   If Visible Then Begin
+    glBindTexture(GL_TEXTURE_2D, 0);
     glGetIntegerv(GL_VIEWPORT, @dim[0]);
     nw := max(dim[2] / _2DWidth, dim[3] / _2DHeight);
     glGetFloatv(GL_POINT_SIZE, @ps);
@@ -1170,6 +1181,7 @@ Begin
     If d Then Begin
       glDisable(GL_DEPTH_TEST);
     End;
+    ffont.ColorV3 := FontColor;
     ffont.Textout(left, top, Caption);
     glPointSize(ps);
     If d Then Begin
@@ -1183,6 +1195,22 @@ Begin
   fcaption := value;
   Height := round(FFont.TextHeight(Caption));
   Width := round(FFont.TextWidth(Caption));
+End;
+
+Function TOpenGl_Label.fGetFontColor: TVector3;
+Begin
+  Result := FFontColor;
+End;
+
+Procedure TOpenGl_Label.fSetFontColor(Value: TVector3);
+Begin
+  FFontColor := value;
+End;
+
+Constructor TOpenGl_Label.Create(Owner: TOpenGLControl; FontFile: String);
+Begin
+  Inherited Create(Owner, FontFile);
+  FFontColor := v3(1, 1, 1);
 End;
 
 { TOPenGL_Edit }
@@ -1199,7 +1227,7 @@ Begin
   Text := Self.ClassName;
 End;
 
-Procedure TOpenGl_Edit.OnRender();
+Procedure TOpenGl_Edit.OnRender;
 Var
   lw: Single;
   tw: integer;
@@ -1236,7 +1264,7 @@ Begin
   FFont.Colorv3 := FontColor;
   FFont.Textout(left + 2, top + 2, tex);
   // Dann den Cursor
-  If FFocus Then Begin
+  If FFocus And Enabled Then Begin
     If FDashVisible Then Begin
       tw := round(FFont.TextWidth(Tex));
       glcolor3f(BorderColor.x, BorderColor.y, BorderColor.z);
@@ -1262,6 +1290,16 @@ Procedure TOpenGl_Edit.SetHeight(AValue: integer);
 Begin
   // Die Höhe eines TEdit kann nicht geändert werden, bzw passt sich das Edit immer an die schrifthöhe an !
   Inherited SetHeight(GetHeight);
+End;
+
+Function TOpenGl_Edit.fGetFontColor: TVector3;
+Begin
+  Result := FFontColor;
+End;
+
+Procedure TOpenGl_Edit.fSetFontColor(Value: TVector3);
+Begin
+  FFontColor := Value;
 End;
 
 Procedure TOpenGl_Edit.KeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState
