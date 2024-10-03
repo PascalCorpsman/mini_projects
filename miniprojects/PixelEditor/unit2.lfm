@@ -1,0 +1,36 @@
+object Form2: TForm2
+  Left = 365
+  Height = 240
+  Top = 117
+  Width = 320
+  BorderStyle = bsDialog
+  Caption = 'Form2'
+  ClientHeight = 240
+  ClientWidth = 320
+  Color = clGray
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  object CheckBox1: TCheckBox
+    Left = 16
+    Height = 22
+    Top = 8
+    Width = 128
+    Caption = 'Grid above image'
+    Font.Color = clSilver
+    ParentFont = False
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 205
+    Width = 304
+    Caption = 'OK'
+    Color = clGray
+    Font.Color = clSilver
+    ModalResult = 1
+    ParentFont = False
+    TabOrder = 1
+  end
+end

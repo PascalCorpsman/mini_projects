@@ -75,10 +75,15 @@ Type
     ScrollPos: Tpoint; // In ScreenKoordinaten
   End;
 
+  TSettings = Record
+    GridAboveImage: Boolean;
+  End;
+
   { TPixelEditor }
 
   TPixelEditor = Class
   private
+    fSettings: TSettings;
     fCursor: TCursor;
     FOwner: TOpenGLControl;
     fScrollInfo: TScrollInfo;
@@ -98,6 +103,7 @@ Type
     ZoomInButton: TOpenGL_Bevel;
     ZoomInfoTextbox: TOpenGL_Textbox;
     ZoomOutButton: TOpenGL_Bevel;
+    OptionsButton: TOpenGL_Bevel;
     UndoButton: TOpenGL_Bevel;
 
     // Menüleiste Links
@@ -146,6 +152,8 @@ Type
     Color7: TOpenGL_ColorBox;
     Color8: TOpenGL_ColorBox;
 
+    AktColorInfoLabel: TOpenGl_Label;
+
     InfoLabel: TOpenGl_Label; // Anzeige Aktuelle Position und Pixelfarbe unter Position
     InfoDetailLabel: TOpenGl_Label; // Zeigt beim Linien/ Ellipse/ Rechteck tool die "Delta's" an
 
@@ -159,6 +167,7 @@ Type
     Procedure OnGridButtonClick(Sender: TObject);
     Procedure OnZoomOutButtonClick(Sender: TObject);
     Procedure OnZoomInButtonClick(Sender: TObject);
+    Procedure OnOptionsButtonClick(Sender: TObject);
     Procedure OnUndoButtonClick(Sender: TObject);
 
     Procedure OnSelectButtonClick(Sender: TObject);
@@ -190,6 +199,8 @@ Type
 
     Procedure OnSelectLayerButtonClick(Sender: TObject);
 
+    Procedure OpenGLControlKeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
+
     Procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     Procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 
@@ -212,8 +223,8 @@ Type
     Procedure UpdateInfoLabel;
     Procedure SelectTool(aTool: TTool);
     Procedure CheckScrollBorders;
+    Procedure LoadSettings;
   public
-    FormCloseEvent: TNotifyEvent; // Um der Besitzerklasse mit zu teilen, dass die Anwendung beendet werden will
     Constructor Create; virtual;
     Destructor Destroy; override;
 
@@ -224,9 +235,15 @@ Type
 
 Implementation
 
-Uses math, dglOpenGL, Graphics, uOpenGL_ASCII_Font
-  , uopengl_graphikengine
-  , uvectormath;
+Uses
+  LCLType, math, Graphics // LCL- Units
+  , dglOpenGL // OpenGL Header
+  , uOpenGL_ASCII_Font, uopengl_graphikengine // Corspan OpenGL-Engine
+  , uvectormath // Math library
+  , unit1 // Dialogs / Close
+  , unit2 // Options
+  , unit3 // Neu
+  ;
 
 // for debuging ;)
 
@@ -249,7 +266,11 @@ End;
 
 Procedure TPixelEditor.OnNewButtonClick(Sender: TObject);
 Begin
-
+  form3.Edit1.Text := inttostr(fImage.Width);
+  form3.Edit2.Text := inttostr(fImage.Height);
+  If form3.ShowModal = mrOK Then Begin
+    NewImage(strtointdef(form3.Edit1.Text, fImage.Width), strtointdef(form3.Edit2.Text, fImage.Height));
+  End;
 End;
 
 Procedure TPixelEditor.OnOpenButtonClick(Sender: TObject);
@@ -269,7 +290,7 @@ End;
 
 Procedure TPixelEditor.OnExitButtonClick(Sender: TObject);
 Begin
-  If assigned(FormCloseEvent) Then FormCloseEvent(self);
+  form1.Close;
 End;
 
 Procedure TPixelEditor.OnGridButtonClick(Sender: TObject);
@@ -291,6 +312,14 @@ End;
 Procedure TPixelEditor.OnZoomInButtonClick(Sender: TObject);
 Begin
 
+End;
+
+Procedure TPixelEditor.OnOptionsButtonClick(Sender: TObject);
+Begin
+  form2.CheckBox1.Checked := fSettings.GridAboveImage;
+  form2.ShowModal;
+  SetValue('GridAboveImage', inttostr(ord(Form2.CheckBox1.Checked)));
+  LoadSettings;
 End;
 
 Procedure TPixelEditor.OnUndoButtonClick(Sender: TObject);
@@ -343,6 +372,18 @@ End;
 
 Procedure TPixelEditor.OnSelectLayerButtonClick(Sender: TObject);
 Begin
+
+End;
+
+Procedure TPixelEditor.OpenGLControlKeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  If (key = VK_N) And (ssCtrl In Shift) Then Begin
+    OnNewButtonClick(NewButton);
+  End;
+  If (key = VK_O) And (ssCtrl In Shift) Then Begin
+    OnOptionsButtonClick(OptionsButton);
+  End;
 
 End;
 
@@ -417,7 +458,13 @@ Begin
   zf := (fZoom / 100);
   // Der Rahmen um die Graphik für "niedrige" Zoom stufen
   glPushMatrix;
-  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerBackGroundGrid); // Anfahren obere Linke Ecke
+  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0); // Anfahren obere Linke Ecke
+  If fSettings.GridAboveImage Then Begin
+    glTranslatef(0, 0, LayerForeGroundGrid);
+  End
+  Else Begin
+    glTranslatef(0, 0, LayerBackGroundGrid);
+  End;
   glColor3ub(102, 102, 102);
   glLineWidth(1);
   glBegin(GL_LINES);
@@ -544,7 +591,7 @@ End;
 
 Procedure TPixelEditor.OnSelectTransparentColorClick(Sender: TObject);
 Begin
-  SetLeftColor(Transparent);
+  SetLeftColor(uimage.Transparent);
 End;
 
 Procedure TPixelEditor.OnColorClick(Sender: TObject);
@@ -609,7 +656,7 @@ Begin
   Case fCursor.Tool Of
     tPen: Begin
         glColor4ub(fCursor.LeftColor.r, fCursor.LeftColor.g, fCursor.LeftColor.b, 128);
-         //       hier weiter die Cursorform Rendern
+        //        hier weiter die Cursorform Rendern
       End;
   End;
   glPopMatrix;
@@ -708,6 +755,12 @@ End;
 Procedure TPixelEditor.SetLeftColor(Const C: TRGBA);
 Begin
   fCursor.LeftColor := c;
+  If c.a = 0 Then Begin
+    AktColorInfoLabel.caption := format('%d/%d/%d', [c.r, c.g, c.b]);
+  End
+  Else Begin
+    AktColorInfoLabel.caption := '';
+  End;
 End;
 
 Procedure TPixelEditor.UpdateInfoLabel;
@@ -796,11 +849,15 @@ Begin
   End;
 End;
 
+Procedure TPixelEditor.LoadSettings;
+Begin
+  fSettings.GridAboveImage := GetValue('GridAboveImage', '0') = '1'
+End;
+
 Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
   fImage := TImage.Create();
-  FormCloseEvent := Nil;
 End;
 
 Destructor TPixelEditor.Destroy;
@@ -827,8 +884,11 @@ Begin
   owner.OnMouseWheelup := @OpenGLControlMouseWheelUp;
   owner.OnMouseDown := @OpenGLControlMouseDown;
   owner.OnMouseMove := @OpenGLControlMouseMove;
+  owner.OnKeyDown := @OpenGLControlKeyDown;
 
 {$I upixeleditor_constructor.inc}
+
+  LoadSettings;
 
   NewImage(128, 128);
 
@@ -840,7 +900,7 @@ Begin
   GridButton.Style := bsRaised;
   OnColorClick(Color1);
   SelectTool(TPen);
-  fCursor.RightColor := Transparent;
+  fCursor.RightColor := uimage.Transparent;
 End;
 
 Procedure TPixelEditor.Render;

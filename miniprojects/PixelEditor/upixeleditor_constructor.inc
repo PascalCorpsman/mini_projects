@@ -115,7 +115,16 @@ ZoomInButton.Height := 16;
 ZoomInButton.OnClick := @OnZoomInButtonClick;
 AddElement(ZoomInButton);
 
-// TODO: Es fehlt noch das allgemeine Textinfo feld
+OptionsButton := TOpenGL_Bevel.Create(Owner);
+OptionsButton.Left := 570;
+OptionsButton.Top := 3;
+//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
+//OptionsButton.SetImage(image);
+OptionsButton.Transparent := true;
+OptionsButton.Width := 32;
+OptionsButton.Height := 32;
+OptionsButton.OnClick := @OnOptionsButtonClick;
+AddElement(OptionsButton);
 
 UndoButton := TOpenGL_Bevel.Create(Owner);
 UndoButton.Left := 605;
@@ -564,6 +573,13 @@ Color8.Height := 32;
 Color8.OnClick := @OnColorClick;
 Color8.Color := rgba(0, 0, 0, 0);
 AddElement(Color8);
+
+AktColorInfoLabel := TOpenGl_Label.Create(owner, '');
+AktColorInfoLabel.Left := 147;
+AktColorInfoLabel.Top := 463;
+AktColorInfoLabel.Caption := '';
+AktColorInfoLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
+AddElement(AktColorInfoLabel);
 
 InfoLabel := TOpenGl_Label.Create(owner, '');
 InfoLabel.Left := 427;

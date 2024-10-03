@@ -15,11 +15,14 @@ Type
 
   TImage = Class
   private
+    fChanged: Boolean;
     fOpenGLImage: integer;
     fPixels: Array Of Array Of Array[lBackground..lForeground] Of TRGBA;
     Function getHeight: integer;
     Function getWidth: integer;
   public
+
+    Property Changed: Boolean read fChanged;
 
     Property Height: integer read getHeight;
     Property Width: integer read getWidth;
@@ -61,6 +64,7 @@ Begin
   Inherited Create;
   setlength(fPixels, 0, 0);
   fOpenGLImage := 0;
+  fChanged := false;
 End;
 
 Destructor TImage.Destroy;
@@ -96,6 +100,7 @@ Begin
   If (x < 0) Or (x >= Width) Or (y < 0) Or (y >= Height) Then exit;
   If Not (aLayer In [lForeground, lMiddle, lBackground]) Then exit;
   If fPixels[x, y][aLayer] <> c Then Begin
+    fChanged := true;
     fPixels[x, y][aLayer] := c;
     // Übernehmen nach OpenGL
     oc[0] := c.r;
@@ -144,6 +149,7 @@ Procedure TImage.Clear(aLayer: TLayer);
 Var
   i, j: Integer;
 Begin
+  fChanged := false;
   For i := 0 To high(fPixels) Do Begin
     For j := 0 To high(fPixels[i]) Do Begin
       If aLayer = lAll Then Begin

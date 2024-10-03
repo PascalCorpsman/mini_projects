@@ -35,7 +35,7 @@ Interface
 
 Uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls,
+  ExtCtrls, IniPropStorage,
   OpenGlcontext,
   (*
    * Kommt ein Linkerfehler wegen OpenGL dann: sudo apt-get install freeglut3-dev
@@ -51,6 +51,7 @@ Type
   { TForm1 }
 
   TForm1 = Class(TForm)
+    IniPropStorage1: TIniPropStorage;
     OpenGLControl1: TOpenGLControl;
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -72,6 +73,10 @@ Var
   Form1: TForm1;
   Initialized: Boolean = false; // Wenn True dann ist OpenGL initialisiert
 
+
+Function GetValue(Identifier, Default: String): String;
+Procedure SetValue(Identifier, Value: String);
+
 Implementation
 
 {$R *.lfm}
@@ -82,6 +87,16 @@ Uses uopengl_graphikengine, uOpenGL_ASCII_Font;
 
 Var
   allowcnt: Integer = 0;
+
+Function GetValue(Identifier, Default: String): String;
+Begin
+  result := form1.IniPropStorage1.ReadString(Identifier, Default);
+End;
+
+Procedure SetValue(Identifier, Value: String);
+Begin
+  Form1.IniPropStorage1.WriteString(Identifier, Value);
+End;
 
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
@@ -150,7 +165,6 @@ Begin
   End;
   OpenGLControl1.Align := alClient;
   Editor := TPixelEditor.Create();
-  Editor.FormCloseEvent := @FormCloseEvent;
   // 25 Bilder die Sekunde reichen, ist ja nur ein Editor ;)
   Timer1.Interval := 40;
 End;
