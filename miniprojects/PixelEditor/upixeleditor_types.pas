@@ -119,6 +119,9 @@ Type
     Pos: Tpoint; // "Raw" Position auf dem Screen
     Shape: TCursorShape;
     Size: TCursorSize;
+    Shift: Boolean; // True wenn die Taste "Shift" gedrückt ist.
+    LeftMouseButton: Boolean;
+    RightMouseButton: Boolean;
   End;
 
   TScrollInfo = Record
@@ -136,6 +139,8 @@ Procedure Nop(); // Nur zum Debuggen ;)
 // für jede sich ergebende Koordinate auf (alles in Bild Pixel Koordinaten)
 Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback);
 Procedure Bresenham_Line(Const aFrom, aTo: TPoint; Callback: TCursorCallback);
+
+Function MovePointToNextMainAxis(P: TPoint): TPoint; // Projiziert P auf die nächste Hauptachse oder Hauptdiagonale
 
 // TODO: if in some future the "ImplicitFunctionSpecialization" switch is enabled, all this helper can be deleted !
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
@@ -336,6 +341,47 @@ End;
 Function IfThen(val: boolean; Const iftrue: TCursorShape; Const iffalse: TCursorShape): TCursorShape Inline; overload;
 Begin
   result := specialize ifthen < TCursorShape > (val, iftrue, iffalse);
+End;
+
+// unbelievable, but true, this code was created by using ChatGPT, and after some adjustmens it works like expected ;)
+
+Function MovePointToNextMainAxis(P: TPoint): TPoint;
+Var
+  dist_x_axis, dist_y_axis, dist_diagonal1, dist_diagonal2: Integer;
+  x, y, min_dist: Integer;
+Begin
+  x := p.x;
+  y := p.y;
+
+  // Calculate distances
+  dist_x_axis := Abs(Y);
+  dist_y_axis := Abs(X);
+  dist_diagonal1 := Abs(X - Y);
+  dist_diagonal2 := Abs(X + Y);
+
+  // Find the minimum distance
+  min_dist := dist_x_axis;
+
+  If dist_y_axis < min_dist Then
+    min_dist := dist_y_axis;
+  If dist_diagonal1 < min_dist Then
+    min_dist := dist_diagonal1;
+  If dist_diagonal2 < min_dist Then
+    min_dist := dist_diagonal2;
+
+  // Move point to the corresponding line
+  If min_dist = dist_x_axis Then
+    result := Point(X, 0) // Move to the x-axis
+  Else If min_dist = dist_y_axis Then
+    result := Point(0, Y) // Move to the y-axis
+  Else If min_dist = dist_diagonal1 Then
+    result := Point(X, X) // Move to the main diagonal (X = Y)
+  Else
+    result := Point(X, -X); // Move to the other diagonal (X = -Y)
+
+  // Final point transformation
+  result.x := -result.x;
+  result.y := -result.y;
 End;
 
 Initialization

@@ -162,6 +162,7 @@ Type
     Procedure OnSelectLayerButtonClick(Sender: TObject);
 
     Procedure OpenGLControlKeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
+    Procedure OpenGLControlKeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
 
     Procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     Procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -363,6 +364,13 @@ Begin
   If (key = VK_O) And (ssCtrl In Shift) Then OnOptionsButtonClick(OptionsButton);
   If (key = VK_S) And (ssCtrl In Shift) Then OnSaveButtonClick(SaveButton);
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
+  fCursor.Shift := ssShift In Shift;
+End;
+
+Procedure TPixelEditor.OpenGLControlKeyUp(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  fCursor.Shift := ssShift In Shift;
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
@@ -378,6 +386,8 @@ Begin
   fCursor.PixelPos := CursorToPixel(x, y);
   fCursor.PixelDownPos := fCursor.PixelPos;
   fCursor.Pos := point(x, y);
+  fCursor.LeftMouseButton := ssleft In Shift;
+  fCursor.RightMouseButton := ssRight In Shift;
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
       Case fCursor.Tool Of
@@ -441,7 +451,8 @@ Var
     dummyCursor.PixelPos := point(x, y);
     DoCursorOnPixel(dummyCursor, @SetColorAt);
   End;
-
+Var
+  p: TPoint;
 Begin
   fCursor.PixelPos := CursorToPixel(x, y);
   If (button = mbLeft) And (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
@@ -450,12 +461,22 @@ Begin
       tPen: DoCursorOnPixel(fCursor, @SetColorAt);
       tLine: Begin
           If fCursor.PixelDownPos.x <> -1 Then Begin
-            Bresenham_Line(fCursor.PixelPos, fCursor.PixelDownPos, @DrawLineCallback);
+            If fCursor.Shift Then Begin
+              p := fCursor.PixelDownPos - fCursor.PixelPos;
+              p := MovePointToNextMainAxis(p);
+              p := p + fCursor.PixelDownPos;
+              Bresenham_Line(fCursor.PixelDownPos, p, @DrawLineCallback);
+            End
+            Else Begin
+              Bresenham_Line(fCursor.PixelPos, fCursor.PixelDownPos, @DrawLineCallback);
+            End;
           End;
         End;
     End;
   End;
   fCursor.PixelDownPos := point(-1, -1);
+  fCursor.LeftMouseButton := ssleft In Shift;
+  fCursor.RightMouseButton := ssRight In Shift;
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseWheelDown(Sender: TObject;
@@ -762,10 +783,24 @@ Begin
       End;
     tLine: Begin
         If fCursor.PixelDownPos.x <> -1 Then Begin
-          p := fCursor.PixelDownPos - fCursor.PixelPos;
-          glBegin(GL_POINTS);
-          Bresenham_Line(point(0, 0), p, @DrawLineCallback);
-          glEnd;
+          If fCursor.LeftMouseButton Then Begin
+            p := fCursor.PixelDownPos - fCursor.PixelPos;
+            If fCursor.Shift Then Begin
+              // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
+              glTranslatef(fCursor.PixelDownPos.x - fCursor.PixelPos.x, fCursor.PixelDownPos.y - fCursor.PixelPos.y, 0);
+              p := MovePointToNextMainAxis(p);
+            End;
+            glBegin(GL_POINTS);
+            Bresenham_Line(point(0, 0), p, @DrawLineCallback);
+            glEnd;
+          End;
+        End
+        Else Begin
+          If fCursor.PixelPos.X <> -1 Then Begin
+            glBegin(GL_POINTS);
+            DoCursorOnPixel(dummyCursor, @SetVertex);
+            glEnd;
+          End;
         End;
       End;
   End;
@@ -787,6 +822,10 @@ Begin
   fCursor.PixelPos.x := -1;
   fCursor.PixelDownPos.x := -1;
   fCursor.Pos.x := -1;
+  fCursor.Shift := false;
+  fCursor.LeftMouseButton := false;
+  fCursor.RightMouseButton := false;
+
   CheckScrollBorders();
 End;
 
@@ -1154,6 +1193,7 @@ Begin
   owner.OnMouseMove := @OpenGLControlMouseMove;
   owner.OnMouseUp := @OpenGLControlMouseUp;
   owner.OnKeyDown := @OpenGLControlKeyDown;
+  owner.OnKeyUp := @OpenGLControlKeyUp;
 
 {$I upixeleditor_constructor.inc}
 
