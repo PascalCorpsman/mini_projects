@@ -108,6 +108,8 @@ Type
     Function getTransparent: Boolean;
     Procedure setOnClick(AValue: TNotifyEvent);
     Procedure setTransparent(AValue: Boolean);
+    Procedure OwnMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   protected
     Procedure OnRender(); override;
 
@@ -586,6 +588,14 @@ Begin
   fBevel.Transparent := AValue;
 End;
 
+Procedure TOpenGL_TransparentColorBox.OwnMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+Begin
+  If assigned(OnMouseUp) Then Begin
+    OnMouseUp(self, button, shift, x, y);
+  End;
+End;
+
 Procedure TOpenGL_TransparentColorBox.OnRender;
 Begin
   fBevel.Render();
@@ -644,6 +654,7 @@ Constructor TOpenGL_TransparentColorBox.Create(Owner: TOpenGLControl);
 Begin
   fBevel := TOpenGL_Bevel.Create(Owner);
   Inherited Create(Owner);
+  fbevel.OnMouseUp := @OwnMouseUp;
 End;
 
 Destructor TOpenGL_TransparentColorBox.Destroy;

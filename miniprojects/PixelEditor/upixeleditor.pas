@@ -673,10 +673,14 @@ End;
 
 Procedure TPixelEditor.OnColorMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
+Var
+  c: TRGBA;
 Begin
   If button = mbRight Then Begin
     ColorPicDialog.Visible := false;
-    ColorPreview.BackColor := (sender As TOpenGL_ColorBox).Color;
+    c := (sender As TOpenGL_ColorBox).Color;
+    ColorPreview.BackColor := c;
+    fCursor.RightColor := c;
   End;
 End;
 
