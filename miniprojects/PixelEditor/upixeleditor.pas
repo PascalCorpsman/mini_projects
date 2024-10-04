@@ -188,7 +188,6 @@ Type
     Procedure PasteImageFromClipboard;
     Procedure SaveImage(Const aFilename: String);
 
-    Procedure DoCursorOnPixel(x, y: integer; Callback: TCursorCallback); // Faltet die CursorGröße und Form mit der Aktuellen Koordinate und Ruft Callback für jede sich ergebende Koordinate auf (alles in Bild Pixel Koordinaten)
   public
 
     Property Changed: Boolean read getChanged;
@@ -381,7 +380,7 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      DoCursorOnPixel(fCursor.PixelPos.X, fCursor.PixelPos.y, @SetColorAt);
+      DoCursorOnPixel(fCursor, @SetColorAt);
     End;
   End;
   If ssRight In shift Then Begin
@@ -402,7 +401,7 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      DoCursorOnPixel(fCursor.PixelPos.X, fCursor.PixelPos.y, @SetColorAt);
+      DoCursorOnPixel(fCursor, @SetColorAt);
     End;
   End;
   If ssRight In shift Then Begin
@@ -688,6 +687,7 @@ Procedure TPixelEditor.RenderCursor;
 
 Var
   c: TRGBA;
+  dummyCursor: TCursor;
 Begin
   If fCursor.PixelPos.x = -1 Then exit;
   glPushMatrix;
@@ -698,14 +698,15 @@ Begin
   glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
   // Anfahren des Cursor Mittelpunkts
   glTranslatef(fCursor.PixelPos.x + 0.5, fCursor.PixelPos.y + 0.5, 0);
-
+  dummyCursor := fCursor;
+  dummyCursor.PixelPos := Point(0, 0);
   Case fCursor.Tool Of
     tPen: Begin
         c := fCursor.LeftColor.Color;
         glColor3ub(c.r, c.g, c.b);
         glPointSize(fZoom / 100);
         glBegin(GL_POINTS);
-        DoCursorOnPixel(0, 0, @SetVertex);
+        DoCursorOnPixel(dummyCursor, @SetVertex);
         glEnd;
       End;
   End;
@@ -981,109 +982,6 @@ Begin
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
 End;
 
-Procedure TPixelEditor.DoCursorOnPixel(x, y: integer; Callback: TCursorCallback);
-Var
-  PointList: Array[0..1023] Of TPoint;
-  PointListCnt: Integer;
-
-  Procedure AddCoord(i, j: integer);
-  Var
-    a: Integer;
-    p: TPoint;
-  Begin
-    p := point(i, j);
-    For a := 0 To PointListCnt - 1 Do Begin
-      If PointList[a] = p Then Begin
-        exit;
-      End;
-    End;
-    PointList[PointListCnt] := p;
-    inc(PointListCnt);
-  End;
-
-  Procedure AddCursorSize(i, j: integer);
-  Var
-    a, b: Integer;
-  Begin
-    Case fCursor.Size Of
-      cs1_1: AddCoord(i, j);
-      cs3_3: Begin
-          For a := -1 To 1 Do Begin
-            For b := -1 To 1 Do Begin
-              AddCoord(i + a, j + b);
-            End;
-          End;
-        End;
-      cs5_5: Begin
-          For a := -2 To 2 Do Begin
-            For b := -2 To 2 Do Begin
-              AddCoord(i + a, j + b);
-            End;
-          End;
-        End;
-      cs7_7: Begin
-          For a := -3 To 3 Do Begin
-            For b := -3 To 3 Do Begin
-              AddCoord(i + a, j + b);
-            End;
-          End;
-        End;
-    End;
-  End;
-
-Var
-  i, j: integer;
-Begin
-  // TODO: Diese Listen sind im Prinzip Statisch = 24 Stück und Gut -> Die sollten beim Programmstart 1 mal berechnet und dann gepuffert werden !
-  PointListCnt := 0;
-  Case fCursor.shape Of
-    csDot: AddCursorSize(x, y);
-    csSmallPoint: Begin
-        For i := 0 To 1 Do Begin
-          For j := 0 To 3 Do Begin
-            AddCursorSize(x + i, y + j - 2);
-            AddCursorSize(x + j - 1, y - i);
-          End;
-        End;
-      End;
-    csBigPoint: Begin
-        For i := 0 To 7 Do Begin
-          For j := 0 To 3 Do Begin
-            AddCursorSize(x + i - 3, y + j - 2);
-            AddCursorSize(x + j - 1, y + i - 4);
-          End;
-        End;
-        AddCursorSize(x - 2, y - 3);
-        AddCursorSize(x + 3, y - 3);
-        AddCursorSize(x - 2, y + 2);
-        AddCursorSize(x + 3, y + 2);
-      End;
-    csSmallQuad: Begin
-        For i := 0 To 1 Do Begin
-          For j := 0 To 1 Do Begin
-            AddCursorSize(x + i, y - j);
-          End;
-        End;
-      End;
-    csQuad: Begin
-        For i := -2 To 2 Do Begin
-          For j := -2 To 2 Do Begin
-            AddCursorSize(x + i, y - j);
-          End;
-        End;
-      End;
-    csBigQuad: Begin
-        For i := -3 To 3 Do Begin
-          For j := -3 To 3 Do Begin
-            AddCursorSize(x + i, y - j);
-          End;
-        End;
-      End;
-  End;
-  For i := 0 To PointListCnt - 1 Do Begin
-    Callback(PointList[i].X, PointList[i].y);
-  End;
-End;
 
 Procedure TPixelEditor.LoadImage(Const aFilename: String);
 Var

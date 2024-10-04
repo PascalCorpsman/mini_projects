@@ -43,7 +43,7 @@ Type
 
   TCursorCallback = Procedure(x, y: integer) Is nested;
 
-  TCursorShape = ( // . = Pixel überdeckt, X = 0/0 - Koordinate
+  TCursorShape = (// . = Pixel überdeckt, X = 0/0 - Koordinate
     // X
     csDot,
     //  ..
@@ -131,6 +131,10 @@ Type
 
 Procedure Nop();
 
+// Faltet die CursorGröße und Form mit der Aktuellen Koordinate und Ruft Callback 
+// für jede sich ergebende Koordinate auf (alles in Bild Pixel Koordinaten)
+Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback); 
+
 // TODO: if in some future the "ImplicitFunctionSpecialization" switch is enabled, all this helper can be deleted !
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
 Function IfThen(val: boolean; Const iftrue: TCursorSize; Const iffalse: TCursorSize): TCursorSize Inline; overload;
@@ -138,9 +142,136 @@ Function IfThen(val: boolean; Const iftrue: TCursorShape; Const iffalse: TCursor
 
 Implementation
 
+Var
+  CursorPixelPos: Array[TCursorSize, TCursorShape] Of Array Of TPoint; // Wird im Initialization teil gesetzt, damit da nicht jedesmal bei DoCursorOnPixel berechnet werden muss
+
 Procedure Nop();
 Begin
 
+End;
+
+Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback);
+Var
+  i: Integer;
+Begin
+  For i := 0 To high(CursorPixelPos[fCursor.Size, fCursor.Shape]) Do Begin
+    Callback(
+      CursorPixelPos[fCursor.Size, fCursor.Shape][i].X + fCursor.PixelPos.x,
+      CursorPixelPos[fCursor.Size, fCursor.Shape][i].y + fCursor.PixelPos.y
+      );
+  End;
+End;
+
+Procedure InitCursorPixelPos;
+Var
+  PointList: Array[0..1023] Of TPoint;
+  PointListCnt: Integer;
+
+  Procedure AddCoord(i, j: integer);
+  Var
+    a: Integer;
+    p: TPoint;
+  Begin
+    p := point(i, j);
+    For a := 0 To PointListCnt - 1 Do Begin
+      If PointList[a] = p Then Begin
+        exit;
+      End;
+    End;
+    PointList[PointListCnt] := p;
+    inc(PointListCnt);
+  End;
+
+Var
+  aSize: TCursorSize;
+
+  Procedure AddCursorSize(i, j: integer);
+  Var
+    a, b: Integer;
+  Begin
+    Case aSize Of
+      cs1_1: AddCoord(i, j);
+      cs3_3: Begin
+          For a := -1 To 1 Do Begin
+            For b := -1 To 1 Do Begin
+              AddCoord(i + a, j + b);
+            End;
+          End;
+        End;
+      cs5_5: Begin
+          For a := -2 To 2 Do Begin
+            For b := -2 To 2 Do Begin
+              AddCoord(i + a, j + b);
+            End;
+          End;
+        End;
+      cs7_7: Begin
+          For a := -3 To 3 Do Begin
+            For b := -3 To 3 Do Begin
+              AddCoord(i + a, j + b);
+            End;
+          End;
+        End;
+    End;
+  End;
+
+Var
+  i, j: integer;
+  aShape: TCursorShape;
+Begin
+  For aShape In TCursorShape Do Begin
+    For aSize In TCursorSize Do Begin
+      PointListCnt := 0;
+      Case ashape Of
+        csDot: AddCursorSize(0, 0);
+        csSmallPoint: Begin
+            For i := 0 To 1 Do Begin
+              For j := 0 To 3 Do Begin
+                AddCursorSize(i, j - 2);
+                AddCursorSize(j - 1, -i);
+              End;
+            End;
+          End;
+        csBigPoint: Begin
+            For i := 0 To 7 Do Begin
+              For j := 0 To 3 Do Begin
+                AddCursorSize(i - 3, j - 2);
+                AddCursorSize(j - 1, i - 4);
+              End;
+            End;
+            AddCursorSize(-2, -3);
+            AddCursorSize(3, -3);
+            AddCursorSize(-2, 2);
+            AddCursorSize(3, 2);
+          End;
+        csSmallQuad: Begin
+            For i := 0 To 1 Do Begin
+              For j := 0 To 1 Do Begin
+                AddCursorSize(i, j);
+              End;
+            End;
+          End;
+        csQuad: Begin
+            For i := -2 To 2 Do Begin
+              For j := -2 To 2 Do Begin
+                AddCursorSize(i, j);
+              End;
+            End;
+          End;
+        csBigQuad: Begin
+            For i := -3 To 3 Do Begin
+              For j := -3 To 3 Do Begin
+                AddCursorSize(i, j);
+              End;
+            End;
+          End;
+      End;
+      setlength(CursorPixelPos[aSize, aShape], PointListCnt);
+      For i := 0 To PointListCnt - 1 Do Begin
+        CursorPixelPos[aSize, aShape][i] := PointList[i];
+      End;
+    End;
+  End
 End;
 
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
@@ -158,6 +289,8 @@ Begin
   result := specialize ifthen < TCursorShape > (val, iftrue, iffalse);
 End;
 
+Initialization
+  InitCursorPixelPos;
 
 End.
 
