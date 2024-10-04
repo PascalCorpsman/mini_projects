@@ -135,6 +135,7 @@ Procedure Nop(); // Nur zum Debuggen ;)
 // Faltet die CursorGröße und Form mit der Aktuellen Koordinate und Ruft Callback
 // für jede sich ergebende Koordinate auf (alles in Bild Pixel Koordinaten)
 Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback);
+Procedure Bresenham_Line(Const aFrom, aTo: TPoint; Callback: TCursorCallback);
 
 // TODO: if in some future the "ImplicitFunctionSpecialization" switch is enabled, all this helper can be deleted !
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
@@ -142,6 +143,8 @@ Function IfThen(val: boolean; Const iftrue: TCursorSize; Const iffalse: TCursorS
 Function IfThen(val: boolean; Const iftrue: TCursorShape; Const iffalse: TCursorShape): TCursorShape Inline; overload;
 
 Implementation
+
+Uses math;
 
 Var
   CursorPixelPos: Array[TCursorSize, TCursorShape] Of Array Of TPoint; // Wird im Initialization teil gesetzt, damit da nicht jedesmal bei DoCursorOnPixel berechnet werden muss
@@ -160,6 +163,51 @@ Begin
       CursorPixelPos[fCursor.Size, fCursor.Shape][i].X + fCursor.PixelPos.x,
       CursorPixelPos[fCursor.Size, fCursor.Shape][i].y + fCursor.PixelPos.y
       );
+  End;
+End;
+
+Procedure Bresenham_Line(Const aFrom, aTo: TPoint; Callback: TCursorCallback);
+Var
+  x, y, t, dx, dy, incx, incy, pdx, pdy, ddx, ddy, es, el, err: integer;
+Begin
+  dx := aTo.x - aFrom.x;
+  dy := aTo.y - aFrom.y;
+  incx := sign(dx);
+  incy := sign(dy);
+  If (dx < 0) Then dx := -dx;
+  If (dy < 0) Then dy := -dy;
+  If (dx > dy) Then Begin
+    pdx := incx;
+    pdy := 0;
+    ddx := incx;
+    ddy := incy;
+    es := dy;
+    el := dx;
+  End
+  Else Begin
+    pdx := 0;
+    pdy := incy;
+    ddx := incx;
+    ddy := incy;
+    es := dx;
+    el := dy;
+  End;
+  x := aFrom.x;
+  y := aFrom.y;
+  err := el Div 2;
+  Callback(x, y);
+  For t := 0 To el - 1 Do Begin
+    err := err - es;
+    If (err < 0) Then Begin
+      err := err + el;
+      x := x + ddx;
+      y := y + ddy;
+    End
+    Else Begin
+      x := x + pdx;
+      y := y + pdy;
+    End;
+    Callback(x, y);
   End;
 End;
 

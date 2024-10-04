@@ -380,7 +380,12 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      DoCursorOnPixel(fCursor, @SetColorAt);
+      Case fCursor.Tool Of
+        tPen: DoCursorOnPixel(fCursor, @SetColorAt);
+        tLine: Begin
+            // Nichts, wird im Mouse Up gemacht
+          End;
+      End;
     End;
   End;
   If ssRight In shift Then Begin
@@ -401,7 +406,12 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      DoCursorOnPixel(fCursor, @SetColorAt);
+      Case fCursor.Tool Of
+        tPen: DoCursorOnPixel(fCursor, @SetColorAt);
+        tLine: Begin
+            // Nichts, wird im Mouse Up gemacht
+          End;
+      End;
     End;
   End;
   If ssRight In shift Then Begin
@@ -417,7 +427,34 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
+Var
+  dummyCursor: TCursor;
+
+  Procedure SetColorAt(i, j: integer);
+  Begin
+    fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
+  End;
+
+  Procedure DrawLineCallback(x, y: integer);
+  Begin
+    dummyCursor.PixelPos := point(x, y);
+    DoCursorOnPixel(dummyCursor, @SetColorAt);
+  End;
+
 Begin
+  fCursor.PixelPos := CursorToPixel(x, y);
+  If (button = mbLeft) And (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
+    dummyCursor := fCursor;
+    Case fCursor.Tool Of
+      tPen: DoCursorOnPixel(fCursor, @SetColorAt);
+      tLine: Begin
+          If fCursor.PixelDownPos.x <> -1 Then Begin
+            Bresenham_Line(fCursor.PixelPos, fCursor.PixelDownPos, @DrawLineCallback);
+          End;
+        End;
+    End;
+  End;
   fCursor.PixelDownPos := point(-1, -1);
 End;
 
@@ -685,15 +722,23 @@ Begin
 End;
 
 Procedure TPixelEditor.RenderCursor;
+Var
+  dummyCursor: TCursor;
 
   Procedure SetVertex(x, y: integer);
   Begin
     glVertex2f(x, y);
   End;
 
+  Procedure DrawLineCallback(x, y: integer);
+  Begin
+    dummyCursor.PixelPos := point(x, y);
+    DoCursorOnPixel(dummyCursor, @SetVertex);
+  End;
+
 Var
   c: TRGBA;
-  dummyCursor: TCursor;
+  p: TPoint;
 Begin
   If fCursor.PixelPos.x = -1 Then exit;
   glPushMatrix;
@@ -704,18 +749,27 @@ Begin
   glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
   // Anfahren des Cursor Mittelpunkts
   glTranslatef(fCursor.PixelPos.x + 0.5, fCursor.PixelPos.y + 0.5, 0);
+  glPointSize(fZoom / 100);
+  c := fCursor.LeftColor.Color;
+  glColor3ub(c.r, c.g, c.b);
   dummyCursor := fCursor;
   dummyCursor.PixelPos := Point(0, 0);
   Case fCursor.Tool Of
     tPen: Begin
-        c := fCursor.LeftColor.Color;
-        glColor3ub(c.r, c.g, c.b);
-        glPointSize(fZoom / 100);
         glBegin(GL_POINTS);
         DoCursorOnPixel(dummyCursor, @SetVertex);
         glEnd;
       End;
+    tLine: Begin
+        If fCursor.PixelDownPos.x <> -1 Then Begin
+          p := fCursor.PixelDownPos - fCursor.PixelPos;
+          glBegin(GL_POINTS);
+          Bresenham_Line(point(0, 0), p, @DrawLineCallback);
+          glEnd;
+        End;
+      End;
   End;
+  glPointSize(1);
   glPopMatrix;
 End;
 

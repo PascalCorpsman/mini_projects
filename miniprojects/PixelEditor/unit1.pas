@@ -42,8 +42,6 @@ Uses
    *)
   dglOpenGL // http://wiki.delphigl.com/index.php/dglOpenGL.pas
   , upixeleditor
-  //, uopengl_graphikengine // Die OpenGLGraphikengine ist eine Eigenproduktion von www.Corpsman.de, und kann getrennt geladen werden.
-  , uopengl_widgetset
   ;
 
 Type
@@ -85,8 +83,10 @@ Implementation
 {$R *.lfm}
 
 Uses
-  LCLType,
-  uopengl_graphikengine, uOpenGL_ASCII_Font;
+  LCLType
+  , uopengl_graphikengine
+  , uOpenGL_ASCII_Font
+  , uopengl_widgetset;
 
 { TForm1 }
 
