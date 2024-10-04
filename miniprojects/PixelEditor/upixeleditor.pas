@@ -15,12 +15,13 @@
 Unit upixeleditor;
 
 {$MODE ObjFPC}{$H+}
+{$MODESWITCH nestedprocvars}
 
 Interface
 
 Uses
-  Classes, SysUtils, Controls, OpenGLContext, uopengl_widgetset, upixeleditorlcl,
-  ExtCtrls, uimage, ugraphics;
+  Graphics, Classes, SysUtils, Controls, OpenGLContext, uopengl_widgetset, upixeleditorlcl,
+  ExtCtrls, uimage, ugraphics, upixeleditor_types;
 
 Const
   (*
@@ -34,60 +35,7 @@ Const
    *)
   Fileversion: integer = 2;
 
-
-  (*
-   * Es folgt the "Tiefe" der verschiedenen Render Ebenen [-0.9 .. 0.9]
-   *
-   * Jede Ebene sollte sich zur nächst höheren / tieferen um mindestens 0.01 unterscheiden !
-   *)
-  LayerBackGroundColor = -0.91;
-  LayerBackGroundGrid = -0.9; // Das Grid das hinter allem sein soll und nur bei Transparenten Pixeln zu sehen ist
-  LayerImage = -0.8; // Die Eigentliche vom User erstellte Textur
-  LayerForeGroundGrid = -0.05;
-  LayerCursor = -0.02;
-  LayerFormColor = -0.01;
-  LayerLCL = 0.0;
-
-  ZoomLevels: Array Of integer = (
-    100, 500,
-    1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000,
-    5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500,
-    10000); // in %
-
-  (*
-   * Die Koordinaten des Image Edit bereichs in Absoluten unscallierten Fenster Koordinaten
-   *)
-  WindowLeft = 75;
-  WindowTop = 38;
-  WindowRight = 636;
-  WindowBottom = 424;
-  ScreenWidth = 640;
-  ScreenHeight = 480;
-
 Type
-
-  TTool = (
-    tSelect,
-    tBrighten, tDarken,
-    tEraser, tPen, tLine, tEllipse, tRectangle, tMirror, tBucket, tPincette);
-
-  TCursor = Record
-    LeftColor: TOpenGL_ColorBox;
-    RightColor: TRGBA;
-    LastTool: TTool;
-    Tool: TTool;
-    PixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln
-    Pos: Tpoint; // "Raw" Position auf dem Screen
-  End;
-
-  TScrollInfo = Record
-    GlobalXOffset, GlobalYOffset: integer; // In ScreenKoordinaten
-    ScrollPos: Tpoint; // In ScreenKoordinaten
-  End;
-
-  TSettings = Record
-    GridAboveImage: Boolean;
-  End;
 
   { TPixelEditor }
 
@@ -191,9 +139,9 @@ Type
     Procedure OnBrightenButtonClick(Sender: TObject);
     Procedure OnDarkenButtonClick(Sender: TObject);
     Procedure OnCurserSizeButtonClick(Sender: TObject);
+    Procedure OnCursorShapeClick(Sender: TObject);
     Procedure OnEraserButtonClick(Sender: TObject);
     Procedure OnPencilButtonClick(Sender: TObject);
-    Procedure OnCursorShapeClick(Sender: TObject);
     Procedure OnLineButtonClick(Sender: TObject);
     Procedure OnCircleButtonClick(Sender: TObject);
     Procedure OnSquareButtonClick(Sender: TObject);
@@ -239,6 +187,8 @@ Type
     Procedure LoadSettings;
     Procedure PasteImageFromClipboard;
     Procedure SaveImage(Const aFilename: String);
+
+    Procedure DoCursorOnPixel(x, y: integer; Callback: TCursorCallback); // Faltet die CursorGröße und Form mit der Aktuellen Koordinate und Ruft Callback für jede sich ergebende Koordinate auf (alles in Bild Pixel Koordinaten)
   public
 
     Property Changed: Boolean read getChanged;
@@ -260,7 +210,7 @@ Var
 Implementation
 
 Uses
-  Forms, Dialogs, LCLType, math, Graphics, Clipbrd, LCLIntf // LCL- Units
+  Forms, Dialogs, LCLType, math, Clipbrd, LCLIntf // LCL- Units
   , dglOpenGL // OpenGL Header
   , uOpenGL_ASCII_Font, uopengl_graphikengine // Corspan OpenGL-Engine
   , uvectormath // Math library
@@ -269,23 +219,6 @@ Uses
   , unit3 // Neu
   , unit4 // Export BMP Settings Dialog
   ;
-
-// for debuging ;)
-
-Procedure Nop();
-Begin
-
-End;
-
-Function IfThen(value: Boolean; trueCase, falseCase: TBevelStyle): TBevelStyle;
-Begin
-  If value Then Begin
-    result := trueCase;
-  End
-  Else Begin
-    result := falseCase;
-  End;
-End;
 
 { TPixelEditor }
 
@@ -413,6 +346,10 @@ Begin
   CurserSize2.Style := ifthen(sender = CurserSize2, bsRaised, bsLowered);
   CurserSize3.Style := ifthen(sender = CurserSize3, bsRaised, bsLowered);
   CurserSize4.Style := ifthen(sender = CurserSize4, bsRaised, bsLowered);
+  fCursor.Size := ifthen(sender = CurserSize1, cs1_1, fCursor.Size);
+  fCursor.Size := ifthen(sender = CurserSize2, cs3_3, fCursor.Size);
+  fCursor.Size := ifthen(sender = CurserSize3, cs5_5, fCursor.Size);
+  fCursor.Size := ifthen(sender = CurserSize4, cs7_7, fCursor.Size);
 End;
 
 Procedure TPixelEditor.OnSelectLayerButtonClick(Sender: TObject);
@@ -432,13 +369,19 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
+  Procedure SetColorAt(i, j: integer);
+  Begin
+    fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
+  End;
+
 Begin
   fScrollInfo.ScrollPos := point(x, y);
   fCursor.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor.Color);
+      DoCursorOnPixel(fCursor.PixelPos.X, fCursor.PixelPos.y, @SetColorAt);
     End;
   End;
   If ssRight In shift Then Begin
@@ -448,6 +391,10 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
+  Procedure SetColorAt(i, j: integer);
+  Begin
+    fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
+  End;
 Var
   dx, dy: integer;
 Begin
@@ -455,7 +402,7 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      fImage.SetColorAt(fCursor.PixelPos.X, fCursor.PixelPos.y, fAktualLayer, fCursor.LeftColor.Color);
+      DoCursorOnPixel(fCursor.PixelPos.X, fCursor.PixelPos.y, @SetColorAt);
     End;
   End;
   If ssRight In shift Then Begin
@@ -573,6 +520,12 @@ Begin
   CursorSquareShape1.Style := ifthen(sender = CursorSquareShape1, bsRaised, bsLowered);
   CursorSquareShape2.Style := ifthen(sender = CursorSquareShape2, bsRaised, bsLowered);
   CursorSquareShape3.Style := ifthen(sender = CursorSquareShape3, bsRaised, bsLowered);
+  fCursor.Shape := ifthen(sender = CursorRoundShape1, csDot, fCursor.Shape);
+  fCursor.Shape := ifthen(sender = CursorRoundShape2, csSmallPoint, fCursor.Shape);
+  fCursor.Shape := ifthen(sender = CursorRoundShape3, csBigPoint, fCursor.Shape);
+  fCursor.Shape := ifthen(sender = CursorSquareShape1, csSmallQuad, fCursor.Shape);
+  fCursor.Shape := ifthen(sender = CursorSquareShape2, csQuad, fCursor.Shape);
+  fCursor.Shape := ifthen(sender = CursorSquareShape3, csBigQuad, fCursor.Shape);
 End;
 
 Procedure TPixelEditor.OnLineButtonClick(Sender: TObject);
@@ -727,14 +680,33 @@ Begin
 End;
 
 Procedure TPixelEditor.RenderCursor;
+
+  Procedure SetVertex(x, y: integer);
+  Begin
+    glVertex2f(x, y);
+  End;
+
+Var
+  c: TRGBA;
 Begin
+  If fCursor.PixelPos.x = -1 Then exit;
   glPushMatrix;
-  glTranslatef(0, 0, LayerCursor);
-  // glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
+  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerCursor); // Anfahren der Linken Oberen Ecke
+  glColor4f(1, 1, 1, 1);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  // Zoom und Verzerrung rausrechnen so dass 1 OpenGL Pixel = 1 Bild Pixel ist
+  glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
+  // Anfahren des Cursor Mittelpunkts
+  glTranslatef(fCursor.PixelPos.x + 0.5, fCursor.PixelPos.y + 0.5, 0);
+
   Case fCursor.Tool Of
     tPen: Begin
-        glColor4ub(fCursor.LeftColor.Color.r, fCursor.LeftColor.Color.g, fCursor.LeftColor.Color.b, 128);
-        //        hier weiter die Cursorform Rendern
+        c := fCursor.LeftColor.Color;
+        glColor3ub(c.r, c.g, c.b);
+        glPointSize(fZoom / 100);
+        glBegin(GL_POINTS);
+        DoCursorOnPixel(0, 0, @SetVertex);
+        glEnd;
       End;
   End;
   glPopMatrix;
@@ -796,6 +768,9 @@ Begin
   fScrollInfo.GlobalyOffset := fScrollInfo.GlobalyOffset + (p1.Y - p2.Y) * fZoom Div 100;
   // Let the scrollbars do their constraint thing
   CheckScrollBorders();
+  // Nachziehen des Cursors sonst springt der beim Zoomen
+  fCursor.PixelPos := CursorToPixel(fCursor.Pos.x, fCursor.Pos.y);
+  UpdateInfoLabel;
 End;
 
 Function TPixelEditor.CursorToPixel(x, y: integer): TPoint;
@@ -843,7 +818,8 @@ Procedure TPixelEditor.UpdateInfoLabel;
 Var
   c: TRGBA;
 Begin
-  If (fCursor.Pos.x < WindowLeft * FOwner.Width / ScreenWidth) Or
+  If (fCursor.PixelPos.x = -1) Or // Braucht es eigentlich nicht, aber schaden tut's auch nicht ..
+  (fCursor.Pos.x < WindowLeft * FOwner.Width / ScreenWidth) Or
     (fCursor.Pos.y < WindowTop * fowner.Height / ScreenHeight) Or
     (fCursor.Pos.x - WindowLeft * FOwner.Width / ScreenWidth >= fImage.Width * fZoom Div 100) Or
     (fCursor.Pos.y - WindowTop * fowner.Height / ScreenHeight >= fImage.Height * fZoom Div 100) Or
@@ -936,16 +912,27 @@ Procedure TPixelEditor.PasteImageFromClipboard;
 Var
   b: Tbitmap;
   i, j: Integer;
+  fn: String;
+  c: TRGBA;
 Begin
   If Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) Then Begin
     b := TBitmap.Create;
     b.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
     // TODO: Paste secondary Color as Transparent ..
     // TODO: Remove, only for testing, paste content from Clipboard *g*
+    fn := fImage.Filename;
     fImage.SetSize(b.Width, b.Height);
+    Fimage.Filename := fn;
     For i := 0 To b.Width - 1 Do Begin
       For j := 0 To b.Height - 1 Do Begin
-        fImage.SetColorAt(i, j, fAktualLayer, ColorToRGBA(b.Canvas.Pixels[i, j], 0));
+        // TODO: Nur machen, wenn der SelectMode auf Transparent gestellt ist
+        c := ColorToRGBA(b.Canvas.Pixels[i, j], 0);
+        If (c.r = fCursor.RightColor.r) And
+          (c.g = fCursor.RightColor.g) And
+          (c.b = fCursor.RightColor.b) Then Begin
+          c := uimage.TRANSPARENT;
+        End;
+        fImage.SetColorAt(i, j, fAktualLayer, c);
       End;
     End;
     b.free;
@@ -992,6 +979,110 @@ Begin
     End;
   End;
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
+End;
+
+Procedure TPixelEditor.DoCursorOnPixel(x, y: integer; Callback: TCursorCallback);
+Var
+  PointList: Array[0..1023] Of TPoint;
+  PointListCnt: Integer;
+
+  Procedure AddCoord(i, j: integer);
+  Var
+    a: Integer;
+    p: TPoint;
+  Begin
+    p := point(i, j);
+    For a := 0 To PointListCnt - 1 Do Begin
+      If PointList[a] = p Then Begin
+        exit;
+      End;
+    End;
+    PointList[PointListCnt] := p;
+    inc(PointListCnt);
+  End;
+
+  Procedure AddCursorSize(i, j: integer);
+  Var
+    a, b: Integer;
+  Begin
+    Case fCursor.Size Of
+      cs1_1: AddCoord(i, j);
+      cs3_3: Begin
+          For a := -1 To 1 Do Begin
+            For b := -1 To 1 Do Begin
+              AddCoord(i + a, j + b);
+            End;
+          End;
+        End;
+      cs5_5: Begin
+          For a := -2 To 2 Do Begin
+            For b := -2 To 2 Do Begin
+              AddCoord(i + a, j + b);
+            End;
+          End;
+        End;
+      cs7_7: Begin
+          For a := -3 To 3 Do Begin
+            For b := -3 To 3 Do Begin
+              AddCoord(i + a, j + b);
+            End;
+          End;
+        End;
+    End;
+  End;
+
+Var
+  i, j: integer;
+Begin
+  // TODO: Diese Listen sind im Prinzip Statisch = 24 Stück und Gut -> Die sollten beim Programmstart 1 mal berechnet und dann gepuffert werden !
+  PointListCnt := 0;
+  Case fCursor.shape Of
+    csDot: AddCursorSize(x, y);
+    csSmallPoint: Begin
+        For i := 0 To 1 Do Begin
+          For j := 0 To 3 Do Begin
+            AddCursorSize(x + i, y + j - 2);
+            AddCursorSize(x + j - 1, y - i);
+          End;
+        End;
+      End;
+    csBigPoint: Begin
+        For i := 0 To 7 Do Begin
+          For j := 0 To 3 Do Begin
+            AddCursorSize(x + i - 3, y + j - 2);
+            AddCursorSize(x + j - 1, y + i - 4);
+          End;
+        End;
+        AddCursorSize(x - 2, y - 3);
+        AddCursorSize(x + 3, y - 3);
+        AddCursorSize(x - 2, y + 2);
+        AddCursorSize(x + 3, y + 2);
+      End;
+    csSmallQuad: Begin
+        For i := 0 To 1 Do Begin
+          For j := 0 To 1 Do Begin
+            AddCursorSize(x + i, y - j);
+          End;
+        End;
+      End;
+    csQuad: Begin
+        For i := -2 To 2 Do Begin
+          For j := -2 To 2 Do Begin
+            AddCursorSize(x + i, y - j);
+          End;
+        End;
+      End;
+    csBigQuad: Begin
+        For i := -3 To 3 Do Begin
+          For j := -3 To 3 Do Begin
+            AddCursorSize(x + i, y - j);
+          End;
+        End;
+      End;
+  End;
+  For i := 0 To PointListCnt - 1 Do Begin
+    Callback(PointList[i].X, PointList[i].y);
+  End;
 End;
 
 Procedure TPixelEditor.LoadImage(Const aFilename: String);

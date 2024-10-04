@@ -10,7 +10,6 @@ Uses
 
 Type
 
-  TBevelStyle = ExtCtrls.TBevelStyle;
   TColorEvent = Procedure(Const Color: TRGBA) Of Object;
 
   { TOpenGL_Bevel }
@@ -1250,4 +1249,5 @@ Begin
 End;
 
 End.
+
 

@@ -24,7 +24,7 @@ Uses
   Forms, imagesforlazarus, Unit1, upixeleditor, uopengl_widgetset,
   uOpenGL_ASCII_Font, uopengl_font_common, uopengl_graphikengine,
   uopengl_truetype_font, uvectormath, ueventer, ufifo, ugraphics,
-  upixeleditorlcl, uimage, unit2, unit3, unit4;
+  upixeleditorlcl, uimage, unit2, unit3, unit4, upixeleditor_types;
 
 Begin
   Application.Initialize;
