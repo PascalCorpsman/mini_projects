@@ -498,6 +498,13 @@ ColorPicDialog.Top := 131;
 ColorPicDialog.OnSetColor := @SetLeftColor;
 AddElement(ColorPicDialog);
 
+ColorPreview := TOpenGL_ForeBackGroundColorBox.Create(Owner);
+ColorPreview.left := 76;
+ColorPreview.Top := 428;
+ColorPreview.Width := 49;
+ColorPreview.Height := 49;
+AddElement(ColorPreview);
+
 ColorTransparent := TOpenGL_TransparentColorBox.Create(Owner);
 ColorTransparent.Left := 128;
 ColorTransparent.Top := 428;
@@ -509,6 +516,7 @@ ColorTransparent.Height := 16;
 ColorTransparent.OnClick := @OnSelectTransparentColorClick;
 ColorTransparent.LoweredColor := rgba(0, 0, 0, 0);
 ColorTransparent.RaisedColor := rgba(0, 0, 0, 0);
+ColorTransparent.OnMouseUp := @OnColorMouseUp;
 AddElement(ColorTransparent);
 
 Color1 := TOpenGL_ColorBox.Create(Owner);
@@ -521,6 +529,7 @@ Color1.Color := rgba(0, 102, 153, 0);
 Color1.DefaultColor := rgba(0, 102, 153, 0);
 Color1.LoweredColor := rgba(0, 0, 0, 0);
 Color1.RaisedColor := rgba(0, 0, 0, 0);
+Color1.OnMouseUp := @OnColorMouseUp;
 AddElement(Color1);
 
 Color2 := TOpenGL_ColorBox.Create(Owner);
@@ -533,6 +542,7 @@ Color2.Color := rgba(51, 51, 255, 0);
 Color2.DefaultColor := rgba(51, 51, 255, 0);
 Color2.LoweredColor := rgba(0, 0, 0, 0);
 Color2.RaisedColor := rgba(0, 0, 0, 0);
+Color2.OnMouseUp := @OnColorMouseUp;
 AddElement(Color2);
 
 Color3 := TOpenGL_ColorBox.Create(Owner);
@@ -545,6 +555,7 @@ Color3.Color := rgba(204, 0, 204, 0);
 Color3.DefaultColor := rgba(204, 0, 204, 0);
 Color3.LoweredColor := rgba(0, 0, 0, 0);
 Color3.RaisedColor := rgba(0, 0, 0, 0);
+Color3.OnMouseUp := @OnColorMouseUp;
 AddElement(Color3);
 
 Color4 := TOpenGL_ColorBox.Create(Owner);
@@ -557,6 +568,7 @@ Color4.Color := rgba(204, 0, 0, 0);
 Color4.DefaultColor := rgba(204, 0, 0, 0);
 Color4.LoweredColor := rgba(0, 0, 0, 0);
 Color4.RaisedColor := rgba(0, 0, 0, 0);
+Color4.OnMouseUp := @OnColorMouseUp;
 AddElement(Color4);
 
 Color5 := TOpenGL_ColorBox.Create(Owner);
@@ -569,6 +581,7 @@ Color5.Color := rgba(204, 153, 0, 0);
 Color5.DefaultColor := rgba(204, 153, 0, 0);
 Color5.LoweredColor := rgba(0, 0, 0, 0);
 Color5.RaisedColor := rgba(0, 0, 0, 0);
+Color5.OnMouseUp := @OnColorMouseUp;
 AddElement(Color5);
 
 Color6 := TOpenGL_ColorBox.Create(Owner);
@@ -581,6 +594,7 @@ Color6.Color := rgba(0, 153, 51, 0);
 Color6.DefaultColor := rgba(0, 153, 51, 0);
 Color6.LoweredColor := rgba(0, 0, 0, 0);
 Color6.RaisedColor := rgba(0, 0, 0, 0);
+Color6.OnMouseUp := @OnColorMouseUp;
 AddElement(Color6);
 
 Color7 := TOpenGL_ColorBox.Create(Owner);
@@ -593,6 +607,7 @@ Color7.Color := rgba(255, 255, 255, 0);
 Color7.DefaultColor := rgba(255, 255, 255, 0);
 Color7.LoweredColor := rgba(0, 0, 0, 0);
 Color7.RaisedColor := rgba(0, 0, 0, 0);
+Color7.OnMouseUp := @OnColorMouseUp;
 AddElement(Color7);
 
 Color8 := TOpenGL_ColorBox.Create(Owner);
@@ -605,6 +620,7 @@ Color8.Color := rgba(0, 0, 0, 0);
 Color8.DefaultColor := rgba(0, 0, 0, 0);
 Color8.LoweredColor := rgba(0, 0, 0, 0);
 Color8.RaisedColor := rgba(0, 0, 0, 0);
+Color8.OnMouseUp := @OnColorMouseUp;
 AddElement(Color8);
 
 AktColorInfoLabel := TOpenGl_Label.Create(owner, '');
@@ -638,6 +654,4 @@ SelectLayerButton.Width := 32;
 SelectLayerButton.Height := 32;
 SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
 AddElement(SelectLayerButton);
-
-
 

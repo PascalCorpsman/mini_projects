@@ -153,6 +153,7 @@ Type
     // Menüleiste unten
     ColorPicDialog: TOpenGL_ColorPicDialog;
 
+    ColorPreview: TOpenGL_ForeBackGroundColorBox;
     ColorTransparent: TOpenGL_TransparentColorBox;
     Color1: TOpenGL_ColorBox;
     Color2: TOpenGL_ColorBox;
@@ -208,6 +209,7 @@ Type
 
     Procedure OnSelectTransparentColorClick(Sender: TObject);
     Procedure OnColorClick(Sender: TObject);
+    Procedure OnColorMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
     Procedure OnSelectLayerButtonClick(Sender: TObject);
 
@@ -669,6 +671,15 @@ Begin
   End;
 End;
 
+Procedure TPixelEditor.OnColorMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+Begin
+  If button = mbRight Then Begin
+    ColorPicDialog.Visible := false;
+    ColorPreview.BackColor := (sender As TOpenGL_ColorBox).Color;
+  End;
+End;
+
 Procedure TPixelEditor.RenderLCL;
 Var
   i: integer;
@@ -814,6 +825,7 @@ End;
 
 Procedure TPixelEditor.SetLeftColor(Const c: TOpenGL_ColorBox);
 Begin
+  ColorPreview.FrontColor := c.Color;
   fCursor.LeftColor := c;
   If c.Color.a = 0 Then Begin
     AktColorInfoLabel.caption := format('%d/%d/%d', [c.color.r, c.color.g, c.color.b]);

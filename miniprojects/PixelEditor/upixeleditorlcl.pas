@@ -79,7 +79,21 @@ Type
 
     Property OnClick;
     Property OnDblClick;
+    Property OnMouseUp;
+    Property OnMouseDown;
 
+    Constructor Create(Owner: TOpenGLControl); override;
+  End;
+
+  { TOpenGL_ForeBackGroundColorBox }
+
+  TOpenGL_ForeBackGroundColorBox = Class(TOpenGl_BaseClass)
+  private
+  protected
+    Procedure OnRender(); override;
+  public
+    FrontColor: TRGBA;
+    BackColor: TRGBA;
     Constructor Create(Owner: TOpenGLControl); override;
   End;
 
@@ -474,6 +488,70 @@ Begin
   fColor := RGBA(0, 0, 0, 0);
   RaisedColor := RGBA($FF, $FF, 0, 0);
   LoweredColor := RGBA(0, 0, 0, 0);
+End;
+
+{ TOpenGL_ForeBackGroundColorBox }
+
+Procedure TOpenGL_ForeBackGroundColorBox.OnRender();
+Var
+  B1, B2: integer;
+Begin
+  // TODO: Transparent Unterstützen !!
+  If Not Visible Then exit;
+  glBindTexture(GL_TEXTURE_2D, 0);
+  B1 := width Div 7; // Durch Probieren ermittelt ;)
+  B2 := 2 * b1;
+  glPushMatrix;
+  glTranslatef(Left, Top, 0);
+  glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
+  // Die Hintergrundfarbe
+  glColor3ub(192, 192, 192);
+  glBegin(GL_LINE_LOOP);
+  glVertex2f(B2, B2);
+  glVertex2f(Width - B1, B2);
+  glVertex2f(Width - B1, Height - B1);
+  glVertex2f(B2, Height - B1);
+  glend;
+  glColor3ub(BackColor.r, BackColor.g, BackColor.b);
+  glBegin(GL_QUADS);
+  glVertex2f(B2, B2);
+  glVertex2f(Width - B1, B2);
+  glVertex2f(Width - B1, Height - B1);
+  glVertex2f(B2, Height - B1);
+  glend;
+  // Die Fordergrundfarbe
+  glTranslatef(0, 0, 0.01);
+  glColor3ub(192, 192, 192);
+  glBegin(GL_LINE_LOOP);
+  glVertex2f(B1, B1);
+  glVertex2f(Width - B2, B1);
+  glVertex2f(Width - B2, Height - B2);
+  glVertex2f(B1, Height - B2);
+  glend;
+  glColor3ub(FrontColor.r, FrontColor.g, FrontColor.b);
+  glBegin(GL_QUADS);
+  glVertex2f(B1, B1);
+  glVertex2f(Width - B2, B1);
+  glVertex2f(Width - B2, Height - B2);
+  glVertex2f(B1, Height - B2);
+  glend;
+  // Der Rahmen
+  glColor3ub(192, 192, 192);
+  glBegin(GL_LINE_LOOP);
+  glVertex2f(0, 1);
+  glVertex2f(Width - 1, 1);
+  glVertex2f(Width - 1, Height);
+  glVertex2f(0, Height);
+  glend;
+  glLineWidth(1);
+  glPopMatrix;
+End;
+
+Constructor TOpenGL_ForeBackGroundColorBox.Create(Owner: TOpenGLControl);
+Begin
+  Inherited Create(Owner);
+  FrontColor := RGBA(0, 0, 0, 0);
+  BackColor := RGBA(1, 1, 1, 0);
 End;
 
 { TOpenGL_TransparentColorBox }
