@@ -114,7 +114,8 @@ Type
     RightColor: TRGBA;
     LastTool: TTool;
     Tool: TTool;
-    PixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln
+    PixelDownPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln, aktualisiert durch MouseDown, gelöscht durch MouseUp
+    PixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln, aktualisiert durch MouseMove und MouseDown
     Pos: Tpoint; // "Raw" Position auf dem Screen
     Shape: TCursorShape;
     Size: TCursorSize;
@@ -129,11 +130,11 @@ Type
     GridAboveImage: Boolean;
   End;
 
-Procedure Nop();
+Procedure Nop(); // Nur zum Debuggen ;)
 
-// Faltet die CursorGröße und Form mit der Aktuellen Koordinate und Ruft Callback 
+// Faltet die CursorGröße und Form mit der Aktuellen Koordinate und Ruft Callback
 // für jede sich ergebende Koordinate auf (alles in Bild Pixel Koordinaten)
-Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback); 
+Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback);
 
 // TODO: if in some future the "ImplicitFunctionSpecialization" switch is enabled, all this helper can be deleted !
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;

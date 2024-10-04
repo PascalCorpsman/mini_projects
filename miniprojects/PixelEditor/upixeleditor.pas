@@ -165,6 +165,7 @@ Type
 
     Procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     Procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    Procedure OpenGLControlMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
     Procedure OpenGLControlMouseWheelDown(Sender: TObject; Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
     Procedure OpenGLControlMouseWheelUp(Sender: TObject; Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
@@ -173,8 +174,6 @@ Type
     Procedure RenderImage;
     Procedure RenderLCL;
     Procedure RenderCursor;
-
-    Procedure AddElement(Const value: TOpenGL_BaseClass);
 
     Procedure NewImage(aWidth, aHeight: Integer);
     Procedure SetZoom(ZoomValue: integer);
@@ -377,6 +376,7 @@ Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
 Begin
   fScrollInfo.ScrollPos := point(x, y);
   fCursor.PixelPos := CursorToPixel(x, y);
+  fCursor.PixelDownPos := fCursor.PixelPos;
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
@@ -413,6 +413,12 @@ Begin
   End;
   fScrollInfo.ScrollPos := point(x, y);
   UpdateInfoLabel();
+End;
+
+Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+Begin
+  fCursor.PixelDownPos := point(-1, -1);
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseWheelDown(Sender: TObject;
@@ -713,12 +719,6 @@ Begin
   glPopMatrix;
 End;
 
-Procedure TPixelEditor.AddElement(Const value: TOpenGL_BaseClass);
-Begin
-  setlength(FElements, high(FElements) + 2);
-  FElements[high(FElements)] := value;
-End;
-
 Procedure TPixelEditor.NewImage(aWidth, aHeight: Integer);
 Begin
   // Reset aller Curser
@@ -729,6 +729,10 @@ Begin
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
   ColorPicDialog.Visible := false;
+
+  fCursor.PixelPos.x := -1;
+  fCursor.PixelDownPos.x := -1;
+  fCursor.Pos.x := -1;
   CheckScrollBorders();
 End;
 
@@ -1076,6 +1080,12 @@ Begin
 End;
 
 Procedure TPixelEditor.MakeCurrent(Owner: TOpenGLControl);
+  Procedure AddElement(Const value: TOpenGL_BaseClass);
+  Begin
+    setlength(FElements, high(FElements) + 2);
+    FElements[high(FElements)] := value;
+  End;
+
 Var
   image: Integer;
 Begin
@@ -1088,6 +1098,7 @@ Begin
   owner.OnMouseWheelup := @OpenGLControlMouseWheelUp;
   owner.OnMouseDown := @OpenGLControlMouseDown;
   owner.OnMouseMove := @OpenGLControlMouseMove;
+  owner.OnMouseUp := @OpenGLControlMouseUp;
   owner.OnKeyDown := @OpenGLControlKeyDown;
 
 {$I upixeleditor_constructor.inc}
