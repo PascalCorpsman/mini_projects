@@ -15,3 +15,5 @@ This is the usermanual for Pixeleditor, mainly to show the "hidden" features lik
 | CTRL + N | New image
 | CTRL + O | Options
 | CTRL + S | Save
+| CTRL + V | paste image from clipboard
+| SHIFT | during "line" feature, orientate the line to the next axis
