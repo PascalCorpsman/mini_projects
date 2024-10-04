@@ -286,8 +286,8 @@ AddElement(EraserButton);
 PencilButton := TOpenGL_Bevel.Create(Owner);
 PencilButton.Left := 3;
 PencilButton.Top := 184;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//PencilButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Penciltool.bmp', Fuchsia, smClamp);
+PencilButton.SetImage(image);
 PencilButton.Transparent := true;
 PencilButton.Width := 32;
 PencilButton.Height := 32;
@@ -363,8 +363,8 @@ AddElement(CursorSquareShape3);
 LineButton := TOpenGL_Bevel.Create(Owner);
 LineButton.Left := 3;
 LineButton.Top := 219;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//LineButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Linetool.bmp', Fuchsia, smClamp);
+LineButton.SetImage(image);
 LineButton.Transparent := true;
 LineButton.Width := 32;
 LineButton.Height := 32;
@@ -654,4 +654,8 @@ SelectLayerButton.Width := 32;
 SelectLayerButton.Height := 32;
 SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
 AddElement(SelectLayerButton);
+
+
+
+
 
