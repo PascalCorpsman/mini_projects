@@ -186,7 +186,10 @@ Type
     Procedure LoadSettings;
     Procedure PasteImageFromClipboard;
     Procedure SaveImage(Const aFilename: String);
+    Procedure CursorToPixelOperation(Callback: TPixelCallback);
 
+    Procedure SetImagePixelByCursor(i, j: integer);
+    Procedure SetOpenGLPixelByCursor(i, j: integer);
   public
 
     Property Changed: Boolean read getChanged;
@@ -344,10 +347,10 @@ Begin
   CurserSize2.Style := ifthen(sender = CurserSize2, bsRaised, bsLowered);
   CurserSize3.Style := ifthen(sender = CurserSize3, bsRaised, bsLowered);
   CurserSize4.Style := ifthen(sender = CurserSize4, bsRaised, bsLowered);
-  fCursor.Size := ifthen(sender = CurserSize1, cs1_1, fCursor.Size);
-  fCursor.Size := ifthen(sender = CurserSize2, cs3_3, fCursor.Size);
-  fCursor.Size := ifthen(sender = CurserSize3, cs5_5, fCursor.Size);
-  fCursor.Size := ifthen(sender = CurserSize4, cs7_7, fCursor.Size);
+  fCursor.Compact.Size := ifthen(sender = CurserSize1, cs1_1, fCursor.Compact.Size);
+  fCursor.Compact.Size := ifthen(sender = CurserSize2, cs3_3, fCursor.Compact.Size);
+  fCursor.Compact.Size := ifthen(sender = CurserSize3, cs5_5, fCursor.Compact.Size);
+  fCursor.Compact.Size := ifthen(sender = CurserSize4, cs7_7, fCursor.Compact.Size);
 End;
 
 Procedure TPixelEditor.OnSelectLayerButtonClick(Sender: TObject);
@@ -374,23 +377,17 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-
-  Procedure SetColorAt(i, j: integer);
-  Begin
-    fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
-  End;
-
 Begin
   fScrollInfo.ScrollPos := point(x, y);
-  fCursor.PixelPos := CursorToPixel(x, y);
-  fCursor.PixelDownPos := fCursor.PixelPos;
+  fCursor.Compact.PixelPos := CursorToPixel(x, y);
+  fCursor.PixelDownPos := fCursor.Compact.PixelPos;
   fCursor.Pos := point(x, y);
   fCursor.LeftMouseButton := ssleft In Shift;
   fCursor.RightMouseButton := ssRight In Shift;
   If ssLeft In shift Then Begin
-    If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
+    If (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
       Case fCursor.Tool Of
-        tPen: DoCursorOnPixel(fCursor, @SetColorAt);
+        tPen: CursorToPixelOperation(@SetImagePixelByCursor);
         tLine: Begin
             // Nichts, wird im Mouse Up gemacht
           End;
@@ -404,19 +401,15 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
-  Procedure SetColorAt(i, j: integer);
-  Begin
-    fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
-  End;
 Var
   dx, dy: integer;
 Begin
-  fCursor.PixelPos := CursorToPixel(x, y);
+  fCursor.Compact.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
-    If (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
+    If (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
       Case fCursor.Tool Of
-        tPen: DoCursorOnPixel(fCursor, @SetColorAt);
+        tPen: CursorToPixelOperation(@SetImagePixelByCursor); //
         tLine: Begin
             // Nichts, wird im Mouse Up gemacht
           End;
@@ -436,41 +429,11 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-
-Var
-  dummyCursor: TCursor;
-
-  Procedure SetColorAt(i, j: integer);
-  Begin
-    fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
-  End;
-
-  Procedure DrawLineCallback(x, y: integer);
-  Begin
-    dummyCursor.PixelPos := point(x, y);
-    DoCursorOnPixel(dummyCursor, @SetColorAt);
-  End;
-Var
-  p: TPoint;
 Begin
-  fCursor.PixelPos := CursorToPixel(x, y);
-  If (button = mbLeft) And (fCursor.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-    dummyCursor := fCursor;
+  fCursor.Compact.PixelPos := CursorToPixel(x, y);
+  If (button = mbLeft) And (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
     Case fCursor.Tool Of
-      tPen: DoCursorOnPixel(fCursor, @SetColorAt);
-      tLine: Begin
-          If fCursor.PixelDownPos.x <> -1 Then Begin
-            If fCursor.Shift Then Begin
-              p := fCursor.PixelDownPos - fCursor.PixelPos;
-              p := MovePointToNextMainAxis(p);
-              p := p + fCursor.PixelDownPos;
-              Bresenham_Line(fCursor.PixelDownPos, p, @DrawLineCallback);
-            End
-            Else Begin
-              Bresenham_Line(fCursor.PixelPos, fCursor.PixelDownPos, @DrawLineCallback);
-            End;
-          End;
-        End;
+      tPen, tLine, tRectangle: CursorToPixelOperation(@SetImagePixelByCursor);
     End;
   End;
   fCursor.PixelDownPos := point(-1, -1);
@@ -582,12 +545,12 @@ Begin
   CursorSquareShape1.Style := ifthen(sender = CursorSquareShape1, bsRaised, bsLowered);
   CursorSquareShape2.Style := ifthen(sender = CursorSquareShape2, bsRaised, bsLowered);
   CursorSquareShape3.Style := ifthen(sender = CursorSquareShape3, bsRaised, bsLowered);
-  fCursor.Shape := ifthen(sender = CursorRoundShape1, csDot, fCursor.Shape);
-  fCursor.Shape := ifthen(sender = CursorRoundShape2, csSmallPoint, fCursor.Shape);
-  fCursor.Shape := ifthen(sender = CursorRoundShape3, csBigPoint, fCursor.Shape);
-  fCursor.Shape := ifthen(sender = CursorSquareShape1, csSmallQuad, fCursor.Shape);
-  fCursor.Shape := ifthen(sender = CursorSquareShape2, csQuad, fCursor.Shape);
-  fCursor.Shape := ifthen(sender = CursorSquareShape3, csBigQuad, fCursor.Shape);
+  fCursor.Compact.Shape := ifthen(sender = CursorRoundShape1, csDot, fCursor.Compact.Shape);
+  fCursor.Compact.Shape := ifthen(sender = CursorRoundShape2, csSmallPoint, fCursor.Compact.Shape);
+  fCursor.Compact.Shape := ifthen(sender = CursorRoundShape3, csBigPoint, fCursor.Compact.Shape);
+  fCursor.Compact.Shape := ifthen(sender = CursorSquareShape1, csSmallQuad, fCursor.Compact.Shape);
+  fCursor.Compact.Shape := ifthen(sender = CursorSquareShape2, csQuad, fCursor.Compact.Shape);
+  fCursor.Compact.Shape := ifthen(sender = CursorSquareShape3, csBigQuad, fCursor.Compact.Shape);
 End;
 
 Procedure TPixelEditor.OnLineButtonClick(Sender: TObject);
@@ -730,27 +693,87 @@ Begin
   glPopMatrix;
 End;
 
+Procedure TPixelEditor.CursorToPixelOperation(Callback: TPixelCallback);
+Var
+  p: TPoint;
+  Dummy: TCompactCursor;
+  i, j: Integer;
+Begin
+  (*
+   * Die nachfolgenden Algorithmen benötigen sehr häufig, dass man sich auf den "Ursprung" Bezieht
+   * -> aus diesem Grund wird ein "Künstlicher" Cursor verwendet der immer im Ursprung sitzt
+   *    beim Aufruf der Callback, wird dann die Aptuelle Position als Offset wieder mit rein gerechnet.
+   *)
+  Case fCursor.Tool Of
+    tPen: FoldCursorOnPixel(fCursor.Compact, Callback);
+    tLine: Begin
+        If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
+          // DownPos und Aktuelle Position müssen für die "Projektion" getauscht werden !
+          Dummy := fCursor.Compact;
+          dummy.PixelPos := fCursor.PixelDownPos;
+          p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+          If fCursor.Shift Then Begin
+            // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
+            p := MovePointToNextMainAxis(p);
+          End;
+          p := p + fCursor.PixelDownPos;
+          Bresenham_Line(dummy, p, Callback);
+        End
+        Else Begin
+          If fCursor.Compact.PixelPos.X <> -1 Then Begin
+            FoldCursorOnPixel(fCursor.Compact, Callback);
+          End;
+        End;
+      End;
+    tEllipse: Begin
+
+      End;
+    tRectangle: Begin
+        If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
+          Dummy := fCursor.Compact;
+          dummy.PixelPos := fCursor.PixelDownPos;
+          p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+          If fCursor.Shift Then Begin
+            // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
+            p := AdjustToMaxAbsValue(p);
+          End;
+          p := p + fCursor.PixelDownPos;
+          If OutlineButton.Style = bsLowered Then Begin
+            For i := min(p.X, dummy.PixelPos.x) To max(p.X, dummy.PixelPos.x) Do Begin
+              For j := min(p.Y, dummy.PixelPos.y) To max(p.Y, dummy.PixelPos.y) Do Begin
+                Callback(i, j);
+              End;
+            End;
+          End
+          Else Begin
+            // TODO: bei negativ ist da ein off by one drin
+            RectangleOutline(dummy, p, Callback);
+          End;
+        End
+        Else Begin
+          If fCursor.Compact.PixelPos.X <> -1 Then Begin
+            FoldCursorOnPixel(fCursor.Compact, Callback);
+          End;
+        End;
+      End;
+  End;
+End;
+
+Procedure TPixelEditor.SetImagePixelByCursor(i, j: integer);
+Begin
+  fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
+End;
+
+Procedure TPixelEditor.SetOpenGLPixelByCursor(i, j: integer);
+Begin
+  glVertex2f(i, j);
+End;
+
 Procedure TPixelEditor.RenderCursor;
 Var
-  dummyCursor: TCursor;
-
-  Procedure SetVertex(x, y: integer);
-  Begin
-    glVertex2f(x, y);
-  End;
-
-  Procedure DrawLineCallback(x, y: integer);
-  Begin
-    dummyCursor.PixelPos := point(x, y);
-    DoCursorOnPixel(dummyCursor, @SetVertex);
-  End;
-
-Var
   c: TRGBA;
-  i, j: integer;
-  p: TPoint;
 Begin
-  If fCursor.PixelPos.x = -1 Then exit;
+  If fCursor.compact.PixelPos.x = -1 Then exit;
   glPushMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerCursor); // Anfahren der Linken Oberen Ecke
   glColor4f(1, 1, 1, 1);
@@ -758,74 +781,13 @@ Begin
   // Zoom und Verzerrung rausrechnen so dass 1 OpenGL Pixel = 1 Bild Pixel ist
   glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
   // Anfahren des Cursor Mittelpunkts
-  glTranslatef(fCursor.PixelPos.x + 0.5, fCursor.PixelPos.y + 0.5, 0);
+  glTranslatef(0.5, 0.5, 0);
   glPointSize(fZoom / 100);
   c := fCursor.LeftColor.Color;
   glColor3ub(c.r, c.g, c.b);
-  dummyCursor := fCursor;
-  dummyCursor.PixelPos := Point(0, 0);
-  Case fCursor.Tool Of
-    tPen: Begin
-        glBegin(GL_POINTS);
-        DoCursorOnPixel(dummyCursor, @SetVertex);
-        glEnd;
-      End;
-    tLine: Begin
-        If fCursor.PixelDownPos.x <> -1 Then Begin
-          If fCursor.LeftMouseButton Then Begin
-            p := fCursor.PixelDownPos - fCursor.PixelPos;
-            If fCursor.Shift Then Begin
-              // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
-              glTranslatef(fCursor.PixelDownPos.x - fCursor.PixelPos.x, fCursor.PixelDownPos.y - fCursor.PixelPos.y, 0);
-              p := MovePointToNextMainAxis(p);
-            End;
-            glBegin(GL_POINTS);
-            Bresenham_Line(point(0, 0), p, @DrawLineCallback);
-            glEnd;
-          End;
-        End
-        Else Begin
-          If fCursor.PixelPos.X <> -1 Then Begin
-            glBegin(GL_POINTS);
-            DoCursorOnPixel(dummyCursor, @SetVertex);
-            glEnd;
-          End;
-        End;
-      End;
-    tRectangle: Begin
-        If fCursor.PixelDownPos.x <> -1 Then Begin
-          If fCursor.LeftMouseButton Then Begin
-            p := fCursor.PixelDownPos - fCursor.PixelPos;
-            If fCursor.Shift Then Begin
-              // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
-              glTranslatef(fCursor.PixelDownPos.x - fCursor.PixelPos.x, fCursor.PixelDownPos.y - fCursor.PixelPos.y, 0);
-              p := AdjustToMaxAbsValue(p.x, p.y);
-              p.x := -p.x;
-              p.Y := -p.Y;
-            End;
-            glBegin(GL_POINTS);
-            If OutlineButton.Style = bsLowered Then Begin
-              For i := min(p.X, 0) To max(p.X, 0) Do Begin
-                For j := min(p.Y, 0) To max(p.Y, 0) Do Begin
-                  glVertex2f(i, j);
-                End;
-              End;
-            End
-            Else Begin
-              RectangleOutline(point(0, 0), p, @DrawLineCallback);
-            End;
-            glEnd;
-          End;
-        End
-        Else Begin
-          If fCursor.PixelPos.X <> -1 Then Begin
-            glBegin(GL_POINTS);
-            DoCursorOnPixel(dummyCursor, @SetVertex);
-            glEnd;
-          End;
-        End;
-      End;
-  End;
+  glBegin(GL_POINTS);
+  CursorToPixelOperation(@SetOpenGLPixelByCursor);
+  glEnd;
   glPointSize(1);
   glPopMatrix;
 End;
@@ -841,7 +803,7 @@ Begin
   fScrollInfo.GlobalYOffset := 0;
   ColorPicDialog.Visible := false;
 
-  fCursor.PixelPos.x := -1;
+  fCursor.compact.PixelPos.x := -1;
   fCursor.PixelDownPos.x := -1;
   fCursor.Pos.x := -1;
   fCursor.Shift := false;
@@ -889,7 +851,7 @@ Begin
   // Let the scrollbars do their constraint thing
   CheckScrollBorders();
   // Nachziehen des Cursors sonst springt der beim Zoomen
-  fCursor.PixelPos := CursorToPixel(fCursor.Pos.x, fCursor.Pos.y);
+  fCursor.compact.PixelPos := CursorToPixel(fCursor.Pos.x, fCursor.Pos.y);
   UpdateInfoLabel;
 End;
 
@@ -938,7 +900,7 @@ Procedure TPixelEditor.UpdateInfoLabel;
 Var
   c: TRGBA;
 Begin
-  If (fCursor.PixelPos.x = -1) Or // Braucht es eigentlich nicht, aber schaden tut's auch nicht ..
+  If (fCursor.compact.PixelPos.x = -1) Or // Braucht es eigentlich nicht, aber schaden tut's auch nicht ..
   (fCursor.Pos.x < WindowLeft * FOwner.Width / ScreenWidth) Or
     (fCursor.Pos.y < WindowTop * fowner.Height / ScreenHeight) Or
     (fCursor.Pos.x - WindowLeft * FOwner.Width / ScreenWidth >= fImage.Width * fZoom Div 100) Or
@@ -950,8 +912,8 @@ Begin
     InfoDetailLabel.Caption := '';
   End
   Else Begin
-    c := fImage.GetColorAt(fCursor.PixelPos.x, fCursor.PixelPos.y, fAktualLayer);
-    InfoLabel.caption := format('%d,%d', [fCursor.PixelPos.x, fCursor.PixelPos.y]);
+    c := fImage.GetColorAt(fCursor.compact.PixelPos.x, fCursor.compact.PixelPos.y, fAktualLayer);
+    InfoLabel.caption := format('%d,%d', [fCursor.compact.PixelPos.x, fCursor.compact.PixelPos.y]);
     If c.a = 0 Then Begin
       InfoLabel.caption := InfoLabel.caption + LineEnding + format('%d/%d/%d', [c.r, c.g, c.b]);
     End;
@@ -1101,7 +1063,6 @@ Begin
   End;
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
 End;
-
 
 Procedure TPixelEditor.LoadImage(Const aFilename: String);
 Var

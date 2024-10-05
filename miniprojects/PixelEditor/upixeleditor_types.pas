@@ -41,7 +41,7 @@ Const
 
 Type
 
-  TCursorCallback = Procedure(x, y: integer) Is nested;
+  TPixelCallback = Procedure(X, Y: integer) Of Object;
 
   TCursorShape = (// . = Pixel überdeckt, X = 0/0 - Koordinate
     // X
@@ -109,16 +109,21 @@ Type
     tBrighten, tDarken,
     tEraser, tPen, tLine, tEllipse, tRectangle, tMirror, tBucket, tPincette);
 
+  TCompactCursor = Record // Alles was an Faltungsroutinen geht
+    PixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln, aktualisiert durch MouseMove und MouseDown
+    Shape: TCursorShape;
+    Size: TCursorSize;
+  End;
+
   TCursor = Record
+    Compact: TCompactCursor;
+    // Alles was der Cursor noch mehr braucht
     LeftColor: TOpenGL_ColorBox;
     RightColor: TRGBA;
     LastTool: TTool;
     Tool: TTool;
     PixelDownPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln, aktualisiert durch MouseDown, gelöscht durch MouseUp
-    PixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln, aktualisiert durch MouseMove und MouseDown
     Pos: Tpoint; // "Raw" Position auf dem Screen
-    Shape: TCursorShape;
-    Size: TCursorSize;
     Shift: Boolean; // True wenn die Taste "Shift" gedrückt ist.
     Outline: Boolean; // True nut Outlines, sonst gefüllt
     LeftMouseButton: Boolean;
@@ -132,18 +137,23 @@ Type
 
   TSettings = Record
     GridAboveImage: Boolean;
+
+    // TODO: Hier noch weitere Programmsettings einfügen ;)
+
   End;
 
 Procedure Nop(); // Nur zum Debuggen ;)
 
 // Faltet die CursorGröße und Form mit der Aktuellen Koordinate und Ruft Callback
 // für jede sich ergebende Koordinate auf (alles in Bild Pixel Koordinaten)
-Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback);
-Procedure Bresenham_Line(Const aFrom, aTo: TPoint; Callback: TCursorCallback);
-Procedure RectangleOutline(Const P1, P2: TPoint; Callback: TCursorCallback);
+Procedure FoldCursorOnPixel(Const Cursor: TCompactCursor; Callback: TPixelCallback);
+
+// Zeichnet eine Linie von Cursor nach aTo und ruft für jeden Pixel FoldCursorOnPixel mit callback auf
+Procedure Bresenham_Line(Cursor: TCompactCursor; aTo: TPoint; Callback: TPixelCallback);
+Procedure RectangleOutline(Cursor: TCompactCursor; P2: TPoint; Callback: TPixelCallback);
 
 Function MovePointToNextMainAxis(P: TPoint): TPoint; // Projiziert P auf die nächste Hauptachse oder Hauptdiagonale
-Function AdjustToMaxAbsValue(a, b: Integer): TPoint;
+Function AdjustToMaxAbsValue(P: Tpoint): TPoint;
 
 // TODO: if in some future the "ImplicitFunctionSpecialization" switch is enabled, all this helper can be deleted !
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
@@ -162,24 +172,24 @@ Begin
 
 End;
 
-Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback);
+Procedure FoldCursorOnPixel(Const Cursor: TCompactCursor; Callback: TPixelCallback);
 Var
   i: Integer;
 Begin
-  For i := 0 To high(CursorPixelPos[fCursor.Size, fCursor.Shape]) Do Begin
+  For i := 0 To high(CursorPixelPos[Cursor.Size, Cursor.Shape]) Do Begin
     Callback(
-      CursorPixelPos[fCursor.Size, fCursor.Shape][i].X + fCursor.PixelPos.x,
-      CursorPixelPos[fCursor.Size, fCursor.Shape][i].y + fCursor.PixelPos.y
+      CursorPixelPos[Cursor.Size, Cursor.Shape][i].X + Cursor.PixelPos.x,
+      CursorPixelPos[Cursor.Size, Cursor.Shape][i].y + Cursor.PixelPos.y
       );
   End;
 End;
 
-Procedure Bresenham_Line(Const aFrom, aTo: TPoint; Callback: TCursorCallback);
+Procedure Bresenham_Line(Cursor: TCompactCursor; aTo: TPoint; Callback: TPixelCallback);
 Var
   x, y, t, dx, dy, incx, incy, pdx, pdy, ddx, ddy, es, el, err: integer;
 Begin
-  dx := aTo.x - aFrom.x;
-  dy := aTo.y - aFrom.y;
+  dx := aTo.x - Cursor.PixelPos.x;
+  dy := aTo.y - Cursor.PixelPos.y;
   incx := sign(dx);
   incy := sign(dy);
   If (dx < 0) Then dx := -dx;
@@ -200,10 +210,10 @@ Begin
     es := dx;
     el := dy;
   End;
-  x := aFrom.x;
-  y := aFrom.y;
+  x := Cursor.PixelPos.x;
+  y := Cursor.PixelPos.y;
   err := el Div 2;
-  Callback(x, y);
+  FoldCursorOnPixel(Cursor, Callback);
   For t := 0 To el - 1 Do Begin
     err := err - es;
     If (err < 0) Then Begin
@@ -215,25 +225,30 @@ Begin
       x := x + pdx;
       y := y + pdy;
     End;
-    Callback(x, y);
+    Cursor.PixelPos := point(x, y);
+    FoldCursorOnPixel(Cursor, Callback);
   End;
 End;
 
-Procedure RectangleOutline(Const P1, P2: TPoint; Callback: TCursorCallback);
+Procedure RectangleOutline(Cursor: TCompactCursor; P2: TPoint; Callback: TPixelCallback);
 Var
   tl: TPoint;
   w, h, i, j: integer;
 Begin
-  tl := point(min(p1.X, p2.x), min(p1.Y, p2.y));
-  w := abs(p1.x - p2.x);
-  h := abs(p1.Y - p2.Y);
+  tl := point(min(Cursor.PixelPos.X, p2.x), min(Cursor.PixelPos.Y, p2.y));
+  w := abs(Cursor.PixelPos.x - p2.x);
+  h := abs(Cursor.PixelPos.Y - p2.Y);
   For i := 0 To w - 1 Do Begin
-    Callback(tl.x + i, tl.Y);
-    Callback(tl.x + i, tl.Y + h - 1);
+    Cursor.PixelPos := point(tl.x + i, tl.Y);
+    FoldCursorOnPixel(Cursor, Callback);
+    Cursor.PixelPos := point(tl.x + i, tl.Y + h - 1);
+    FoldCursorOnPixel(Cursor, Callback);
   End;
   For j := 1 To h - 2 Do Begin
-    Callback(tl.x, tl.y + j);
-    Callback(tl.x + w - 1, tl.y + j);
+    Cursor.PixelPos := point(tl.x, tl.y + j);
+    FoldCursorOnPixel(Cursor, Callback);
+    Cursor.PixelPos := point(tl.x + w - 1, tl.y + j);
+    FoldCursorOnPixel(Cursor, Callback);
   End;
 End;
 
@@ -402,18 +417,14 @@ Begin
     result := Point(X, X) // Move to the main diagonal (X = Y)
   Else
     result := Point(X, -X); // Move to the other diagonal (X = -Y)
-
-  // Final point transformation
-  result.x := -result.x;
-  result.y := -result.y;
 End;
 
-Function AdjustToMaxAbsValue(a, b: Integer): TPoint;
+Function AdjustToMaxAbsValue(P: Tpoint): TPoint;
 Var
   max_abs: Integer;
 Begin
-  max_abs := max(abs(a), abs(b));
-  result := point(sign(a) * max_abs, sign(b) * max_abs);
+  max_abs := max(abs(p.x), abs(p.y));
+  result := point(sign(p.x) * max_abs, sign(p.y) * max_abs);
 End;
 
 Initialization
