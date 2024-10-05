@@ -140,8 +140,10 @@ Procedure Nop(); // Nur zum Debuggen ;)
 // für jede sich ergebende Koordinate auf (alles in Bild Pixel Koordinaten)
 Procedure DoCursorOnPixel(Const fCursor: TCursor; Callback: TCursorCallback);
 Procedure Bresenham_Line(Const aFrom, aTo: TPoint; Callback: TCursorCallback);
+Procedure RectangleOutline(Const P1, P2: TPoint; Callback: TCursorCallback);
 
 Function MovePointToNextMainAxis(P: TPoint): TPoint; // Projiziert P auf die nächste Hauptachse oder Hauptdiagonale
+Function AdjustToMaxAbsValue(a, b: Integer): TPoint;
 
 // TODO: if in some future the "ImplicitFunctionSpecialization" switch is enabled, all this helper can be deleted !
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
@@ -155,7 +157,7 @@ Uses math;
 Var
   CursorPixelPos: Array[TCursorSize, TCursorShape] Of Array Of TPoint; // Wird im Initialization teil gesetzt, damit da nicht jedesmal bei DoCursorOnPixel berechnet werden muss
 
-Procedure Nop();
+Procedure Nop;
 Begin
 
 End;
@@ -214,6 +216,24 @@ Begin
       y := y + pdy;
     End;
     Callback(x, y);
+  End;
+End;
+
+Procedure RectangleOutline(Const P1, P2: TPoint; Callback: TCursorCallback);
+Var
+  tl: TPoint;
+  w, h, i, j: integer;
+Begin
+  tl := point(min(p1.X, p2.x), min(p1.Y, p2.y));
+  w := abs(p1.x - p2.x);
+  h := abs(p1.Y - p2.Y);
+  For i := 0 To w - 1 Do Begin
+    Callback(tl.x + i, tl.Y);
+    Callback(tl.x + i, tl.Y + h - 1);
+  End;
+  For j := 1 To h - 2 Do Begin
+    Callback(tl.x, tl.y + j);
+    Callback(tl.x + w - 1, tl.y + j);
   End;
 End;
 
@@ -329,17 +349,20 @@ Begin
   End
 End;
 
-Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
+Function IfThen(val: boolean; Const iftrue: TBevelStyle;
+  Const iffalse: TBevelStyle): TBevelStyle;
 Begin
   result := specialize ifthen < TBevelStyle > (val, iftrue, iffalse);
 End;
 
-Function IfThen(val: boolean; Const iftrue: TCursorSize; Const iffalse: TCursorSize): TCursorSize Inline; overload;
+Function IfThen(val: boolean; Const iftrue: TCursorSize;
+  Const iffalse: TCursorSize): TCursorSize;
 Begin
   result := specialize ifthen < TCursorSize > (val, iftrue, iffalse);
 End;
 
-Function IfThen(val: boolean; Const iftrue: TCursorShape; Const iffalse: TCursorShape): TCursorShape Inline; overload;
+Function IfThen(val: boolean; Const iftrue: TCursorShape;
+  Const iffalse: TCursorShape): TCursorShape;
 Begin
   result := specialize ifthen < TCursorShape > (val, iftrue, iffalse);
 End;
@@ -383,6 +406,14 @@ Begin
   // Final point transformation
   result.x := -result.x;
   result.y := -result.y;
+End;
+
+Function AdjustToMaxAbsValue(a, b: Integer): TPoint;
+Var
+  max_abs: Integer;
+Begin
+  max_abs := max(abs(a), abs(b));
+  result := point(sign(a) * max_abs, sign(b) * max_abs);
 End;
 
 Initialization

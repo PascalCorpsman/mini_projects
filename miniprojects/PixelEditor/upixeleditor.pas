@@ -747,6 +747,7 @@ Var
 
 Var
   c: TRGBA;
+  i, j: integer;
   p: TPoint;
 Begin
   If fCursor.PixelPos.x = -1 Then exit;
@@ -780,6 +781,39 @@ Begin
             End;
             glBegin(GL_POINTS);
             Bresenham_Line(point(0, 0), p, @DrawLineCallback);
+            glEnd;
+          End;
+        End
+        Else Begin
+          If fCursor.PixelPos.X <> -1 Then Begin
+            glBegin(GL_POINTS);
+            DoCursorOnPixel(dummyCursor, @SetVertex);
+            glEnd;
+          End;
+        End;
+      End;
+    tRectangle: Begin
+        If fCursor.PixelDownPos.x <> -1 Then Begin
+          If fCursor.LeftMouseButton Then Begin
+            p := fCursor.PixelDownPos - fCursor.PixelPos;
+            If fCursor.Shift Then Begin
+              // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
+              glTranslatef(fCursor.PixelDownPos.x - fCursor.PixelPos.x, fCursor.PixelDownPos.y - fCursor.PixelPos.y, 0);
+              p := AdjustToMaxAbsValue(p.x, p.y);
+              p.x := -p.x;
+              p.Y := -p.Y;
+            End;
+            glBegin(GL_POINTS);
+            If OutlineButton.Style = bsLowered Then Begin
+              For i := min(p.X, 0) To max(p.X, 0) Do Begin
+                For j := min(p.Y, 0) To max(p.Y, 0) Do Begin
+                  glVertex2f(i, j);
+                End;
+              End;
+            End
+            Else Begin
+              RectangleOutline(point(0, 0), p, @DrawLineCallback);
+            End;
             glEnd;
           End;
         End
