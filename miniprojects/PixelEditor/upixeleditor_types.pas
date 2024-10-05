@@ -120,6 +120,7 @@ Type
     Shape: TCursorShape;
     Size: TCursorSize;
     Shift: Boolean; // True wenn die Taste "Shift" gedrückt ist.
+    Outline: Boolean; // True nut Outlines, sonst gefüllt
     LeftMouseButton: Boolean;
     RightMouseButton: Boolean;
   End;

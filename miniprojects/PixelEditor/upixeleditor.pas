@@ -91,6 +91,7 @@ Type
     OutlineButton: TOpenGL_Bevel;
     FilledButton: TOpenGL_Bevel;
     MirrorButton: TOpenGL_Bevel;
+    MirrorCenterButton: TOpenGL_ToggleButton;
     MirrorHorButton: TOpenGL_Bevel;
     MirrorVertButton: TOpenGL_Bevel;
     Mirror4Button: TOpenGL_Bevel;
@@ -146,11 +147,9 @@ Type
     Procedure OnCircleButtonClick(Sender: TObject);
     Procedure OnSquareButtonClick(Sender: TObject);
     Procedure OnOutlineButtonClick(Sender: TObject);
-    Procedure OnFilledButtonClick(Sender: TObject);
     Procedure OnMirrorButtonClick(Sender: TObject);
-    Procedure OnMirror4ButtonClick(Sender: TObject);
-    Procedure OnMirrorVertButtonClick(Sender: TObject);
-    Procedure OnMirrorHorButtonClick(Sender: TObject);
+    Procedure OnMirrorModeButtonClick(Sender: TObject);
+
     Procedure OnFloodFillButtonClick(Sender: TObject);
     Procedure OnFloodFillModeButtonClick(Sender: TObject);
     Procedure OnColorPickButtonClick(Sender: TObject);
@@ -608,12 +607,9 @@ End;
 
 Procedure TPixelEditor.OnOutlineButtonClick(Sender: TObject);
 Begin
-
-End;
-
-Procedure TPixelEditor.OnFilledButtonClick(Sender: TObject);
-Begin
-
+  OutlineButton.Style := ifthen(sender = OutlineButton, bsRaised, bsLowered);
+  FilledButton.Style := ifthen(sender = FilledButton, bsRaised, bsLowered);
+  fCursor.Outline := sender = OutlineButton;
 End;
 
 Procedure TPixelEditor.OnMirrorButtonClick(Sender: TObject);
@@ -621,19 +617,11 @@ Begin
   SelectTool(tMirror);
 End;
 
-Procedure TPixelEditor.OnMirror4ButtonClick(Sender: TObject);
+Procedure TPixelEditor.OnMirrorModeButtonClick(Sender: TObject);
 Begin
-
-End;
-
-Procedure TPixelEditor.OnMirrorVertButtonClick(Sender: TObject);
-Begin
-
-End;
-
-Procedure TPixelEditor.OnMirrorHorButtonClick(Sender: TObject);
-Begin
-
+  Mirror4Button.Style := ifthen(sender = Mirror4Button, bsRaised, bsLowered);
+  MirrorVertButton.Style := ifthen(sender = MirrorVertButton, bsRaised, bsLowered);
+  MirrorHorButton.Style := ifthen(sender = MirrorHorButton, bsRaised, bsLowered);
 End;
 
 Procedure TPixelEditor.OnFloodFillButtonClick(Sender: TObject);
@@ -971,6 +959,7 @@ Begin
   CursorSquareShape3.Visible := atool In PenTools;
   OutlineButton.Visible := aTool In [tEllipse, tRectangle];
   FilledButton.Visible := aTool In [tEllipse, tRectangle];
+  MirrorCenterButton.Visible := aTool = tMirror;
   MirrorHorButton.Visible := aTool = tMirror;
   MirrorVertButton.Visible := aTool = tMirror;
   Mirror4Button.Visible := aTool = tMirror;
@@ -1204,8 +1193,9 @@ Begin
   // Settings die nur 1 mal pro Programstart zurück gesetzt werden
   OnCurserSizeButtonClick(CurserSize1);
   OnCursorShapeClick(CursorRoundShape1);
-  OnOutlineButtonClick(Nil);
-  OnMirrorVertButtonClick(Nil);
+  OnOutlineButtonClick(OutlineButton);
+  OnMirrorModeButtonClick(MirrorVertButton);
+  MirrorCenterButton.Style := bsRaised;
   GridButton.Style := bsRaised;
   OnColorClick(Color1);
   SelectTool(TPen);

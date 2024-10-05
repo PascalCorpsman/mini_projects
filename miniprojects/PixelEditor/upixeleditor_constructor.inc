@@ -374,8 +374,8 @@ AddElement(LineButton);
 CircleButton := TOpenGL_Bevel.Create(Owner);
 CircleButton.Left := 3;
 CircleButton.Top := 254;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//CircleButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Ellipse.bmp', Fuchsia, smClamp);
+CircleButton.SetImage(image);
 CircleButton.Transparent := true;
 CircleButton.Width := 32;
 CircleButton.Height := 32;
@@ -385,8 +385,8 @@ AddElement(CircleButton);
 SquareButton := TOpenGL_Bevel.Create(Owner);
 SquareButton.Left := 3;
 SquareButton.Top := 289;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//SquareButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Rectangle.bmp', Fuchsia, smClamp);
+SquareButton.SetImage(image);
 SquareButton.Transparent := true;
 SquareButton.Width := 32;
 SquareButton.Height := 32;
@@ -396,8 +396,8 @@ AddElement(SquareButton);
 OutlineButton := TOpenGL_Bevel.Create(Owner);
 OutlineButton.Left := 40;
 OutlineButton.Top := 279;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//OutlineButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Outline.bmp', Fuchsia, smClamp);
+OutlineButton.SetImage(image);
 OutlineButton.Transparent := true;
 OutlineButton.Width := 16;
 OutlineButton.Height := 16;
@@ -407,12 +407,12 @@ AddElement(OutlineButton);
 FilledButton := TOpenGL_Bevel.Create(Owner);
 FilledButton.Left := 58;
 FilledButton.Top := 279;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//FilledButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Filled.bmp', Fuchsia, smClamp);
+FilledButton.SetImage(image);
 FilledButton.Transparent := true;
 FilledButton.Width := 16;
 FilledButton.Height := 16;
-FilledButton.OnClick := @OnFilledButtonClick;
+FilledButton.OnClick := @OnOutlineButtonClick;
 AddElement(FilledButton);
 
 MirrorButton := TOpenGL_Bevel.Create(Owner);
@@ -426,6 +426,19 @@ MirrorButton.Height := 32;
 MirrorButton.OnClick := @OnMirrorButtonClick;
 AddElement(MirrorButton);
 
+MirrorCenterButton := TOpenGL_ToggleButton.create(Owner);
+MirrorCenterButton.Left := 58;
+MirrorCenterButton.Top := 322;
+//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'SelModeLowered.bmp', Fuchsia, smClamp);
+//MirrorModeButton.SetImage(image);
+//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'SelModeRaised.bmp', Fuchsia, smClamp);
+//MirrorModeButton.SetDownImage(image);
+MirrorCenterButton.Transparent := true;
+MirrorCenterButton.Width := 16;
+MirrorCenterButton.Height := 16;
+//MirrorCenterButton.OnClick := @OnMirrorCenterButtonClick; -- Braucht es nicht man kann ja den Style abfragen
+AddElement(MirrorCenterButton);
+
 Mirror4Button := TOpenGL_Bevel.Create(Owner);
 Mirror4Button.Left := 40;
 Mirror4Button.Top := 322;
@@ -434,7 +447,7 @@ Mirror4Button.Top := 322;
 Mirror4Button.Transparent := true;
 Mirror4Button.Width := 16;
 Mirror4Button.Height := 16;
-Mirror4Button.OnClick := @OnMirror4ButtonClick;
+Mirror4Button.OnClick := @OnMirrorModeButtonClick;
 AddElement(Mirror4Button);
 
 MirrorVertButton := TOpenGL_Bevel.Create(Owner);
@@ -445,7 +458,7 @@ MirrorVertButton.Top := 340;
 MirrorVertButton.Transparent := true;
 MirrorVertButton.Width := 16;
 MirrorVertButton.Height := 16;
-MirrorVertButton.OnClick := @OnMirrorVertButtonClick;
+MirrorVertButton.OnClick := @OnMirrorModeButtonClick;
 AddElement(MirrorVertButton);
 
 MirrorHorButton := TOpenGL_Bevel.Create(Owner);
@@ -456,7 +469,7 @@ MirrorHorButton.Top := 340;
 MirrorHorButton.Transparent := true;
 MirrorHorButton.Width := 16;
 MirrorHorButton.Height := 16;
-MirrorHorButton.OnClick := @OnMirrorHorButtonClick;
+MirrorHorButton.OnClick := @OnMirrorModeButtonClick;
 AddElement(MirrorHorButton);
 
 FloodFillButton := TOpenGL_Bevel.Create(Owner);
@@ -654,8 +667,6 @@ SelectLayerButton.Width := 32;
 SelectLayerButton.Height := 32;
 SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
 AddElement(SelectLayerButton);
-
-
 
 
 
