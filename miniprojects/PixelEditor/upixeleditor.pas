@@ -433,7 +433,10 @@ Begin
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
   If (button = mbLeft) And (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
     Case fCursor.Tool Of
-      tPen, tLine, tRectangle: CursorToPixelOperation(@SetImagePixelByCursor);
+      tPen,
+        tLine,
+        tEllipse,
+        tRectangle: CursorToPixelOperation(@SetImagePixelByCursor);
     End;
   End;
   fCursor.PixelDownPos := point(-1, -1);
@@ -726,7 +729,22 @@ Begin
         End;
       End;
     tEllipse: Begin
-
+        If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
+          Dummy := fCursor.Compact;
+          dummy.PixelPos := fCursor.PixelDownPos;
+          p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+          If fCursor.Shift Then Begin
+            // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
+            p := AdjustToMaxAbsValue(p);
+          End;
+          p := p + fCursor.PixelDownPos;
+          Bresenham_Ellipse(dummy, p, OutlineButton.Style = bsLowered, Callback);
+        End
+        Else Begin
+          If fCursor.Compact.PixelPos.X <> -1 Then Begin
+            FoldCursorOnPixel(fCursor.Compact, Callback);
+          End;
+        End;
       End;
     tRectangle: Begin
         If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin

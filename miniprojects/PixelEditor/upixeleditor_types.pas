@@ -150,6 +150,7 @@ Procedure FoldCursorOnPixel(Const Cursor: TCompactCursor; Callback: TPixelCallba
 
 // Zeichnet eine Linie von Cursor nach aTo und ruft für jeden Pixel FoldCursorOnPixel mit callback auf
 Procedure Bresenham_Line(Cursor: TCompactCursor; aTo: TPoint; Callback: TPixelCallback);
+Procedure Bresenham_Ellipse(Cursor: TCompactCursor; aTo: TPoint; Filled: Boolean; Callback: TPixelCallback);
 Procedure RectangleOutline(Cursor: TCompactCursor; P2: TPoint; Callback: TPixelCallback);
 
 Function MovePointToNextMainAxis(P: TPoint): TPoint; // Projiziert P auf die nächste Hauptachse oder Hauptdiagonale
@@ -227,6 +228,82 @@ Begin
     End;
     Cursor.PixelPos := point(x, y);
     FoldCursorOnPixel(Cursor, Callback);
+  End;
+End;
+
+Procedure Bresenham_Ellipse(Cursor: TCompactCursor; aTo: TPoint; Filled: Boolean; Callback: TPixelCallback);
+Var
+  i, x, y, width, height: integer;
+  xm, ym, a, b: integer;
+  dx, dy, a2, b2, err, e2: integer;
+Begin
+  x := min(Cursor.PixelPos.X, aTo.X);
+  y := min(Cursor.PixelPos.Y, aTo.Y);
+  width := abs(Cursor.PixelPos.X - aTo.X);
+  height := abs(Cursor.PixelPos.Y - aTo.Y);
+  // Init
+  xm := x + width Div 2;
+  ym := y + height Div 2;
+  a := width Div 2;
+  b := height Div 2;
+  dx := 0;
+  dy := b;
+  a2 := a * a;
+  b2 := b * b;
+  err := b2 - (2 * b - 1) * a2; (* Fehler im 1. Schritt *)
+  If (err = 0) Then Begin // Wenn wir eigentlich noch gar nichts zeichnen ;)
+    If Filled Then Begin
+      Callback(x, y);
+    End
+    Else Begin
+      Cursor.PixelPos := point(x, y);
+      FoldCursorOnPixel(Cursor, Callback);
+    End;
+    exit;
+  End;
+  // Paint
+  Repeat
+    If Filled Then Begin
+      For i := -dx To dx Do Begin
+        Callback(xm + i, ym + dy);
+        Callback(xm + i, ym - dy);
+      End;
+    End
+    Else Begin
+      Cursor.PixelPos := point(xm + dx, ym + dy); // I. Quadrant
+      FoldCursorOnPixel(Cursor, Callback);
+      Cursor.PixelPos := point(xm - dx, ym + dy); // II. Quadrant
+      FoldCursorOnPixel(Cursor, Callback);
+      Cursor.PixelPos := point(xm - dx, ym - dy); // III. Quadrant
+      FoldCursorOnPixel(Cursor, Callback);
+      Cursor.PixelPos := point(xm + dx, ym - dy); // IV. Quadrant
+      FoldCursorOnPixel(Cursor, Callback);
+    End;
+    e2 := 2 * err;
+    If (e2 < (2 * dx + 1) * b2) Then Begin
+      dx := dx + 1;
+      err := err + (2 * dx + 1) * b2;
+    End;
+    If (e2 > -(2 * dy - 1) * a2) Then Begin
+      dy := dy - 1;
+      err := err - (2 * dy - 1) * a2;
+    End;
+  Until (dy < 0);
+
+  dx := dx + 1;
+  While (dx < a) Do Begin // fehlerhafter Abbruch bei flachen Ellipsen (b=1)
+    If Filled Then Begin // -> Spitze der Ellipse vollenden
+      For i := -dx To dx Do Begin
+        Callback(xm + i, ym);
+      End;
+    End
+    Else Begin
+      Cursor.PixelPos := point(xm + dx, ym);
+      FoldCursorOnPixel(Cursor, Callback);
+      Cursor.PixelPos := point(xm - dx, ym);
+      FoldCursorOnPixel(Cursor, Callback);
+    End;
+    dx := dx + 1;
   End;
 End;
 
