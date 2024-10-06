@@ -255,6 +255,9 @@ Begin
       exit
     End;
   End;
+  If fImage.Filename <> '' Then Begin
+    form1.OpenDialog1.InitialDir := ExtractFileDir(fImage.Filename);
+  End;
   If Form1.OpenDialog1.Execute Then Begin
     fImage.Clear(); // Sicherstellen dass das Changed Flag zurück gesetzt ist.
     LoadImage(Form1.OpenDialog1.FileName);
@@ -273,6 +276,9 @@ End;
 
 Procedure TPixelEditor.OnSaveAsButtonClick(Sender: TObject);
 Begin
+  If fImage.Filename <> '' Then Begin
+    form1.SaveDialog1.InitialDir := ExtractFileDir(fImage.Filename);
+  End;
   If form1.SaveDialog1.Execute Then Begin
     SaveImage(form1.SaveDialog1.Filename);
   End;
@@ -388,6 +394,8 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+Var
+  c: TRGBA;
 Begin
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fScrollInfo.ScrollPos := point(x, y);
@@ -399,9 +407,11 @@ Begin
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
       Case fCursor.Tool Of
-        tPen: CursorToPixelOperation(@SetImagePixelByCursor);
-        tLine: Begin
-            // Nichts, wird im Mouse Up gemacht
+        tPen, tEraser: CursorToPixelOperation(@SetImagePixelByCursor);
+        tPincette: Begin
+            c := fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y, fAktualLayer);
+            fCursor.LeftColor.Color := c;
+            SetLeftColor(fCursor.LeftColor);
           End;
       End;
     End;
@@ -421,11 +431,8 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
-      Case fCursor.Tool Of
-        tPen: CursorToPixelOperation(@SetImagePixelByCursor); //
-        tLine: Begin
-            // Nichts, wird im Mouse Up gemacht
-          End;
+      If fCursor.Tool In [tPen, tEraser] Then Begin
+        CursorToPixelOperation(@SetImagePixelByCursor);
       End;
     End;
   End;
@@ -452,10 +459,17 @@ Begin
   fCursor.Pos := Point(x, y);
   If (button = mbLeft) And (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
     Case fCursor.Tool Of
-      tPen,
+      tEraser, tPen,
         tLine,
         tEllipse,
+        tBucket,
         tRectangle: CursorToPixelOperation(@SetImagePixelByCursor);
+      tPincette: Begin
+          If fCursor.LastTool = tEraser Then Begin
+            fCursor.LastTool := tPen;
+          End;
+          SelectTool(fCursor.LastTool);
+        End;
     End;
   End;
   fCursor.PixelDownPos := point(-1, -1);
@@ -610,7 +624,12 @@ End;
 
 Procedure TPixelEditor.OnEraserButtonClick(Sender: TObject);
 Begin
-  SelectTool(tEraser);
+  If EraserButton.Style = bsRaised Then Begin
+    SelectTool(tPen);
+  End
+  Else Begin
+    SelectTool(tEraser);
+  End;
 End;
 
 Procedure TPixelEditor.OnPencilButtonClick(Sender: TObject);
@@ -658,7 +677,12 @@ End;
 
 Procedure TPixelEditor.OnMirrorButtonClick(Sender: TObject);
 Begin
-  SelectTool(tMirror);
+  If MirrorButton.Style = bsRaised Then Begin
+    SelectTool(tPen);
+  End
+  Else Begin
+    SelectTool(tMirror);
+  End;
 End;
 
 Procedure TPixelEditor.OnMirrorModeButtonClick(Sender: TObject);
@@ -793,7 +817,8 @@ Begin
    *    beim Aufruf der Callback, wird dann die Aptuelle Position als Offset wieder mit rein gerechnet.
    *)
   Case fCursor.Tool Of
-    tPen: FoldCursorOnPixel(fCursor.Compact, Callback);
+    tPincette: Callback(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y);
+    teraser, tPen: FoldCursorOnPixel(fCursor.Compact, Callback);
     tLine: Begin
         If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
           // DownPos und Aktuelle Position müssen für die "Projektion" getauscht werden !
@@ -859,12 +884,26 @@ Begin
           End;
         End;
       End;
+    tBucket: Begin
+        upixeleditor_types.FloodFill(
+          fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y, fAktualLayer),
+          point(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
+          0, // TODO: Abweichung in Prozent muss noch implementiert werden !
+          fAktualLayer,
+          fimage,
+          Callback);
+      End;
   End;
 End;
 
 Procedure TPixelEditor.SetImagePixelByCursor(i, j: integer);
 Begin
-  fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
+  If EraserButton.Style = bsRaised Then Begin
+    fImage.SetColorAt(i, j, fAktualLayer, upixeleditor_types.ColorTransparent);
+  End
+  Else Begin
+    fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
+  End;
 End;
 
 Procedure TPixelEditor.SetOpenGLPixelByCursor(i, j: integer);
@@ -1049,7 +1088,7 @@ Begin
   CurserSize4.Visible := atool In PenTools;
 
   EraserButton.Style := ifThen(atool = tEraser, bsRaised, bsLowered);
-  PencilButton.Style := ifThen(atool = TPen, bsRaised, bsLowered);
+  PencilButton.Style := ifThen(atool In [TPen, tMirror, tEraser], bsRaised, bsLowered);
   LineButton.Style := ifThen(atool = tLine, bsRaised, bsLowered);
   CircleButton.Style := ifThen(atool = tEllipse, bsRaised, bsLowered);
   SquareButton.Style := ifThen(atool = tRectangle, bsRaised, bsLowered);
@@ -1120,7 +1159,7 @@ Begin
         If (c.r = fCursor.RightColor.r) And
           (c.g = fCursor.RightColor.g) And
           (c.b = fCursor.RightColor.b) Then Begin
-          c := uimage.TRANSPARENT;
+          c := upixeleditor_types.ColorTransparent;
         End;
         fImage.SetColorAt(i, j, fAktualLayer, c);
       End;
@@ -1301,7 +1340,7 @@ Begin
   GridButton.Style := bsRaised;
   OnColorClick(Color1);
   SelectTool(TPen);
-  fCursor.RightColor := uimage.Transparent;
+  fCursor.RightColor := upixeleditor_types.ColorTransparent;
 End;
 
 Procedure TPixelEditor.Render;

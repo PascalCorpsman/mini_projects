@@ -6,7 +6,7 @@ Unit upixeleditor_types;
 Interface
 
 Uses
-  Classes, SysUtils, ExtCtrls, upixeleditorlcl, ugraphics;
+  Classes, SysUtils, ExtCtrls, upixeleditorlcl, ugraphics, uimage;
 
 Const
 
@@ -38,6 +38,8 @@ Const
   WindowBottom = 424;
   ScreenWidth = 640;
   ScreenHeight = 480;
+
+  ColorTransparent: TRGBA = (r: 0; g: 0; b: 0; a: 255);
 
 Type
 
@@ -152,6 +154,8 @@ Procedure FoldCursorOnPixel(Const Cursor: TCompactCursor; Callback: TPixelCallba
 Procedure Bresenham_Line(Cursor: TCompactCursor; aTo: TPoint; Callback: TPixelCallback);
 Procedure Bresenham_Ellipse(Cursor: TCompactCursor; aTo: TPoint; Filled: Boolean; Callback: TPixelCallback);
 Procedure RectangleOutline(Cursor: TCompactCursor; P2: TPoint; Callback: TPixelCallback);
+
+Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Layer: TLayer; Const Image: TImage; Callback: TPixelCallback);
 
 Function MovePointToNextMainAxis(P: TPoint): TPoint; // Projiziert P auf die nächste Hauptachse oder Hauptdiagonale
 Function AdjustToMaxAbsValue(P: Tpoint): TPoint;
@@ -458,6 +462,44 @@ Function IfThen(val: boolean; Const iftrue: TCursorShape;
   Const iffalse: TCursorShape): TCursorShape;
 Begin
   result := specialize ifthen < TCursorShape > (val, iftrue, iffalse);
+End;
+
+Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint;
+  Toleranz: integer; Layer: TLayer; Const Image: TImage;
+  Callback: TPixelCallback);
+Var
+  Visited: Array Of Array Of Boolean;
+
+  Function Match(aCol: TRGBA): Boolean;
+  Begin
+    // TODO: Hier muss noch die Toleranz mit Berücksichtigt werden !
+    result := SourceColor = aCol;
+  End;
+
+  Procedure Visit(x, y: integer);
+  Begin
+    If (x < 0) Or (x >= Image.Width) Or
+      (y < 0) Or (y >= image.Height) Or
+      (Visited[x, y]) Then exit;
+    Visited[x, y] := true;
+    If Match(image.GetColorAt(x, y, Layer)) Then Begin
+      Callback(x, y);
+      Visit(x + 1, y);
+      Visit(x - 1, y);
+      visit(x, y - 1);
+      visit(x, y + 1);
+    End;
+  End;
+Var
+  i, j: Integer;
+Begin
+  setlength(Visited, Image.Width, Image.Height);
+  For i := 0 To Image.Width - 1 Do Begin
+    For j := 0 To Image.Height - 1 Do Begin
+      Visited[i, j] := false;
+    End;
+  End;
+  Visit(aPos.X, aPos.y);
 End;
 
 // unbelievable, but true, this code was created by using ChatGPT, and after some adjustmens it works like expected ;)

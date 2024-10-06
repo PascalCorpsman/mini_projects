@@ -50,15 +50,13 @@ Type
     Procedure ImportFromPNG(aFilename: String);
   End;
 
-Const
-  Transparent: TRGBA = (r: 0; g: 0; b: 0; a: 255);
-
 Implementation
 
 Uses
   IntfGraphics, fpImage, Graphics
   , LCLType
   , dglOpenGL, uopengl_graphikengine
+  , upixeleditor_types
   ;
 
 { TImage }
@@ -159,9 +157,9 @@ Begin
   glTexImage2D(GL_TEXTURE_2D, 0, gl_RGBA, aWidth, Aheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, @Data[0]);
   For i := 0 To high(fPixels) Do Begin
     For j := 0 To high(fPixels[i]) Do Begin
-      fPixels[i, j][lBackground] := Transparent;
-      fPixels[i, j][lMiddle] := Transparent;
-      fPixels[i, j][lForeground] := Transparent;
+      fPixels[i, j][lBackground] := ColorTransparent;
+      fPixels[i, j][lMiddle] := ColorTransparent;
+      fPixels[i, j][lForeground] := ColorTransparent;
     End;
   End;
 End;
@@ -172,9 +170,9 @@ Var
 Begin
   For i := 0 To high(fPixels) Do Begin
     For j := 0 To high(fPixels[i]) Do Begin
-      fPixels[i, j][lBackground] := Transparent;
-      fPixels[i, j][lMiddle] := Transparent;
-      fPixels[i, j][lForeground] := Transparent;
+      fPixels[i, j][lBackground] := ColorTransparent;
+      fPixels[i, j][lMiddle] := ColorTransparent;
+      fPixels[i, j][lForeground] := ColorTransparent;
     End;
     SetLength(fPixels[i], 0);
   End;
@@ -279,7 +277,7 @@ Begin
   For j := 0 To height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
       c := GetColorAt(i, j, aLayer);
-      If c = Transparent Then Begin
+      If c = ColorTransparent Then Begin
         TempIntfImg.Colors[i, j] := RGBAToFPColor(TransparentColor);
       End
       Else Begin
@@ -314,7 +312,7 @@ Begin
       c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
       c.a := 0;
       If c = TransparentColor Then Begin
-        SetColorAt(i, j, lMiddle, TRANSPARENT);
+        SetColorAt(i, j, lMiddle, ColorTransparent);
       End
       Else Begin
         SetColorAt(i, j, lMiddle, c);
