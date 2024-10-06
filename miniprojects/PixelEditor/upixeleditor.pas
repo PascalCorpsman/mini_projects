@@ -386,17 +386,14 @@ Begin
   fCursor.RightMouseButton := ssRight In Shift;
   If ssLeft In shift Then Begin
     If (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      Case fCursor.Tool Of
-        tPen: CursorToPixelOperation(@SetImagePixelByCursor);
-        tLine: Begin
-            // Nichts, wird im Mouse Up gemacht
-          End;
+      If fCursor.Tool = tPen Then Begin // Alle Anderen arbeiten erst im Mouse Up
+        CursorToPixelOperation(@SetImagePixelByCursor);
+        UpdateInfoLabel();
       End;
     End;
   End;
   If ssRight In shift Then Begin
   End;
-  UpdateInfoLabel();
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseMove(Sender: TObject;
@@ -408,11 +405,8 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      Case fCursor.Tool Of
-        tPen: CursorToPixelOperation(@SetImagePixelByCursor); //
-        tLine: Begin
-            // Nichts, wird im Mouse Up gemacht
-          End;
+      If fCursor.Tool = tPen Then Begin // Alle Anderen arbeiten erst im Mouse Up
+        CursorToPixelOperation(@SetImagePixelByCursor);
       End;
     End;
   End;
@@ -438,6 +432,7 @@ Begin
         tEllipse,
         tRectangle: CursorToPixelOperation(@SetImagePixelByCursor);
     End;
+    UpdateInfoLabel();
   End;
   fCursor.PixelDownPos := point(-1, -1);
   fCursor.LeftMouseButton := ssleft In Shift;
