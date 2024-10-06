@@ -180,6 +180,7 @@ Type
     Procedure Zoom(ZoomIn: Boolean);
 
     Function CursorToPixel(x, y: integer): TPoint;
+    Function CursorIsInImageWindow: Boolean;
     Procedure SetLeftColor(Const c: TOpenGL_ColorBox);
     Procedure UpdateInfoLabel;
     Procedure SelectTool(aTool: TTool);
@@ -380,20 +381,23 @@ Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
 Begin
   fScrollInfo.ScrollPos := point(x, y);
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
-  fCursor.PixelDownPos := fCursor.Compact.PixelPos;
   fCursor.Pos := point(x, y);
+  fCursor.PixelDownPos := fCursor.Compact.PixelPos;
   fCursor.LeftMouseButton := ssleft In Shift;
   fCursor.RightMouseButton := ssRight In Shift;
   If ssLeft In shift Then Begin
-    If (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      If fCursor.Tool = tPen Then Begin // Alle Anderen arbeiten erst im Mouse Up
-        CursorToPixelOperation(@SetImagePixelByCursor);
-        UpdateInfoLabel();
+    If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
+      Case fCursor.Tool Of
+        tPen: CursorToPixelOperation(@SetImagePixelByCursor);
+        tLine: Begin
+            // Nichts, wird im Mouse Up gemacht
+          End;
       End;
     End;
   End;
   If ssRight In shift Then Begin
   End;
+  UpdateInfoLabel();
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseMove(Sender: TObject;
@@ -404,9 +408,12 @@ Begin
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
-    If (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
-      If fCursor.Tool = tPen Then Begin // Alle Anderen arbeiten erst im Mouse Up
-        CursorToPixelOperation(@SetImagePixelByCursor);
+    If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
+      Case fCursor.Tool Of
+        tPen: CursorToPixelOperation(@SetImagePixelByCursor); //
+        tLine: Begin
+            // Nichts, wird im Mouse Up gemacht
+          End;
       End;
     End;
   End;
@@ -425,14 +432,14 @@ Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 Begin
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
-  If (button = mbLeft) And (fCursor.Compact.PixelPos.X <> -1) And (Not ColorPicDialog.Visible) Then Begin
+  fCursor.Pos := Point(x, y);
+  If (button = mbLeft) And (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
     Case fCursor.Tool Of
       tPen,
         tLine,
         tEllipse,
         tRectangle: CursorToPixelOperation(@SetImagePixelByCursor);
     End;
-    UpdateInfoLabel();
   End;
   fCursor.PixelDownPos := point(-1, -1);
   fCursor.LeftMouseButton := ssleft In Shift;
@@ -786,7 +793,7 @@ Procedure TPixelEditor.RenderCursor;
 Var
   c: TRGBA;
 Begin
-  If fCursor.compact.PixelPos.x = -1 Then exit;
+  If Not CursorIsInImageWindow Then exit;
   glPushMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerCursor); // Anfahren der Linken Oberen Ecke
   glColor4f(1, 1, 1, 1);
@@ -811,7 +818,6 @@ Begin
   SetZoom(1000);
   fImage.SetSize(aWidth, aHeight);
   fAktualLayer := lMiddle;
-  UpdateInfoLabel();
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
   ColorPicDialog.Visible := false;
@@ -824,6 +830,7 @@ Begin
   fCursor.RightMouseButton := false;
 
   CheckScrollBorders();
+  UpdateInfoLabel();
 End;
 
 Procedure TPixelEditor.SetZoom(ZoomValue: integer);
@@ -862,9 +869,9 @@ Begin
   fScrollInfo.GlobalXOffset := fScrollInfo.GlobalXOffset + (p1.x - p2.x) * fZoom Div 100;
   fScrollInfo.GlobalyOffset := fScrollInfo.GlobalyOffset + (p1.Y - p2.Y) * fZoom Div 100;
   // Let the scrollbars do their constraint thing
-  CheckScrollBorders();
   // Nachziehen des Cursors sonst springt der beim Zoomen
   fCursor.compact.PixelPos := CursorToPixel(fCursor.Pos.x, fCursor.Pos.y);
+  CheckScrollBorders();
   UpdateInfoLabel;
 End;
 
@@ -897,6 +904,17 @@ Begin
   End;
 End;
 
+Function TPixelEditor.CursorIsInImageWindow(): Boolean;
+Begin
+  result := Not ((fCursor.compact.PixelPos.x = -1) Or // Braucht es eigentlich nicht, aber schaden tut's auch nicht ..
+    (fCursor.Pos.x < WindowLeft * FOwner.Width / ScreenWidth) Or
+    (fCursor.Pos.y < WindowTop * fowner.Height / ScreenHeight) Or
+    (fCursor.Pos.x - WindowLeft * FOwner.Width / ScreenWidth >= fImage.Width * fZoom Div 100) Or
+    (fCursor.Pos.y - WindowTop * fowner.Height / ScreenHeight >= fImage.Height * fZoom Div 100) Or
+    (fCursor.Pos.x > FOwner.Width - FOwner.Width * (ScreenWidth - WindowRight + 1) / ScreenWidth) Or
+    (fCursor.Pos.y > FOwner.Height - FOwner.Height * (ScreenHeight - WindowBottom + 1) / ScreenHeight));
+End;
+
 Procedure TPixelEditor.SetLeftColor(Const c: TOpenGL_ColorBox);
 Begin
   ColorPreview.FrontColor := c.Color;
@@ -913,14 +931,7 @@ Procedure TPixelEditor.UpdateInfoLabel;
 Var
   c: TRGBA;
 Begin
-  If (fCursor.compact.PixelPos.x = -1) Or // Braucht es eigentlich nicht, aber schaden tut's auch nicht ..
-  (fCursor.Pos.x < WindowLeft * FOwner.Width / ScreenWidth) Or
-    (fCursor.Pos.y < WindowTop * fowner.Height / ScreenHeight) Or
-    (fCursor.Pos.x - WindowLeft * FOwner.Width / ScreenWidth >= fImage.Width * fZoom Div 100) Or
-    (fCursor.Pos.y - WindowTop * fowner.Height / ScreenHeight >= fImage.Height * fZoom Div 100) Or
-    (fCursor.Pos.x > FOwner.Width - FOwner.Width * (ScreenWidth - WindowRight + 1) / ScreenWidth) Or
-    (fCursor.Pos.y > FOwner.Height - FOwner.Height * (ScreenHeight - WindowBottom + 1) / ScreenHeight)
-    Then Begin
+  If Not CursorIsInImageWindow() Then Begin
     InfoLabel.caption := '';
     InfoDetailLabel.Caption := '';
   End
