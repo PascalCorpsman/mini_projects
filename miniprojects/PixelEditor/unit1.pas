@@ -51,8 +51,10 @@ Type
   TForm1 = Class(TForm)
     IniPropStorage1: TIniPropStorage;
     OpenDialog1: TOpenDialog;
+    OpenDialog2: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
     SaveDialog1: TSaveDialog;
+    SaveDialog2: TSaveDialog;
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);

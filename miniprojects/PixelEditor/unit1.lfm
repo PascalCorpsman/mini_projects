@@ -47,4 +47,16 @@ object Form1: TForm1
     Left = 192
     Top = 24
   end
+  object OpenDialog2: TOpenDialog
+    DefaultExt = '.pcp'
+    Filter = 'PixelEditor color palette|*.pcp|All|*'
+    Left = 192
+    Top = 88
+  end
+  object SaveDialog2: TSaveDialog
+    DefaultExt = '.pcp'
+    Filter = 'PixelEditor color palette|*.pcp|All|*'
+    Left = 272
+    Top = 88
+  end
 end

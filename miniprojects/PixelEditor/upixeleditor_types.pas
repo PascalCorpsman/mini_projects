@@ -237,6 +237,7 @@ Var
   xm, ym, a, b: integer;
   dx, dy, a2, b2, err, e2: integer;
 Begin
+  // TODO: Wenn Width / Height < 4 dann stimmt das noch nicht richtig, warum ?
   x := min(Cursor.PixelPos.X, aTo.X);
   y := min(Cursor.PixelPos.Y, aTo.Y);
   width := abs(Cursor.PixelPos.X - aTo.X);

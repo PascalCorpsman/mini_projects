@@ -180,6 +180,8 @@ Type
     Procedure ApplyColor(Const Color: TRGBA); overload;
     Procedure ApplyColor(Const CB: TOpenGL_ColorBox); overload;
     Function getShower: TOpenGL_ColorBox;
+    Procedure setOnLoadColorPalette(AValue: TNotifyEvent);
+    Procedure setOnSaveColorPalette(AValue: TNotifyEvent);
   protected
     fSelectorTex: TGraphikItem;
     fColorTable: TOpenGl_Image;
@@ -209,6 +211,9 @@ Type
     fWhiteMinus: TMinus;
     fShower: TOpenGL_ColorBox;
 
+    fOpenButton: TOpenGL_Bevel;
+    fSaveAsButton: TOpenGL_Bevel;
+
     Procedure OnRender(); override;
     Procedure SetVisible(AValue: Boolean); override;
     Procedure SetLeft(AValue: integer); override;
@@ -224,6 +229,8 @@ Type
   public
     SelectorPos: integer;
     OnSetColor: TColorBoxEvent;
+    Property OnSaveColorPalette: TNotifyEvent write setOnSaveColorPalette;
+    Property OnLoadColorPalette: TNotifyEvent write setOnLoadColorPalette;
 
     Property Shower: TOpenGL_ColorBox read getShower;
 
@@ -843,6 +850,16 @@ Begin
   result := fShower;
 End;
 
+Procedure TOpenGL_ColorPicDialog.setOnLoadColorPalette(AValue: TNotifyEvent);
+Begin
+  fOpenButton.OnClick := AValue;
+End;
+
+Procedure TOpenGL_ColorPicDialog.setOnSaveColorPalette(AValue: TNotifyEvent);
+Begin
+  fSaveAsButton.OnClick := AValue;
+End;
+
 Procedure TOpenGL_ColorPicDialog.OnRender;
 Begin
   Inherited OnRender();
@@ -869,6 +886,8 @@ Begin
   fGreenPlus.Render();
   fBluePlus.Render();
   fWhitePlus.Render();
+  fOpenButton.Render();
+  fSaveAsButton.Render();
   fResetButton.Render();
 
   // Den kleinen Auswahlzeiger malen ;)
@@ -904,6 +923,8 @@ Begin
   fGreenPlus.Visible := AValue;
   fBluePlus.Visible := AValue;
   fWhitePlus.Visible := AValue;
+  fOpenButton.Visible := AValue;
+  fSaveAsButton.Visible := AValue;
   fResetButton.Visible := AValue;
 End;
 
@@ -930,6 +951,8 @@ Begin
   fGreenPlus.Left := AValue + 28 + 3 * 20;
   fBluePlus.Left := AValue + 28 + 4 * 20;
   fWhitePlus.Left := AValue + 28 + 5 * 20;
+  fOpenButton.Left := AValue + 15;
+  fSaveAsButton.Left := AValue + 37;
   fResetButton.Left := AValue + 240;
 End;
 
@@ -956,6 +979,8 @@ Begin
   fGreenPlus.top := AValue + 33 - 20;
   fBluePlus.top := AValue + 33 - 20;
   fWhitePlus.top := AValue + 33 - 20;
+  fOpenButton.top := AValue + 250;
+  fSaveAsButton.top := AValue + 250;
   fResetButton.top := AValue + 250;
 End;
 
@@ -969,7 +994,7 @@ Begin
     OnSetColor(fShower);
   End;
   fShower := Nil;
-  visible := false;
+  Visible := false;
 End;
 
 Procedure TOpenGL_ColorPicDialog.OnColorDBLClick(Sender: TObject);
@@ -1012,7 +1037,9 @@ Begin
   // Das hat 2 Gründe
   // 1. Nur so können sie die OnMouse* Events Capturen
   // 2. Sonst braucht man Nil Prüfungen im SetTop, SetLeft
-  fResetButton := TOpenGL_Textbox.Create(Owner, '');
+  fResetButton := TOpenGL_Textbox.Create(Owner, ''); // Muss vor fColorTable erzeugt werden !
+  fOpenButton := TOpenGL_Bevel.Create(Owner); // Muss vor fColorTable erzeugt werden !
+  fSaveAsButton := TOpenGL_Bevel.Create(Owner); // Muss vor fColorTable erzeugt werden !
   fColorTable := TOpenGl_Image.Create(Owner);
   fPicColorButton := TOpenGL_Textbox.Create(Owner, '');
   fColorInfo := TOpenGl_Label.Create(Owner, '');
@@ -1182,6 +1209,20 @@ Begin
   fWhitePlus.Target := fBrighten;
   fWhitePlus.OnUpdate := @ApplyColor;
 
+  //image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'New.bmp', Fuchsia, smClamp);
+//fOpenButton.SetImage(image);
+  fOpenButton.Transparent := true;
+  fOpenButton.Width := 18;
+  fOpenButton.Height := 18;
+  fOpenButton.LoweredColor := RGBA(192, 192, 192, 0);
+
+  //image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'New.bmp', Fuchsia, smClamp);
+  //fSaveAsButton.SetImage(image);
+  fSaveAsButton.Transparent := true;
+  fSaveAsButton.Width := 18;
+  fSaveAsButton.Height := 18;
+  fSaveAsButton.LoweredColor := RGBA(192, 192, 192, 0);
+
   fResetButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
   fResetButton.Caption := 'R';
   fResetButton.Width := 18;
@@ -1237,6 +1278,10 @@ Begin
   fBluePlus := Nil;
   fWhitePlus.free;
   fWhitePlus := Nil;
+  fOpenButton.free;
+  fOpenButton := Nil;
+  fSaveAsButton.free;
+  fSaveAsButton := Nil;
   fResetButton.free;
   fResetButton := Nil;
   Inherited Destroy;
@@ -1249,5 +1294,4 @@ Begin
 End;
 
 End.
-
 

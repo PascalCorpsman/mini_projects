@@ -33,7 +33,12 @@ Const
    * History: 1 - Initialversion
    *          2 - ADD Colorpalette
    *)
-  Fileversion: integer = 2;
+  PixelEditorFileversion: integer = 2;
+
+  (*
+   * History: 1 - Initialversion
+   *)
+  ColorPaletteFileversion: integer = 1;
 
 Type
 
@@ -120,7 +125,6 @@ Type
 
     SelectLayerButton: TOpenGL_Bevel;
 
-    Function getChanged: Boolean;
     Procedure OnNewButtonClick(Sender: TObject);
     Procedure OnOpenButtonClick(Sender: TObject);
     Procedure OnSaveButtonClick(Sender: TObject);
@@ -156,6 +160,7 @@ Type
 
     Procedure OnSelectTransparentColorClick(Sender: TObject);
     Procedure OnColorClick(Sender: TObject);
+    Procedure OnColorDblClick(Sender: TObject);
     Procedure OnColorMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
     Procedure OnSelectLayerButtonClick(Sender: TObject);
@@ -170,6 +175,9 @@ Type
     Procedure OpenGLControlMouseWheelDown(Sender: TObject; Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
     Procedure OpenGLControlMouseWheelUp(Sender: TObject; Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
 
+    Procedure OnSaveColorPaletteButtonClick(Sender: TObject);
+    Procedure OnLoadColorPaletteButtonClick(Sender: TObject);
+
     Procedure RenderGrid;
     Procedure RenderImage;
     Procedure RenderLCL;
@@ -179,6 +187,8 @@ Type
     Procedure SetZoom(ZoomValue: integer);
     Procedure Zoom(ZoomIn: Boolean);
 
+    Function getChanged: Boolean;
+    Procedure LoadColorDialogColor(Sender: TObject);
     Function CursorToPixel(x, y: integer): TPoint;
     Function CursorIsInImageWindow: Boolean;
     Procedure SetLeftColor(Const c: TOpenGL_ColorBox);
@@ -379,6 +389,7 @@ End;
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 Begin
+  If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fScrollInfo.ScrollPos := point(x, y);
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
@@ -405,6 +416,7 @@ Procedure TPixelEditor.OpenGLControlMouseMove(Sender: TObject;
 Var
   dx, dy: integer;
 Begin
+  If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
@@ -431,6 +443,11 @@ End;
 Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 Begin
+  // Den Dialog Schließen, wenn der User Außerhalb clickt ..
+  If ColorPicDialog.Visible Then Begin
+    ColorPicDialog.Visible := false;
+    exit;
+  End;
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := Point(x, y);
   If (button = mbLeft) And (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
@@ -456,6 +473,65 @@ Procedure TPixelEditor.OpenGLControlMouseWheelUp(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
 Begin
   Zoom(false);
+End;
+
+Procedure TPixelEditor.OnSaveColorPaletteButtonClick(Sender: TObject);
+Var
+  m: TMemoryStream;
+Begin
+  If form1.SaveDialog2.Execute Then Begin
+    m := TMemoryStream.Create;
+    m.Write(ColorPaletteFileversion, sizeof(ColorPaletteFileversion));
+    m.Write(Color1.Color, sizeof(Color1.Color));
+    m.Write(Color2.Color, sizeof(Color2.Color));
+    m.Write(Color3.Color, sizeof(Color3.Color));
+    m.Write(Color4.Color, sizeof(Color4.Color));
+    m.Write(Color5.Color, sizeof(Color5.Color));
+    m.Write(Color6.Color, sizeof(Color6.Color));
+    m.Write(Color7.Color, sizeof(Color7.Color));
+    m.Write(Color8.Color, sizeof(Color8.Color));
+    m.SaveToFile(form1.SaveDialog2.FileName);
+    m.free;
+  End;
+End;
+
+Procedure TPixelEditor.OnLoadColorPaletteButtonClick(Sender: TObject);
+Var
+  m: TMemoryStream;
+  FileVersion: integer;
+  c: TRGBA;
+Begin
+  If form1.OpenDialog2.Execute Then Begin
+    m := TMemoryStream.Create;
+    m.LoadFromFile(form1.OpenDialog2.FileName);
+    FileVersion := -1;
+    m.Read(FileVersion, SizeOf(FileVersion));
+    If FileVersion > ColorPaletteFileversion Then Begin
+      showmessage('Error, invalid file version.');
+      m.free;
+      exit;
+    End;
+    c := rgba(0, 0, 0, 0);
+    m.Read(c, sizeof(C));
+    Color1.Color := c;
+    m.Read(c, sizeof(C));
+    Color2.Color := c;
+    m.Read(c, sizeof(C));
+    Color3.Color := c;
+    m.Read(c, sizeof(C));
+    Color4.Color := c;
+    m.Read(c, sizeof(C));
+    Color5.Color := c;
+    m.Read(c, sizeof(C));
+    Color6.Color := c;
+    m.Read(c, sizeof(C));
+    Color7.Color := c;
+    m.Read(c, sizeof(C));
+    Color8.Color := c;
+    SetLeftColor(ColorPicDialog.Shower);
+    ColorPicDialog.Visible := false;
+    m.free;
+  End;
 End;
 
 Procedure TPixelEditor.RenderGrid;
@@ -613,34 +689,41 @@ Begin
   SetLeftColor(ColorTransparent);
 End;
 
-Procedure TPixelEditor.OnColorClick(Sender: TObject);
-  Procedure LoadColorDialogColor;
-  Begin
-    If sender = Color1 Then ColorPicDialog.SelectorPos := 0;
-    If sender = Color2 Then ColorPicDialog.SelectorPos := 1;
-    If sender = Color3 Then ColorPicDialog.SelectorPos := 2;
-    If sender = Color4 Then ColorPicDialog.SelectorPos := 3;
-    If sender = Color5 Then ColorPicDialog.SelectorPos := 4;
-    If sender = Color6 Then ColorPicDialog.SelectorPos := 5;
-    If sender = Color7 Then ColorPicDialog.SelectorPos := 6;
-    If sender = Color8 Then ColorPicDialog.SelectorPos := 7;
-    ColorPicDialog.LoadColor(sender As TOpenGL_ColorBox);
-  End;
 
+Procedure TPixelEditor.LoadColorDialogColor(Sender: TObject);
+Begin
+  If sender = Color1 Then ColorPicDialog.SelectorPos := 0;
+  If sender = Color2 Then ColorPicDialog.SelectorPos := 1;
+  If sender = Color3 Then ColorPicDialog.SelectorPos := 2;
+  If sender = Color4 Then ColorPicDialog.SelectorPos := 3;
+  If sender = Color5 Then ColorPicDialog.SelectorPos := 4;
+  If sender = Color6 Then ColorPicDialog.SelectorPos := 5;
+  If sender = Color7 Then ColorPicDialog.SelectorPos := 6;
+  If sender = Color8 Then ColorPicDialog.SelectorPos := 7;
+  ColorPicDialog.LoadColor(sender As TOpenGL_ColorBox);
+End;
+
+Procedure TPixelEditor.OnColorClick(Sender: TObject);
 Begin
   // Der User schaltet direkt die Colorpicbox um
   If ColorPicDialog.Visible And (ColorPicDialog.Shower <> Sender) Then Begin
     SetLeftColor(sender As TOpenGL_ColorBox);
-    LoadColorDialogColor;
+    LoadColorDialogColor(sender);
     exit;
   End;
   If fCursor.LeftColor = sender Then Begin
     ColorPicDialog.Visible := Not ColorPicDialog.Visible;
-    If ColorPicDialog.Visible Then LoadColorDialogColor;
+    If ColorPicDialog.Visible Then LoadColorDialogColor(sender);
   End
   Else Begin
     SetLeftColor(sender As TOpenGL_ColorBox);
   End;
+End;
+
+Procedure TPixelEditor.OnColorDblClick(Sender: TObject);
+Begin
+  LoadColorDialogColor(sender);
+  ColorPicDialog.Visible := true;
 End;
 
 Procedure TPixelEditor.OnColorMouseUp(Sender: TObject; Button: TMouseButton;
@@ -904,7 +987,7 @@ Begin
   End;
 End;
 
-Function TPixelEditor.CursorIsInImageWindow(): Boolean;
+Function TPixelEditor.CursorIsInImageWindow: Boolean;
 Begin
   result := Not ((fCursor.compact.PixelPos.x = -1) Or // Braucht es eigentlich nicht, aber schaden tut's auch nicht ..
     (fCursor.Pos.x < WindowLeft * FOwner.Width / ScreenWidth) Or
@@ -1066,7 +1149,7 @@ Begin
       End;
     '.pe': Begin
         m := TMemoryStream.Create;
-        m.Write(Fileversion, sizeof(Fileversion));
+        m.Write(PixelEditorFileversion, sizeof(PixelEditorFileversion));
         m.Write(fAktualLayer, sizeof(TLayer));
         m.Write(Color1.Color, sizeof(Color1.Color));
         m.Write(Color2.Color, sizeof(Color2.Color));
@@ -1122,7 +1205,7 @@ Begin
         LoadedFileVersion := -1;
         m.Read(LoadedFileVersion, sizeof(i));
         // TODO: In Zukunft kann hier dann ein Fileversion angepasster Lader sein Werk tun ;)
-        If LoadedFileVersion > Fileversion Then Begin
+        If LoadedFileVersion > PixelEditorFileversion Then Begin
           showmessage('Error, invalid file version.');
           m.free;
           exit;
