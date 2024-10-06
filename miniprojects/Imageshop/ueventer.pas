@@ -280,9 +280,11 @@ Procedure TEventerHandler.OnMouseUp(Sender: TObject; Button: TMouseButton;
 Var
   ox, oy, i: Integer;
   p: Tpoint;
+  handled: Boolean;
 Begin
   ox := x;
   oy := y;
+  handled := false;
   If Assigned(TransformRoutine) Then Begin
     p := TransformRoutine(x, y);
     x := p.x;
@@ -294,6 +296,7 @@ Begin
   For i := 0 To high(fEventer) Do Begin
     If i > high(fEventer) Then break; // Da im Event das Eventer element auch freigegeben werden darf, braucht es dieses if
     If PointInRect(point(x, y), fEventer[i].ClientRect) And fEventer[i].fVisible And fEventer[i].fEnabled Then Begin
+      handled := true;
       If fMouseDownEventer = fEventer[i] Then fMouseDownEventer := Nil;
       fEventer[i].MouseUp(button, shift, x - fEventer[i].Left, y - fEventer[i].Top);
       If i > high(fEventer) Then break; // Da im Event das Eventer element auch freigegeben werden darf, braucht es dieses if
@@ -307,8 +310,10 @@ Begin
       break; // Der Event wurde behandelt, also raus .. (aber kein Exit, damit das evtl MouseUp des DownEventer noch gesetzt werden kann !)
     End;
   End;
-  If assigned(fMouseDownEventer) And fMouseDownEventer.Visible And fMouseDownEventer.Enabled Then fMouseDownEventer.MouseUp(button, shift, x - fMouseDownEventer.Left, y - fMouseDownEventer.Top);
-  If assigned(fOnMouseUpCapture) Then Begin
+  If assigned(fMouseDownEventer) And fMouseDownEventer.Visible And fMouseDownEventer.Enabled Then Begin
+    fMouseDownEventer.MouseUp(button, shift, x - fMouseDownEventer.Left, y - fMouseDownEventer.Top);
+  End;
+  If assigned(fOnMouseUpCapture) And (Not handled) Then Begin
     fOnMouseUpCapture(sender, button, shift, ox, oy);
   End;
 End;
