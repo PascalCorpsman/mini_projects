@@ -245,6 +245,7 @@ Uses
   math
   , dglOpenGL
   , uvectormath
+  , upixeleditor_types
   ;
 
 Function Delta(r, g, b: integer): TDelta;
@@ -252,54 +253,6 @@ Begin
   result.r := r;
   result.g := g;
   result.b := b;
-End;
-
-(*
- * Addiert die R,G,B Werte als Delta auf Color und berücksichtigt
- * Dabei überläufe ;)
- *)
-
-Function ClampAdd(Color: TRGBA; R, G, B: Integer): TRGBA;
-  Procedure Fix(Var aa, bb, cc: Integer);
-  Var
-    d: integer;
-  Begin
-    If aa > 255 Then Begin
-      d := aa - 255;
-      aa := 255;
-      bb := min(255, max(0, bb - d));
-      cc := min(255, max(0, cc - d));
-    End;
-    If aa < 0 Then Begin
-      d := -aa;
-      aa := 0;
-      bb := min(255, max(0, bb + d));
-      cc := min(255, max(0, cc + d));
-    End;
-  End;
-
-Var
-  tr, tg, tb: Integer;
-Begin
-  If (r = g) And (g = b) Then Begin
-    // Eine Allgemeine Aufhellung / Verdunklung
-    result.r := max(0, min(255, Color.r + R));
-    result.g := max(0, min(255, Color.g + g));
-    result.b := max(0, min(255, Color.b + b));
-  End
-  Else Begin
-    // Eine Verstärkung eines einzelnen Farbkanals
-    tr := Color.r + r;
-    tg := Color.g + g;
-    tb := Color.b + b;
-    fix(tr, tb, tg);
-    fix(tg, tr, tb);
-    fix(tb, tg, tr);
-    result.r := tr;
-    result.g := tg;
-    result.b := tb;
-  End;
-  result.a := Result.a;
 End;
 
 { TOpenGL_Bevel }

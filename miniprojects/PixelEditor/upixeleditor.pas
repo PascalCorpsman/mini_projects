@@ -46,6 +46,7 @@ Type
 
   TPixelEditor = Class
   private
+    fDarkBrightMask: Array Of Array Of Boolean; // Während eines MouseDown Zyklus kann jeder Pixel nur 1 mal heller / Dunkler gemacht werden !
     fSettings: TSettings;
     fCursor: TCursor;
     FOwner: TOpenGLControl;
@@ -367,13 +368,72 @@ Begin
 End;
 
 Procedure TPixelEditor.OnBrightenButtonClick(Sender: TObject);
+Var
+  i, j: integer;
+  lc, aColor: TRGBA;
 Begin
-
+  // Der Brighten Button hat 2 Modi
+  // 1. Erhelle was gerade Selectiert ist
+  If fCursor.Tool = tSelect Then Begin
+    If fCursor.Select.aSet Then Begin
+      // Wir Missbrauchen wir wieder den TPen,
+      // damit das mit dem Undo klappt
+      fCursor.Tool := tPen;
+      lc := fCursor.LeftColor.Color;
+      fUndo.StartNewRecording;
+      For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
+        For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
+          aColor := fImage.GetColorAt(i, j, fAktualLayer);
+          If aColor <> upixeleditor_types.ColorTransparent Then Begin
+            fCursor.LeftColor.Color := ClampAdd(aColor, 15, 15, 15);
+            SetImagePixelByCursor(i, j);
+          End;
+        End;
+      End;
+      fUndo.PushRecording;
+      fCursor.Tool := tSelect;
+      fCursor.LeftColor.Color := lc;
+    End;
+  End
+  Else Begin
+    // 2. Mach den Pen zu einem "Erheller"
+    BrightenButton.Style := ifthen(BrightenButton.Style = bsLowered, bsRaised, bsLowered);
+    DarkenButton.Style := bsLowered
+  End;
 End;
 
 Procedure TPixelEditor.OnDarkenButtonClick(Sender: TObject);
+Var
+  i, j: integer;
+  lc, aColor: TRGBA;
 Begin
-
+  // Modi siehe OnBrightenButtonClick
+  If fCursor.Tool = tSelect Then Begin
+    If fCursor.Select.aSet Then Begin
+      // Wir Missbrauchen wir wieder den TPen,
+      // damit das mit dem Undo klappt
+      fCursor.Tool := tPen;
+      lc := fCursor.LeftColor.Color;
+      fUndo.StartNewRecording;
+      For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
+        For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
+          aColor := fImage.GetColorAt(i, j, fAktualLayer);
+          If aColor <> upixeleditor_types.ColorTransparent Then Begin
+            fCursor.LeftColor.Color := ClampAdd(aColor, -15, -15, -15);
+            SetImagePixelByCursor(i, j);
+          End;
+        End;
+      End;
+      fUndo.PushRecording;
+      fCursor.Tool := tSelect;
+      fCursor.LeftColor.Color := lc;
+    End;
+  End
+  Else Begin
+    // 2. Mach den Pen zu einem "Dunkler"
+    DarkenButton.Style := ifthen(DarkenButton.Style = bsLowered, bsRaised, bsLowered);
+    BrightenButton.Style := bsLowered
+  End;
 End;
 
 Procedure TPixelEditor.OnCurserSizeButtonClick(Sender: TObject);
@@ -425,6 +485,14 @@ Begin
   fCursor.RightMouseButton := ssRight In Shift;
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
+      If (DarkenButton.Style = bsRaised) Or
+        (BrightenButton.Style = bsRaised) Then Begin
+        For i := 0 To fImage.Width - 1 Do Begin
+          For j := 0 To fImage.Height - 1 Do Begin
+            fDarkBrightMask[i, j] := false;
+          End;
+        End;
+      End;
       fUndo.StartNewRecording;
       Case fCursor.Tool Of
         tPen, tEraser, tMirror: Begin
@@ -442,7 +510,6 @@ Begin
                 For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
                   For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
                     // Copy to Select
-                    // TODO: Theoretisch muss hier noch das Transparent mit der Rechten Farbe berücksichtigt werden.
                     fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y] := fImage.GetColorAt(i, j, fAktualLayer);
                     If Not (ssCtrl In shift) Then Begin
                       // Cut to select
@@ -453,7 +520,6 @@ Begin
               End
               Else Begin
                 fCursor.Select.aSet := false;
-                //                setlength(fCursor.Select.Data, 0, 0);
               End;
             End;
           End;
@@ -547,6 +613,7 @@ Begin
           Else Begin
             If fCursor.LeftMouseButton Then Begin
               fCursor.Select.aSet := true;
+              fCursor.Select.Data := Nil;
               fCursor.Select.tl.x := min(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
               fCursor.Select.tl.Y := min(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
               fCursor.Select.br.x := max(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
@@ -1022,24 +1089,39 @@ Procedure TPixelEditor.SetImagePixelByCursor(i, j: integer);
 Var
   nColor, aColor: TRGBA;
 Begin
-  aColor := fImage.GetColorAt(i, j, fAktualLayer);
-  If EraserButton.Style = bsRaised Then Begin
-    If aColor <> upixeleditor_types.ColorTransparent Then
-      fUndo.RecordPixelChange(i, j, aColor);
-    fImage.SetColorAt(i, j, fAktualLayer, upixeleditor_types.ColorTransparent);
-  End
-  Else Begin
-    nColor := fCursor.LeftColor.Color;
-    If (fCursor.Tool = tSelect)
-      And (i In [fCursor.Select.tl.x..fCursor.Select.br.x])
-      And (j In [fCursor.Select.tl.Y..fCursor.Select.br.Y]) Then Begin
-      nColor := fCursor.Select.Data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.y];
-      // Wir dürfen nicht immer Transparents einfügen
-      If (nColor = upixeleditor_types.ColorTransparent) And (SelectModeButton.Style = bsRaised) Then exit;
+  If (i >= 0) And (i < fImage.Width) And
+    (j >= 0) And (j < fImage.Height) Then Begin
+    aColor := fImage.GetColorAt(i, j, fAktualLayer);
+    If EraserButton.Style = bsRaised Then Begin
+      If aColor <> upixeleditor_types.ColorTransparent Then
+        fUndo.RecordPixelChange(i, j, aColor);
+      fImage.SetColorAt(i, j, fAktualLayer, upixeleditor_types.ColorTransparent);
+    End
+    Else Begin
+      nColor := fCursor.LeftColor.Color;
+      If (fCursor.Tool = tSelect)
+        And (i In [fCursor.Select.tl.x..fCursor.Select.br.x])
+        And (j In [fCursor.Select.tl.Y..fCursor.Select.br.Y]) Then Begin
+        nColor := fCursor.Select.Data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.y];
+        // Wir dürfen nicht immer Transparents einfügen
+        If (nColor = upixeleditor_types.ColorTransparent) And (SelectModeButton.Style = bsRaised) Then exit;
+      End;
+      If BrightenButton.Style = bsRaised Then Begin
+        If (aColor = upixeleditor_types.ColorTransparent) Then exit;
+        If (fDarkBrightMask[i, j]) Then exit;
+        nColor := ClampAdd(aColor, 15, 15, 15);
+        fDarkBrightMask[i, j] := true;
+      End;
+      If DarkenButton.Style = bsRaised Then Begin
+        If (aColor = upixeleditor_types.ColorTransparent) Then exit;
+        If (fDarkBrightMask[i, j]) Then exit;
+        nColor := ClampAdd(aColor, -15, -15, -15);
+        fDarkBrightMask[i, j] := true;
+      End;
+      If aColor <> nColor Then
+        fUndo.RecordPixelChange(i, j, aColor);
+      fImage.SetColorAt(i, j, fAktualLayer, nColor);
     End;
-    If aColor <> nColor Then
-      fUndo.RecordPixelChange(i, j, aColor);
-    fImage.SetColorAt(i, j, fAktualLayer, nColor);
   End;
 End;
 
@@ -1159,6 +1241,7 @@ Begin
   fUndo.Clear;
   SetZoom(1000);
   fImage.SetSize(aWidth, aHeight);
+  setlength(fDarkBrightMask, aWidth, aHeight);
   fAktualLayer := lMiddle;
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
@@ -1172,6 +1255,7 @@ Begin
   fCursor.RightMouseButton := false;
   fCursor.Origin.X := aWidth Div 2;
   fCursor.Origin.Y := aHeight Div 2;
+  fCursor.Select.aSet := false;
 
   CheckScrollBorders();
   UpdateInfoLabel();

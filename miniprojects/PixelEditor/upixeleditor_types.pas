@@ -135,7 +135,6 @@ Type
     aSet: Boolean; // Wenn True, dann wurde auch etwas "ausgewählt"
     tl, br: TPoint;
     Data: Array Of Array Of TRGBA;
-
   End;
 
   TCursor = Record
@@ -189,7 +188,15 @@ Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelSt
 Function IfThen(val: boolean; Const iftrue: TCursorSize; Const iffalse: TCursorSize): TCursorSize Inline; overload;
 Function IfThen(val: boolean; Const iftrue: TCursorShape; Const iffalse: TCursorShape): TCursorShape Inline; overload;
 
+(*
+ * True, wenn A und B sich um weniger als Toleranz_in_Percent unterscheiden
+ *)
 Function ColorMatch(Const A, B: TRGBA; Toleranz_in_Percent: Integer): Boolean;
+(*
+ * Addiert die R,G,B Werte als Delta auf Color und berücksichtigt
+ * Dabei überläufe ;)
+ *)
+Function ClampAdd(Color: TRGBA; R, G, B: Integer): TRGBA;
 
 Implementation
 
@@ -603,6 +610,49 @@ Var
 Begin
   max_abs := max(abs(p.x), abs(p.y));
   result := point(sign(p.x) * max_abs, sign(p.y) * max_abs);
+End;
+
+Function ClampAdd(Color: TRGBA; R, G, B: Integer): TRGBA;
+  Procedure Fix(Var aa, bb, cc: Integer);
+  Var
+    d: integer;
+  Begin
+    If aa > 255 Then Begin
+      d := aa - 255;
+      aa := 255;
+      bb := min(255, max(0, bb - d));
+      cc := min(255, max(0, cc - d));
+    End;
+    If aa < 0 Then Begin
+      d := -aa;
+      aa := 0;
+      bb := min(255, max(0, bb + d));
+      cc := min(255, max(0, cc + d));
+    End;
+  End;
+
+Var
+  tr, tg, tb: Integer;
+Begin
+  If (r = g) And (g = b) Then Begin
+    // Eine Allgemeine Aufhellung / Verdunklung
+    result.r := max(0, min(255, Color.r + R));
+    result.g := max(0, min(255, Color.g + g));
+    result.b := max(0, min(255, Color.b + b));
+  End
+  Else Begin
+    // Eine Verstärkung eines einzelnen Farbkanals
+    tr := Color.r + r;
+    tg := Color.g + g;
+    tb := Color.b + b;
+    fix(tr, tb, tg);
+    fix(tg, tr, tb);
+    fix(tb, tg, tr);
+    result.r := tr;
+    result.g := tg;
+    result.b := tb;
+  End;
+  result.a := Result.a;
 End;
 
 Initialization

@@ -136,6 +136,7 @@ UndoButton.Transparent := true;
 UndoButton.Width := 32;
 UndoButton.Height := 32;
 UndoButton.OnClick := @OnUndoButtonClick;
+UndoButton.OnDblClick := @OnUndoButtonClick;
 AddElement(UndoButton);
 
 SelectButton := TOpenGL_Bevel.Create(Owner);
@@ -678,13 +679,4 @@ AddElement(InfoDetailLabel);
 //SelectLayerButton.Height := 32;
 //SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
 //AddElement(SelectLayerButton);
-
-
-
-
-
-
-
-
-
 
