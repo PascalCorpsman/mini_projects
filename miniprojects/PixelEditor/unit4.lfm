@@ -24,9 +24,9 @@ object Form4: TForm4
   end
   object Label1: TLabel
     Left = 8
-    Height = 16
+    Height = 15
     Top = 18
-    Width = 107
+    Width = 91
     Caption = 'Transparent color'
   end
   object Shape1: TShape

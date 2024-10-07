@@ -1,3 +1,17 @@
+(******************************************************************************)
+(*                                                                            *)
+(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(*                                                                            *)
+(* This file is part of PixelEditor                                           *)
+(*                                                                            *)
+(*  See the file license.md, located under:                                   *)
+(*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
+(*  for details about the license.                                            *)
+(*                                                                            *)
+(*               It is not allowed to change or remove this text from any     *)
+(*               source file of the project.                                  *)
+(*                                                                            *)
+(******************************************************************************)
 Unit upixeleditor_types;
 
 {$MODE ObjFPC}{$H+}
@@ -130,6 +144,7 @@ Type
     Outline: Boolean; // True nut Outlines, sonst gefüllt
     LeftMouseButton: Boolean;
     RightMouseButton: Boolean;
+    Origin: TPoint; // Für das Mirrortool benötigen wir noch einen Ursprung
   End;
 
   TScrollInfo = Record
@@ -139,6 +154,7 @@ Type
 
   TSettings = Record
     GridAboveImage: Boolean;
+    DefaultExt: String;
 
     // TODO: Hier noch weitere Programmsettings einfügen ;)
 
@@ -154,8 +170,8 @@ Procedure FoldCursorOnPixel(Const Cursor: TCompactCursor; Callback: TPixelCallba
 Procedure Bresenham_Line(Cursor: TCompactCursor; aTo: TPoint; Callback: TPixelCallback);
 Procedure Bresenham_Ellipse(Cursor: TCompactCursor; aTo: TPoint; Filled: Boolean; Callback: TPixelCallback);
 Procedure RectangleOutline(Cursor: TCompactCursor; P2: TPoint; Callback: TPixelCallback);
-
 Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Layer: TLayer; Const Image: TImage; Callback: TPixelCallback);
+Procedure Mirror(Cursor: TCompactCursor; Origin: Tpoint; PointCenter, MirrorHor, MirrorVer: Boolean; Offset: integer; Callback: TPixelCallback);
 
 Function MovePointToNextMainAxis(P: TPoint): TPoint; // Projiziert P auf die nächste Hauptachse oder Hauptdiagonale
 Function AdjustToMaxAbsValue(P: Tpoint): TPoint;
@@ -500,6 +516,32 @@ Begin
     End;
   End;
   Visit(aPos.X, aPos.y);
+End;
+
+Procedure Mirror(Cursor: TCompactCursor; Origin: Tpoint; PointCenter,
+  MirrorHor, MirrorVer: Boolean; Offset: integer; Callback: TPixelCallback);
+Var
+  off, x, y, w, h: Integer;
+Begin
+  // Egal wie der 1:1 Cursor wird ja immer gerendert ;)
+  FoldCursorOnPixel(Cursor, callback);
+  x := Cursor.PixelPos.x;
+  y := Cursor.PixelPos.Y;
+  w := -x + Origin.X;
+  h := -y + Origin.Y;
+  off := IfThen(PointCenter, -1 - Offset, -Offset);
+  If Mirrorver Then Begin
+    Cursor.PixelPos := point(x + 2 * w + off, y);
+    FoldCursorOnPixel(Cursor, callback);
+  End;
+  If MirrorHor Then Begin
+    Cursor.PixelPos := point(x, y + 2 * h + off);
+    FoldCursorOnPixel(Cursor, callback);
+  End;
+  If MirrorHor And MirrorVer Then Begin
+    Cursor.PixelPos := point(x + 2 * w + off, y + 2 * h + off);
+    FoldCursorOnPixel(Cursor, callback);
+  End;
 End;
 
 // unbelievable, but true, this code was created by using ChatGPT, and after some adjustmens it works like expected ;)

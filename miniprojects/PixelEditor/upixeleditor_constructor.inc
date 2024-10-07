@@ -119,8 +119,8 @@ AddElement(ZoomInButton);
 OptionsButton := TOpenGL_Bevel.Create(Owner);
 OptionsButton.Left := 570;
 OptionsButton.Top := 3;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//OptionsButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Settings.bmp', Fuchsia, smClamp);
+OptionsButton.SetImage(image);
 OptionsButton.Transparent := true;
 OptionsButton.Width := 32;
 OptionsButton.Height := 32;
@@ -130,8 +130,8 @@ AddElement(OptionsButton);
 UndoButton := TOpenGL_Bevel.Create(Owner);
 UndoButton.Left := 605;
 UndoButton.Top := 3;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//UndoButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Undo.bmp', Fuchsia, smClamp);
+UndoButton.SetImage(image);
 UndoButton.Transparent := true;
 UndoButton.Width := 32;
 UndoButton.Height := 32;
@@ -667,15 +667,16 @@ InfoDetailLabel.Caption := '';
 InfoDetailLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
 AddElement(InfoDetailLabel);
 
-SelectLayerButton := TOpenGL_Bevel.Create(Owner);
-SelectLayerButton.Left := 640 - 35;
-SelectLayerButton.Top := 480 - 35;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//SelectLayerButton.SetImage(image);
-SelectLayerButton.Transparent := true;
-SelectLayerButton.Width := 32;
-SelectLayerButton.Height := 32;
-SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
-AddElement(SelectLayerButton);
+// Den Verstehen wir noch nicht -> Raus
+//SelectLayerButton := TOpenGL_Bevel.Create(Owner);
+//SelectLayerButton.Left := 640 - 35;
+//SelectLayerButton.Top := 480 - 35;
+////image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
+////SelectLayerButton.SetImage(image);
+//SelectLayerButton.Transparent := true;
+//SelectLayerButton.Width := 32;
+//SelectLayerButton.Height := 32;
+//SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
+//AddElement(SelectLayerButton);
 
 

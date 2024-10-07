@@ -21,7 +21,7 @@ Interface
 
 Uses
   Graphics, Classes, SysUtils, Controls, OpenGLContext, uopengl_widgetset, upixeleditorlcl,
-  ExtCtrls, uimage, ugraphics, upixeleditor_types;
+  ExtCtrls, uimage, ugraphics, upixeleditor_types, uundo;
 
 Const
   (*
@@ -51,8 +51,9 @@ Type
     FOwner: TOpenGLControl;
     fScrollInfo: TScrollInfo;
     fZoom: integer; // Akruelle Zoomstufe in %
-    fAktualLayer: TLayer;
+    fAktualLayer: TLayer; // TODO: das kann stand jetzt raus !
     fImage: TImage; // Das Object um das es hier eigentlich geht ;)
+    fUndo: TUndoEngine;
 
     FElements: Array Of TOpenGL_BaseClass;
 
@@ -123,7 +124,7 @@ Type
     InfoLabel: TOpenGl_Label; // Anzeige Aktuelle Position und Pixelfarbe unter Position
     InfoDetailLabel: TOpenGl_Label; // Zeigt beim Linien/ Ellipse/ Rechteck tool die "Delta's" an
 
-    SelectLayerButton: TOpenGL_Bevel;
+    //    SelectLayerButton: TOpenGL_Bevel;
 
     Procedure OnNewButtonClick(Sender: TObject);
     Procedure OnOpenButtonClick(Sender: TObject);
@@ -258,6 +259,7 @@ Begin
   If fImage.Filename <> '' Then Begin
     form1.OpenDialog1.InitialDir := ExtractFileDir(fImage.Filename);
   End;
+  form1.OpenDialog1.DefaultExt := fSettings.DefaultExt;
   If Form1.OpenDialog1.Execute Then Begin
     fImage.Clear(); // Sicherstellen dass das Changed Flag zurück gesetzt ist.
     LoadImage(Form1.OpenDialog1.FileName);
@@ -279,6 +281,7 @@ Begin
   If fImage.Filename <> '' Then Begin
     form1.SaveDialog1.InitialDir := ExtractFileDir(fImage.Filename);
   End;
+  form1.SaveDialog1.DefaultExt := fSettings.DefaultExt;
   If form1.SaveDialog1.Execute Then Begin
     SaveImage(form1.SaveDialog1.Filename);
   End;
@@ -312,15 +315,28 @@ End;
 
 Procedure TPixelEditor.OnOptionsButtonClick(Sender: TObject);
 Begin
+  // Settings to LCL
   form2.CheckBox1.Checked := fSettings.GridAboveImage;
+  Case GetValue('DefaultExt', '.pe') Of
+    '.pe': Form2.ComboBox1.ItemIndex := 0;
+    '.bmp': Form2.ComboBox1.ItemIndex := 1;
+    '.png': Form2.ComboBox1.ItemIndex := 2;
+  End;
   form2.ShowModal;
+  // LCL to .ini
   SetValue('GridAboveImage', inttostr(ord(Form2.CheckBox1.Checked)));
+  Case Form2.ComboBox1.ItemIndex Of
+    0: SetValue('DefaultExt', '.pe');
+    1: SetValue('DefaultExt', '.bmp');
+    2: SetValue('DefaultExt', '.png');
+  End;
   LoadSettings;
 End;
 
 Procedure TPixelEditor.OnUndoButtonClick(Sender: TObject);
 Begin
-
+  fUndo.PopRecording(fImage);
+  UpdateInfoLabel;
 End;
 
 Procedure TPixelEditor.OnSelectButtonClick(Sender: TObject);
@@ -406,8 +422,11 @@ Begin
   fCursor.RightMouseButton := ssRight In Shift;
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
+      fUndo.StartNewRecording;
       Case fCursor.Tool Of
-        tPen, tEraser: CursorToPixelOperation(@SetImagePixelByCursor);
+        tPen, tEraser, tMirror: Begin
+            CursorToPixelOperation(@SetImagePixelByCursor);
+          End;
         tPincette: Begin
             c := fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y, fAktualLayer);
             fCursor.LeftColor.Color := c;
@@ -417,6 +436,11 @@ Begin
     End;
   End;
   If ssRight In shift Then Begin
+    If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
+      If fCursor.Tool = tMirror Then Begin
+        fCursor.Origin := fCursor.Compact.PixelPos;
+      End;
+    End;
   End;
   UpdateInfoLabel();
 End;
@@ -431,7 +455,7 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
-      If fCursor.Tool In [tPen, tEraser] Then Begin
+      If fCursor.Tool In [tPen, tEraser, tMirror] Then Begin
         CursorToPixelOperation(@SetImagePixelByCursor);
       End;
     End;
@@ -459,11 +483,12 @@ Begin
   fCursor.Pos := Point(x, y);
   If (button = mbLeft) And (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
     Case fCursor.Tool Of
-      tEraser, tPen,
-        tLine,
-        tEllipse,
-        tBucket,
-        tRectangle: CursorToPixelOperation(@SetImagePixelByCursor);
+      tEraser, tPen, tMirror,
+        tLine, tEllipse, tBucket,
+        tRectangle: Begin
+          CursorToPixelOperation(@SetImagePixelByCursor);
+          fundo.PushRecording;
+        End;
       tPincette: Begin
           If fCursor.LastTool = tEraser Then Begin
             fCursor.LastTool := tPen;
@@ -809,7 +834,7 @@ Procedure TPixelEditor.CursorToPixelOperation(Callback: TPixelCallback);
 Var
   p: TPoint;
   Dummy: TCompactCursor;
-  i, j: Integer;
+  off, i, j: Integer;
 Begin
   (*
    * Die nachfolgenden Algorithmen benötigen sehr häufig, dass man sich auf den "Ursprung" Bezieht
@@ -884,6 +909,21 @@ Begin
           End;
         End;
       End;
+    tMirror: Begin
+        If (fCursor.Compact.PixelPos.x <> -1) Then Begin
+          off := 0;
+          // Dadurch, dass die Cursor selbst ja nicht Mittelpunktsymetrisch sind, müssen manche Kombinationen noch mal Extra "verschoben" werden
+          If (CursorRoundShape2.Style = bsRaised)
+            Or (CursorRoundShape3.Style = bsRaised)
+            Or (CursorSquareShape1.Style = bsRaised)
+            Then Begin
+            off := 1;
+          End;
+          Mirror(fCursor.Compact, fCursor.Origin, MirrorCenterButton.Style = bsRaised,
+            (Mirror4Button.Style = bsRaised) Or (MirrorHorButton.Style = bsRaised),
+            (Mirror4Button.Style = bsRaised) Or (MirrorVertButton.Style = bsRaised), off, Callback);
+        End;
+      End;
     tBucket: Begin
         upixeleditor_types.FloodFill(
           fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y, fAktualLayer),
@@ -897,22 +937,33 @@ Begin
 End;
 
 Procedure TPixelEditor.SetImagePixelByCursor(i, j: integer);
+Var
+  c: TRGBA;
 Begin
+  c := fImage.GetColorAt(i, j, fAktualLayer);
   If EraserButton.Style = bsRaised Then Begin
+    If c <> upixeleditor_types.ColorTransparent Then
+      fUndo.RecordPixelChange(i, j, c);
     fImage.SetColorAt(i, j, fAktualLayer, upixeleditor_types.ColorTransparent);
   End
   Else Begin
+    If c <> fCursor.LeftColor.Color Then
+      fUndo.RecordPixelChange(i, j, c);
     fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
   End;
 End;
 
 Procedure TPixelEditor.SetOpenGLPixelByCursor(i, j: integer);
 Begin
-  glVertex2f(i, j);
+  If (i >= 0) And (i < fImage.Width) And
+    (j >= 0) And (j < fImage.Height) Then Begin
+    glVertex2f(i, j);
+  End;
 End;
 
 Procedure TPixelEditor.RenderCursor;
 Var
+  off: Single;
   c: TRGBA;
 Begin
   If Not CursorIsInImageWindow Then exit;
@@ -931,12 +982,35 @@ Begin
   CursorToPixelOperation(@SetOpenGLPixelByCursor);
   glEnd;
   glPointSize(1);
+  // Der Mirror Cursor muss noch die "Achsen" einmalen
+  If fCursor.Tool = tMirror Then Begin
+    glColor3ub(255, 255, 0);
+    glBegin(GL_LINES);
+    If MirrorCenterButton.style = bsLowered Then Begin
+      off := 0;
+    End
+    Else Begin
+      off := 0.5;
+    End;
+    If (Mirror4Button.Style = bsRaised) Or
+      (MirrorVertButton.Style = bsRaised) Then Begin
+      glVertex2f(fCursor.Origin.X - off, -0.5);
+      glVertex2f(fCursor.Origin.X - off, fImage.Height - 0.5);
+    End;
+    If (Mirror4Button.Style = bsRaised) Or
+      (MirrorHorButton.Style = bsRaised) Then Begin
+      glVertex2f(-0.5, fCursor.Origin.Y - off);
+      glVertex2f(fImage.Width - 0.5, fCursor.Origin.Y - off);
+    End;
+    glEnd;
+  End;
   glPopMatrix;
 End;
 
 Procedure TPixelEditor.NewImage(aWidth, aHeight: Integer);
 Begin
   // Reset aller Curser
+  fUndo.Clear;
   SetZoom(1000);
   fImage.SetSize(aWidth, aHeight);
   fAktualLayer := lMiddle;
@@ -950,6 +1024,8 @@ Begin
   fCursor.Shift := false;
   fCursor.LeftMouseButton := false;
   fCursor.RightMouseButton := false;
+  fCursor.Origin.X := aWidth Div 2;
+  fCursor.Origin.Y := aHeight Div 2;
 
   CheckScrollBorders();
   UpdateInfoLabel();
@@ -1134,7 +1210,8 @@ End;
 
 Procedure TPixelEditor.LoadSettings;
 Begin
-  fSettings.GridAboveImage := GetValue('GridAboveImage', '1') = '1'
+  fSettings.GridAboveImage := GetValue('GridAboveImage', '1') = '1';
+  fSettings.DefaultExt := GetValue('DefaultExt', '.pe');
 End;
 
 Procedure TPixelEditor.PasteImageFromClipboard;
@@ -1208,6 +1285,7 @@ Begin
     End;
   End;
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
+  Application.Title := ExtractFileName(aFilename);
 End;
 
 Procedure TPixelEditor.LoadImage(Const aFilename: String);
@@ -1279,6 +1357,7 @@ Begin
     End;
   End;
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
+  Application.Title := ExtractFileName(aFilename);
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
   CheckScrollBorders;
@@ -1289,12 +1368,14 @@ Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
   fImage := TImage.Create();
+  fUndo := TUndoEngine.Create();
 End;
 
 Destructor TPixelEditor.Destroy;
 Var
   i: Integer;
 Begin
+  fUndo.free;
   fImage.Free;
   For i := 0 To high(FElements) Do Begin
     FElements[i].Free;
@@ -1329,7 +1410,8 @@ Begin
 
   LoadSettings;
 
-  NewImage(128, 128);
+  //NewImage(128, 128);
+  NewImage(32, 32);
 
   // Settings die nur 1 mal pro Programstart zurück gesetzt werden
   OnCurserSizeButtonClick(CurserSize1);
