@@ -523,8 +523,8 @@ AddElement(ColorPreview);
 ColorTransparent := TOpenGL_TransparentColorBox.Create(Owner);
 ColorTransparent.Left := 128;
 ColorTransparent.Top := 428;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//ColorTransparent.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Transparent.bmp', Fuchsia, smClamp);
+ColorTransparent.SetImage(image);
 ColorTransparent.Transparent := true;
 ColorTransparent.Width := 16;
 ColorTransparent.Height := 16;
@@ -678,5 +678,7 @@ AddElement(InfoDetailLabel);
 //SelectLayerButton.Height := 32;
 //SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
 //AddElement(SelectLayerButton);
+
+
 
 

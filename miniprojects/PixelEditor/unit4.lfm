@@ -1,7 +1,7 @@
 object Form4: TForm4
-  Left = 349
+  Left = 363
   Height = 82
-  Top = 107
+  Top = 458
   Width = 205
   BorderStyle = bsDialog
   Caption = 'Form4'
@@ -24,10 +24,12 @@ object Form4: TForm4
   end
   object Label1: TLabel
     Left = 8
-    Height = 15
+    Height = 16
     Top = 18
-    Width = 91
+    Width = 107
     Caption = 'Transparent color'
+    Font.Color = clSilver
+    ParentFont = False
   end
   object Shape1: TShape
     Left = 168

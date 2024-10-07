@@ -487,9 +487,14 @@ Var
   Visited: Array Of Array Of Boolean;
 
   Function Match(aCol: TRGBA): Boolean;
+  Var
+    dr, dg, db: integer;
   Begin
-    // TODO: Hier muss noch die Toleranz mit Berücksichtigt werden !
-    result := SourceColor = aCol;
+    // Ganz Simple die Toleranz in Prozent im RGB-Würfel ;)
+    dr := abs(aCol.r - SourceColor.r);
+    dg := abs(aCol.g - SourceColor.g);
+    db := abs(aCol.b - SourceColor.b);
+    result := (dr + dg + db) / 3 <= Toleranz * 255 / 100;
   End;
 
   Procedure Visit(x, y: integer);

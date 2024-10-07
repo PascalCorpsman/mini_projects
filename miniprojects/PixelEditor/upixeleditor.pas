@@ -54,6 +54,7 @@ Type
     fAktualLayer: TLayer; // TODO: das kann stand jetzt raus !
     fImage: TImage; // Das Object um das es hier eigentlich geht ;)
     fUndo: TUndoEngine;
+    fBucketToleranz: integer;
 
     FElements: Array Of TOpenGL_BaseClass;
 
@@ -231,6 +232,7 @@ Uses
   , unit2 // Options
   , unit3 // Neu
   , unit4 // Export BMP Settings Dialog
+  , Unit5 // FBucket Toleranz
   ;
 
 { TPixelEditor }
@@ -724,7 +726,10 @@ End;
 
 Procedure TPixelEditor.OnFloodFillModeButtonClick(Sender: TObject);
 Begin
-
+  form5.ScrollBar1.Position := fBucketToleranz;
+  If form5.ShowModal = mrOK Then Begin
+    fBucketToleranz := form5.ScrollBar1.Position;
+  End;
 End;
 
 Procedure TPixelEditor.OnColorPickButtonClick(Sender: TObject);
@@ -737,7 +742,6 @@ Begin
   ColorPicDialog.Visible := false;
   SetLeftColor(ColorTransparent);
 End;
-
 
 Procedure TPixelEditor.LoadColorDialogColor(Sender: TObject);
 Begin
@@ -928,7 +932,7 @@ Begin
         upixeleditor_types.FloodFill(
           fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y, fAktualLayer),
           point(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
-          0, // TODO: Abweichung in Prozent muss noch implementiert werden !
+          fBucketToleranz,
           fAktualLayer,
           fimage,
           Callback);
@@ -1410,10 +1414,10 @@ Begin
 
   LoadSettings;
 
-  //NewImage(128, 128);
   NewImage(32, 32);
 
   // Settings die nur 1 mal pro Programstart zurück gesetzt werden
+  fBucketToleranz := 0;
   OnCurserSizeButtonClick(CurserSize1);
   OnCursorShapeClick(CursorRoundShape1);
   OnOutlineButtonClick(OutlineButton);
