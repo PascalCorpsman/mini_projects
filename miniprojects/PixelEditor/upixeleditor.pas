@@ -1349,7 +1349,6 @@ Begin
         End;
         fImage.LoadFromPEStream(m, aFilename, fAktualLayer);
         m.free;
-
       End;
   Else Begin
       showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be loaded.');
@@ -1361,6 +1360,7 @@ Begin
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
   CheckScrollBorders;
+  fUndo.Clear;
   UpdateInfoLabel;
 End;
 
