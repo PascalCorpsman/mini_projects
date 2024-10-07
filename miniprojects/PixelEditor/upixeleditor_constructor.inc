@@ -141,8 +141,8 @@ AddElement(UndoButton);
 SelectButton := TOpenGL_Bevel.Create(Owner);
 SelectButton.Left := 3;
 SelectButton.Top := 41;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//SelectButton.SetImage(image);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Select.bmp', Fuchsia, smClamp);
+SelectButton.SetImage(image);
 SelectButton.Transparent := true;
 SelectButton.Width := 32;
 SelectButton.Height := 32;
@@ -678,6 +678,12 @@ AddElement(InfoDetailLabel);
 //SelectLayerButton.Height := 32;
 //SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
 //AddElement(SelectLayerButton);
+
+
+
+
+
+
 
 
 

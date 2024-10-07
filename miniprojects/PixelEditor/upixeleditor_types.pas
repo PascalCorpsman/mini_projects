@@ -131,6 +131,13 @@ Type
     Size: TCursorSize;
   End;
 
+  TSelectData = Record
+    aSet: Boolean; // Wenn True, dann wurde auch etwas "ausgewählt"
+    tl, br: TPoint;
+    Data: Array Of Array Of TRGBA;
+
+  End;
+
   TCursor = Record
     Compact: TCompactCursor;
     // Alles was der Cursor noch mehr braucht
@@ -145,6 +152,7 @@ Type
     LeftMouseButton: Boolean;
     RightMouseButton: Boolean;
     Origin: TPoint; // Für das Mirrortool benötigen wir noch einen Ursprung
+    Select: TSelectData;
   End;
 
   TScrollInfo = Record

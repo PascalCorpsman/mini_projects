@@ -795,6 +795,7 @@ Begin
   Delta.b := 0;
   OnUpdate := Nil;
   OnClick := @OnClickEvent;
+  OnDblClick := @OnClickEvent;
 End;
 
 { TMinus }

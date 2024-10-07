@@ -413,6 +413,7 @@ End;
 Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 Var
+  i, j: integer;
   c: TRGBA;
 Begin
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
@@ -434,11 +435,34 @@ Begin
             fCursor.LeftColor.Color := c;
             SetLeftColor(fCursor.LeftColor);
           End;
+        tSelect: Begin
+            If fCursor.Select.aSet Then Begin
+              If PointInRect(fCursor.Compact.PixelPos, fCursor.Select.tl, fCursor.Select.br) Then Begin
+                setlength(fCursor.Select.Data, fCursor.Select.br.x - fCursor.Select.tl.x + 1, fCursor.Select.br.Y - fCursor.Select.tl.Y + 1);
+                For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
+                  For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
+                    // Copy to Select
+                    // TODO: Theoretisch muss hier noch das Transparent mit der Rechten Farbe berücksichtigt werden.
+                    fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y] := fImage.GetColorAt(i, j, fAktualLayer);
+                    If Not (ssCtrl In shift) Then Begin
+                      // Cut to select
+                      fImage.SetColorAt(i, j, fAktualLayer, fCursor.RightColor);
+                    End;
+                  End;
+                End;
+              End
+              Else Begin
+                fCursor.Select.aSet := false;
+                //                setlength(fCursor.Select.Data, 0, 0);
+              End;
+            End;
+          End;
       End;
     End;
   End;
   If ssRight In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
+      fCursor.Select.aSet := false; // Abwahl Select Cursor !
       If fCursor.Tool = tMirror Then Begin
         fCursor.Origin := fCursor.Compact.PixelPos;
       End;
@@ -475,6 +499,8 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+Var
+  i, j: LongInt;
 Begin
   // Den Dialog Schließen, wenn der User Außerhalb clickt ..
   If ColorPicDialog.Visible Then Begin
@@ -496,6 +522,37 @@ Begin
             fCursor.LastTool := tPen;
           End;
           SelectTool(fCursor.LastTool);
+        End;
+      TSelect: Begin
+          If fCursor.Select.aSet Then Begin
+            If fCursor.LeftMouseButton Then Begin
+              // 1. Das Recheck da hinschieben wo es nun gelandet ist
+              fCursor.Select.tl := fCursor.Select.tl + fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+              fCursor.Select.br := fCursor.Select.br + fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+              fUndo.StartNewRecording;
+              // 2. Mittels SetImagePixelByCursor das Bild übernehmen
+              For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
+                For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
+                  SetImagePixelByCursor(i, j);
+                End;
+              End;
+              fUndo.PushRecording;
+              // Wenn es gleich weiter geht wird nichts gelöscht !
+              If Not ((ssCtrl In Shift) Or (ssShift In Shift)) Then Begin
+                fCursor.Select.aSet := false;
+                setlength(fCursor.Select.Data, 0, 0);
+              End;
+            End;
+          End
+          Else Begin
+            If fCursor.LeftMouseButton Then Begin
+              fCursor.Select.aSet := true;
+              fCursor.Select.tl.x := min(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
+              fCursor.Select.tl.Y := min(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
+              fCursor.Select.br.x := max(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
+              fCursor.Select.br.Y := max(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
+            End;
+          End;
         End;
     End;
   End;
@@ -650,12 +707,33 @@ Begin
 End;
 
 Procedure TPixelEditor.OnEraserButtonClick(Sender: TObject);
+Var
+  c: TRGBA;
+  i, j: integer;
 Begin
   If EraserButton.Style = bsRaised Then Begin
     SelectTool(tPen);
   End
   Else Begin
-    SelectTool(tEraser);
+    If fCursor.Tool = tSelect Then Begin
+      // Der Inhalt des Cursors soll "gelöscht" werden
+      // Wir Missbrauchen dazu einfach den Pen, der wird danach eh angewählt ;)
+      SelectTool(tPen);
+      c := fCursor.LeftColor.Color;
+      fUndo.StartNewRecording;
+      fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
+      For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
+        For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
+          SetImagePixelByCursor(i, j);
+        End;
+      End;
+      fUndo.PushRecording;
+      fCursor.LeftColor.Color := c;
+      UpdateInfoLabel;
+    End
+    Else Begin
+      SelectTool(tEraser);
+    End;
   End;
 End;
 
@@ -942,18 +1020,26 @@ End;
 
 Procedure TPixelEditor.SetImagePixelByCursor(i, j: integer);
 Var
-  c: TRGBA;
+  nColor, aColor: TRGBA;
 Begin
-  c := fImage.GetColorAt(i, j, fAktualLayer);
+  aColor := fImage.GetColorAt(i, j, fAktualLayer);
   If EraserButton.Style = bsRaised Then Begin
-    If c <> upixeleditor_types.ColorTransparent Then
-      fUndo.RecordPixelChange(i, j, c);
+    If aColor <> upixeleditor_types.ColorTransparent Then
+      fUndo.RecordPixelChange(i, j, aColor);
     fImage.SetColorAt(i, j, fAktualLayer, upixeleditor_types.ColorTransparent);
   End
   Else Begin
-    If c <> fCursor.LeftColor.Color Then
-      fUndo.RecordPixelChange(i, j, c);
-    fImage.SetColorAt(i, j, fAktualLayer, fCursor.LeftColor.Color);
+    nColor := fCursor.LeftColor.Color;
+    If (fCursor.Tool = tSelect)
+      And (i In [fCursor.Select.tl.x..fCursor.Select.br.x])
+      And (j In [fCursor.Select.tl.Y..fCursor.Select.br.Y]) Then Begin
+      nColor := fCursor.Select.Data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.y];
+      // Wir dürfen nicht immer Transparents einfügen
+      If (nColor = upixeleditor_types.ColorTransparent) And (SelectModeButton.Style = bsRaised) Then exit;
+    End;
+    If aColor <> nColor Then
+      fUndo.RecordPixelChange(i, j, aColor);
+    fImage.SetColorAt(i, j, fAktualLayer, nColor);
   End;
 End;
 
@@ -969,8 +1055,9 @@ Procedure TPixelEditor.RenderCursor;
 Var
   off: Single;
   c: TRGBA;
+  tl, br: TPoint;
+  i, j: Integer;
 Begin
-  If Not CursorIsInImageWindow Then exit;
   glPushMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerCursor); // Anfahren der Linken Oberen Ecke
   glColor4f(1, 1, 1, 1);
@@ -979,16 +1066,22 @@ Begin
   glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
   // Anfahren des Cursor Mittelpunkts
   glTranslatef(0.5, 0.5, 0);
-  glPointSize(fZoom / 100);
-  c := fCursor.LeftColor.Color;
-  glColor3ub(c.r, c.g, c.b);
-  glBegin(GL_POINTS);
-  CursorToPixelOperation(@SetOpenGLPixelByCursor);
-  glEnd;
-  glPointSize(1);
+  If CursorIsInImageWindow Then Begin
+    glPointSize(fZoom / 100);
+    c := fCursor.LeftColor.Color;
+    glColor3ub(c.r, c.g, c.b);
+    glBegin(GL_POINTS);
+    CursorToPixelOperation(@SetOpenGLPixelByCursor);
+    glEnd;
+    glPointSize(1);
+  End;
+  (*
+   * Ab hier kommen sachen Die der Cursor gerendert braucht aber keine offiziellen Pixel geschichten sind !
+   *)
   // Der Mirror Cursor muss noch die "Achsen" einmalen
   If fCursor.Tool = tMirror Then Begin
     glColor3ub(255, 255, 0);
+    If fZoom > 500 Then glLineWidth(2);
     glBegin(GL_LINES);
     If MirrorCenterButton.style = bsLowered Then Begin
       off := 0;
@@ -1007,6 +1100,55 @@ Begin
       glVertex2f(fImage.Width - 0.5, fCursor.Origin.Y - off);
     End;
     glEnd;
+    glLineWidth(1);
+  End;
+  If (fCursor.Tool = tSelect) Then Begin
+    tl.x := -1;
+    If (fCursor.LeftMouseButton) Then Begin // Der Auswahlcursor
+      tl.x := min(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
+      tl.Y := min(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
+      br.x := max(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
+      br.Y := max(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
+    End;
+    If fCursor.Select.aSet Then Begin
+      tl := fCursor.Select.tl;
+      br := fCursor.Select.br;
+      If fCursor.LeftMouseButton Then Begin
+        tl := fCursor.Select.tl + fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+        br := fCursor.Select.br + fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+      End;
+    End;
+    If tl.x <> -1 Then Begin
+      If fZoom > 500 Then glLineWidth(2);
+      glColor3ub(255, 255, 0);
+      glBegin(GL_LINE_LOOP);
+      glVertex2f(tl.x - 0.5, tl.y - 0.5);
+      glVertex2f(br.x + 0.5, tl.y - 0.5);
+      glVertex2f(br.x + 0.5, br.y + 0.5);
+      glVertex2f(tl.x - 0.5, br.y + 0.5);
+      glEnd;
+      glLineWidth(1);
+    End;
+    If fCursor.Select.aSet And fCursor.LeftMouseButton Then Begin
+      glPushMatrix;
+      glTranslatef(
+        fCursor.Select.tl.X + fCursor.Compact.PixelPos.x - fCursor.PixelDownPos.x,
+        fCursor.Select.tl.y + fCursor.Compact.PixelPos.Y - fCursor.PixelDownPos.y,
+        0);
+      glPointSize(fZoom / 100);
+      For i := 0 To high(fCursor.Select.Data) Do Begin
+        For j := 0 To high(fCursor.Select.Data[i]) Do Begin
+          If fCursor.Select.Data[i, j] <> upixeleditor_types.ColorTransparent Then Begin
+            glcolor3ub(fCursor.Select.Data[i, j].r, fCursor.Select.Data[i, j].g, fCursor.Select.Data[i, j].b);
+            glbegin(GL_POINTS);
+            glVertex2f(i, j);
+            glend;
+          End;
+        End;
+      End;
+      glPointSize(1);
+      glPopMatrix;
+    End;
   End;
   glPopMatrix;
 End;
@@ -1193,6 +1335,9 @@ Begin
   // Übernehmen des Cursor Tools ;)
   fCursor.LastTool := fCursor.Tool;
   fCursor.Tool := aTool;
+  If fCursor.Tool = tSelect Then Begin
+    fCursor.Select.aSet := false;
+  End;
 End;
 
 Procedure TPixelEditor.CheckScrollBorders;
