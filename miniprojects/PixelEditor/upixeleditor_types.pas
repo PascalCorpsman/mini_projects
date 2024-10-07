@@ -181,6 +181,8 @@ Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelSt
 Function IfThen(val: boolean; Const iftrue: TCursorSize; Const iffalse: TCursorSize): TCursorSize Inline; overload;
 Function IfThen(val: boolean; Const iftrue: TCursorShape; Const iffalse: TCursorShape): TCursorShape Inline; overload;
 
+Function ColorMatch(Const A, B: TRGBA; Toleranz_in_Percent: Integer): Boolean;
+
 Implementation
 
 Uses math;
@@ -480,22 +482,23 @@ Begin
   result := specialize ifthen < TCursorShape > (val, iftrue, iffalse);
 End;
 
+Function ColorMatch(Const A, B: TRGBA; Toleranz_in_Percent: Integer): Boolean;
+Var
+  dr, dg, db: integer;
+Begin
+  // Ganz Simple die Toleranz_in_Percent in Prozent im RGB-Würfel ;)
+  dr := abs(a.r - b.r);
+  dg := abs(a.g - b.g);
+  db := abs(a.b - b.b);
+  result := (dr + dg + db) / 3 <= Toleranz_in_Percent * 255 / 100;
+End;
+
+
 Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint;
   Toleranz: integer; Layer: TLayer; Const Image: TImage;
   Callback: TPixelCallback);
 Var
   Visited: Array Of Array Of Boolean;
-
-  Function Match(aCol: TRGBA): Boolean;
-  Var
-    dr, dg, db: integer;
-  Begin
-    // Ganz Simple die Toleranz in Prozent im RGB-Würfel ;)
-    dr := abs(aCol.r - SourceColor.r);
-    dg := abs(aCol.g - SourceColor.g);
-    db := abs(aCol.b - SourceColor.b);
-    result := (dr + dg + db) / 3 <= Toleranz * 255 / 100;
-  End;
 
   Procedure Visit(x, y: integer);
   Begin
@@ -503,7 +506,7 @@ Var
       (y < 0) Or (y >= image.Height) Or
       (Visited[x, y]) Then exit;
     Visited[x, y] := true;
-    If Match(image.GetColorAt(x, y, Layer)) Then Begin
+    If ColorMatch(SourceColor, image.GetColorAt(x, y, Layer), Toleranz) Then Begin
       Callback(x, y);
       Visit(x + 1, y);
       Visit(x - 1, y);
