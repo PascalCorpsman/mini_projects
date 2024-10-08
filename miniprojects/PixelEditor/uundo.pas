@@ -115,7 +115,6 @@ Begin
     image.SetColorAt(
       fRecordings[high(fRecordings)][i].x,
       fRecordings[high(fRecordings)][i].y,
-      lMiddle, // TODO: Das ist a biss arg statisch, sollten wir je mehrere Layer unterstützen wollen.
       fRecordings[high(fRecordings)][i].From
       );
   End;

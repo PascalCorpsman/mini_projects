@@ -19,7 +19,7 @@ Unit upixeleditor_types;
 Interface
 
 Uses
-  Classes, SysUtils, ExtCtrls, upixeleditorlcl, ugraphics, uimage;
+  Classes, SysUtils, ExtCtrls, upixeleditorlcl, ugraphics;
 
 Const
 
@@ -57,6 +57,8 @@ Const
 Type
 
   TPixelCallback = Procedure(X, Y: integer) Of Object;
+
+  TScaleMode = (smResize, smScale, smSmoothScale);
 
   TCursorShape = (// . = Pixel überdeckt, X = 0/0 - Koordinate
     // X
@@ -177,7 +179,6 @@ Procedure FoldCursorOnPixel(Const Cursor: TCompactCursor; Callback: TPixelCallba
 Procedure Bresenham_Line(Cursor: TCompactCursor; aTo: TPoint; Callback: TPixelCallback);
 Procedure Bresenham_Ellipse(Cursor: TCompactCursor; aTo: TPoint; Filled: Boolean; Callback: TPixelCallback);
 Procedure RectangleOutline(Cursor: TCompactCursor; P2: TPoint; Callback: TPixelCallback);
-Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Layer: TLayer; Const Image: TImage; Callback: TPixelCallback);
 Procedure Mirror(Cursor: TCompactCursor; Origin: Tpoint; PointCenter, MirrorHor, MirrorVer: Boolean; Offset: integer; Callback: TPixelCallback);
 
 Function MovePointToNextMainAxis(P: TPoint): TPoint; // Projiziert P auf die nächste Hauptachse oder Hauptdiagonale
@@ -506,39 +507,6 @@ Begin
   dg := abs(a.g - b.g);
   db := abs(a.b - b.b);
   result := (dr + dg + db) / 3 <= Toleranz_in_Percent * 255 / 100;
-End;
-
-
-Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint;
-  Toleranz: integer; Layer: TLayer; Const Image: TImage;
-  Callback: TPixelCallback);
-Var
-  Visited: Array Of Array Of Boolean;
-
-  Procedure Visit(x, y: integer);
-  Begin
-    If (x < 0) Or (x >= Image.Width) Or
-      (y < 0) Or (y >= image.Height) Or
-      (Visited[x, y]) Then exit;
-    Visited[x, y] := true;
-    If ColorMatch(SourceColor, image.GetColorAt(x, y, Layer), Toleranz) Then Begin
-      Callback(x, y);
-      Visit(x + 1, y);
-      Visit(x - 1, y);
-      visit(x, y - 1);
-      visit(x, y + 1);
-    End;
-  End;
-Var
-  i, j: Integer;
-Begin
-  setlength(Visited, Image.Width, Image.Height);
-  For i := 0 To Image.Width - 1 Do Begin
-    For j := 0 To Image.Height - 1 Do Begin
-      Visited[i, j] := false;
-    End;
-  End;
-  Visit(aPos.X, aPos.y);
 End;
 
 Procedure Mirror(Cursor: TCompactCursor; Origin: Tpoint; PointCenter,

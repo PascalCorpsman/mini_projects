@@ -5,11 +5,9 @@ Unit uimage;
 Interface
 
 Uses
-  Classes, SysUtils, ugraphics;
+  Classes, SysUtils, ugraphics, upixeleditor_types;
 
 Type
-
-  TLayer = (lBackground, lMiddle, lForeground, lAll); // !! Achtung !!, die Reihenfolge darf nicht verändert werden
 
   { TImage }
 
@@ -17,7 +15,7 @@ Type
   private
     fChanged: Boolean;
     fOpenGLImage: integer;
-    fPixels: Array Of Array Of Array[lBackground..lForeground] Of TRGBA;
+    fPixels: Array Of Array Of TRGBA;
     Function getHeight: integer;
     Function getWidth: integer;
   public
@@ -31,9 +29,9 @@ Type
     Constructor Create(); virtual;
     Destructor Destroy(); override;
 
-    Function GetColorAt(x, y: integer; aLayer: TLayer): TRGBA;
+    Function GetColorAt(x, y: integer): TRGBA;
 
-    Procedure SetColorAt(x, y: integer; aLayer: TLayer; c: TRGBA);
+    Procedure SetColorAt(x, y: integer; c: TRGBA);
 
     Procedure SetSize(aWidth, aHeight: Integer);
     Procedure Clear();
@@ -41,14 +39,18 @@ Type
     Procedure Render();
 
     Procedure AppendToPEStream(Const Stream: TStream; Const aFilename: String);
-    Procedure LoadFromPEStream(Const Stream: TStream; Const aFilename: String; aLayer: TLayer);
+    Procedure LoadFromPEStream(Const Stream: TStream; Const aFilename: String);
 
-    Procedure ExportAsBMP(aFilename: String; aLayer: TLayer; TransparentColor: TRGBA);
+    Procedure ExportAsBMP(aFilename: String; TransparentColor: TRGBA);
     Procedure ImportFromBMP(aFilename: String; TransparentColor: TRGBA);
 
-    Procedure ExportAsPNG(aFilename: String; aLayer: TLayer);
+    Procedure ExportAsPNG(aFilename: String);
     Procedure ImportFromPNG(aFilename: String);
+
+    Procedure Rescale(NewWidth, NewHeight: integer; Mode: TScaleMode);
   End;
+
+Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Const Image: TImage; Callback: TPixelCallback);
 
 Implementation
 
@@ -56,8 +58,39 @@ Uses
   IntfGraphics, fpImage, Graphics
   , LCLType
   , dglOpenGL, uopengl_graphikengine
-  , upixeleditor_types
   ;
+
+Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint;
+  Toleranz: integer; Const Image: TImage;
+  Callback: TPixelCallback);
+Var
+  Visited: Array Of Array Of Boolean;
+
+  Procedure Visit(x, y: integer);
+  Begin
+    If (x < 0) Or (x >= Image.Width) Or
+      (y < 0) Or (y >= image.Height) Or
+      (Visited[x, y]) Then exit;
+    Visited[x, y] := true;
+    If ColorMatch(SourceColor, image.GetColorAt(x, y), Toleranz) Then Begin
+      Callback(x, y);
+      Visit(x + 1, y);
+      Visit(x - 1, y);
+      visit(x, y - 1);
+      visit(x, y + 1);
+    End;
+  End;
+Var
+  i, j: Integer;
+Begin
+  setlength(Visited, Image.Width, Image.Height);
+  For i := 0 To Image.Width - 1 Do Begin
+    For j := 0 To Image.Height - 1 Do Begin
+      Visited[i, j] := false;
+    End;
+  End;
+  Visit(aPos.X, aPos.y);
+End;
 
 { TImage }
 
@@ -94,32 +127,22 @@ Begin
   End;
 End;
 
-Function TImage.GetColorAt(x, y: integer; aLayer: TLayer): TRGBA;
-Var
-  i: TLayer;
+Function TImage.GetColorAt(x, y: integer): TRGBA;
 Begin
   result := RGBA(0, 0, 0, 255);
   If (x < 0) Or (x >= Width) Or (y < 0) Or (y >= Height) Then exit;
-  If Not (aLayer In [lForeground, lMiddle, lBackground]) Then exit;
-  result := fPixels[x, y][lBackground];
-  For i := aLayer Downto lBackground Do Begin
-    If fPixels[x, y][i].a = 0 Then Begin // TODO: Will man je irgendwann mal dass die Layer geblendet werden können, muss man hier ran !
-      result := fPixels[x, y][i];
-      break;
-    End;
-  End;
+  result := fPixels[x, y];
 End;
 
-Procedure TImage.SetColorAt(x, y: integer; aLayer: TLayer; c: TRGBA);
+Procedure TImage.SetColorAt(x, y: integer; c: TRGBA);
 Var
   oc: Array[0..3] Of Byte;
 Begin
   // Übernehmen in die Interne Struktur
   If (x < 0) Or (x >= Width) Or (y < 0) Or (y >= Height) Then exit;
-  If Not (aLayer In [lForeground, lMiddle, lBackground]) Then exit;
-  If fPixels[x, y][aLayer] <> c Then Begin
+  If fPixels[x, y] <> c Then Begin
     fChanged := true;
-    fPixels[x, y][aLayer] := c;
+    fPixels[x, y] := c;
     // Übernehmen nach OpenGL
     oc[0] := c.r;
     oc[1] := c.g;
@@ -157,9 +180,7 @@ Begin
   glTexImage2D(GL_TEXTURE_2D, 0, gl_RGBA, aWidth, Aheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, @Data[0]);
   For i := 0 To high(fPixels) Do Begin
     For j := 0 To high(fPixels[i]) Do Begin
-      fPixels[i, j][lBackground] := ColorTransparent;
-      fPixels[i, j][lMiddle] := ColorTransparent;
-      fPixels[i, j][lForeground] := ColorTransparent;
+      fPixels[i, j] := ColorTransparent;
     End;
   End;
 End;
@@ -170,9 +191,7 @@ Var
 Begin
   For i := 0 To high(fPixels) Do Begin
     For j := 0 To high(fPixels[i]) Do Begin
-      fPixels[i, j][lBackground] := ColorTransparent;
-      fPixels[i, j][lMiddle] := ColorTransparent;
-      fPixels[i, j][lForeground] := ColorTransparent;
+      fPixels[i, j] := ColorTransparent;
     End;
     SetLength(fPixels[i], 0);
   End;
@@ -232,7 +251,7 @@ Begin
 End;
 
 Procedure TImage.LoadFromPEStream(Const Stream: TStream;
-  Const aFilename: String; aLayer: TLayer);
+  Const aFilename: String);
 Var
   i, j: integer;
   c: TRGBA;
@@ -246,22 +265,21 @@ Begin
     For i := 0 To Width - 1 Do Begin
       stream.Read(fPixels[i, j], sizeof(fPixels[i, j]));
       // Sieht unsinnig aus, aber initialisiert das OpenGL Bild ;)
-      c := GetColorAt(i, j, aLayer);
+      c := GetColorAt(i, j);
       If c.r = 255 Then Begin
-        fPixels[i, j][aLayer].r := 0;
+        fPixels[i, j].r := 0;
       End
       Else Begin
-        fPixels[i, j][aLayer].r := 255;
+        fPixels[i, j].r := 255;
       End;
-      SetColorAt(i, j, aLayer, c);
+      SetColorAt(i, j, c);
     End;
   End;
   fChanged := false;
   Filename := aFilename;
 End;
 
-Procedure TImage.ExportAsBMP(aFilename: String; aLayer: TLayer;
-  TransparentColor: TRGBA);
+Procedure TImage.ExportAsBMP(aFilename: String; TransparentColor: TRGBA);
 Var
   b: Tbitmap;
   TempIntfImg: TLazIntfImage;
@@ -276,7 +294,7 @@ Begin
   TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
   For j := 0 To height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
-      c := GetColorAt(i, j, aLayer);
+      c := GetColorAt(i, j);
       If c = ColorTransparent Then Begin
         TempIntfImg.Colors[i, j] := RGBAToFPColor(TransparentColor);
       End
@@ -312,10 +330,10 @@ Begin
       c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
       c.a := 0;
       If c = TransparentColor Then Begin
-        SetColorAt(i, j, lMiddle, ColorTransparent);
+        SetColorAt(i, j, ColorTransparent);
       End
       Else Begin
-        SetColorAt(i, j, lMiddle, c);
+        SetColorAt(i, j, c);
       End;
     End;
   End;
@@ -325,7 +343,7 @@ Begin
   Filename := aFilename;
 End;
 
-Procedure TImage.ExportAsPNG(aFilename: String; aLayer: TLayer);
+Procedure TImage.ExportAsPNG(aFilename: String);
 Var
   png: TPortableNetworkGraphic;
   b: Tbitmap;
@@ -342,7 +360,7 @@ Begin
   TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
   For j := 0 To height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
-      c := GetColorAt(i, j, aLayer);
+      c := GetColorAt(i, j);
       c.a := 255 - c.a;
       TempIntfImg.Colors[i, j] := RGBAToFPColor(c);
     End;
@@ -380,13 +398,43 @@ Begin
     For i := 0 To Width - 1 Do Begin
       c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
       c.a := 255 - c.a;
-      SetColorAt(i, j, lMiddle, c);
+      SetColorAt(i, j, c);
     End;
   End;
   TempIntfImg.free;
   b.free;
   fChanged := false;
   Filename := aFilename;
+End;
+
+Procedure TImage.Rescale(NewWidth, NewHeight: integer; Mode: TScaleMode);
+Var
+  a: Array Of Array Of TRGBA;
+  i, j: Integer;
+Begin
+  If (NewWidth = Width) And (NewHeight = Height) Then exit; // Alles bereits bestens
+  // Am Einfachsten ist es sich alles zu Bakupen und dann das Bild neu zu erstellen
+  a := Nil;
+  setlength(a, Width, Height);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      a[i, j] := fPixels[i, j];
+    End;
+  End;
+  If Mode = smScale Then Begin
+    // TODO: Implementieren
+  End;
+  If mode = smSmoothScale Then Begin
+    // TODO: Implementieren
+  End;
+  SetSize(NewWidth, NewHeight);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      If (i <= high(a)) And (j <= high(a[0])) Then Begin
+        SetColorAt(i, j, a[i, j]);
+      End;
+    End;
+  End;
 End;
 
 End.

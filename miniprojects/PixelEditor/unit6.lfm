@@ -20,7 +20,7 @@ object Form6: TForm6
     ClientHeight = 104
     ClientWidth = 431
     ParentBackground = False
-    TabOrder = 0
+    TabOrder = 1
     object SpeedButton1: TSpeedButton
       Left = 8
       Height = 96
@@ -1643,7 +1643,7 @@ object Form6: TForm6
     ClientHeight = 167
     ClientWidth = 431
     ParentBackground = False
-    TabOrder = 1
+    TabOrder = 2
     object SpinEdit1: TSpinEdit
       Left = 104
       Height = 26
@@ -1654,6 +1654,7 @@ object Form6: TForm6
       Font.Color = clSilver
       ParentFont = False
       TabOrder = 0
+      OnKeyDown = SpinEdit1KeyDown
     end
     object SpinEdit2: TSpinEdit
       Left = 272
@@ -1665,6 +1666,7 @@ object Form6: TForm6
       Font.Color = clSilver
       ParentFont = False
       TabOrder = 1
+      OnKeyDown = SpinEdit1KeyDown
     end
     object SpinEdit3: TSpinEdit
       Left = 104
@@ -1676,6 +1678,7 @@ object Form6: TForm6
       ParentFont = False
       TabOrder = 2
       OnChange = SpinEdit3Change
+      OnKeyDown = SpinEdit1KeyDown
     end
     object SpinEdit4: TSpinEdit
       Left = 272
@@ -1687,6 +1690,7 @@ object Form6: TForm6
       ParentFont = False
       TabOrder = 3
       OnChange = SpinEdit4Change
+      OnKeyDown = SpinEdit1KeyDown
     end
     object Label1: TLabel
       Left = 8
@@ -1723,7 +1727,7 @@ object Form6: TForm6
       Caption = 'Keep aspect ration'
       Font.Color = clSilver
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 6
     end
     object Label4: TLabel
       Left = 156
@@ -1753,6 +1757,7 @@ object Form6: TForm6
       ParentFont = False
       TabOrder = 5
       OnChange = SpinEdit6Change
+      OnKeyDown = SpinEdit1KeyDown
     end
     object SpinEdit5: TFloatSpinEdit
       Left = 104
@@ -1762,8 +1767,9 @@ object Form6: TForm6
       Color = clGray
       Font.Color = clSilver
       ParentFont = False
-      TabOrder = 6
+      TabOrder = 4
       OnChange = SpinEdit5Change
+      OnKeyDown = SpinEdit1KeyDown
     end
   end
   object Button1: TButton
@@ -1776,7 +1782,7 @@ object Form6: TForm6
     Font.Color = clSilver
     ModalResult = 2
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 3
   end
   object Button2: TButton
     Left = 366
@@ -1788,7 +1794,7 @@ object Form6: TForm6
     Font.Color = clSilver
     ModalResult = 1
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 4
   end
   object Label6: TLabel
     Left = 8
@@ -1815,7 +1821,7 @@ object Form6: TForm6
     )
     ParentFont = False
     Style = csDropDownList
-    TabOrder = 4
+    TabOrder = 0
     Text = 'Entire Image'
   end
 end

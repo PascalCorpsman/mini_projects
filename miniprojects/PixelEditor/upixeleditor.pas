@@ -31,8 +31,9 @@ Const
   (*
    * History: 1 - Initialversion
    *          2 - ADD Colorpalette
+   *          3 - Drop Multilayer support
    *)
-  PixelEditorFileversion: integer = 2;
+  PixelEditorFileversion: integer = 3;
 
   (*
    * History: 1 - Initialversion
@@ -51,7 +52,6 @@ Type
     FOwner: TOpenGLControl;
     fScrollInfo: TScrollInfo;
     fZoom: integer; // Akruelle Zoomstufe in %
-    fAktualLayer: TLayer; // TODO: das kann stand jetzt raus !
     fImage: TImage; // Das Object um das es hier eigentlich geht ;)
     fUndo: TUndoEngine;
     fBucketToleranz: integer;
@@ -124,8 +124,6 @@ Type
 
     InfoLabel: TOpenGl_Label; // Anzeige Aktuelle Position und Pixelfarbe unter Position
     InfoDetailLabel: TOpenGl_Label; // Zeigt beim Linien/ Ellipse/ Rechteck tool die "Delta's" an
-
-    //    SelectLayerButton: TOpenGL_Bevel;
 
     Procedure OnNewButtonClick(Sender: TObject);
     Procedure OnOpenButtonClick(Sender: TObject);
@@ -492,7 +490,7 @@ Begin
               CursorToPixelOperation(@SetImagePixelByCursor);
           End;
         tPincette: Begin
-            c := fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y, fAktualLayer);
+            c := fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y);
             fCursor.LeftColor.Color := c;
             SetLeftColor(fCursor.LeftColor);
           End;
@@ -639,7 +637,7 @@ Begin
                 fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
                 For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
                   For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-                    fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y] := fImage.GetColorAt(i, j, fAktualLayer);
+                    fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y] := fImage.GetColorAt(i, j);
                     SetImagePixelByCursor(i, j);
                   End;
                 End;
@@ -1093,11 +1091,10 @@ Begin
         End;
       End;
     tBucket: Begin
-        upixeleditor_types.FloodFill(
-          fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y, fAktualLayer),
+        uimage.FloodFill(
+          fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
           point(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
           fBucketToleranz,
-          fAktualLayer,
           fimage,
           Callback);
       End;
@@ -1110,11 +1107,11 @@ Var
 Begin
   If (i >= 0) And (i < fImage.Width) And
     (j >= 0) And (j < fImage.Height) Then Begin
-    aColor := fImage.GetColorAt(i, j, fAktualLayer);
+    aColor := fImage.GetColorAt(i, j);
     If EraserButton.Style = bsRaised Then Begin
       If aColor <> upixeleditor_types.ColorTransparent Then Begin
         fUndo.RecordPixelChange(i, j, aColor);
-        fImage.SetColorAt(i, j, fAktualLayer, upixeleditor_types.ColorTransparent);
+        fImage.SetColorAt(i, j, upixeleditor_types.ColorTransparent);
       End;
     End
     Else Begin
@@ -1140,7 +1137,7 @@ Begin
       End;
       If aColor <> nColor Then Begin
         fUndo.RecordPixelChange(i, j, aColor);
-        fImage.SetColorAt(i, j, fAktualLayer, nColor);
+        fImage.SetColorAt(i, j, nColor);
       End;
     End;
   End;
@@ -1161,12 +1158,16 @@ Begin
       fCursor.Select.br.x - fCursor.Select.tl.X + 1,
       fCursor.Select.br.Y - fCursor.Select.tl.Y + 1,
       false);
+    If Form6.ShowModal = mrOK Then Begin
+      //    TODO: Hier gehts weiter ;)
+    End;
   End
   Else Begin
     form6.InitWith(fImage.Width, fImage.Height, true);
-  End;
-  If Form6.ShowModal = mrOK Then Begin
-    // TODO: Hier gehts weiter ;)
+    If Form6.ShowModal = mrOK Then Begin
+      fImage.Rescale(form6.SpinEdit3.Value, form6.SpinEdit4.Value, Form6.GetScaleMode);
+      fUndo.Clear; // TODO: Vorerst macht ein Resize die Historie Platt
+    End;
   End;
 End;
 
@@ -1279,7 +1280,6 @@ Begin
   SetZoom(1000);
   fImage.SetSize(aWidth, aHeight);
   setlength(fDarkBrightMask, aWidth, aHeight);
-  fAktualLayer := lMiddle;
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
   ColorPicDialog.Visible := false;
@@ -1320,8 +1320,7 @@ Begin
   fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
   For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
     For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-      fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y]
-        := fImage.GetColorAt(i, j, fAktualLayer);
+      fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y] := fImage.GetColorAt(i, j);
       SetImagePixelByCursor(i, j);
     End;
   End;
@@ -1434,7 +1433,7 @@ Begin
     InfoDetailLabel.Caption := '';
   End
   Else Begin
-    c := fImage.GetColorAt(fCursor.compact.PixelPos.x, fCursor.compact.PixelPos.y, fAktualLayer);
+    c := fImage.GetColorAt(fCursor.compact.PixelPos.x, fCursor.compact.PixelPos.y);
     InfoLabel.caption := format('%d,%d', [fCursor.compact.PixelPos.x, fCursor.compact.PixelPos.y]);
     If c.a = 0 Then Begin
       InfoLabel.caption := InfoLabel.caption + LineEnding + format('%d/%d/%d', [c.r, c.g, c.b]);
@@ -1588,7 +1587,7 @@ Begin
           (c.b = fCursor.RightColor.b) Then Begin
           c := upixeleditor_types.ColorTransparent;
         End;
-        fImage.SetColorAt(i, j, fAktualLayer, c);
+        fImage.SetColorAt(i, j, c);
       End;
     End;
     b.free;
@@ -1601,13 +1600,13 @@ Var
 Begin
   Case LowerCase(ExtractFileExt(aFilename)) Of
     '.png': Begin
-        fImage.ExportAsPNG(aFilename, fAktualLayer);
+        fImage.ExportAsPNG(aFilename);
       End;
     '.bmp': Begin
         form4.Shape1.Brush.Color := clFuchsia;
         form4.caption := 'BMP export settings';
         If form4.ShowModal = mrOK Then Begin
-          fImage.ExportAsBMP(aFilename, fAktualLayer, ColorToRGBA(form4.Shape1.Brush.Color));
+          fImage.ExportAsBMP(aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
         End
         Else Begin
           showmessage('Skip, nothing saved.');
@@ -1616,7 +1615,6 @@ Begin
     '.pe': Begin
         m := TMemoryStream.Create;
         m.Write(PixelEditorFileversion, sizeof(PixelEditorFileversion));
-        m.Write(fAktualLayer, sizeof(TLayer));
         m.Write(Color1.Color, sizeof(Color1.Color));
         m.Write(Color2.Color, sizeof(Color2.Color));
         m.Write(Color3.Color, sizeof(Color3.Color));
@@ -1652,14 +1650,12 @@ Begin
   Case LowerCase(ExtractFileExt(aFilename)) Of
     '.png': Begin
         fImage.ImportFromPNG(aFilename);
-        fAktualLayer := lMiddle;
       End;
     '.bmp': Begin
         form4.Shape1.Brush.Color := clFuchsia;
         form4.caption := 'BMP import settings';
         If form4.ShowModal = mrOK Then Begin
           fImage.ImportFromBMP(aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
-          fAktualLayer := lMiddle;
         End
         Else Begin
           showmessage('Skip, nothing loaded.');
@@ -1672,12 +1668,11 @@ Begin
         LoadedFileVersion := -1;
         m.Read(LoadedFileVersion, sizeof(i));
         // TODO: In Zukunft kann hier dann ein Fileversion angepasster Lader sein Werk tun ;)
-        If LoadedFileVersion > PixelEditorFileversion Then Begin
+        If (LoadedFileVersion > PixelEditorFileversion) Or (LoadedFileVersion < 3) Then Begin
           showmessage('Error, invalid file version.');
           m.free;
           exit;
         End;
-        m.Read(fAktualLayer, SizeOf(fAktualLayer));
         If LoadedFileVersion >= 2 Then Begin
           c := RGBA(0, 0, 0, 255);
           m.Read(C, sizeof(C));
@@ -1697,7 +1692,7 @@ Begin
           m.Read(C, sizeof(C));
           color8.Color := c;
         End;
-        fImage.LoadFromPEStream(m, aFilename, fAktualLayer);
+        fImage.LoadFromPEStream(m, aFilename);
         m.free;
       End;
   Else Begin

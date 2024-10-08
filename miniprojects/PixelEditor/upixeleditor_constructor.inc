@@ -670,15 +670,3 @@ InfoDetailLabel.Caption := '';
 InfoDetailLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
 AddElement(InfoDetailLabel);
 
-// Den Verstehen wir noch nicht -> Raus
-//SelectLayerButton := TOpenGL_Bevel.Create(Owner);
-//SelectLayerButton.Left := 640 - 35;
-//SelectLayerButton.Top := 480 - 35;
-////image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-////SelectLayerButton.SetImage(image);
-//SelectLayerButton.Transparent := true;
-//SelectLayerButton.Width := 32;
-//SelectLayerButton.Height := 32;
-//SelectLayerButton.OnClick := @OnSelectLayerButtonClick;
-//AddElement(SelectLayerButton);
-

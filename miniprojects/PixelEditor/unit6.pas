@@ -20,7 +20,7 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, Buttons,
-  Spin;
+  Spin, upixeleditor_types;
 
 Type
 
@@ -49,6 +49,8 @@ Type
     SpinEdit5: TFloatSpinEdit;
     SpinEdit6: TFloatSpinEdit;
     Procedure FormCreate(Sender: TObject);
+    Procedure SpinEdit1KeyDown(Sender: TObject; Var Key: Word;
+      Shift: TShiftState);
     Procedure SpinEdit3Change(Sender: TObject);
     Procedure SpinEdit4Change(Sender: TObject);
     Procedure SpinEdit5Change(Sender: TObject);
@@ -57,7 +59,7 @@ Type
     Block: Boolean;
   public
     Procedure InitWith(aWidth, aHeight: Integer; Global: Boolean);
-
+    Function GetScaleMode(): TScaleMode;
   End;
 
 Var
@@ -67,13 +69,20 @@ Implementation
 
 {$R *.lfm}
 
-Uses math;
+Uses math, LCLType;
 
 { TForm6 }
 
 Procedure TForm6.FormCreate(Sender: TObject);
 Begin
   caption := 'Resize / Scale';
+End;
+
+Procedure TForm6.SpinEdit1KeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  If key = VK_RETURN Then button2.Click;
+  If key = VK_ESCAPE Then Button1.Click;
 End;
 
 Procedure TForm6.SpinEdit3Change(Sender: TObject);
@@ -139,6 +148,13 @@ Begin
   SpinEdit6.Value := 100;
   ComboBox1.ItemIndex := 1 - ord(Global);
   CheckBox1.Checked := true;
+End;
+
+Function TForm6.GetScaleMode(): TScaleMode;
+Begin
+  result := smResize;
+  If SpeedButton2.Down Then result := smScale;
+  If SpeedButton3.Down Then result := smSmoothScale;
 End;
 
 End.
