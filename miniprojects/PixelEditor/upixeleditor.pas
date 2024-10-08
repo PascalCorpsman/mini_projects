@@ -15,7 +15,6 @@
 Unit upixeleditor;
 
 {$MODE ObjFPC}{$H+}
-{$MODESWITCH nestedprocvars}
 
 Interface
 
@@ -205,6 +204,7 @@ Type
 
     Procedure SetImagePixelByCursor(i, j: integer);
     Procedure SetOpenGLPixelByCursor(i, j: integer);
+    Procedure EditImageSelectionProperties;
   public
 
     Property Changed: Boolean read getChanged;
@@ -218,6 +218,7 @@ Type
 
     Procedure CheckScrollBorders;
     Procedure LoadImage(Const aFilename: String);
+    Procedure Spritify();
   End;
 
 Var
@@ -235,6 +236,7 @@ Uses
   , unit3 // Neu
   , unit4 // Export BMP Settings Dialog
   , Unit5 // FBucket Toleranz
+  , unit6 // Resize Scale
   ;
 
 { TPixelEditor }
@@ -446,8 +448,7 @@ Begin
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
   If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
   If (key = VK_DELETE) Then EraserButton.click;
-  // TODO: Folgende Tastaturkombinationen sollten auf jeden Fall noch mit Rein !
-  // If (key = VK_E) And (ssCtrl In Shift) Then
+  If (key = VK_E) And (ssCtrl In Shift) Then EditImageSelectionProperties;
 
   fCursor.Shift := ssShift In Shift;
 End;
@@ -463,6 +464,7 @@ Procedure TPixelEditor.OpenGLControlMouseDown(Sender: TObject;
 Var
   i, j: integer;
   c: TRGBA;
+  p: TPoint;
 Begin
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fScrollInfo.ScrollPos := point(x, y);
@@ -533,6 +535,8 @@ Begin
       If fCursor.Select.aSet Then Begin
         If PointInRect(fCursor.Compact.PixelPos, fCursor.Select.tl, fCursor.Select.br) Then Begin
           // TODO: Popupmenü des Select Dialogs
+          p := Form1.ControlToScreen(point(x, y));
+          form1.PopupMenu1.PopUp(p.x, p.y);
         End
         Else Begin
           // Abwahl Select Cursor, = Einfügen in Bild
@@ -1150,6 +1154,22 @@ Begin
   End;
 End;
 
+Procedure TPixelEditor.EditImageSelectionProperties;
+Begin
+  If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
+    form6.InitWith(
+      fCursor.Select.br.x - fCursor.Select.tl.X + 1,
+      fCursor.Select.br.Y - fCursor.Select.tl.Y + 1,
+      false);
+  End
+  Else Begin
+    form6.InitWith(fImage.Width, fImage.Height, true);
+  End;
+  If Form6.ShowModal = mrOK Then Begin
+    // TODO: Hier gehts weiter ;)
+  End;
+End;
+
 Procedure TPixelEditor.RenderCursor;
 Var
   off: Single;
@@ -1692,6 +1712,35 @@ Begin
   CheckScrollBorders;
   fUndo.Clear;
   UpdateInfoLabel;
+End;
+
+Procedure TPixelEditor.Spritify;
+Var
+  i, j: Integer;
+  a: Array Of Array Of boolean;
+Begin
+  If fCursor.Select.aSet Then Begin
+    a := Nil;
+    setlength(a, length(fCursor.Select.Data), length(fCursor.Select.Data[0]));
+    For i := 0 To high(fCursor.Select.Data) Do Begin
+      For j := 0 To high(fCursor.Select.Data[i]) Do Begin
+        a[i, j] := fCursor.Select.Data[i, j] = upixeleditor_types.ColorTransparent;
+      End;
+    End;
+    For i := 1 To high(fCursor.Select.Data) - 1 Do Begin
+      For j := 1 To high(fCursor.Select.Data[i]) - 1 Do Begin
+        If a[i, j] Then Begin
+          If (Not a[i - 1, j]) Or
+            (Not a[i + 1, j]) Or
+            (Not a[i, j - 1]) Or
+            (Not a[i, j + 1]) Then Begin
+            fCursor.Select.Data[i, j] := fCursor.LeftColor.Color;
+          End;
+        End;
+      End;
+    End;
+    setlength(a, 0, 0);
+  End;
 End;
 
 Constructor TPixelEditor.Create;

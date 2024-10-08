@@ -15,7 +15,6 @@
 Unit upixeleditor_types;
 
 {$MODE ObjFPC}{$H+}
-{$MODESWITCH nestedprocvars}
 
 Interface
 

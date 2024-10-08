@@ -59,4 +59,19 @@ object Form1: TForm1
     Left = 272
     Top = 88
   end
+  object PopupMenu1: TPopupMenu
+    Left = 98
+    Top = 162
+    object MenuItem1: TMenuItem
+      Caption = 'Spritify'
+      OnClick = MenuItem1Click
+    end
+    object Separator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Hide'
+      OnClick = MenuItem2Click
+    end
+  end
 end

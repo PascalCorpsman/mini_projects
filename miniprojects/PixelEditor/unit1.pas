@@ -35,7 +35,7 @@ Interface
 
 Uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, IniPropStorage,
+  ExtCtrls, IniPropStorage, Menus,
   OpenGlcontext,
   (*
    * Kommt ein Linkerfehler wegen OpenGL dann: sudo apt-get install freeglut3-dev
@@ -50,16 +50,22 @@ Type
 
   TForm1 = Class(TForm)
     IniPropStorage1: TIniPropStorage;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
+    PopupMenu1: TPopupMenu;
     SaveDialog1: TSaveDialog;
     SaveDialog2: TSaveDialog;
+    Separator1: TMenuItem;
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
     Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
+    Procedure MenuItem1Click(Sender: TObject);
+    Procedure MenuItem2Click(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
@@ -198,6 +204,16 @@ Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
   );
 Begin
   Editor.LoadImage(FileNames[0]);
+End;
+
+Procedure TForm1.MenuItem1Click(Sender: TObject);
+Begin
+  Editor.Spritify;
+End;
+
+Procedure TForm1.MenuItem2Click(Sender: TObject);
+Begin
+  // Nichts das Popup geht auch so zu ;)
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);
