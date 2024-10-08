@@ -352,8 +352,8 @@ Var
   w, h, i, j: integer;
 Begin
   tl := point(min(Cursor.PixelPos.X, p2.x), min(Cursor.PixelPos.Y, p2.y));
-  w := abs(Cursor.PixelPos.x - p2.x);
-  h := abs(Cursor.PixelPos.Y - p2.Y);
+  w := abs(Cursor.PixelPos.x - p2.x) + 1;
+  h := abs(Cursor.PixelPos.Y - p2.Y) + 1;
   For i := 0 To w - 1 Do Begin
     Cursor.PixelPos := point(tl.x + i, tl.Y);
     FoldCursorOnPixel(Cursor, Callback);

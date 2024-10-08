@@ -447,7 +447,13 @@ Begin
   If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
   If (key = VK_DELETE) Then EraserButton.click;
   If (key = VK_E) And (ssCtrl In Shift) Then EditImageSelectionProperties;
-
+  If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
+  If (key = VK_ESCAPE) Then Begin
+    If fCursor.Tool = tSelect Then Begin
+      SelectTool(tPen); // Abwählen des evtl gewählten Bereichs
+      SelectTool(tSelect);
+    End;
+  End;
   fCursor.Shift := ssShift In Shift;
 End;
 
@@ -1362,8 +1368,8 @@ Begin
   // Calc the new "wrong" position
   p2 := CursorToPixel(fCursor.Pos.X, fCursor.Pos.y);
   // "Scroll" so that the new position is the old one ;)
-  fScrollInfo.GlobalXOffset := fScrollInfo.GlobalXOffset + (p1.x - p2.x) * fZoom Div 100;
-  fScrollInfo.GlobalyOffset := fScrollInfo.GlobalyOffset + (p1.Y - p2.Y) * fZoom Div 100;
+  fScrollInfo.GlobalXOffset := fScrollInfo.GlobalXOffset + (p1.x - p2.x) * fZoom Div 100 * ScreenWidth Div FOwner.Width;
+  fScrollInfo.GlobalyOffset := fScrollInfo.GlobalyOffset + (p1.Y - p2.Y) * fZoom Div 100 * ScreenHeight Div FOwner.Height;
   // Let the scrollbars do their constraint thing
   // Nachziehen des Cursors sonst springt der beim Zoomen
   fCursor.compact.PixelPos := CursorToPixel(fCursor.Pos.x, fCursor.Pos.y);

@@ -9,13 +9,15 @@ Uses
 
 Type
 
+  TPixelArea = Array Of Array Of TRGBA;
+
   { TImage }
 
   TImage = Class
   private
     fChanged: Boolean;
     fOpenGLImage: integer;
-    fPixels: Array Of Array Of TRGBA;
+    fPixels: TPixelArea;
     Function getHeight: integer;
     Function getWidth: integer;
   public
@@ -52,12 +54,14 @@ Type
 
 Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Const Image: TImage; Callback: TPixelCallback);
 
+Procedure RescalePixelArea(Var Data: TPixelArea; NewWidth, NewHeight: Integer; ScaleMode: TScaleMode);
+
 Implementation
 
 Uses
-  IntfGraphics, fpImage, Graphics
-  , LCLType
+  IntfGraphics, fpImage, Graphics, LCLType, math
   , dglOpenGL, uopengl_graphikengine
+  , uvectormath
   ;
 
 Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint;
@@ -83,6 +87,7 @@ Var
 Var
   i, j: Integer;
 Begin
+  Visited := Nil;
   setlength(Visited, Image.Width, Image.Height);
   For i := 0 To Image.Width - 1 Do Begin
     For j := 0 To Image.Height - 1 Do Begin
@@ -90,6 +95,124 @@ Begin
     End;
   End;
   Visit(aPos.X, aPos.y);
+End;
+
+Function InterpolateLinear(c1, c2: TRGBA; f: Single): TRGBA;
+Var
+  r, g, b, r1, r2, g1, g2, b1, b2: integer;
+Begin
+  // Ist eine der beiden Farben Unsichtbar dominiert die andere
+  If c1.a = 255 Then Begin
+    result.r := c2.r Div 2;
+    result.g := c2.g Div 2;
+    result.b := c2.b Div 2;
+    result.a := c2.a;
+    exit;
+  End;
+  If c2.a = 255 Then Begin
+    result.r := c1.r Div 2;
+    result.g := c1.g Div 2;
+    result.b := c1.b Div 2;
+    result.a := c1.a;
+    exit;
+  End;
+  r1 := c1.R;
+  r2 := c2.R;
+  g1 := c1.G;
+  g2 := c2.G;
+  b1 := c1.B;
+  b2 := c2.B;
+
+  r := round(r2 * f + r1 * (1 - f));
+  g := round(g2 * f + g1 * (1 - f));
+  b := round(b2 * f + b1 * (1 - f));
+
+  r := Clamp(r, 0, 255);
+  g := Clamp(g, 0, 255);
+  b := Clamp(b, 0, 255);
+
+  result.R := r;
+  result.G := g;
+  result.B := b;
+  result.A := 0;
+End;
+
+Procedure RescalePixelArea(Var Data: TPixelArea; NewWidth, NewHeight: Integer;
+  ScaleMode: TScaleMode);
+
+Var
+  tmp: TPixelArea;
+  w, h: integer;
+
+  Function GetPixel(x, y: Single): TRGBA;
+  Var
+    xi, yi, i: Integer;
+    fx, fy: Single;
+    p: Array[0..15] Of TPoint;
+    a, c: Array[0..3] Of TRGBA;
+  Begin
+    xi := trunc(x);
+    yi := trunc(y);
+    fx := x - xi;
+    fy := y - yi;
+    p[0] := point(xi, yi);
+    p[1] := point(min(w, xi + 1), yi);
+    p[2] := point(xi, min(h, yi + 1));
+    p[3] := point(min(w, xi + 1), min(h, yi + 1));
+    For i := 0 To 3 Do Begin
+      c[i] := tmp[p[i].x, p[i].y];
+    End;
+    If ScaleMode = smScale Then Begin
+      If fx <= 0.5 Then Begin
+        If fy <= 0.5 Then Begin
+          result := c[0];
+        End
+        Else Begin
+          result := c[2];
+        End;
+      End
+      Else Begin
+        If fy <= 0.5 Then Begin
+          result := c[1];
+        End
+        Else Begin
+          result := c[3];
+        End;
+      End;
+    End
+    Else Begin
+      a[0] := InterpolateLinear(c[0], c[2], fy);
+      a[1] := InterpolateLinear(c[1], c[3], fy);
+      result := InterpolateLinear(a[0], a[1], fx);
+    End;
+  End;
+
+Var
+  i, j: Integer;
+Begin
+  tmp := data;
+  w := high(data) - 0;
+  h := high(data[0]) - 0;
+  data := Nil;
+  setlength(data, NewWidth, NewHeight);
+  For i := 0 To NewWidth - 1 Do Begin
+    For j := 0 To NewHeight - 1 Do Begin
+      Case ScaleMode Of
+        smResize: Begin
+            If (i <= high(tmp)) And (j <= high(tmp[0])) Then Begin
+              data[i, j] := tmp[i, j];
+            End
+            Else Begin
+              data[i, j] := ColorTransparent;
+            End;
+          End;
+        smScale, // Entpsricht einer Neares Neighbour Interpolation
+        smSmoothScale: Begin // Entspricht einer Billinearen Interpolation
+            data[i, j] := getpixel(i * w / (NewWidth - 1), j * h / (NewHeight - 1));
+          End;
+      End;
+    End;
+  End;
 End;
 
 { TImage }
@@ -409,7 +532,7 @@ End;
 
 Procedure TImage.Rescale(NewWidth, NewHeight: integer; Mode: TScaleMode);
 Var
-  a: Array Of Array Of TRGBA;
+  a: TPixelArea;
   i, j: Integer;
 Begin
   If (NewWidth = Width) And (NewHeight = Height) Then exit; // Alles bereits bestens
@@ -421,18 +544,11 @@ Begin
       a[i, j] := fPixels[i, j];
     End;
   End;
-  If Mode = smScale Then Begin
-    // TODO: Implementieren
-  End;
-  If mode = smSmoothScale Then Begin
-    // TODO: Implementieren
-  End;
+  RescalePixelArea(a, NewWidth, NewHeight, Mode);
   SetSize(NewWidth, NewHeight);
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
-      If (i <= high(a)) And (j <= high(a[0])) Then Begin
-        SetColorAt(i, j, a[i, j]);
-      End;
+      SetColorAt(i, j, a[i, j]);
     End;
   End;
 End;
