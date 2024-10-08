@@ -80,7 +80,8 @@ Begin
   setlength(fRecordings, 0);
   setlength(faRecord, 0);
   fRecordings := Nil;
-  faRecord := Nil;
+  setlength(faRecord, RecordChunkSize);
+  faRecordCount := 0;
 End;
 
 Procedure TUndoEngine.StartNewRecording;

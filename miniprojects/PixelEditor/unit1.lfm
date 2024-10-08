@@ -62,9 +62,24 @@ object Form1: TForm1
   object PopupMenu1: TPopupMenu
     Left = 98
     Top = 162
+    object MenuItem4: TMenuItem
+      Caption = 'Convert to grascale'
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Invert colors'
+    end
+    object Separator2: TMenuItem
+      Caption = '-'
+    end
     object MenuItem1: TMenuItem
       Caption = 'Spritify'
       OnClick = MenuItem1Click
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Select by color'
+    end
+    object MenuItem6: TMenuItem
+      Caption = 'Inverted select by color'
     end
     object Separator1: TMenuItem
       Caption = '-'

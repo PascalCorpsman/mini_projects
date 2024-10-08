@@ -1172,6 +1172,7 @@ Begin
     form6.InitWith(fImage.Width, fImage.Height, true);
     If Form6.ShowModal = mrOK Then Begin
       fImage.Rescale(form6.SpinEdit3.Value, form6.SpinEdit4.Value, Form6.GetScaleMode);
+      fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
       fUndo.Clear; // TODO: Vorerst macht ein Resize die Historie Platt
     End;
   End;
@@ -1728,13 +1729,13 @@ Begin
         a[i, j] := fCursor.Select.Data[i, j] = upixeleditor_types.ColorTransparent;
       End;
     End;
-    For i := 1 To high(fCursor.Select.Data) - 1 Do Begin
-      For j := 1 To high(fCursor.Select.Data[i]) - 1 Do Begin
+    For i := 0 To high(fCursor.Select.Data) Do Begin
+      For j := 0 To high(fCursor.Select.Data[i]) Do Begin
         If a[i, j] Then Begin
-          If (Not a[i - 1, j]) Or
-            (Not a[i + 1, j]) Or
-            (Not a[i, j - 1]) Or
-            (Not a[i, j + 1]) Then Begin
+          If (Not a[max(0, i - 1), j]) Or
+          (Not a[min(high(fCursor.Select.Data), i + 1), j]) Or
+          (Not a[i, max(0, j - 1)]) Or
+          (Not a[i, min(high(fCursor.Select.Data[i]), j + 1)]) Then Begin
             fCursor.Select.Data[i, j] := fCursor.LeftColor.Color;
           End;
         End;
