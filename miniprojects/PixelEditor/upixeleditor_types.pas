@@ -126,6 +126,8 @@ Type
     tBrighten, tDarken,
     tEraser, tPen, tLine, tEllipse, tRectangle, tMirror, tBucket, tPincette);
 
+  TPixelArea = Array Of Array Of TRGBA;
+
   TCompactCursor = Record // Alles was an Faltungsroutinen geht
     PixelPos: Tpoint; // -1,-1 = Ungültig, sonst Bildposition in Pixeln, aktualisiert durch MouseMove und MouseDown
     Shape: TCursorShape;
@@ -135,7 +137,7 @@ Type
   TSelectData = Record
     aSet: Boolean; // Wenn True, dann wurde auch etwas "ausgewählt"
     tl, br: TPoint;
-    Data: Array Of Array Of TRGBA;
+    Data: TPixelArea;
     DownPos: TPoint;
   End;
 

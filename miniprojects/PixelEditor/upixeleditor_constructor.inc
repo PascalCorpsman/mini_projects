@@ -163,49 +163,49 @@ SelectModeButton.Height := 32;
 //SelectModeButton.OnClick := @OnSelectModeButtonClick; -- Braucht es nicht, man kann ja den Style abfragen ;)
 AddElement(SelectModeButton);
 
-RotateCounterClockwise90 := TOpenGL_Bevel.Create(Owner);
-RotateCounterClockwise90.Left := 3;
-RotateCounterClockwise90.Top := 76;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//RotateCounterClockwise90.SetImage(image);
-RotateCounterClockwise90.Transparent := true;
-RotateCounterClockwise90.Width := 16;
-RotateCounterClockwise90.Height := 16;
-RotateCounterClockwise90.OnClick := @OnRotateCounterClockwise90ButtonClick;
-AddElement(RotateCounterClockwise90);
+SelectRotateCounterClockwise90 := TOpenGL_Bevel.Create(Owner);
+SelectRotateCounterClockwise90.Left := 3;
+SelectRotateCounterClockwise90.Top := 76;
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Rotate90.bmp', Fuchsia, smClamp);
+SelectRotateCounterClockwise90.SetImage(image);
+SelectRotateCounterClockwise90.Transparent := true;
+SelectRotateCounterClockwise90.Width := 16;
+SelectRotateCounterClockwise90.Height := 16;
+SelectRotateCounterClockwise90.OnClick := @OnSelectRotateCounterClockwise90ButtonClick;
+AddElement(SelectRotateCounterClockwise90);
 
-RotateClockwise90 := TOpenGL_Bevel.Create(Owner);
-RotateClockwise90.Left := 21;
-RotateClockwise90.Top := 76;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//RotateClockwise90.SetImage(image);
-RotateClockwise90.Transparent := true;
-RotateClockwise90.Width := 16;
-RotateClockwise90.Height := 16;
-RotateClockwise90.OnClick := @OnRotateClockwise90ButtonClick;
-AddElement(RotateClockwise90);
+SelectMirrorHorButton := TOpenGL_Bevel.Create(Owner);
+SelectMirrorHorButton.Left := 21;
+SelectMirrorHorButton.Top := 76;
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror_Hor.bmp', Fuchsia, smClamp);
+SelectMirrorHorButton.SetImage(image);
+SelectMirrorHorButton.Transparent := true;
+SelectMirrorHorButton.Width := 16;
+SelectMirrorHorButton.Height := 16;
+SelectMirrorHorButton.OnClick := @OnSelectMirrorHorButtonClick;
+AddElement(SelectMirrorHorButton);
 
-Rotate180 := TOpenGL_Bevel.Create(Owner);
-Rotate180.Left := 21 + 18;
-Rotate180.Top := 76;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//Rotate180.SetImage(image);
-Rotate180.Transparent := true;
-Rotate180.Width := 16;
-Rotate180.Height := 16;
-Rotate180.OnClick := @OnRotate180ButtonClick;
-AddElement(Rotate180);
+SelectMirrorVerButton := TOpenGL_Bevel.Create(Owner);
+SelectMirrorVerButton.Left := 21 + 18;
+SelectMirrorVerButton.Top := 76;
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror_Ver.bmp', Fuchsia, smClamp);
+SelectMirrorVerButton.SetImage(image);
+SelectMirrorVerButton.Transparent := true;
+SelectMirrorVerButton.Width := 16;
+SelectMirrorVerButton.Height := 16;
+SelectMirrorVerButton.OnClick := @OnSelectMirrorVerButtonClick;
+AddElement(SelectMirrorVerButton);
 
-RotateAngle := TOpenGL_Bevel.Create(Owner);
-RotateAngle.Left := 21 + 18 + 18;
-RotateAngle.Top := 76;
-//image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
-//RotateAngle.SetImage(image);
-RotateAngle.Transparent := true;
-RotateAngle.Width := 16;
-RotateAngle.Height := 16;
-RotateAngle.OnClick := @OnRotateAngleButtonClick;
-AddElement(RotateAngle);
+SelectRotateAngle := TOpenGL_Bevel.Create(Owner);
+SelectRotateAngle.Left := 21 + 18 + 18;
+SelectRotateAngle.Top := 76;
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Angle.bmp', Fuchsia, smClamp);
+SelectRotateAngle.SetImage(image);
+SelectRotateAngle.Transparent := true;
+SelectRotateAngle.Width := 16;
+SelectRotateAngle.Height := 16;
+SelectRotateAngle.OnClick := @OnSelectRotateAngleButtonClick;
+AddElement(SelectRotateAngle);
 
 BrightenButton := TOpenGL_Bevel.Create(Owner);
 BrightenButton.Left := 3;
@@ -669,4 +669,14 @@ InfoDetailLabel.Top := 445;
 InfoDetailLabel.Caption := '';
 InfoDetailLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
 AddElement(InfoDetailLabel);
+
+
+
+
+
+
+
+
+
+
 

@@ -74,10 +74,10 @@ Type
     // Menüleiste Links
     SelectButton: TOpenGL_Bevel;
     SelectModeButton: TOpenGL_ToggleButton;
-    RotateCounterClockwise90: TOpenGL_Bevel;
-    RotateClockwise90: TOpenGL_Bevel;
-    Rotate180: TOpenGL_Bevel;
-    RotateAngle: TOpenGL_Bevel;
+    SelectRotateCounterClockwise90: TOpenGL_Bevel;
+    SelectMirrorHorButton: TOpenGL_Bevel;
+    SelectMirrorVerButton: TOpenGL_Bevel;
+    SelectRotateAngle: TOpenGL_Bevel;
     BrightenButton: TOpenGL_Bevel;
     DarkenButton: TOpenGL_Bevel;
     CurserSize1: TOpenGL_Bevel;
@@ -137,10 +137,10 @@ Type
     Procedure OnUndoButtonClick(Sender: TObject);
 
     Procedure OnSelectButtonClick(Sender: TObject);
-    Procedure OnRotateCounterClockwise90ButtonClick(Sender: TObject);
-    Procedure OnRotateClockwise90ButtonClick(Sender: TObject);
-    Procedure OnRotate180ButtonClick(Sender: TObject);
-    Procedure OnRotateAngleButtonClick(Sender: TObject);
+    Procedure OnSelectMirrorHorButtonClick(Sender: TObject);
+    Procedure OnSelectRotateCounterClockwise90ButtonClick(Sender: TObject);
+    Procedure OnSelectMirrorVerButtonClick(Sender: TObject);
+    Procedure OnSelectRotateAngleButtonClick(Sender: TObject);
     Procedure OnBrightenButtonClick(Sender: TObject);
     Procedure OnDarkenButtonClick(Sender: TObject);
     Procedure OnCurserSizeButtonClick(Sender: TObject);
@@ -162,8 +162,6 @@ Type
     Procedure OnColorClick(Sender: TObject);
     Procedure OnColorDblClick(Sender: TObject);
     Procedure OnColorMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-
-    Procedure OnSelectLayerButtonClick(Sender: TObject);
 
     Procedure OpenGLControlKeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure OpenGLControlKeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
@@ -348,24 +346,42 @@ Begin
   SelectTool(tSelect);
 End;
 
-Procedure TPixelEditor.OnRotateCounterClockwise90ButtonClick(Sender: TObject);
+Procedure TPixelEditor.OnSelectMirrorHorButtonClick(Sender: TObject);
 Begin
-
+  If fCursor.Select.aSet Then Begin
+    UpsideDownPixelArea(fCursor.Select.Data);
+  End
+  Else Begin
+    // TODO: Rotate das gesamte Bild
+  End;
 End;
 
-Procedure TPixelEditor.OnRotateClockwise90ButtonClick(Sender: TObject);
+Procedure TPixelEditor.OnSelectRotateCounterClockwise90ButtonClick(
+  Sender: TObject);
 Begin
-
+  If fCursor.Select.aSet Then Begin
+    RotatePixelAreaCounterClockwise90(fCursor.Select.Data);
+    fCursor.Select.br.x := fCursor.Select.tl.X + high(fCursor.Select.Data);
+    fCursor.Select.br.Y := fCursor.Select.tl.Y + high(fCursor.Select.Data[0]);
+  End
+  Else Begin
+    // TODO: Rotate das gesamte Bild
+  End;
 End;
 
-Procedure TPixelEditor.OnRotate180ButtonClick(Sender: TObject);
+Procedure TPixelEditor.OnSelectMirrorVerButtonClick(Sender: TObject);
 Begin
-
+  If fCursor.Select.aSet Then Begin
+    LeftRightPixelArea(fCursor.Select.Data);
+  End
+  Else Begin
+    // TODO: Rotate das gesamte Bild
+  End;
 End;
 
-Procedure TPixelEditor.OnRotateAngleButtonClick(Sender: TObject);
+Procedure TPixelEditor.OnSelectRotateAngleButtonClick(Sender: TObject);
 Begin
-
+  // TODO: Implementieren
 End;
 
 Procedure TPixelEditor.OnBrightenButtonClick(Sender: TObject);
@@ -429,11 +445,6 @@ Begin
   fCursor.Compact.Size := ifthen(sender = CurserSize2, cs3_3, fCursor.Compact.Size);
   fCursor.Compact.Size := ifthen(sender = CurserSize3, cs5_5, fCursor.Compact.Size);
   fCursor.Compact.Size := ifthen(sender = CurserSize4, cs7_7, fCursor.Compact.Size);
-End;
-
-Procedure TPixelEditor.OnSelectLayerButtonClick(Sender: TObject);
-Begin
-
 End;
 
 Procedure TPixelEditor.OpenGLControlKeyDown(Sender: TObject; Var Key: Word;
@@ -538,7 +549,6 @@ Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
       If fCursor.Select.aSet Then Begin
         If PointInRect(fCursor.Compact.PixelPos, fCursor.Select.tl, fCursor.Select.br) Then Begin
-          // TODO: Popupmenü des Select Dialogs
           p := Form1.ControlToScreen(point(x, y));
           form1.PopupMenu1.PopUp(p.x, p.y);
         End
@@ -1165,7 +1175,9 @@ Begin
       fCursor.Select.br.Y - fCursor.Select.tl.Y + 1,
       false);
     If Form6.ShowModal = mrOK Then Begin
-      //    TODO: Hier gehts weiter ;)
+      RescalePixelArea(fCursor.Select.Data, form6.SpinEdit3.Value, form6.SpinEdit4.Value, Form6.GetScaleMode);
+      fCursor.Select.br.x := fCursor.Select.tl.X + form6.SpinEdit3.Value - 1;
+      fCursor.Select.br.Y := fCursor.Select.tl.Y + form6.SpinEdit4.Value - 1;
     End;
   End
   Else Begin
@@ -1505,10 +1517,10 @@ Begin
   ColorPicDialog.Visible := false;
   SelectButton.Style := ifThen(atool = tSelect, bsRaised, bsLowered);
   SelectModeButton.Visible := atool = tSelect;
-  RotateCounterClockwise90.Visible := atool = tSelect;
-  RotateClockwise90.Visible := atool = tSelect;
-  Rotate180.Visible := atool = tSelect;
-  RotateAngle.Visible := atool = tSelect;
+  SelectRotateCounterClockwise90.Visible := atool = tSelect;
+  SelectMirrorHorButton.Visible := atool = tSelect;
+  SelectMirrorVerButton.Visible := atool = tSelect;
+  SelectRotateAngle.Visible := atool = tSelect;
 
   BrightenButton.Style := ifThen(atool = tBrighten, bsRaised, bsLowered);
   DarkenButton.Style := ifThen(atool = tDarken, bsRaised, bsLowered);

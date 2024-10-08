@@ -19,7 +19,9 @@ object Form6: TForm6
     Caption = ' Operation '
     ClientHeight = 104
     ClientWidth = 431
+    Font.Color = clSilver
     ParentBackground = False
+    ParentFont = False
     TabOrder = 1
     object SpeedButton1: TSpeedButton
       Left = 8
@@ -29,7 +31,7 @@ object Form6: TForm6
       Caption = 'Resize'
       Color = clGray
       Down = True
-      Font.Color = clSilver
+      Font.Color = clBlack
       Glyph.Data = {
         4A410000424D4A41000000000000360000002800000071000000310000000100
         1800000000001441000000000000000000000000000000000000FF00FFFF00FF
@@ -566,7 +568,7 @@ object Form6: TForm6
       Width = 128
       Caption = 'Scale'
       Color = clGray
-      Font.Color = clSilver
+      Font.Color = clBlack
       Glyph.Data = {
         4A410000424D4A41000000000000360000002800000071000000310000000100
         1800000000001441000000000000000000000000000000000000FF00FFFF00FF
@@ -1103,7 +1105,7 @@ object Form6: TForm6
       Width = 128
       Caption = 'Smooth Scale'
       Color = clGray
-      Font.Color = clSilver
+      Font.Color = clBlack
       Glyph.Data = {
         4A410000424D4A41000000000000360000002800000071000000310000000100
         1800000000001441000000000000000000000000000000000000FF00FFFF00FF
@@ -1642,7 +1644,9 @@ object Form6: TForm6
     Caption = ' Dimension '
     ClientHeight = 167
     ClientWidth = 431
+    Font.Color = clSilver
     ParentBackground = False
+    ParentFont = False
     TabOrder = 2
     object SpinEdit1: TSpinEdit
       Left = 104

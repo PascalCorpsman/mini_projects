@@ -9,8 +9,6 @@ Uses
 
 Type
 
-  TPixelArea = Array Of Array Of TRGBA;
-
   { TImage }
 
   TImage = Class
@@ -55,6 +53,9 @@ Type
 Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Const Image: TImage; Callback: TPixelCallback);
 
 Procedure RescalePixelArea(Var Data: TPixelArea; NewWidth, NewHeight: Integer; ScaleMode: TScaleMode);
+Procedure RotatePixelAreaCounterClockwise90(Var Data: TPixelArea);
+Procedure UpsideDownPixelArea(Var Data: TPixelArea);
+Procedure LeftRightPixelArea(Var Data: TPixelArea);
 
 Implementation
 
@@ -139,7 +140,6 @@ End;
 
 Procedure RescalePixelArea(Var Data: TPixelArea; NewWidth, NewHeight: Integer;
   ScaleMode: TScaleMode);
-
 Var
   tmp: TPixelArea;
   w, h: integer;
@@ -211,6 +211,49 @@ Begin
             data[i, j] := getpixel(i * w / (NewWidth - 1), j * h / (NewHeight - 1));
           End;
       End;
+    End;
+  End;
+End;
+
+Procedure RotatePixelAreaCounterClockwise90(Var Data: TPixelArea);
+Var
+  tmp: TPixelArea;
+  i, j: Integer;
+Begin
+  tmp := data;
+  data := Nil;
+  setlength(data, length(tmp[0]), length(tmp));
+  For i := 0 To high(tmp) Do Begin
+    For j := 0 To high(tmp[0]) Do Begin
+      data[j, i] := tmp[high(tmp) - i, j];
+    End;
+  End;
+End;
+
+Procedure UpsideDownPixelArea(Var Data: TPixelArea);
+Var
+  i, j: Integer;
+  c: TRGBA;
+Begin
+  For i := 0 To high(Data) Do Begin
+    For j := 0 To high(Data[0]) Div 2 Do Begin
+      c := data[i, j];
+      data[i, j] := data[i, high(data[0]) - j];
+      data[i, high(data[0]) - j] := c;
+    End;
+  End;
+End;
+
+Procedure LeftRightPixelArea(Var Data: TPixelArea);
+Var
+  i, j: Integer;
+  c: TRGBA;
+Begin
+  For i := 0 To high(Data) Div 2 Do Begin
+    For j := 0 To high(Data[0]) Do Begin
+      c := data[i, j];
+      data[i, j] := data[high(data) - i, j];
+      data[high(data) - i, j] := c;
     End;
   End;
 End;

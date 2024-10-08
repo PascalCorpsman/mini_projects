@@ -148,6 +148,12 @@ Begin
   SpinEdit6.Value := 100;
   ComboBox1.ItemIndex := 1 - ord(Global);
   CheckBox1.Checked := true;
+  If Global Then Begin
+    SpeedButton1.Down := true;
+  End
+  Else Begin
+    SpeedButton2.Down := true;
+  End;
 End;
 
 Function TForm6.GetScaleMode(): TScaleMode;
