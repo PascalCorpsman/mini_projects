@@ -620,7 +620,7 @@ Begin
 End;
 
 (*
- * Interpoliert 4 Farbwerte Mittels Polynim 3. Grades f in [0..1]
+ * Interpoliert 4 Farbwerte Mittels Polynom 3. Grades f in [0..1]
  * c1, c2, f sind Identisch zu den Parametern von z.B.: InterpolateLinear
  * c0 = Vorgänger von c1
  * c2 = Nachfolger von c2
