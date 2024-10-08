@@ -28,6 +28,9 @@ Type
     LoweredColor: TRGBA;
 
     Property Style: TBevelStyle read fStyle write fStyle;
+
+    Procedure Click; override;
+
     Constructor Create(Owner: TOpenGLControl); override;
   End;
 
@@ -294,6 +297,11 @@ Procedure TOpenGL_Bevel.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
 Begin
   Inherited MouseUp(Button, Shift, X, Y);
   fmDown := false;
+End;
+
+Procedure TOpenGL_Bevel.Click;
+Begin
+  Inherited Click;
 End;
 
 Constructor TOpenGL_Bevel.Create(Owner: TOpenGLControl);

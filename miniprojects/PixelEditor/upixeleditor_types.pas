@@ -135,6 +135,7 @@ Type
     aSet: Boolean; // Wenn True, dann wurde auch etwas "ausgewählt"
     tl, br: TPoint;
     Data: Array Of Array Of TRGBA;
+    DownPos: TPoint;
   End;
 
   TCursor = Record
