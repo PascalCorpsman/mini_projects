@@ -24,8 +24,10 @@ Uses
 
 Const
   (*
-   * History: 0.01 - Initialversion
-   *          0.02 -
+   * History:
+   * -Released- 0.01 - Initialversion
+   *            0.02 - CTRL + C, copies complete image if nothing is selected
+   *                   ADD Missing captions for Load / Save Colorpalette buttons in ColorPicdialog
    *)
   Version = '0.02';
 
@@ -483,21 +485,19 @@ Begin
     End;
     exit;
   End;
+  If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
+  If (key = VK_C) And (ssCtrl In Shift) Then CopySelectionToClipboard;
+  If (key = VK_DELETE) Then EraserButton.click;
+  If (key = VK_E) And (ssCtrl In Shift) Then EditImageSelectionProperties;
+  If (key = VK_ESCAPE) And (fCursor.Tool = tSelect) Then Begin
+    SelectTool(tPen); // Abwählen des evtl gewählten Bereichs
+    SelectTool(tSelect);
+  End;
   If (key = VK_N) And (ssCtrl In Shift) Then OnNewButtonClick(NewButton);
   If (key = VK_O) And (ssCtrl In Shift) Then OnOptionsButtonClick(OptionsButton);
   If (key = VK_S) And (ssCtrl In Shift) Then OnSaveButtonClick(SaveButton);
-  If (key = VK_C) And (ssCtrl In Shift) Then CopySelectionToClipboard;
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
-  If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
-  If (key = VK_DELETE) Then EraserButton.click;
-  If (key = VK_E) And (ssCtrl In Shift) Then EditImageSelectionProperties;
   If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
-  If (key = VK_ESCAPE) Then Begin
-    If fCursor.Tool = tSelect Then Begin
-      SelectTool(tPen); // Abwählen des evtl gewählten Bereichs
-      SelectTool(tSelect);
-    End;
-  End;
   fCursor.Shift := ssShift In Shift;
 End;
 
@@ -1722,8 +1722,8 @@ Var
   i, j: Integer;
 Begin
   // Nur wenn es überhaupt was zum Kopieren gibt
+  b := TBitmap.Create;
   If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
-    b := TBitmap.Create;
     b.Width := fCursor.Select.br.x - fCursor.Select.tl.x + 1;
     b.Height := fCursor.Select.br.Y - fCursor.Select.tl.Y + 1;
     For i := 0 To b.Width - 1 Do Begin
@@ -1731,9 +1731,19 @@ Begin
         b.canvas.Pixels[i, j] := RGBAToColor(fCursor.Select.Data[i, j]);
       End;
     End;
-    Clipboard.Assign(b);
-    b.free;
+  End
+  Else Begin
+    b := TBitmap.Create;
+    b.Width := fImage.Width;
+    b.Height := fImage.Height;
+    For i := 0 To b.Width - 1 Do Begin
+      For j := 0 To b.Height - 1 Do Begin
+        b.canvas.Pixels[i, j] := RGBAToColor(fImage.GetColorAt(i, j));
+      End;
+    End;
   End;
+  Clipboard.Assign(b);
+  b.free;
 End;
 
 Procedure TPixelEditor.SaveImage(Const aFilename: String);

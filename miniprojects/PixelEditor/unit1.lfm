@@ -77,6 +77,9 @@ object Form1: TForm1
       Caption = 'Spritify'
       OnClick = MenuItem1Click
     end
+    object Separator3: TMenuItem
+      Caption = '-'
+    end
     object MenuItem5: TMenuItem
       Caption = 'Select by color'
       OnClick = MenuItem5Click

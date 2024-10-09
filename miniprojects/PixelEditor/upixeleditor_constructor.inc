@@ -696,6 +696,10 @@ ColorPickButton.OnClick := @OnColorPickButtonClick;
 AddElement(ColorPickButton);
 
 ColorPicDialog := TOpenGL_ColorPicDialog.Create(Owner);
+If ColorPicDialog.CriticalError Then Begin
+  fCriticalError := true;
+  exit;
+End;
 ColorPicDialog.left := 147;
 ColorPicDialog.Top := 131;
 ColorPicDialog.OnSetColor := @SetLeftColor;

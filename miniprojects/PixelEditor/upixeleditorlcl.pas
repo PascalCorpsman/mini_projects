@@ -214,8 +214,8 @@ Type
     fWhiteMinus: TMinus;
     fShower: TOpenGL_ColorBox;
 
-    fOpenButton: TOpenGL_Bevel;
-    fSaveAsButton: TOpenGL_Bevel;
+    fOpenButton: TOpenGL_Textbox;
+    fSaveAsButton: TOpenGL_Textbox;
 
     Procedure OnRender(); override;
     Procedure SetVisible(AValue: Boolean); override;
@@ -230,6 +230,7 @@ Type
     Procedure OnColorClick(Sender: TObject);
 
   public
+    CriticalError: Boolean;
     SelectorPos: integer;
     OnSetColor: TColorBoxEvent;
     Property OnSaveColorPalette: TNotifyEvent write setOnSaveColorPalette;
@@ -1043,13 +1044,14 @@ Constructor TOpenGL_ColorPicDialog.Create(Owner: TOpenGLControl);
 Var
   img: Integer;
 Begin
+  CriticalError := false;
   // Alle Elemente vor dem eigentlichen erstellt werden
   // Das hat 2 Gründe
   // 1. Nur so können sie die OnMouse* Events Capturen
   // 2. Sonst braucht man Nil Prüfungen im SetTop, SetLeft
   fResetButton := TOpenGL_Textbox.Create(Owner, ''); // Muss vor fColorTable erzeugt werden !
-  fOpenButton := TOpenGL_Bevel.Create(Owner); // Muss vor fColorTable erzeugt werden !
-  fSaveAsButton := TOpenGL_Bevel.Create(Owner); // Muss vor fColorTable erzeugt werden !
+  fOpenButton := TOpenGL_Textbox.Create(Owner, ''); // Muss vor fColorTable erzeugt werden !
+  fSaveAsButton := TOpenGL_Textbox.Create(Owner, ''); // Muss vor fColorTable erzeugt werden !
   fColorTable := TOpenGl_Image.Create(Owner);
   fPicColorButton := TOpenGL_Textbox.Create(Owner, '');
   fColorInfo := TOpenGl_Label.Create(Owner, '');
@@ -1073,11 +1075,25 @@ Begin
   Inherited Create(Owner);
   Transparent := true;
   img := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Color_Pic_Dialog.bmp', Fuchsia, smClamp);
+  If img = 0 Then Begin
+    CriticalError := true;
+    exit;
+  End;
   SetImage(img);
   SelectorPos := 0;
-  fSelectorTex := OpenGL_GraphikEngine.GetInfo(OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Arror_down.bmp', Fuchsia, smClamp));
+
+  img := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Arror_down.bmp', Fuchsia, smClamp);
+  If Img = 0 Then Begin
+    CriticalError := true;
+    exit;
+  End;
+  fSelectorTex := OpenGL_GraphikEngine.GetInfo(img);
 
   img := OpenGL_GraphikEngine.LoadGraphik('GFX' + PathDelim + 'ColorPalette.bmp', smClamp);
+  If img = 0 Then Begin
+    CriticalError := true;
+    exit;
+  End;
   fColorTableRaw := TBitmap.Create;
   fColorTableRaw.LoadFromFile('GFX' + PathDelim + 'ColorPalette.bmp');
   fColorTable.SetImage(img);
@@ -1219,19 +1235,23 @@ Begin
   fWhitePlus.Target := fBrighten;
   fWhitePlus.OnUpdate := @ApplyColor;
 
-  //image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'New.bmp', Fuchsia, smClamp);
-//fOpenButton.SetImage(image);
-  fOpenButton.Transparent := true;
+  fOpenButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
+  fOpenButton.Caption := 'L';
   fOpenButton.Width := 18;
   fOpenButton.Height := 18;
-  fOpenButton.LoweredColor := RGBA(192, 192, 192, 0);
+  fOpenButton.Layout := tlCenter;
+  fOpenButton.Alignment := taCenter;
+  fOpenButton.BorderColor := rgba(192, 192, 192, 0);
+  fOpenButton.BackColor := rgba(128, 128, 128, 0);
 
-  //image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'New.bmp', Fuchsia, smClamp);
-  //fSaveAsButton.SetImage(image);
-  fSaveAsButton.Transparent := true;
+  fSaveAsButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
+  fSaveAsButton.Caption := 'S';
   fSaveAsButton.Width := 18;
   fSaveAsButton.Height := 18;
-  fSaveAsButton.LoweredColor := RGBA(192, 192, 192, 0);
+  fSaveAsButton.Layout := tlCenter;
+  fSaveAsButton.Alignment := taCenter;
+  fSaveAsButton.BorderColor := rgba(192, 192, 192, 0);
+  fSaveAsButton.BackColor := rgba(128, 128, 128, 0);
 
   fResetButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
   fResetButton.Caption := 'R';

@@ -45,7 +45,7 @@ End;
 
 Procedure TForm5.FormCreate(Sender: TObject);
 Begin
-  Caption := 'Floodfill options';
+  Caption := 'color match options';
   ScrollBar1Change(Nil);
 End;
 
