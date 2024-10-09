@@ -7,7 +7,7 @@ This repository holds projects which:
 
 Every Miniproject is located in a single subdirectory of this repository (subfolder miniprojects). All needed files are within this directory (no dependencies to other units (written by me)). If there are dependencies to other libraries this is described in the mini projects Readme.md file.
 
-On some projects there is a "bin" folder that holds precompiled Windows 64 and Linux 64 binaries, so that there even is no need to compile the projects.
+### On some projects there is a "bin" folder that holds precompiled Windows 64 and Linux 64 binaries, so that there even is no need to compile the projects.
 
 ## Overview
 Following is a short description of all listed projects
