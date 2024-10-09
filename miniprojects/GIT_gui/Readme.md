@@ -76,4 +76,4 @@ Push the actual commits of a repository
 
 Capabilities:
 
-only thing that is working is the "force" and "Include Tags" checkbox as also the branch selecting
+Only thing that is working is the "force" and "Include Tags" checkbox as also the branch selecting
