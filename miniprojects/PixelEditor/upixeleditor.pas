@@ -25,8 +25,9 @@ Uses
 Const
   (*
    * History: 0.01 - Initialversion
+   *          0.02 -
    *)
-  Version = '0.01';
+  Version = '0.02';
 
   (*
    * History: 1 - Initialversion
@@ -46,6 +47,8 @@ Type
 
   TPixelEditor = Class
   private
+    fCriticalError: Boolean; // Der Kommt wenn beim Laden eine Graphik nicht geladen werden konnte
+
     fDarkBrightMask: Array Of Array Of Boolean; // Während eines MouseDown Zyklus kann jeder Pixel nur 1 mal heller / Dunkler gemacht werden !
     fSettings: TSettings;
     fCursor: TCursor;
@@ -474,6 +477,12 @@ Procedure TPixelEditor.OpenGLControlKeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Begin
   // Global Hotkeys
+  If fCriticalError Then Begin
+    If (key = VK_ESCAPE) Then Begin
+      halt;
+    End;
+    exit;
+  End;
   If (key = VK_N) And (ssCtrl In Shift) Then OnNewButtonClick(NewButton);
   If (key = VK_O) And (ssCtrl In Shift) Then OnOptionsButtonClick(OptionsButton);
   If (key = VK_S) And (ssCtrl In Shift) Then OnSaveButtonClick(SaveButton);
@@ -505,6 +514,7 @@ Var
   c: TRGBA;
   p: TPoint;
 Begin
+  If fCriticalError Then exit;
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fScrollInfo.ScrollPos := point(x, y);
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
@@ -603,6 +613,7 @@ Var
   dx, dy: integer;
   d: TPoint;
 Begin
+  If fCriticalError Then exit;
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
@@ -636,6 +647,7 @@ Var
   i, j: integer;
   c: TRGBA;
 Begin
+  If fCriticalError Then exit;
   // Den Dialog Schließen, wenn der User Außerhalb clickt ..
   If ColorPicDialog.Visible Then Begin
     ColorPicDialog.Visible := false;
@@ -797,7 +809,6 @@ Begin
     End;
     glPopMatrix;
   End;
-
   // Der Rahmen um die Graphik für "niedrige" Zoom stufen
   // Verzerrung Raus Rechnen
   If fSettings.GridAboveImage Then Begin
@@ -1984,6 +1995,7 @@ End;
 Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
+  fCriticalError := false;
   fImage := TImage.Create();
   fUndo := TUndoEngine.Create();
 End;
@@ -2045,6 +2057,15 @@ End;
 
 Procedure TPixelEditor.Render;
 Begin
+  If fCriticalError Then Begin
+    AktColorInfoLabel.top := 200;
+    AktColorInfoLabel.Left := 10;
+    AktColorInfoLabel.Caption :=
+      'Error, could not load all button graphics, please update GFX folder from ' + LineEnding + LineEnding +
+      '  https://github.com/PascalCorpsman/mini_projects/tree/main/miniprojects/' + LineEnding + 'PixelEditor/GFX';
+    AktColorInfoLabel.Render();
+    exit;
+  End;
   RenderGrid;
   RenderImage;
   RenderCursor;

@@ -17,10 +17,21 @@
 // to not disturb the read flow of the user, in a typical LCL-Application all
 // this content would be defined in the .lfm file
 
+AktColorInfoLabel := TOpenGl_Label.Create(owner, '');
+AktColorInfoLabel.Left := 147;
+AktColorInfoLabel.Top := 463;
+AktColorInfoLabel.Caption := '';
+AktColorInfoLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
+AddElement(AktColorInfoLabel);
+
 NewButton := TOpenGL_Bevel.Create(Owner);
 Newbutton.Left := 3;
 Newbutton.Top := 3;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'New.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 Newbutton.SetImage(image);
 Newbutton.Transparent := true;
 Newbutton.Width := 32;
@@ -32,6 +43,10 @@ OpenButton := TOpenGL_Bevel.Create(Owner);
 OpenButton.Left := 3 + 32 + 3;
 OpenButton.Top := 3;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Open.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 OpenButton.SetImage(image);
 OpenButton.Transparent := true;
 OpenButton.Width := 32;
@@ -43,6 +58,10 @@ SaveButton := TOpenGL_Bevel.Create(Owner);
 SaveButton.Left := 3 + 32 + 3 + 32 + 3;
 SaveButton.Top := 3;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Save.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SaveButton.SetImage(image);
 SaveButton.Transparent := true;
 SaveButton.Width := 32;
@@ -54,6 +73,10 @@ SaveAsButton := TOpenGL_Bevel.Create(Owner);
 SaveAsButton.Left := 3 + 32 + 3 + 32 + 3 + 32 + 3;
 SaveAsButton.Top := 3;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'SaveAs.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SaveAsButton.SetImage(image);
 SaveAsButton.Transparent := true;
 SaveAsButton.Width := 32;
@@ -65,6 +88,10 @@ ExitButton := TOpenGL_Bevel.Create(Owner);
 Exitbutton.Left := 143;
 Exitbutton.Top := 3;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Exit.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 Exitbutton.SetImage(image);
 Exitbutton.Transparent := true;
 Exitbutton.Width := 32;
@@ -76,6 +103,10 @@ GridButton := TOpenGL_Bevel.Create(Owner);
 GridButton.Left := 213;
 GridButton.Top := 3;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Grid.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 GridButton.SetImage(image);
 GridButton.Transparent := true;
 GridButton.Width := 32;
@@ -88,6 +119,10 @@ ZoomOutButton := TOpenGL_Bevel.Create(Owner);
 ZoomOutButton.Left := 262;
 ZoomOutButton.Top := 10;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Minus.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 ZoomOutButton.SetImage(image);
 ZoomOutButton.Transparent := true;
 ZoomOutButton.Width := 16;
@@ -109,6 +144,10 @@ ZoomInButton := TOpenGL_Bevel.Create(Owner);
 ZoomInButton.Left := 353;
 ZoomInButton.Top := 10;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Plus.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 ZoomInButton.SetImage(image);
 ZoomInButton.Transparent := true;
 ZoomInButton.Width := 16;
@@ -120,6 +159,10 @@ OptionsButton := TOpenGL_Bevel.Create(Owner);
 OptionsButton.Left := 570;
 OptionsButton.Top := 3;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Settings.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 OptionsButton.SetImage(image);
 OptionsButton.Transparent := true;
 OptionsButton.Width := 32;
@@ -131,6 +174,10 @@ UndoButton := TOpenGL_Bevel.Create(Owner);
 UndoButton.Left := 605;
 UndoButton.Top := 3;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Undo.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 UndoButton.SetImage(image);
 UndoButton.Transparent := true;
 UndoButton.Width := 32;
@@ -143,6 +190,10 @@ SelectButton := TOpenGL_Bevel.Create(Owner);
 SelectButton.Left := 3;
 SelectButton.Top := 41;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Select.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SelectButton.SetImage(image);
 SelectButton.Transparent := true;
 SelectButton.Width := 32;
@@ -154,8 +205,16 @@ SelectModeButton := TOpenGL_ToggleButton.Create(Owner);
 SelectModeButton.Left := 41;
 SelectModeButton.Top := 41;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'SelModeLowered.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SelectModeButton.SetImage(image);
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'SelModeRaised.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SelectModeButton.SetDownImage(image);
 SelectModeButton.Transparent := true;
 SelectModeButton.Width := 32;
@@ -167,6 +226,10 @@ SelectRotateCounterClockwise90 := TOpenGL_Bevel.Create(Owner);
 SelectRotateCounterClockwise90.Left := 3;
 SelectRotateCounterClockwise90.Top := 76;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Rotate90.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SelectRotateCounterClockwise90.SetImage(image);
 SelectRotateCounterClockwise90.Transparent := true;
 SelectRotateCounterClockwise90.Width := 16;
@@ -178,6 +241,10 @@ SelectMirrorHorButton := TOpenGL_Bevel.Create(Owner);
 SelectMirrorHorButton.Left := 21;
 SelectMirrorHorButton.Top := 76;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror_Hor.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SelectMirrorHorButton.SetImage(image);
 SelectMirrorHorButton.Transparent := true;
 SelectMirrorHorButton.Width := 16;
@@ -189,6 +256,10 @@ SelectMirrorVerButton := TOpenGL_Bevel.Create(Owner);
 SelectMirrorVerButton.Left := 21 + 18;
 SelectMirrorVerButton.Top := 76;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror_Ver.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SelectMirrorVerButton.SetImage(image);
 SelectMirrorVerButton.Transparent := true;
 SelectMirrorVerButton.Width := 16;
@@ -200,6 +271,10 @@ SelectRotateAngle := TOpenGL_Bevel.Create(Owner);
 SelectRotateAngle.Left := 21 + 18 + 18;
 SelectRotateAngle.Top := 76;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Angle.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SelectRotateAngle.SetImage(image);
 SelectRotateAngle.Transparent := true;
 SelectRotateAngle.Width := 16;
@@ -211,6 +286,10 @@ BrightenButton := TOpenGL_Bevel.Create(Owner);
 BrightenButton.Left := 3;
 BrightenButton.Top := 95;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Brighten.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 BrightenButton.SetImage(image);
 BrightenButton.Transparent := true;
 BrightenButton.Width := 32;
@@ -223,6 +302,10 @@ DarkenButton := TOpenGL_Bevel.Create(Owner);
 DarkenButton.Left := 41;
 DarkenButton.Top := 95;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Darken.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 DarkenButton.SetImage(image);
 DarkenButton.Transparent := true;
 DarkenButton.Width := 32;
@@ -235,6 +318,10 @@ CurserSize1 := TOpenGL_Bevel.Create(Owner);
 CurserSize1.Left := 3;
 CurserSize1.Top := 130;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Size1.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CurserSize1.SetImage(image);
 CurserSize1.Transparent := true;
 CurserSize1.Width := 16;
@@ -246,6 +333,10 @@ CurserSize2 := TOpenGL_Bevel.Create(Owner);
 CurserSize2.Left := 21;
 CurserSize2.Top := 130;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Size2.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CurserSize2.SetImage(image);
 CurserSize2.Transparent := true;
 CurserSize2.Width := 16;
@@ -257,6 +348,10 @@ CurserSize3 := TOpenGL_Bevel.Create(Owner);
 CurserSize3.Left := 21 + 18;
 CurserSize3.Top := 130;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Size3.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CurserSize3.SetImage(image);
 CurserSize3.Transparent := true;
 CurserSize3.Width := 16;
@@ -268,6 +363,10 @@ CurserSize4 := TOpenGL_Bevel.Create(Owner);
 CurserSize4.Left := 21 + 18 + 18;
 CurserSize4.Top := 130;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Size4.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CurserSize4.SetImage(image);
 CurserSize4.Transparent := true;
 CurserSize4.Width := 16;
@@ -279,6 +378,10 @@ EraserButton := TOpenGL_Bevel.Create(Owner);
 EraserButton.Left := 3;
 EraserButton.Top := 149;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Eraser.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 EraserButton.SetImage(image);
 EraserButton.Transparent := true;
 EraserButton.Width := 32;
@@ -290,6 +393,10 @@ PencilButton := TOpenGL_Bevel.Create(Owner);
 PencilButton.Left := 3;
 PencilButton.Top := 184;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Penciltool.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 PencilButton.SetImage(image);
 PencilButton.Transparent := true;
 PencilButton.Width := 32;
@@ -301,6 +408,10 @@ CursorRoundShape1 := TOpenGL_Bevel.Create(Owner);
 CursorRoundShape1.Left := 40;
 CursorRoundShape1.Top := 174;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'RoundShape1.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CursorRoundShape1.SetImage(image);
 CursorRoundShape1.Transparent := true;
 CursorRoundShape1.Width := 16;
@@ -312,6 +423,10 @@ CursorRoundShape2 := TOpenGL_Bevel.Create(Owner);
 CursorRoundShape2.Left := 40;
 CursorRoundShape2.Top := 192;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'RoundShape2.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CursorRoundShape2.SetImage(image);
 CursorRoundShape2.Transparent := true;
 CursorRoundShape2.Width := 16;
@@ -323,6 +438,10 @@ CursorRoundShape3 := TOpenGL_Bevel.Create(Owner);
 CursorRoundShape3.Left := 40;
 CursorRoundShape3.Top := 210;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'RoundShape3.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CursorRoundShape3.SetImage(image);
 CursorRoundShape3.Transparent := true;
 CursorRoundShape3.Width := 16;
@@ -334,6 +453,10 @@ CursorSquareShape1 := TOpenGL_Bevel.Create(Owner);
 CursorSquareShape1.Left := 58;
 CursorSquareShape1.Top := 174;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'SquareShape1.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CursorSquareShape1.SetImage(image);
 CursorSquareShape1.Transparent := true;
 CursorSquareShape1.Width := 16;
@@ -345,6 +468,10 @@ CursorSquareShape2 := TOpenGL_Bevel.Create(Owner);
 CursorSquareShape2.Left := 58;
 CursorSquareShape2.Top := 192;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'SquareShape2.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CursorSquareShape2.SetImage(image);
 CursorSquareShape2.Transparent := true;
 CursorSquareShape2.Width := 16;
@@ -356,6 +483,10 @@ CursorSquareShape3 := TOpenGL_Bevel.Create(Owner);
 CursorSquareShape3.Left := 58;
 CursorSquareShape3.Top := 210;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'SquareShape3.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CursorSquareShape3.SetImage(image);
 CursorSquareShape3.Transparent := true;
 CursorSquareShape3.Width := 16;
@@ -367,6 +498,10 @@ LineButton := TOpenGL_Bevel.Create(Owner);
 LineButton.Left := 3;
 LineButton.Top := 219;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Linetool.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 LineButton.SetImage(image);
 LineButton.Transparent := true;
 LineButton.Width := 32;
@@ -378,6 +513,10 @@ CircleButton := TOpenGL_Bevel.Create(Owner);
 CircleButton.Left := 3;
 CircleButton.Top := 254;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Ellipse.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 CircleButton.SetImage(image);
 CircleButton.Transparent := true;
 CircleButton.Width := 32;
@@ -389,6 +528,10 @@ SquareButton := TOpenGL_Bevel.Create(Owner);
 SquareButton.Left := 3;
 SquareButton.Top := 289;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Rectangle.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 SquareButton.SetImage(image);
 SquareButton.Transparent := true;
 SquareButton.Width := 32;
@@ -400,6 +543,10 @@ OutlineButton := TOpenGL_Bevel.Create(Owner);
 OutlineButton.Left := 40;
 OutlineButton.Top := 279;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Outline.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 OutlineButton.SetImage(image);
 OutlineButton.Transparent := true;
 OutlineButton.Width := 16;
@@ -411,6 +558,10 @@ FilledButton := TOpenGL_Bevel.Create(Owner);
 FilledButton.Left := 58;
 FilledButton.Top := 279;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Filled.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 FilledButton.SetImage(image);
 FilledButton.Transparent := true;
 FilledButton.Width := 16;
@@ -422,6 +573,10 @@ MirrorButton := TOpenGL_Bevel.Create(Owner);
 MirrorButton.Left := 3;
 MirrorButton.Top := 324;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 MirrorButton.SetImage(image);
 MirrorButton.Transparent := true;
 MirrorButton.Width := 32;
@@ -433,8 +588,16 @@ MirrorCenterButton := TOpenGL_ToggleButton.create(Owner);
 MirrorCenterButton.Left := 58;
 MirrorCenterButton.Top := 322;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror_Center.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 MirrorCenterButton.SetImage(image);
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror_Axis.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 MirrorCenterButton.SetDownImage(image);
 MirrorCenterButton.Transparent := true;
 MirrorCenterButton.Width := 16;
@@ -446,6 +609,10 @@ Mirror4Button := TOpenGL_Bevel.Create(Owner);
 Mirror4Button.Left := 40;
 Mirror4Button.Top := 322;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror4.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 Mirror4Button.SetImage(image);
 Mirror4Button.Transparent := true;
 Mirror4Button.Width := 16;
@@ -457,6 +624,10 @@ MirrorVertButton := TOpenGL_Bevel.Create(Owner);
 MirrorVertButton.Left := 40;
 MirrorVertButton.Top := 340;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror_Ver.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 MirrorVertButton.SetImage(image);
 MirrorVertButton.Transparent := true;
 MirrorVertButton.Width := 16;
@@ -468,6 +639,10 @@ MirrorHorButton := TOpenGL_Bevel.Create(Owner);
 MirrorHorButton.Left := 58;
 MirrorHorButton.Top := 340;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Mirror_Hor.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 MirrorHorButton.SetImage(image);
 MirrorHorButton.Transparent := true;
 MirrorHorButton.Width := 16;
@@ -479,6 +654,10 @@ FloodFillButton := TOpenGL_Bevel.Create(Owner);
 FloodFillButton.Left := 3;
 FloodFillButton.Top := 359;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Bucket.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 FloodFillButton.SetImage(image);
 FloodFillButton.Transparent := true;
 FloodFillButton.Width := 32;
@@ -490,6 +669,10 @@ FloodFillModeButton := TOpenGL_Bevel.Create(Owner);
 FloodFillModeButton.Left := 41;
 FloodFillModeButton.Top := 359;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'FloodfillMode.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 FloodFillModeButton.SetImage(image);
 FloodFillModeButton.Transparent := true;
 FloodFillModeButton.Width := 32;
@@ -501,6 +684,10 @@ ColorPickButton := TOpenGL_Bevel.Create(Owner);
 ColorPickButton.Left := 3;
 ColorPickButton.Top := 394;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Pincette.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 ColorPickButton.SetImage(image);
 ColorPickButton.Transparent := true;
 ColorPickButton.Width := 32;
@@ -527,6 +714,10 @@ ColorTransparent := TOpenGL_TransparentColorBox.Create(Owner);
 ColorTransparent.Left := 128;
 ColorTransparent.Top := 428;
 image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Transparent.bmp', Fuchsia, smClamp);
+If image = 0 Then Begin
+  fCriticalError := true;
+  exit;
+End;
 ColorTransparent.SetImage(image);
 ColorTransparent.Transparent := true;
 ColorTransparent.Width := 16;
@@ -649,13 +840,6 @@ Color8.RaisedColor := rgba(0, 0, 0, 0);
 Color8.OnMouseUp := @OnColorMouseUp;
 AddElement(Color8);
 
-AktColorInfoLabel := TOpenGl_Label.Create(owner, '');
-AktColorInfoLabel.Left := 147;
-AktColorInfoLabel.Top := 463;
-AktColorInfoLabel.Caption := '';
-AktColorInfoLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
-AddElement(AktColorInfoLabel);
-
 InfoLabel := TOpenGl_Label.Create(owner, '');
 InfoLabel.Left := 427;
 InfoLabel.Top := 445;
@@ -669,14 +853,4 @@ InfoDetailLabel.Top := 445;
 InfoDetailLabel.Caption := '';
 InfoDetailLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
 AddElement(InfoDetailLabel);
-
-
-
-
-
-
-
-
-
-
 
