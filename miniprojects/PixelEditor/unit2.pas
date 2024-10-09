@@ -28,6 +28,8 @@ Type
   TForm2 = Class(TForm)
     Button1: TButton;
     CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
+    CheckBox3: TCheckBox;
     ComboBox1: TComboBox;
     Label1: TLabel;
     Procedure FormCreate(Sender: TObject);

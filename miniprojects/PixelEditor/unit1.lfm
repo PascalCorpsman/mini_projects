@@ -63,10 +63,12 @@ object Form1: TForm1
     Left = 98
     Top = 162
     object MenuItem4: TMenuItem
-      Caption = 'Convert to grascale'
+      Caption = 'Convert to grayscale'
+      OnClick = MenuItem4Click
     end
     object MenuItem3: TMenuItem
       Caption = 'Invert colors'
+      OnClick = MenuItem3Click
     end
     object Separator2: TMenuItem
       Caption = '-'
@@ -77,9 +79,11 @@ object Form1: TForm1
     end
     object MenuItem5: TMenuItem
       Caption = 'Select by color'
+      OnClick = MenuItem5Click
     end
     object MenuItem6: TMenuItem
-      Caption = 'Inverted select by color'
+      Caption = 'Invert selection'
+      OnClick = MenuItem6Click
     end
     object Separator1: TMenuItem
       Caption = '-'

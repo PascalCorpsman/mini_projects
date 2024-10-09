@@ -86,11 +86,6 @@ End;
 
 Procedure TUndoEngine.StartNewRecording;
 Begin
-  (* TODO: Rein oder raus ?
-  If faRecordCount <> 0 Then Begin
-    PushRecording;
-  End;
-  // Ende Rein oder Raus  *)
   setlength(faRecord, RecordChunkSize);
   faRecordCount := 0;
 End;

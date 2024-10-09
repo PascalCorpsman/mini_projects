@@ -71,6 +71,10 @@ Type
     Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
+    Procedure MenuItem3Click(Sender: TObject);
+    Procedure MenuItem4Click(Sender: TObject);
+    Procedure MenuItem5Click(Sender: TObject);
+    Procedure MenuItem6Click(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
@@ -219,6 +223,26 @@ End;
 Procedure TForm1.MenuItem2Click(Sender: TObject);
 Begin
   // Nichts das Popup geht auch so zu ;)
+End;
+
+Procedure TForm1.MenuItem3Click(Sender: TObject);
+Begin
+  Editor.InvertColors;
+End;
+
+Procedure TForm1.MenuItem4Click(Sender: TObject);
+Begin
+  Editor.ConvertToGrayscale;
+End;
+
+Procedure TForm1.MenuItem5Click(Sender: TObject);
+Begin
+  Editor.SelectByColor;
+End;
+
+Procedure TForm1.MenuItem6Click(Sender: TObject);
+Begin
+  Editor.InvertSelection;
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);

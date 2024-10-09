@@ -242,6 +242,8 @@ Type
     Procedure LoadColor(aColor: TOpenGL_ColorBox);
   End;
 
+Procedure RenderTransparentQuad(x, y, w, h: Single);
+
 Implementation
 
 Uses
@@ -256,6 +258,32 @@ Begin
   result.r := r;
   result.g := g;
   result.b := b;
+End;
+
+Procedure RenderTransparentQuad(x, y, w, h: Single);
+Begin
+  glColor3ub(TransparentDarkLuminance, TransparentDarkLuminance, TransparentDarkLuminance);
+  glBegin(GL_QUADS);
+  glVertex2f(x, y);
+  glVertex2f(x + w / 2, y);
+  glVertex2f(x + w / 2, y + h / 2);
+  glVertex2f(x, y + h / 2);
+  glVertex2f(x + w / 2, y + h / 2);
+  glVertex2f(x + w, y + h / 2);
+  glVertex2f(x + w, y + h);
+  glVertex2f(x + w / 2, y + h);
+  glend;
+  glColor3ub(TransparentBrightLuminance, TransparentBrightLuminance, TransparentBrightLuminance);
+  glBegin(GL_QUADS);
+  glVertex2f(x + w / 2, y);
+  glVertex2f(x + w, y);
+  glVertex2f(x + w, y + h / 2);
+  glVertex2f(x + w / 2, y + h / 2);
+  glVertex2f(x, y + h / 2);
+  glVertex2f(x + w / 2, y + h / 2);
+  glVertex2f(x + w / 2, y + h);
+  glVertex2f(x, y + h);
+  glend;
 End;
 
 { TOpenGL_Bevel }
@@ -401,13 +429,18 @@ Begin
   glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
   // glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 1); // Debug, zum Ausmessen der Positionen !
 
-  glColor3ub(fColor.r, fColor.g, fColor.b);
-  glBegin(GL_QUADS);
-  glVertex2f(0, 0);
-  glVertex2f(Width - 1, 0);
-  glVertex2f(Width - 1, Height - 1);
-  glVertex2f(0, Height - 1);
-  glend;
+  If fColor = ColorTransparent Then Begin
+    RenderTransparentQuad(0, 0, Width - 1, Height - 1);
+  End
+  Else Begin
+    glColor3ub(fColor.r, fColor.g, fColor.b);
+    glBegin(GL_QUADS);
+    glVertex2f(0, 0);
+    glVertex2f(Width - 1, 0);
+    glVertex2f(Width - 1, Height - 1);
+    glVertex2f(0, Height - 1);
+    glend;
+  End;
 
   If (fStyle = bsRaised) Or (fmDown) Then Begin
     glColor3ub(RaisedColor.r, RaisedColor.g, RaisedColor.b);
@@ -463,9 +496,8 @@ End;
 
 Procedure TOpenGL_ForeBackGroundColorBox.OnRender();
 Var
-  B1, B2: integer;
+  w, h, B1, B2: integer;
 Begin
-  // TODO: Transparent Unterstützen !!
   If Not Visible Then exit;
   glBindTexture(GL_TEXTURE_2D, 0);
   B1 := width Div 7; // Durch Probieren ermittelt ;)
@@ -474,15 +506,22 @@ Begin
   glTranslatef(Left, Top, 0);
   glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
   // Die Hintergrundfarbe
+  If BackColor = ColorTransparent Then Begin
+    w := Width - B1 - B2;
+    h := Height - B1 - B2;
+    RenderTransparentQuad(b2, b2, w, h);
+  End
+  Else Begin
+    glColor3ub(BackColor.r, BackColor.g, BackColor.b);
+    glBegin(GL_QUADS);
+    glVertex2f(B2, B2);
+    glVertex2f(Width - B1, B2);
+    glVertex2f(Width - B1, Height - B1);
+    glVertex2f(B2, Height - B1);
+    glend;
+  End;
   glColor3ub(192, 192, 192);
   glBegin(GL_LINE_LOOP);
-  glVertex2f(B2, B2);
-  glVertex2f(Width - B1, B2);
-  glVertex2f(Width - B1, Height - B1);
-  glVertex2f(B2, Height - B1);
-  glend;
-  glColor3ub(BackColor.r, BackColor.g, BackColor.b);
-  glBegin(GL_QUADS);
   glVertex2f(B2, B2);
   glVertex2f(Width - B1, B2);
   glVertex2f(Width - B1, Height - B1);
@@ -490,6 +529,21 @@ Begin
   glend;
   // Die Fordergrundfarbe
   glTranslatef(0, 0, 0.01);
+  If FrontColor = ColorTransparent Then Begin
+    w := Width - B1 - B2;
+    h := Height - B1 - B2;
+    RenderTransparentQuad(b1, b1, w, h);
+  End
+  Else Begin
+    glColor3ub(FrontColor.r, FrontColor.g, FrontColor.b);
+    glBegin(GL_QUADS);
+    glVertex2f(B1, B1);
+    glVertex2f(Width - B2, B1);
+    glVertex2f(Width - B2, Height - B2);
+    glVertex2f(B1, Height - B2);
+    glend;
+  End;
+
   glColor3ub(192, 192, 192);
   glBegin(GL_LINE_LOOP);
   glVertex2f(B1, B1);
@@ -497,13 +551,7 @@ Begin
   glVertex2f(Width - B2, Height - B2);
   glVertex2f(B1, Height - B2);
   glend;
-  glColor3ub(FrontColor.r, FrontColor.g, FrontColor.b);
-  glBegin(GL_QUADS);
-  glVertex2f(B1, B1);
-  glVertex2f(Width - B2, B1);
-  glVertex2f(Width - B2, Height - B2);
-  glVertex2f(B1, Height - B2);
-  glend;
+
   // Der Rahmen
   glColor3ub(192, 192, 192);
   glBegin(GL_LINE_LOOP);

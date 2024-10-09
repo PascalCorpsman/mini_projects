@@ -54,7 +54,6 @@ Type
     fZoom: integer; // Akruelle Zoomstufe in %
     fImage: TImage; // Das Object um das es hier eigentlich geht ;)
     fUndo: TUndoEngine;
-    fBucketToleranz: integer;
 
     FElements: Array Of TOpenGL_BaseClass;
 
@@ -182,24 +181,32 @@ Type
     Procedure RenderCursor;
 
     Procedure NewImage(aWidth, aHeight: Integer);
+
     Procedure SelectAll;
+
     Procedure SetZoom(ZoomValue: integer);
     Procedure Zoom(ZoomIn: Boolean);
 
     Function getChanged: Boolean;
+
     Procedure LoadColorDialogColor(Sender: TObject);
     Function CursorToPixel(x, y: integer): TPoint;
     Function CursorIsInImageWindow: Boolean;
     Procedure SetLeftColor(Const c: TOpenGL_ColorBox);
-    Procedure UpdateInfoLabel;
+    Procedure SetRightColor(Const c: TRGBA);
+
     Procedure SelectTool(aTool: TTool);
-    Procedure LoadSettings;
-    Procedure PasteImageFromClipboard;
-    Procedure SaveImage(Const aFilename: String);
-    Procedure CursorToPixelOperation(Callback: TPixelCallback);
 
     Procedure SetImagePixelByCursor(i, j: integer);
     Procedure SetOpenGLPixelByCursor(i, j: integer);
+    Procedure CursorToPixelOperation(Callback: TPixelCallback);
+
+    Procedure UpdateInfoLabel;
+    Procedure LoadSettings;
+    Procedure SaveImage(Const aFilename: String);
+
+    Procedure PasteImageFromClipboard;
+    Procedure CopySelectionToClipboard;
     Procedure EditImageSelectionProperties;
   public
 
@@ -215,6 +222,10 @@ Type
     Procedure CheckScrollBorders;
     Procedure LoadImage(Const aFilename: String);
     Procedure Spritify();
+    Procedure InvertSelection;
+    Procedure SelectByColor;
+    Procedure InvertColors;
+    Procedure ConvertToGrayscale;
   End;
 
 Var
@@ -324,6 +335,8 @@ Begin
     '.bmp': Form2.ComboBox1.ItemIndex := 1;
     '.png': Form2.ComboBox1.ItemIndex := 2;
   End;
+  form2.CheckBox2.Checked := fSettings.AutoIncSize;
+  form2.CheckBox3.Checked := fSettings.BackGroundTransparentPattern;
   form2.ShowModal;
   // LCL to .ini
   SetValue('GridAboveImage', inttostr(ord(Form2.CheckBox1.Checked)));
@@ -332,6 +345,8 @@ Begin
     1: SetValue('DefaultExt', '.bmp');
     2: SetValue('DefaultExt', '.png');
   End;
+  Setvalue('AutoIncSize', inttostr(ord(Form2.CheckBox2.Checked)));
+  Setvalue('BackGroundTransparentPattern', inttostr(ord(Form2.CheckBox3.Checked)));
   LoadSettings;
 End;
 
@@ -352,7 +367,7 @@ Begin
     UpsideDownPixelArea(fCursor.Select.Data);
   End
   Else Begin
-    // TODO: Rotate das gesamte Bild
+    fImage.UpsideDown;
   End;
 End;
 
@@ -365,7 +380,7 @@ Begin
     fCursor.Select.br.Y := fCursor.Select.tl.Y + high(fCursor.Select.Data[0]);
   End
   Else Begin
-    // TODO: Rotate das gesamte Bild
+    fImage.RotateCounterClockwise90;
   End;
 End;
 
@@ -375,13 +390,21 @@ Begin
     LeftRightPixelArea(fCursor.Select.Data);
   End
   Else Begin
-    // TODO: Rotate das gesamte Bild
+    fImage.LeftRight;
   End;
 End;
 
 Procedure TPixelEditor.OnSelectRotateAngleButtonClick(Sender: TObject);
 Begin
-  // TODO: Implementieren
+  // TODO: Implementieren Rotate Angle
+  // 1. Abfrage via Dialog
+  // 2. Das Setzen unten schon mal vorbereitet
+  If fCursor.Select.aSet Then Begin
+    //RotatePixelArea(fCursor.Select.Data, Form?.Scrollbar1.position);
+  End
+  Else Begin
+    //fImage.Rotate(Form?.Scrollbar1.position);
+  End;
 End;
 
 Procedure TPixelEditor.OnBrightenButtonClick(Sender: TObject);
@@ -454,6 +477,7 @@ Begin
   If (key = VK_N) And (ssCtrl In Shift) Then OnNewButtonClick(NewButton);
   If (key = VK_O) And (ssCtrl In Shift) Then OnOptionsButtonClick(OptionsButton);
   If (key = VK_S) And (ssCtrl In Shift) Then OnSaveButtonClick(SaveButton);
+  If (key = VK_C) And (ssCtrl In Shift) Then CopySelectionToClipboard;
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
   If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
   If (key = VK_DELETE) Then EraserButton.click;
@@ -745,12 +769,15 @@ End;
 Procedure TPixelEditor.RenderGrid;
 Var
   zf: Single;
-  i: Integer;
+  i, j: Integer;
 Begin
+  zf := (fZoom / 100);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glPushMatrix;
+  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0); // Anfahren obere Linke Ecke
   // Der Generelle Hintergrund
   glPushMatrix;
-  glTranslatef(0, 0, LayerBackGroundColor);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  gltranslatef(0, 0, LayerBackGroundColor);
   glColor3ub(51, 51, 51);
   glbegin(GL_QUADS);
   glVertex2f(0, 0);
@@ -759,19 +786,28 @@ Begin
   glVertex2f(0, 480);
   glEnd;
   glPopMatrix;
-  zf := (fZoom / 100);
-  // Der Rahmen um die Graphik für "niedrige" Zoom stufen
-  glPushMatrix;
-  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0); // Anfahren obere Linke Ecke
-  // Verzerrung Raus Rechnen
   glScalef(ScreenWidth / FOwner.Width, ScreenHeight / FOwner.Height, 1);
+  If fsettings.BackGroundTransparentPattern Then Begin
+    glPushMatrix;
+    glTranslatef(0, 0, LayerBackGroundColor + 0.01);
+    For i := 0 To fImage.Width - 1 Do Begin
+      For j := 0 To fImage.Height - 1 Do Begin
+        RenderTransparentQuad(i * zf, j * zf, zf, zf);
+      End;
+    End;
+    glPopMatrix;
+  End;
+
+  // Der Rahmen um die Graphik für "niedrige" Zoom stufen
+  // Verzerrung Raus Rechnen
   If fSettings.GridAboveImage Then Begin
     glTranslatef(0, 0, LayerForeGroundGrid);
+    glColor3ub(102, 102, 102);
   End
   Else Begin
     glTranslatef(0, 0, LayerBackGroundGrid);
+    glColor3ub(0, 0, 0);
   End;
-  glColor3ub(102, 102, 102);
   glLineWidth(1);
   glBegin(GL_LINES);
   glVertex2f(0, 0);
@@ -904,9 +940,9 @@ End;
 
 Procedure TPixelEditor.OnFloodFillModeButtonClick(Sender: TObject);
 Begin
-  form5.ScrollBar1.Position := fBucketToleranz;
+  form5.ScrollBar1.Position := fCursor.ColorToleranz;
   If form5.ShowModal = mrOK Then Begin
-    fBucketToleranz := form5.ScrollBar1.Position;
+    fCursor.ColorToleranz := form5.ScrollBar1.Position;
   End;
 End;
 
@@ -965,8 +1001,7 @@ Begin
   If button = mbRight Then Begin
     ColorPicDialog.Visible := false;
     c := (sender As TOpenGL_ColorBox).Color;
-    ColorPreview.BackColor := c;
-    fCursor.RightColor := c;
+    SetRightColor(c);
   End;
 End;
 
@@ -1081,7 +1116,6 @@ Begin
             End;
           End
           Else Begin
-            // TODO: bei negativ ist da ein off by one drin
             RectangleOutline(dummy, p, Callback);
           End;
         End
@@ -1110,7 +1144,7 @@ Begin
         uimage.FloodFill(
           fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
           point(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
-          fBucketToleranz,
+          fCursor.ColorToleranz,
           fimage,
           Callback);
       End;
@@ -1160,14 +1194,31 @@ Begin
 End;
 
 Procedure TPixelEditor.SetOpenGLPixelByCursor(i, j: integer);
+Var
+  c: TRGBA;
 Begin
   If (i >= 0) And (i < fImage.Width) And
     (j >= 0) And (j < fImage.Height) Then Begin
-    glVertex2f(i, j);
+    If (fCursor.LeftColor.Color = upixeleditor_types.ColorTransparent) Or
+      (EraserButton.Style = bsRaised) Then Begin
+      // Abschalten des Cursor Point Render Modus
+      glEnd;
+      // Das Eigentliche Rendern als "Transparent" Cursor
+      RenderTransparentQuad(i - 0.5, j - 0.5, 1, 1);
+      // Wieder Aktivieren des Point Render Modus
+      c := fCursor.LeftColor.Color;
+      glColor3ub(c.r, c.g, c.b);
+      glBegin(GL_POINTS);
+    End
+    Else Begin
+      glVertex2f(i, j);
+    End;
   End;
 End;
 
 Procedure TPixelEditor.EditImageSelectionProperties;
+Var
+  w, h: integer;
 Begin
   If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
     form6.InitWith(
@@ -1176,8 +1227,17 @@ Begin
       false);
     If Form6.ShowModal = mrOK Then Begin
       RescalePixelArea(fCursor.Select.Data, form6.SpinEdit3.Value, form6.SpinEdit4.Value, Form6.GetScaleMode);
-      fCursor.Select.br.x := fCursor.Select.tl.X + form6.SpinEdit3.Value - 1;
-      fCursor.Select.br.Y := fCursor.Select.tl.Y + form6.SpinEdit4.Value - 1;
+      w := form6.SpinEdit3.Value;
+      h := form6.SpinEdit4.Value;
+      fCursor.Select.br.x := fCursor.Select.tl.X + w - 1;
+      fCursor.Select.br.Y := fCursor.Select.tl.Y + h - 1;
+      If ((W > fImage.Width) Or (H > fImage.Height)) And fSettings.AutoIncSize Then Begin
+        fImage.Rescale(max(fImage.Width, W), max(fImage.Height, H), smResize);
+        fCursor.Select.br := fCursor.Select.br - fCursor.Select.tl;
+        fCursor.Select.tl := point(0, 0);
+        // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
+        // fUndo.Clear;
+      End;
     End;
   End
   Else Begin
@@ -1185,7 +1245,7 @@ Begin
     If Form6.ShowModal = mrOK Then Begin
       fImage.Rescale(form6.SpinEdit3.Value, form6.SpinEdit4.Value, Form6.GetScaleMode);
       fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
-      fUndo.Clear; // TODO: Vorerst macht ein Resize die Historie Platt
+      fUndo.Clear; // TODO: Vorerst macht ein Resize die Historie Platt -> Resizing in UndoEngine
     End;
   End;
 End;
@@ -1277,7 +1337,24 @@ Begin
       glPointSize(fZoom / 100);
       For i := 0 To high(fCursor.Select.Data) Do Begin
         For j := 0 To high(fCursor.Select.Data[i]) Do Begin
-          If fCursor.Select.Data[i, j] <> upixeleditor_types.ColorTransparent Then Begin
+          If fCursor.Select.Data[i, j] = upixeleditor_types.ColorTransparent Then Begin
+            If SelectModeButton.Style = bsLowered Then Begin
+              // Wenn der SelectMode so ist das die Transparenz nicht ignoriert wird, muss hier auch das "optische" Feedback gezeigt werden
+              glPointSize(fZoom / 200);
+              glColor3ub(TransparentDarkLuminance, TransparentDarkLuminance, TransparentDarkLuminance);
+              glbegin(GL_POINTS);
+              glVertex2f(i - 0.25, j - 0.25);
+              glVertex2f(i + 0.25, j + 0.25);
+              glend();
+              glColor3ub(TransparentBrightLuminance, TransparentBrightLuminance, TransparentBrightLuminance);
+              glbegin(GL_POINTS);
+              glVertex2f(i + 0.25, j - 0.25);
+              glVertex2f(i - 0.25, j + 0.25);
+              glend();
+              glPointSize(fZoom / 100);
+            End;
+          End
+          Else Begin
             glcolor3ub(fCursor.Select.Data[i, j].r, fCursor.Select.Data[i, j].g, fCursor.Select.Data[i, j].b);
             glbegin(GL_POINTS);
             glVertex2f(i, j);
@@ -1346,6 +1423,12 @@ Begin
   fUndo.PushRecording;
   fCursor.LeftColor.Color := c;
   fCursor.Tool := tSelect;
+End;
+
+Procedure TPixelEditor.SetRightColor(Const c: TRGBA);
+Begin
+  ColorPreview.BackColor := c;
+  fCursor.RightColor := c;
 End;
 
 Procedure TPixelEditor.SetZoom(ZoomValue: integer);
@@ -1550,7 +1633,7 @@ Begin
   Mirror4Button.Visible := aTool = tMirror;
 
   FloodFillButton.Style := ifThen(atool = tBucket, bsRaised, bsLowered);
-  FloodFillModeButton.Visible := aTool = tBucket;
+  FloodFillModeButton.Visible := aTool In [tBucket, tSelect];
 
   ColorPickButton.Style := ifThen(atool = tPincette, bsRaised, bsLowered);
   // Übernehmen des Cursor Tools ;)
@@ -1580,35 +1663,64 @@ Procedure TPixelEditor.LoadSettings;
 Begin
   fSettings.GridAboveImage := GetValue('GridAboveImage', '1') = '1';
   fSettings.DefaultExt := GetValue('DefaultExt', '.pe');
+  fSettings.AutoIncSize := GetValue('AutoIncSize', '1') = '1';
+  fsettings.BackGroundTransparentPattern := GetValue('BackGroundTransparentPattern', '1') = '1';
 End;
 
 Procedure TPixelEditor.PasteImageFromClipboard;
 Var
   b: Tbitmap;
   i, j: Integer;
-  fn: String;
   c: TRGBA;
 Begin
   If Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) Then Begin
     b := TBitmap.Create;
     b.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
-    // TODO: Paste secondary Color as Transparent ..
-    // TODO: Remove, only for testing, paste content from Clipboard *g*
-    fn := fImage.Filename;
-    fImage.SetSize(b.Width, b.Height);
-    Fimage.Filename := fn;
+    SelectTool(tSelect);
+    fCursor.Select.aSet := true;
+    fCursor.Select.tl.x := max(0, fCursor.Compact.PixelPos.x);
+    fCursor.Select.tl.Y := max(0, fCursor.Compact.PixelPos.Y);
+    fCursor.Select.br := fCursor.Select.tl + point(b.Width - 1, b.Height - 1);
+    setlength(fCursor.Select.Data, b.Width, b.Height);
     For i := 0 To b.Width - 1 Do Begin
       For j := 0 To b.Height - 1 Do Begin
-        // TODO: Nur machen, wenn der SelectMode auf Transparent gestellt ist
         c := ColorToRGBA(b.Canvas.Pixels[i, j], 0);
         If (c.r = fCursor.RightColor.r) And
           (c.g = fCursor.RightColor.g) And
-          (c.b = fCursor.RightColor.b) Then Begin
+          (c.b = fCursor.RightColor.b) And
+          (SelectModeButton.Style = bsRaised) Then Begin
           c := upixeleditor_types.ColorTransparent;
         End;
-        fImage.SetColorAt(i, j, c);
+        fCursor.Select.Data[i, j] := c;
       End;
     End;
+    If ((b.Width > fImage.Width) Or (b.Height > fImage.Height)) And fSettings.AutoIncSize Then Begin
+      fImage.Rescale(max(fImage.Width, b.Width), max(fImage.Height, b.Height), smResize);
+      fCursor.Select.br := fCursor.Select.br - fCursor.Select.tl;
+      fCursor.Select.tl := point(0, 0);
+      // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
+      // fUndo.Clear;
+    End;
+    b.free;
+  End;
+End;
+
+Procedure TPixelEditor.CopySelectionToClipboard;
+Var
+  b: TBitmap;
+  i, j: Integer;
+Begin
+  // Nur wenn es überhaupt was zum Kopieren gibt
+  If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
+    b := TBitmap.Create;
+    b.Width := fCursor.Select.br.x - fCursor.Select.tl.x + 1;
+    b.Height := fCursor.Select.br.Y - fCursor.Select.tl.Y + 1;
+    For i := 0 To b.Width - 1 Do Begin
+      For j := 0 To b.Height - 1 Do Begin
+        b.canvas.Pixels[i, j] := RGBAToColor(fCursor.Select.Data[i, j]);
+      End;
+    End;
+    Clipboard.Assign(b);
     b.free;
   End;
 End;
@@ -1686,7 +1798,6 @@ Begin
         m.LoadFromFile(aFilename);
         LoadedFileVersion := -1;
         m.Read(LoadedFileVersion, sizeof(i));
-        // TODO: In Zukunft kann hier dann ein Fileversion angepasster Lader sein Werk tun ;)
         If (LoadedFileVersion > PixelEditorFileversion) Or (LoadedFileVersion < 3) Then Begin
           showmessage('Error, invalid file version.');
           m.free;
@@ -1757,6 +1868,119 @@ Begin
   End;
 End;
 
+Procedure TPixelEditor.InvertSelection;
+Var
+  x, y, i, j: Integer;
+  c, c2: TRGBA;
+Begin
+  (*
+   * Dieser Befehl macht nur nach SelectByColor Sinn.
+   * Die Idee ist, dass überall wo die Selection Transparent ist
+   * wird das Bild übernommen, und alles andere Ins Bild zurück geschrieben
+   *)
+  If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
+    fUndo.StartNewRecording;
+    fCursor.Tool := tPen;
+    c := fCursor.LeftColor.Color;
+    For i := 0 To high(fCursor.Select.Data) Do Begin
+      For j := 0 To high(fCursor.Select.Data[i]) Do Begin
+        x := fCursor.Select.tl.x + i;
+        y := fCursor.Select.tl.Y + j;
+        If fCursor.Select.Data[i, j] = upixeleditor_types.ColorTransparent Then Begin
+          // Übernehmen des Wertes aus dem Bild, und beim Bild entsprechend Löschen
+          c2 := fImage.GetColorAt(x, y);
+          If c2 <> upixeleditor_types.ColorTransparent Then Begin
+            fCursor.Select.Data[i, j] := c2;
+            fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
+            SetImagePixelByCursor(x, y);
+          End;
+        End
+        Else Begin
+          // Schreiben Ins Bild und In Data Löschen
+          fCursor.LeftColor.Color := fCursor.Select.Data[i, j];
+          SetImagePixelByCursor(x, y);
+          fCursor.Select.Data[i, j] := upixeleditor_types.ColorTransparent;
+        End;
+      End;
+    End;
+    fCursor.LeftColor.Color := c;
+    fCursor.Tool := tSelect;
+    fUndo.PushRecording;
+  End;
+End;
+
+Procedure TPixelEditor.SelectByColor;
+Var
+  i, j: Integer;
+  c: TRGBA;
+Begin
+  (*
+   * Alles was ColorMatch mit LeftColor überlebt bleibt selectiert,
+   * alles andere wird in der Auswahl Transparent und gleichzeitig ins
+   * Bild runter geschrieben.
+   *)
+  If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
+    fUndo.StartNewRecording;
+    fCursor.Tool := tPen;
+    c := fCursor.LeftColor.Color;
+    For i := 0 To high(fCursor.Select.Data) Do Begin
+      For j := 0 To high(fCursor.Select.Data[i]) Do Begin
+        If fCursor.Select.Data[i, j] <> upixeleditor_types.ColorTransparent Then Begin
+          If Not ColorMatch(fCursor.Select.Data[i, j], c, fCursor.ColorToleranz) Then Begin
+            // Retten des Pixels ins Bild
+            fCursor.LeftColor.Color := fCursor.Select.Data[i, j];
+            SetImagePixelByCursor(fCursor.Select.tl.x + i, fCursor.Select.tl.Y + j);
+            // Löschen aus der Selection
+            fCursor.Select.Data[i, j] := upixeleditor_types.ColorTransparent;
+          End;
+        End;
+      End;
+    End;
+    fCursor.LeftColor.Color := c;
+    fCursor.Tool := tSelect;
+    fUndo.PushRecording;
+  End;
+End;
+
+Procedure TPixelEditor.InvertColors;
+Var
+  i, j: Integer;
+  c: TRGBA;
+Begin
+  If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
+    For i := 0 To high(fCursor.Select.Data) Do Begin
+      For j := 0 To high(fCursor.Select.Data[i]) Do Begin
+        If fCursor.Select.Data[i, j] <> upixeleditor_types.ColorTransparent Then Begin
+          c := fCursor.Select.Data[i, j];
+          fCursor.Select.Data[i, j] :=
+            rgba(
+            255 - c.r,
+            255 - c.g,
+            255 - c.b,
+            0);
+        End;
+      End;
+    End;
+  End;
+End;
+
+Procedure TPixelEditor.ConvertToGrayscale;
+Var
+  i, j: Integer;
+  l: Byte;
+Begin
+  If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
+    For i := 0 To high(fCursor.Select.Data) Do Begin
+      For j := 0 To high(fCursor.Select.Data[i]) Do Begin
+        If fCursor.Select.Data[i, j] <> upixeleditor_types.ColorTransparent Then Begin
+          l := ColortoLuminanz(RGBAToColor(fCursor.Select.Data[i, j]));
+          fCursor.Select.Data[i, j] := rgba(l, l, l, 0);
+        End;
+      End;
+    End;
+  End;
+End;
+
 Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
@@ -1806,16 +2030,17 @@ Begin
   NewImage(32, 32);
 
   // Settings die nur 1 mal pro Programstart zurück gesetzt werden
-  fBucketToleranz := 0;
+  fCursor.ColorToleranz := 0;
+  fCursor.Select.aSet := false;
+  SetLeftColor(Color1);
+  SetRightColor(upixeleditor_types.ColorTransparent);
+  SelectTool(TPen);
   OnCurserSizeButtonClick(CurserSize1);
   OnCursorShapeClick(CursorRoundShape1);
   OnOutlineButtonClick(OutlineButton);
   OnMirrorModeButtonClick(MirrorVertButton);
   MirrorCenterButton.Style := bsRaised;
   GridButton.Style := bsRaised;
-  OnColorClick(Color1);
-  SelectTool(TPen);
-  fCursor.RightColor := upixeleditor_types.ColorTransparent;
 End;
 
 Procedure TPixelEditor.Render;

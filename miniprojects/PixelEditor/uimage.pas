@@ -48,6 +48,10 @@ Type
     Procedure ImportFromPNG(aFilename: String);
 
     Procedure Rescale(NewWidth, NewHeight: integer; Mode: TScaleMode);
+    Procedure UpsideDown;
+    Procedure RotateCounterClockwise90;
+    Procedure LeftRight;
+    Procedure Rotate(Angle: Single; ScaleMode: TScaleMode);
   End;
 
 Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Const Image: TImage; Callback: TPixelCallback);
@@ -57,6 +61,8 @@ Procedure RotatePixelAreaCounterClockwise90(Var Data: TPixelArea);
 Procedure UpsideDownPixelArea(Var Data: TPixelArea);
 Procedure LeftRightPixelArea(Var Data: TPixelArea);
 
+Procedure RotatePixelArea(Var Data: TPixelArea; Angle: Single; ScaleMode: TScaleMode);
+
 Implementation
 
 Uses
@@ -65,9 +71,8 @@ Uses
   , uvectormath
   ;
 
-Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint;
-  Toleranz: integer; Const Image: TImage;
-  Callback: TPixelCallback);
+Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer;
+  Const Image: TImage; Callback: TPixelCallback);
 Var
   Visited: Array Of Array Of Boolean;
 
@@ -258,6 +263,13 @@ Begin
   End;
 End;
 
+Procedure RotatePixelArea(Var Data: TPixelArea; Angle: Single;
+  ScaleMode: TScaleMode);
+Begin
+  If ScaleMode = smResize Then ScaleMode := smScale;
+  // TODO: implementieren drehen nach Freien Winkeln
+End;
+
 { TImage }
 
 Function TImage.getHeight: integer;
@@ -416,8 +428,8 @@ Begin
   Filename := aFilename;
 End;
 
-Procedure TImage.LoadFromPEStream(Const Stream: TStream;
-  Const aFilename: String);
+Procedure TImage.LoadFromPEStream(Const Stream: TStream; Const aFilename: String
+  );
 Var
   i, j: integer;
   c: TRGBA;
@@ -594,6 +606,94 @@ Begin
       SetColorAt(i, j, a[i, j]);
     End;
   End;
+End;
+
+Procedure TImage.UpsideDown;
+Var
+  a: TPixelArea;
+  i, j: integer;
+Begin
+  a := Nil;
+  setlength(a, width, height);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      a[i, j] := fPixels[i, j];
+    End;
+  End;
+  UpsideDownPixelArea(a);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      SetColorAt(i, j, a[i, j]);
+    End;
+  End;
+  setlength(a, 0, 0);
+End;
+
+Procedure TImage.RotateCounterClockwise90;
+Var
+  a: TPixelArea;
+  i, j: integer;
+Begin
+  a := Nil;
+  setlength(a, width, height);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      a[i, j] := fPixels[i, j];
+    End;
+  End;
+  RotatePixelAreaCounterClockwise90(a);
+  If Height <> Width Then Begin
+    SetSize(Height, Width);
+  End;
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      SetColorAt(i, j, a[i, j]);
+    End;
+  End;
+  setlength(a, 0, 0);
+End;
+
+Procedure TImage.LeftRight;
+Var
+  a: TPixelArea;
+  i, j: integer;
+Begin
+  a := Nil;
+  setlength(a, width, height);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      a[i, j] := fPixels[i, j];
+    End;
+  End;
+  LeftRightPixelArea(a);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      SetColorAt(i, j, a[i, j]);
+    End;
+  End;
+  setlength(a, 0, 0);
+End;
+
+Procedure TImage.Rotate(Angle: Single; ScaleMode: TScaleMode);
+Var
+  a: TPixelArea;
+  i, j: integer;
+Begin
+  a := Nil;
+  setlength(a, width, height);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      a[i, j] := fPixels[i, j];
+    End;
+  End;
+  RotatePixelArea(a, Angle, ScaleMode);
+  SetSize(length(a), length(a[0]));
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      SetColorAt(i, j, a[i, j]);
+    End;
+  End;
+  setlength(a, 0, 0);
 End;
 
 End.

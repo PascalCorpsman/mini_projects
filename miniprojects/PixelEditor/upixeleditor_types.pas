@@ -28,7 +28,7 @@ Const
    *
    * Jede Ebene sollte sich zur nächst höheren / tieferen um mindestens 0.01 unterscheiden !
    *)
-  LayerBackGroundColor = -0.91;
+  LayerBackGroundColor = -0.92;
   LayerBackGroundGrid = -0.9; // Das Grid das hinter allem sein soll und nur bei Transparenten Pixeln zu sehen ist
   LayerImage = -0.8; // Die Eigentliche vom User erstellte Textur
   LayerForeGroundGrid = -0.05;
@@ -53,6 +53,10 @@ Const
   ScreenHeight = 480;
 
   ColorTransparent: TRGBA = (r: 0; g: 0; b: 0; a: 255);
+
+  // Beim Rendern der "Transparent" kachel werden diese beiden Farben benötigt.
+  TransparentBrightLuminance = 180;
+  TransparentDarkLuminance = 75;
 
 Type
 
@@ -156,6 +160,7 @@ Type
     RightMouseButton: Boolean;
     Origin: TPoint; // Für das Mirrortool benötigen wir noch einen Ursprung
     Select: TSelectData;
+    ColorToleranz: integer;
   End;
 
   TScrollInfo = Record
@@ -164,10 +169,11 @@ Type
   End;
 
   TSettings = Record
-    GridAboveImage: Boolean;
-    DefaultExt: String;
-
-    // TODO: Hier noch weitere Programmsettings einfügen ;)
+    GridAboveImage: Boolean; // Gibt an ob das Grid über oder unter den gemalten Pixeln gerendert wird.
+    DefaultExt: String; // Die Defaut Dateiendung beim Speichern
+    AutoIncSize: Boolean; // Wenn true, dann wird das Image automatisch beim Paste / Resize einer Selection "Vergrößert" wenn diese Selection größer ist als das Bild
+    BackGroundTransparentPattern: Boolean;
+    // Hier noch weitere Programmsettings einfügen ;)
 
   End;
 
@@ -186,7 +192,7 @@ Procedure Mirror(Cursor: TCompactCursor; Origin: Tpoint; PointCenter, MirrorHor,
 Function MovePointToNextMainAxis(P: TPoint): TPoint; // Projiziert P auf die nächste Hauptachse oder Hauptdiagonale
 Function AdjustToMaxAbsValue(P: Tpoint): TPoint;
 
-// TODO: if in some future the "ImplicitFunctionSpecialization" switch is enabled, all this helper can be deleted !
+// if in some future the "ImplicitFunctionSpecialization" switch is enabled, all this helper can be deleted !
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
 Function IfThen(val: boolean; Const iftrue: TCursorSize; Const iffalse: TCursorSize): TCursorSize Inline; overload;
 Function IfThen(val: boolean; Const iftrue: TCursorShape; Const iffalse: TCursorShape): TCursorShape Inline; overload;
