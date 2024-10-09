@@ -114,7 +114,6 @@ GridButton.Height := 32;
 GridButton.OnClick := @OnGridButtonClick;
 AddElement(GridButton);
 
-
 ZoomOutButton := TOpenGL_Bevel.Create(Owner);
 ZoomOutButton.Left := 262;
 ZoomOutButton.Top := 10;

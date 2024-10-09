@@ -28,6 +28,7 @@ Const
    * -Released- 0.01 - Initialversion
    *            0.02 - CTRL + C, copies complete image if nothing is selected
    *                   ADD Missing captions for Load / Save Colorpalette buttons in ColorPicdialog
+   *                   Improve Clicking on SelectModebutton
    *)
   Version = '0.02';
 

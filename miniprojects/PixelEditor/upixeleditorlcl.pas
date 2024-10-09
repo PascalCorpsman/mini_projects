@@ -40,6 +40,7 @@ Type
   protected
     FDownimage: TGraphikItem;
     Procedure Click; override;
+    Procedure DblClick; override;
     Procedure OnRender(); override;
     Procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 
@@ -353,6 +354,11 @@ Begin
     fStyle := bsLowered;
   End;
   Inherited Click();
+End;
+
+Procedure TOpenGL_ToggleButton.DblClick;
+Begin
+  Click;
 End;
 
 Procedure TOpenGL_ToggleButton.OnRender;
