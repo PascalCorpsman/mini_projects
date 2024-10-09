@@ -2,18 +2,48 @@
 
 This is the usermanual for Pixeleditor, mainly to show the "hidden" features like key combinations and other stuff.
 
-
 ## Mouse actions
 | Action | Description |
 | --- | ---
 | wheel (up/down)| zoom (in/out)
-
+| CTRL + Left | Copies selection to image before drag
+| Right | when clicked inside a selected area gives access to additional features (see below)
 
 ## Keyboard actions
 | Action | Description |
 | --- | ---
+| CTRL + A | Select all
+| CTRL + C | copy selected 
+| CTRL + E | Open Resize dialog (for selected or image)
 | CTRL + N | New image
-| CTRL + O | Options
-| CTRL + S | Save
+| CTRL + O | show options dialog
+| CTRL + S | Save / Save as
 | CTRL + V | paste image from clipboard
-| SHIFT | during "line" feature, orientate the line to the next axis
+| CTRL + Z | Undo last pixeloperation
+| DEL | clears "selected" part if something is selected
+| ESC | skips actual selection / terminates application in error mode
+| SHIFT | when pressed during line / rectangle / ellipse creation the shape will be forced to be equal in width / height
+
+
+## Select context menu
+
+When clicking with the right mouse button into a selected subimage you get access to the additional features
+
+![contextmenu](contextmenu.png)
+
+| Name | Description |
+| --- | ---
+| Convert to grayscale | converts all pixels into grayscale values
+| Invert colors | inverts the colors using the RGB-Cube
+| Spritify | surrounds the selected image (using transparent to detect the border) with the selected color
+| Select by color | selects inside the selection all pixels that match the selected color
+| Invert selection | inverts the selection of the pixels inside the actual selection
+| Hide | hides the contextmenu
+
+### The Color match dialog
+
+The select by color and the floodfill (bucket) feature are dependant to the color match settings.
+
+![colormatch](colormatch.png)
+
+You can switch between "Exact match" and 1% .. 30%. This feature is espacially helpfull if you want to work with dithered images (like compressed JPEG).
