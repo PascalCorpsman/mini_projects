@@ -95,7 +95,7 @@ Type
   THSV = Record
     h: integer; // [0..360[
     s: integer; // [0..255]
-    L: Integer; // [0..255]
+    V: Integer; // [0..255]
   End;
 
   // Farb Konvertierungen
@@ -105,6 +105,7 @@ Function RGBA(R, G, B, A: Byte): TRGBA;
 Function ColorToRGB(c: TColor): TRGB;
 Function ColorToRGBA(c: TColor; AlphaValue: byte = 0): TRGBA;
 Function RGBToColor(rgb: TRGB): TColor;
+Function RGBAToColor(rgba: TRGBA): TColor;
 Function FPColorToColor(Const Color: TFPColor): TColor; // Wandelt eine FPColor in TColor um
 Function ColorToFPColor(Const Color: TColor): TFPColor; // Wandelt eine TColor in eine FPColor um
 Function FPColorToV4(Const Color: TFPColor): TVector4; // Wandelt eine FPColor in TVector4 um
@@ -311,6 +312,11 @@ End;
 Function RGBToColor(rgb: TRGB): TColor;
 Begin
   result := rgb.r Or (rgb.g Shl 8) Or (rgb.b Shl 16);
+End;
+
+Function RGBAToColor(rgba: TRGBA): TColor;
+Begin
+  result := rgba.r Or (rgba.g Shl 8) Or (rgba.b Shl 16);
 End;
 
 Function FPColorToColor(Const Color: TFPColor): TColor;
