@@ -30,6 +30,7 @@ Const
    *                   ADD Missing captions for Load / Save Colorpalette buttons in ColorPicdialog
    *                   Improve Clicking on SelectModebutton
    *                   DEL transparent button, as it is redundant and injects errors to the pipette button
+   *                   Eraser for all tools who make sense
    *)
   Version = '0.02';
 
@@ -537,7 +538,7 @@ Begin
           tLine, tEllipse, tBucket,
           tRectangle: Begin
             fUndo.StartNewRecording;
-            If fCursor.Tool In [tEraser, tPen, tMirror] Then
+            If PencilButton.Style = bsRaised Then
               CursorToPixelOperation(@SetImagePixelByCursor);
           End;
         tPipette: Begin
@@ -623,7 +624,7 @@ Begin
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
-      If fCursor.Tool In [tPen, tEraser, tMirror] Then Begin
+      If PencilButton.Style = bsRaised Then Begin
         CursorToPixelOperation(@SetImagePixelByCursor);
       End;
       If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
@@ -881,7 +882,7 @@ Var
   i, j: integer;
 Begin
   If EraserButton.Style = bsRaised Then Begin
-    SelectTool(tPen);
+    SelectTool(fCursor.LastTool);
   End
   Else Begin
     If fCursor.Tool = tSelect Then Begin
@@ -1071,101 +1072,98 @@ Var
   Dummy: TCompactCursor;
   off, i, j: Integer;
 Begin
-  (*
-   * Die nachfolgenden Algorithmen benötigen sehr häufig, dass man sich auf den "Ursprung" Bezieht
-   * -> aus diesem Grund wird ein "Künstlicher" Cursor verwendet der immer im Ursprung sitzt
-   *    beim Aufruf der Callback, wird dann die Aptuelle Position als Offset wieder mit rein gerechnet.
-   *)
-  Case fCursor.Tool Of
-    tPipette: Callback(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y);
-    teraser, tPen: FoldCursorOnPixel(fCursor.Compact, Callback);
-    tLine: Begin
-        If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
-          // DownPos und Aktuelle Position müssen für die "Projektion" getauscht werden !
-          Dummy := fCursor.Compact;
-          dummy.PixelPos := fCursor.PixelDownPos;
-          p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
-          If fCursor.Shift Then Begin
-            // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
-            p := MovePointToNextMainAxis(p);
-          End;
-          p := p + fCursor.PixelDownPos;
-          Bresenham_Line(dummy, p, Callback);
-        End
-        Else Begin
-          If fCursor.Compact.PixelPos.X <> -1 Then Begin
-            FoldCursorOnPixel(fCursor.Compact, Callback);
+  If (PencilButton.Style = bsRaised) Then Begin
+    FoldCursorOnPixel(fCursor.Compact, Callback);
+  End;
+  If (fCursor.Tool = tPipette) Then Begin
+    Callback(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y);
+  End;
+  If LineButton.Style = bsRaised Then Begin
+    If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
+      // DownPos und Aktuelle Position müssen für die "Projektion" getauscht werden !
+      Dummy := fCursor.Compact;
+      dummy.PixelPos := fCursor.PixelDownPos;
+      p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+      If fCursor.Shift Then Begin
+        // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
+        p := MovePointToNextMainAxis(p);
+      End;
+      p := p + fCursor.PixelDownPos;
+      Bresenham_Line(dummy, p, Callback);
+    End
+    Else Begin
+      If fCursor.Compact.PixelPos.X <> -1 Then Begin
+        FoldCursorOnPixel(fCursor.Compact, Callback);
+      End;
+    End;
+  End;
+  If CircleButton.Style = bsRaised Then Begin
+    If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
+      Dummy := fCursor.Compact;
+      dummy.PixelPos := fCursor.PixelDownPos;
+      p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+      If fCursor.Shift Then Begin
+        // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
+        p := AdjustToMaxAbsValue(p);
+      End;
+      p := p + fCursor.PixelDownPos;
+      Bresenham_Ellipse(dummy, p, OutlineButton.Style = bsLowered, Callback);
+    End
+    Else Begin
+      If fCursor.Compact.PixelPos.X <> -1 Then Begin
+        FoldCursorOnPixel(fCursor.Compact, Callback);
+      End;
+    End;
+  End;
+  If SquareButton.Style = bsRaised Then Begin
+    If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
+      Dummy := fCursor.Compact;
+      dummy.PixelPos := fCursor.PixelDownPos;
+      p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
+      If fCursor.Shift Then Begin
+        // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
+        p := AdjustToMaxAbsValue(p);
+      End;
+      p := p + fCursor.PixelDownPos;
+      If OutlineButton.Style = bsLowered Then Begin
+        For i := min(p.X, dummy.PixelPos.x) To max(p.X, dummy.PixelPos.x) Do Begin
+          For j := min(p.Y, dummy.PixelPos.y) To max(p.Y, dummy.PixelPos.y) Do Begin
+            Callback(i, j);
           End;
         End;
+      End
+      Else Begin
+        RectangleOutline(dummy, p, Callback);
       End;
-    tEllipse: Begin
-        If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
-          Dummy := fCursor.Compact;
-          dummy.PixelPos := fCursor.PixelDownPos;
-          p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
-          If fCursor.Shift Then Begin
-            // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
-            p := AdjustToMaxAbsValue(p);
-          End;
-          p := p + fCursor.PixelDownPos;
-          Bresenham_Ellipse(dummy, p, OutlineButton.Style = bsLowered, Callback);
-        End
-        Else Begin
-          If fCursor.Compact.PixelPos.X <> -1 Then Begin
-            FoldCursorOnPixel(fCursor.Compact, Callback);
-          End;
-        End;
+    End
+    Else Begin
+      If fCursor.Compact.PixelPos.X <> -1 Then Begin
+        FoldCursorOnPixel(fCursor.Compact, Callback);
       End;
-    tRectangle: Begin
-        If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
-          Dummy := fCursor.Compact;
-          dummy.PixelPos := fCursor.PixelDownPos;
-          p := fCursor.Compact.PixelPos - fCursor.PixelDownPos;
-          If fCursor.Shift Then Begin
-            // Der Punkt kann irgendwo liegen, er soll aber so "Projiziert" werden, dass er auf einen der 2 Hauptdiagonel oder den 2 Koordinaten Achsen liegt
-            p := AdjustToMaxAbsValue(p);
-          End;
-          p := p + fCursor.PixelDownPos;
-          If OutlineButton.Style = bsLowered Then Begin
-            For i := min(p.X, dummy.PixelPos.x) To max(p.X, dummy.PixelPos.x) Do Begin
-              For j := min(p.Y, dummy.PixelPos.y) To max(p.Y, dummy.PixelPos.y) Do Begin
-                Callback(i, j);
-              End;
-            End;
-          End
-          Else Begin
-            RectangleOutline(dummy, p, Callback);
-          End;
-        End
-        Else Begin
-          If fCursor.Compact.PixelPos.X <> -1 Then Begin
-            FoldCursorOnPixel(fCursor.Compact, Callback);
-          End;
-        End;
+    End;
+  End;
+  If MirrorButton.Style = bsRaised Then Begin
+    If (fCursor.Compact.PixelPos.x <> -1) Then Begin
+      off := 0;
+      // Dadurch, dass die Cursor selbst ja nicht Mittelpunktsymetrisch sind, müssen manche Kombinationen noch mal Extra "verschoben" werden
+      If (CursorRoundShape2.Style = bsRaised)
+        Or (CursorRoundShape3.Style = bsRaised)
+        Or (CursorSquareShape1.Style = bsRaised)
+        Then Begin
+        off := 1;
       End;
-    tMirror: Begin
-        If (fCursor.Compact.PixelPos.x <> -1) Then Begin
-          off := 0;
-          // Dadurch, dass die Cursor selbst ja nicht Mittelpunktsymetrisch sind, müssen manche Kombinationen noch mal Extra "verschoben" werden
-          If (CursorRoundShape2.Style = bsRaised)
-            Or (CursorRoundShape3.Style = bsRaised)
-            Or (CursorSquareShape1.Style = bsRaised)
-            Then Begin
-            off := 1;
-          End;
-          Mirror(fCursor.Compact, fCursor.Origin, MirrorCenterButton.Style = bsRaised,
-            (Mirror4Button.Style = bsRaised) Or (MirrorHorButton.Style = bsRaised),
-            (Mirror4Button.Style = bsRaised) Or (MirrorVertButton.Style = bsRaised), off, Callback);
-        End;
-      End;
-    tBucket: Begin
-        uimage.FloodFill(
-          fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
-          point(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
-          fCursor.ColorToleranz,
-          fimage,
-          Callback);
-      End;
+      Mirror(fCursor.Compact, fCursor.Origin, MirrorCenterButton.Style = bsRaised,
+        (Mirror4Button.Style = bsRaised) Or (MirrorHorButton.Style = bsRaised),
+        (Mirror4Button.Style = bsRaised) Or (MirrorVertButton.Style = bsRaised), off, Callback);
+    End;
+  End;
+  If FloodFillButton.Style = bsRaised Then Begin
+    uimage.FloodFill(
+      fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
+      point(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
+      fCursor.ColorToleranz,
+      fimage,
+      Callback);
   End;
 End;
 
@@ -1296,7 +1294,7 @@ Begin
    * Ab hier kommen sachen Die der Cursor gerendert braucht aber keine offiziellen Pixel geschichten sind !
    *)
   // Der Mirror Cursor muss noch die "Achsen" einmalen
-  If fCursor.Tool = tMirror Then Begin
+  If MirrorButton.Style = bsRaised Then Begin
     glBindTexture(GL_TEXTURE_2D, 0);
     glColor3ub(255, 255, 0);
     If fZoom > 500 Then glLineWidth(2);
@@ -1626,34 +1624,39 @@ Begin
   BrightenButton.Style := ifThen(atool = tBrighten, bsRaised, bsLowered);
   DarkenButton.Style := ifThen(atool = tDarken, bsRaised, bsLowered);
 
-  CurserSize1.Visible := atool In PenTools;
-  CurserSize2.Visible := atool In PenTools;
-  CurserSize3.Visible := atool In PenTools;
-  CurserSize4.Visible := atool In PenTools;
-
   EraserButton.Style := ifThen(atool = tEraser, bsRaised, bsLowered);
-  PencilButton.Style := ifThen(atool In [TPen, tMirror, tEraser], bsRaised, bsLowered);
-  LineButton.Style := ifThen(atool = tLine, bsRaised, bsLowered);
-  CircleButton.Style := ifThen(atool = tEllipse, bsRaised, bsLowered);
-  SquareButton.Style := ifThen(atool = tRectangle, bsRaised, bsLowered);
-  MirrorButton.Style := ifThen(atool = tMirror, bsRaised, bsLowered);
-  CursorRoundShape1.Visible := atool In PenTools;
-  CursorRoundShape2.Visible := atool In PenTools;
-  CursorRoundShape3.Visible := atool In PenTools;
-  CursorSquareShape1.Visible := atool In PenTools;
-  CursorSquareShape2.Visible := atool In PenTools;
-  CursorSquareShape3.Visible := atool In PenTools;
-  OutlineButton.Visible := aTool In [tEllipse, tRectangle];
-  FilledButton.Visible := aTool In [tEllipse, tRectangle];
-  MirrorCenterButton.Visible := aTool = tMirror;
-  MirrorHorButton.Visible := aTool = tMirror;
-  MirrorVertButton.Visible := aTool = tMirror;
-  Mirror4Button.Visible := aTool = tMirror;
 
-  FloodFillButton.Style := ifThen(atool = tBucket, bsRaised, bsLowered);
-  FloodFillModeButton.Visible := aTool In [tBucket, tSelect];
+  // Das Umschalten des "LÖschers folgt eigenen Regeln
+  If aTool <> tEraser Then Begin
+    PencilButton.Style := ifThen(atool In [TPen, tMirror], bsRaised, bsLowered);
+    FloodFillButton.Style := ifThen(atool = tBucket, bsRaised, bsLowered);
+    LineButton.Style := ifThen(atool = tLine, bsRaised, bsLowered);
+    CircleButton.Style := ifThen(atool = tEllipse, bsRaised, bsLowered);
+    SquareButton.Style := ifThen(atool = tRectangle, bsRaised, bsLowered);
+    OutlineButton.Visible := aTool In [tEllipse, tRectangle];
+    FilledButton.Visible := aTool In [tEllipse, tRectangle];
+    MirrorCenterButton.Visible := aTool = tMirror;
+    MirrorHorButton.Visible := aTool = tMirror;
+    MirrorVertButton.Visible := aTool = tMirror;
+    Mirror4Button.Visible := aTool = tMirror;
+    FloodFillModeButton.Visible := aTool In [tBucket, tSelect];
+    MirrorButton.Style := ifThen(atool = tMirror, bsRaised, bsLowered);
+  End;
+
+  CurserSize1.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+  CurserSize2.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+  CurserSize3.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+  CurserSize4.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+
+  CursorRoundShape1.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+  CursorRoundShape2.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+  CursorRoundShape3.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+  CursorSquareShape1.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+  CursorSquareShape2.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
+  CursorSquareShape3.Visible := (atool In PenTools) And (FloodFillButton.Style = bsLowered);
 
   PipetteButton.Style := ifThen(atool = tPipette, bsRaised, bsLowered);
+
   // Übernehmen des Cursor Tools ;)
   fCursor.LastTool := fCursor.Tool;
   fCursor.Tool := aTool;
@@ -2059,6 +2062,7 @@ Begin
   NewImage(32, 32);
 
   // Settings die nur 1 mal pro Programstart zurück gesetzt werden
+  SelectModeButton.Style := bsRaised;
   fCursor.ColorToleranz := 0;
   fCursor.Select.aSet := false;
   SetLeftColor(Color1);
