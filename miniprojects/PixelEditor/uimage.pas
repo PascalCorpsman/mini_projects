@@ -9,6 +9,11 @@ Uses
 
 Type
 
+  TUpdate = Record
+    Counter: Integer; // 0 = Deaktiviert, > 0 = Schachtelungstiefe der BeginUpdate Aufrufe
+    tl, br: TPoint;
+  End;
+
   { TImage }
 
   TImage = Class
@@ -16,6 +21,7 @@ Type
     fChanged: Boolean;
     fOpenGLImage: integer;
     fPixels: TPixelArea;
+    fUpdate: TUpdate;
     Function getHeight: integer;
     Function getWidth: integer;
   public
@@ -31,7 +37,9 @@ Type
 
     Function GetColorAt(x, y: integer): TRGBA;
 
+    Procedure BeginUpdate;
     Procedure SetColorAt(x, y: integer; c: TRGBA);
+    Procedure EndUpdate;
 
     Procedure SetSize(aWidth, aHeight: Integer);
     Procedure Clear();
@@ -312,6 +320,46 @@ Begin
   result := fPixels[x, y];
 End;
 
+Procedure TImage.BeginUpdate;
+Begin
+  exit; // TODO: Aktuell deaktiviert - Weil das übernehmen ins OpenGL bei EndUpdate noch nicht geht :(
+  inc(fUpdate.Counter);
+  If fUpdate.Counter = 1 Then Begin
+    fUpdate.tl := Point(Width + 1, Height + 1);
+    fUpdate.br := point(-1, -1);
+  End;
+End;
+
+Procedure TImage.EndUpdate;
+Var
+  c, x, y, w, h, i, j: integer;
+  Data: Array Of Array[0..3] Of Byte;
+Begin
+  fUpdate.Counter := max(fUpdate.Counter - 1, 0);
+  If (fUpdate.Counter = 0) And (fUpdate.br.X <> -1) Then Begin // Es gab tatsächlich was zum Updaten
+    x := fUpdate.tl.x;
+    y := fUpdate.tl.Y;
+    w := fUpdate.br.x - fUpdate.tl.x + 1;
+    h := fUpdate.br.Y - fUpdate.tl.y + 1;
+    c := 0;
+    data := Nil;
+    setlength(data, w * h);
+    For i := 0 To w - 1 Do Begin
+      For j := 0 To h - 1 Do Begin
+        data[c][0] := fPixels[i, j].r;
+        data[c][1] := fPixels[i, j].g;
+        data[c][2] := fPixels[i, j].b;
+        data[c][3] := fPixels[i, j].a;
+        inc(c);
+      End;
+    End;
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(gl_texture_2d, fOpenGLImage);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, @Data[0]);
+    fUpdate.br.X := -1;
+  End;
+End;
+
 Procedure TImage.SetColorAt(x, y: integer; c: TRGBA);
 Var
   oc: Array[0..3] Of Byte;
@@ -326,9 +374,17 @@ Begin
     oc[1] := c.g;
     oc[2] := c.b;
     oc[3] := c.a;
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(gl_texture_2d, fOpenGLImage);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc[0]);
+    If fUpdate.Counter = 0 Then Begin
+      glEnable(GL_TEXTURE_2D);
+      glBindTexture(gl_texture_2d, fOpenGLImage);
+      glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc[0]);
+    End
+    Else Begin
+      fUpdate.tl.x := min(fUpdate.tl.x, x);
+      fUpdate.tl.Y := min(fUpdate.tl.Y, y);
+      fUpdate.br.x := max(fUpdate.br.x, x);
+      fUpdate.br.Y := max(fUpdate.br.Y, y);
+    End;
   End;
 End;
 
@@ -367,6 +423,7 @@ Procedure TImage.Clear;
 Var
   i, j: Integer;
 Begin
+  fUpdate.Counter := 0;
   For i := 0 To high(fPixels) Do Begin
     For j := 0 To high(fPixels[i]) Do Begin
       fPixels[i, j] := ColorTransparent;

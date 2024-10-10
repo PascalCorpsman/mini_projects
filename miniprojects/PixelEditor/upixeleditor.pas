@@ -31,6 +31,12 @@ Const
    *                   Improve Clicking on SelectModebutton
    *                   DEL transparent button, as it is redundant and injects errors to the pipette button
    *                   Eraser for all tools who make sense
+   *
+   * Known Bugs:  Die Engine ist für "Kleine" Bilder ausgelegt
+   *              Hauptschwachpunkt ist die TImage.SetColorAt function und die Anbindung an OpenGL
+   *              \-> Hier muss mittels TImage.BeginUpdate / TImage.EndUpdate eine "Beschleunigung" erreicht werden
+   *                  das zugeöhrige Feature ist aber noch nicht implementiert !
+   *
    *)
   Version = '0.02';
 
@@ -214,6 +220,8 @@ Type
     Procedure PasteImageFromClipboard;
     Procedure CopySelectionToClipboard;
     Procedure EditImageSelectionProperties;
+    Procedure CutSubimageFromImageToSelection;
+    Procedure PasteSubimageFromSelectionToImage;
   public
 
     Property Changed: Boolean read getChanged;
@@ -240,7 +248,7 @@ Var
 Implementation
 
 Uses
-  Forms, Dialogs, LCLType, math, Clipbrd, LCLIntf // LCL- Units
+  Forms, Dialogs, LCLType, math, Clipbrd, LCLIntf, IntfGraphics // LCL- Units
   , dglOpenGL // OpenGL Header
   , uOpenGL_ASCII_Font, uopengl_graphikengine // Corspan OpenGL-Engine
   , uvectormath // Math library
@@ -549,29 +557,15 @@ Begin
         tSelect: Begin
             If fCursor.Select.aSet Then Begin
               If PointInRect(fCursor.Compact.PixelPos, fCursor.Select.tl, fCursor.Select.br) Then Begin
-                // Der Auswahlbereich soll verschoben werden, aber das "Original" soll als Kopie erhalten bleiben
                 fCursor.Select.DownPos := fCursor.Compact.PixelPos;
                 If ssCtrl In Shift Then Begin
-                  fUndo.StartNewRecording;
-                  For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
-                    For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-                      SetImagePixelByCursor(i, j);
-                    End;
-                  End;
-                  fUndo.PushRecording;
+                  // Der Auswahlbereich soll verschoben werden, aber das "Original" soll als Kopie erhalten bleiben
+                  PasteSubimageFromSelectionToImage;
                 End;
               End
               Else Begin
-                fCursor.Select.DownPos.x := -1;
-                // Abwahl des Cursors
                 // Abwahl Select Cursor, = Einfügen in Bild
-                fUndo.StartNewRecording;
-                For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
-                  For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-                    SetImagePixelByCursor(i, j);
-                  End;
-                End;
-                fUndo.PushRecording;
+                PasteSubimageFromSelectionToImage;
                 fCursor.Select.aSet := false;
                 setlength(fCursor.Select.Data, 0, 0);
               End;
@@ -589,13 +583,7 @@ Begin
         End
         Else Begin
           // Abwahl Select Cursor, = Einfügen in Bild
-          fUndo.StartNewRecording;
-          For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
-            For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-              SetImagePixelByCursor(i, j);
-            End;
-          End;
-          fUndo.PushRecording;
+          PasteSubimageFromSelectionToImage;
           fCursor.Select.aSet := false;
           setlength(fCursor.Select.Data, 0, 0);
         End;
@@ -648,9 +636,7 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-Var
-  i, j: integer;
-  c: TRGBA;
+
 
   Procedure UnselectPipette;
   Begin
@@ -688,23 +674,7 @@ Begin
               // Wenn der User nur auf einen Pixel Klickt, dann passiert nix
               If Not (((fCursor.Select.br.x - fCursor.Select.tl.X) = 0)
                 And ((fCursor.Select.br.Y - fCursor.Select.tl.Y) = 0)) Then Begin
-                fCursor.Select.aSet := true;
-                // Den Ausgewählten Inhalt aus dem Bild Ausschneiden
-                setlength(fCursor.Select.Data, fCursor.Select.br.x - fCursor.Select.tl.x + 1, fCursor.Select.br.Y - fCursor.Select.tl.Y + 1);
-                fUndo.StartNewRecording;
-                // Move to Select, das Bild via SetImagePixelByCursor und TPen Löschen
-                fCursor.Tool := tPen;
-                c := fCursor.LeftColor.Color;
-                fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
-                For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
-                  For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-                    fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y] := fImage.GetColorAt(i, j);
-                    SetImagePixelByCursor(i, j);
-                  End;
-                End;
-                fUndo.PushRecording;
-                fCursor.LeftColor.Color := c;
-                fCursor.Tool := tSelect;
+                CutSubimageFromImageToSelection();
               End;
             End;
           End;
@@ -1266,6 +1236,51 @@ Begin
   End;
 End;
 
+Procedure TPixelEditor.CutSubimageFromImageToSelection;
+Var
+  i, j: integer;
+  c: TRGBA;
+Begin
+  (*
+   * Schneidet aus dem Bereich [fCursor.Select.tl .. fCursor.Select.br] den Bildbereich komplett aus
+   * und ersetzt den Inhalt durch "transparent"
+   *)
+  // Den Ausgewählten Inhalt aus dem Bild Ausschneiden
+  setlength(fCursor.Select.Data, fCursor.Select.br.x - fCursor.Select.tl.x + 1, fCursor.Select.br.Y - fCursor.Select.tl.Y + 1);
+  fUndo.StartNewRecording;
+  fImage.BeginUpdate;
+  // Move to Select, das Bild via SetImagePixelByCursor und TPen Löschen
+  fCursor.Tool := tPen;
+  c := fCursor.LeftColor.Color;
+  fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
+  For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
+    For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
+      fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y] := fImage.GetColorAt(i, j);
+      SetImagePixelByCursor(i, j);
+    End;
+  End;
+  fImage.EndUpdate;
+  fUndo.PushRecording;
+  fCursor.LeftColor.Color := c;
+  fCursor.Tool := tSelect;
+  fCursor.Select.aSet := true;
+End;
+
+Procedure TPixelEditor.PasteSubimageFromSelectionToImage;
+Var
+  i, j: LongInt;
+Begin
+  fUndo.StartNewRecording;
+  fImage.BeginUpdate;
+  For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
+    For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
+      SetImagePixelByCursor(i, j);
+    End;
+  End;
+  fImage.EndUpdate;
+  fUndo.PushRecording;
+End;
+
 Procedure TPixelEditor.RenderCursor;
 Var
   off: Single;
@@ -1693,10 +1708,13 @@ Var
   b: Tbitmap;
   i, j: Integer;
   c: TRGBA;
+  TempIntfImg: TLazIntfImage;
 Begin
   If Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) Then Begin
     b := TBitmap.Create;
     b.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
+    TempIntfImg := TLazIntfImage.Create(0, 0);
+    TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
     SelectTool(tSelect);
     fCursor.Select.aSet := true;
     fCursor.Select.tl.x := max(0, fCursor.Compact.PixelPos.x);
@@ -1705,7 +1723,7 @@ Begin
     setlength(fCursor.Select.Data, b.Width, b.Height);
     For i := 0 To b.Width - 1 Do Begin
       For j := 0 To b.Height - 1 Do Begin
-        c := ColorToRGBA(b.Canvas.Pixels[i, j], 0);
+        c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
         If (c.r = fCursor.RightColor.r) And
           (c.g = fCursor.RightColor.g) And
           (c.b = fCursor.RightColor.b) And
@@ -1722,6 +1740,7 @@ Begin
       // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
       // fUndo.Clear;
     End;
+    TempIntfImg.free;
     b.free;
   End;
 End;
@@ -1730,15 +1749,19 @@ Procedure TPixelEditor.CopySelectionToClipboard;
 Var
   b: TBitmap;
   i, j: Integer;
+  TempIntfImg: TLazIntfImage;
+  ImgHandle, ImgMaskHandle: HBitmap;
 Begin
   // Nur wenn es überhaupt was zum Kopieren gibt
   b := TBitmap.Create;
   If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
     b.Width := fCursor.Select.br.x - fCursor.Select.tl.x + 1;
     b.Height := fCursor.Select.br.Y - fCursor.Select.tl.Y + 1;
+    TempIntfImg := TLazIntfImage.Create(0, 0);
+    TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
     For i := 0 To b.Width - 1 Do Begin
       For j := 0 To b.Height - 1 Do Begin
-        b.canvas.Pixels[i, j] := RGBAToColor(fCursor.Select.Data[i, j]);
+        TempIntfImg.Colors[i, j] := RGBAToFPColor(fCursor.Select.Data[i, j]);
       End;
     End;
   End
@@ -1748,11 +1771,15 @@ Begin
     b.Height := fImage.Height;
     For i := 0 To b.Width - 1 Do Begin
       For j := 0 To b.Height - 1 Do Begin
-        b.canvas.Pixels[i, j] := RGBAToColor(fImage.GetColorAt(i, j));
+        TempIntfImg.Colors[i, j] := RGBAToFPColor(fImage.GetColorAt(i, j));
       End;
     End;
   End;
+  TempIntfImg.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
+  b.Handle := ImgHandle;
+  b.MaskHandle := ImgMaskHandle;
   Clipboard.Assign(b);
+  TempIntfImg.free;
   b.free;
 End;
 

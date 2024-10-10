@@ -26,32 +26,52 @@ Const
 
 Type
 
+  TRecordingKind = (rkUnknown, rkPixelChange);
+
   TPixelChange = Record
     x, y: integer;
     From: TRGBA;
   End;
 
-  TRecording = Array Of TPixelChange;
+  TRecord = Record
+    Kind: TRecordingKind;
+    PixelChange: Array Of TPixelChange;
+  End;
 
-  { TUndoEngine }
+  //  TRecording = Array Of TOperation;
+
+    { TUndoEngine }
 
   TUndoEngine = Class
   private
-    fRecordings: Array Of TRecording;
-    faRecord: TRecording;
-    faRecordCount: integer;
+    fRecordings: Array Of TRecord;
+    // Der Aktuelle Record der im Aufbau ist
+    faRecord: TRecord;
+    // Hilfen für den Aufbau des Aktuellen Record
+    fPixelChangeRecordCount: integer;
   public
     Constructor Create(); virtual;
     Destructor Destroy(); override;
 
     Procedure Clear;
 
+    (*
+     * Startet ein neues Recording, mus also immer als 1. aufgerufen werden
+     *)
     Procedure StartNewRecording;
-    Procedure RecordPixelChange(x, y: integer; from: TRGBA);
+
+
+    Procedure RecordPixelChange(x, y: integer; from: TRGBA);// Zeichnet eine Pixeländerung auf
+
+    (*
+     * Beendet eine Aufzeichnung und legt diese auf dem Stack ab
+     *)
     Procedure PushRecording;
 
+    (*
+     * Wendet die zuletzt pegushte Aufzeichnung auf Image an und löscht das oberste Element
+     *)
     Procedure PopRecording(Const image: TImage);
-
   End;
 
 Implementation
@@ -62,7 +82,8 @@ Constructor TUndoEngine.Create;
 Begin
   Inherited Create;
   fRecordings := Nil;
-  faRecord := Nil;
+  faRecord.Kind := rkUnknown;
+  faRecord.PixelChange := Nil;
 End;
 
 Destructor TUndoEngine.Destroy;
@@ -75,29 +96,36 @@ Var
   i: Integer;
 Begin
   For i := 0 To high(fRecordings) Do Begin
-    setlength(fRecordings[i], 0);
+    setlength(fRecordings[i].PixelChange, 0);
   End;
   setlength(fRecordings, 0);
-  setlength(faRecord, 0);
+  setlength(faRecord.PixelChange, 0);
   fRecordings := Nil;
-  setlength(faRecord, RecordChunkSize);
-  faRecordCount := 0;
+  faRecord.Kind := rkUnknown;
+  setlength(faRecord.PixelChange, RecordChunkSize);
+  fPixelChangeRecordCount := 0;
 End;
 
 Procedure TUndoEngine.StartNewRecording;
 Begin
-  setlength(faRecord, RecordChunkSize);
-  faRecordCount := 0;
+  faRecord.Kind := rkUnknown;
+  setlength(faRecord.PixelChange, RecordChunkSize);
+  fPixelChangeRecordCount := 0;
 End;
 
 Procedure TUndoEngine.RecordPixelChange(x, y: integer; from: TRGBA);
 Begin
-  faRecord[faRecordCount].x := x;
-  faRecord[faRecordCount].y := y;
-  faRecord[faRecordCount].From := from;
-  inc(faRecordCount);
-  If (faRecordCount > high(faRecord)) Then Begin
-    setlength(faRecord, length(faRecord) + RecordChunkSize);
+  If (faRecord.Kind <> rkPixelChange) And
+    (faRecord.Kind <> rkUnknown) Then Begin
+    Raise exception.create('Error, mixing undo recordings.');
+  End;
+  faRecord.Kind := rkPixelChange;
+  faRecord.PixelChange[fPixelChangeRecordCount].x := x;
+  faRecord.PixelChange[fPixelChangeRecordCount].y := y;
+  faRecord.PixelChange[fPixelChangeRecordCount].From := from;
+  inc(fPixelChangeRecordCount);
+  If (fPixelChangeRecordCount > high(faRecord.PixelChange)) Then Begin
+    setlength(faRecord.PixelChange, length(faRecord.PixelChange) + RecordChunkSize);
   End;
 End;
 
@@ -107,26 +135,36 @@ Var
 Begin
   If length(fRecordings) = 0 Then exit;
   // Alle Änderungen Rückgängig machen
-  For i := 0 To high(fRecordings[high(fRecordings)]) Do Begin
-    image.SetColorAt(
-      fRecordings[high(fRecordings)][i].x,
-      fRecordings[high(fRecordings)][i].y,
-      fRecordings[high(fRecordings)][i].From
-      );
+  Case fRecordings[high(fRecordings)].Kind Of
+    rkPixelChange: Begin
+        For i := 0 To high(fRecordings[high(fRecordings)].PixelChange) Do Begin
+          image.SetColorAt(
+            fRecordings[high(fRecordings)].PixelChange[i].x,
+            fRecordings[high(fRecordings)].PixelChange[i].y,
+            fRecordings[high(fRecordings)].PixelChange[i].From
+            );
+        End;
+        setlength(fRecordings[high(fRecordings)].PixelChange, 0);
+      End;
   End;
   // Das oberste Element vom Stack löschen ;)
-  setlength(fRecordings[high(fRecordings)], 0);
   setlength(fRecordings, high(fRecordings));
 End;
 
 Procedure TUndoEngine.PushRecording;
 Begin
-  If faRecordCount = 0 Then exit;
-  setlength(faRecord, faRecordCount);
-  setlength(fRecordings, high(fRecordings) + 2);
-  fRecordings[high(fRecordings)] := faRecord;
-  faRecord := Nil;
-  faRecordCount := 0;
+  If faRecord.Kind = rkUnknown Then exit;
+  Case faRecord.Kind Of
+    rkPixelChange: Begin
+        If fPixelChangeRecordCount = 0 Then exit;
+        setlength(faRecord.PixelChange, fPixelChangeRecordCount);
+        setlength(fRecordings, high(fRecordings) + 2);
+        fRecordings[high(fRecordings)] := faRecord;
+        faRecord.PixelChange := Nil;
+        fPixelChangeRecordCount := 0;
+      End;
+  End;
+  faRecord.Kind := rkUnknown;
 End;
 
 End.
