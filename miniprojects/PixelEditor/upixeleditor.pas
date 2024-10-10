@@ -26,19 +26,18 @@ Const
   (*
    * History:
    * -Released- 0.01 - Initialversion
-   *            0.02 - CTRL + C, copies complete image if nothing is selected
+   * -Released- 0.02 - CTRL + C, copies complete image if nothing is selected
    *                   ADD Missing captions for Load / Save Colorpalette buttons in ColorPicdialog
    *                   Improve Clicking on SelectModebutton
    *                   DEL transparent button, as it is redundant and injects errors to the pipette button
    *                   Eraser for all tools who make sense
+   *                   Speedup Engine to be able to handle "huge" images
+   *            0.03 -
    *
-   * Known Bugs:  Die Engine ist für "Kleine" Bilder ausgelegt
-   *              Hauptschwachpunkt ist die TImage.SetColorAt function und die Anbindung an OpenGL
-   *              \-> Hier muss mittels TImage.BeginUpdate / TImage.EndUpdate eine "Beschleunigung" erreicht werden
-   *                  das zugeöhrige Feature ist aber noch nicht implementiert !
+   * Known Bugs:
    *
    *)
-  Version = '0.02';
+  Version = '0.03';
 
   (*
    * History: 1 - Initialversion
@@ -499,7 +498,7 @@ Begin
   If (key = VK_DELETE) Then EraserButton.click;
   If (key = VK_E) And (ssCtrl In Shift) Then EditImageSelectionProperties;
   If (key = VK_ESCAPE) And (fCursor.Tool = tSelect) Then Begin
-    SelectTool(tPen); // Abwählen des evtl gewählten Bereichs
+    SelectTool(tPen); // Abwählen des evtl. gewählten Bereichs
     SelectTool(tSelect);
   End;
   If (key = VK_N) And (ssCtrl In Shift) Then OnNewButtonClick(NewButton);
@@ -660,7 +659,9 @@ Begin
       tEraser, tPen, tMirror,
         tLine, tEllipse, tBucket,
         tRectangle: Begin
+          fImage.BeginUpdate;
           CursorToPixelOperation(@SetImagePixelByCursor);
+          fImage.EndUpdate;
           fundo.PushRecording;
         End;
       tPipette: UnselectPipette;
@@ -770,7 +771,6 @@ Begin
   zf := (fZoom / 100);
   glBindTexture(GL_TEXTURE_2D, 0);
   glPushMatrix;
-  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0); // Anfahren obere Linke Ecke
   // Der Generelle Hintergrund
   glPushMatrix;
   gltranslatef(0, 0, LayerBackGroundColor);
@@ -782,6 +782,7 @@ Begin
   glVertex2f(0, 480);
   glEnd;
   glPopMatrix;
+  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0); // Anfahren obere Linke Ecke
   glScalef(ScreenWidth / FOwner.Width, ScreenHeight / FOwner.Height, 1);
   If fsettings.BackGroundTransparentPattern Then Begin
     glPushMatrix;
@@ -1270,15 +1271,20 @@ Procedure TPixelEditor.PasteSubimageFromSelectionToImage;
 Var
   i, j: LongInt;
 Begin
-  fUndo.StartNewRecording;
-  fImage.BeginUpdate;
-  For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
-    For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-      SetImagePixelByCursor(i, j);
+  (*
+   * Fügt was auch immer Selectiert ist ein
+   *)
+  If fCursor.Select.aSet Then Begin
+    fUndo.StartNewRecording;
+    fImage.BeginUpdate;
+    For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
+      For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
+        SetImagePixelByCursor(i, j);
+      End;
     End;
+    fImage.EndUpdate;
+    fUndo.PushRecording;
   End;
-  fImage.EndUpdate;
-  fUndo.PushRecording;
 End;
 
 Procedure TPixelEditor.RenderCursor;
@@ -1287,6 +1293,7 @@ Var
   c: TRGBA;
   tl, br: TPoint;
   i, j: Integer;
+  valid: Boolean;
 Begin
   glPushMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerCursor); // Anfahren der Linken Oberen Ecke
@@ -1334,20 +1341,22 @@ Begin
     glLineWidth(1);
   End;
   If (fCursor.Tool = tSelect) Then Begin
-    tl.x := -1;
+    valid := false;
     If (fCursor.LeftMouseButton) Then Begin
       // Der Auswahl Rahmen wird gerade gezogen
       tl.x := min(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
       tl.Y := min(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
       br.x := max(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
       br.Y := max(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
+      valid := true;
     End;
     If fCursor.Select.aSet Then Begin
       // Der Rahmen wurde gezogen, dann steht der natürlich fest ;)
       tl := fCursor.Select.tl;
       br := fCursor.Select.br;
+      valid := true;
     End;
-    If tl.x <> -1 Then Begin
+    If valid Then Begin
       If fZoom > 500 Then glLineWidth(2);
       glColor3ub(255, 255, 0);
       glBegin(GL_LINE_LOOP);
@@ -1426,10 +1435,6 @@ Begin
 End;
 
 Procedure TPixelEditor.SelectAll;
-Var
-  j: integer;
-  i: integer;
-  c: TRGBA;
 Begin
   If fCursor.Tool = tSelect Then Begin // ggf. Sauber Abwählen
     SelectTool(tPen);
@@ -1438,22 +1443,7 @@ Begin
   SelectTool(tSelect);
   fCursor.Select.tl := point(0, 0);
   fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
-  fCursor.Select.aSet := true;
-  setlength(fCursor.Select.Data, fCursor.Select.br.x - fCursor.Select.tl.x + 1, fCursor.Select.br.Y - fCursor.Select.tl.Y + 1);
-  fUndo.StartNewRecording;
-  // Move to Select, das Bild via SetImagePixelByCursor und TPen Löschen
-  fCursor.Tool := tPen;
-  c := fCursor.LeftColor.Color;
-  fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
-  For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
-    For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-      fCursor.Select.data[i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y] := fImage.GetColorAt(i, j);
-      SetImagePixelByCursor(i, j);
-    End;
-  End;
-  fUndo.PushRecording;
-  fCursor.LeftColor.Color := c;
-  fCursor.Tool := tSelect;
+  CutSubimageFromImageToSelection;
 End;
 
 Procedure TPixelEditor.SetRightColor(Const c: TRGBA);
@@ -1617,15 +1607,8 @@ Begin
   If fCursor.Tool = aTool Then exit; // Das Tool ist schon angewählt, raus ..
 
   // Wenn der Select Cursor Abgewählt wird, muss sein Inhalt noch zurück geschrieben werden
-  If (fCursor.Tool = tSelect) And (assigned(fCursor.Select.Data)) Then Begin
-    fUndo.StartNewRecording;
-    For i := fCursor.Select.tl.x To fCursor.Select.br.X Do Begin
-      For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-        SetImagePixelByCursor(i, j);
-      End;
-    End;
-    fUndo.PushRecording;
-    setlength(fCursor.Select.Data, 0, 0);
+  If (fCursor.Tool = tSelect) And (fCursor.Select.aSet) Then Begin
+    PasteSubimageFromSelectionToImage;
   End;
 
   ColorPicDialog.Visible := false;
@@ -1724,6 +1707,7 @@ Begin
     For i := 0 To b.Width - 1 Do Begin
       For j := 0 To b.Height - 1 Do Begin
         c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
+        c.a := 0;
         If (c.r = fCursor.RightColor.r) And
           (c.g = fCursor.RightColor.g) And
           (c.b = fCursor.RightColor.b) And

@@ -391,7 +391,7 @@ AddElement(EraserButton);
 PencilButton := TOpenGL_Bevel.Create(Owner);
 PencilButton.Left := 3;
 PencilButton.Top := 184;
-image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Penciltool.bmp', Fuchsia, smClamp);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Pencil.bmp', Fuchsia, smClamp);
 If image = 0 Then Begin
   fCriticalError := true;
   exit;
@@ -496,7 +496,7 @@ AddElement(CursorSquareShape3);
 LineButton := TOpenGL_Bevel.Create(Owner);
 LineButton.Left := 3;
 LineButton.Top := 219;
-image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Linetool.bmp', Fuchsia, smClamp);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Line.bmp', Fuchsia, smClamp);
 If image = 0 Then Begin
   fCriticalError := true;
   exit;
@@ -667,7 +667,7 @@ AddElement(FloodFillButton);
 FloodFillModeButton := TOpenGL_Bevel.Create(Owner);
 FloodFillModeButton.Left := 41;
 FloodFillModeButton.Top := 359;
-image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'FloodfillMode.bmp', Fuchsia, smClamp);
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Matchmode.bmp', Fuchsia, smClamp);
 If image = 0 Then Begin
   fCriticalError := true;
   exit;

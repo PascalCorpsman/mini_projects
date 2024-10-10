@@ -322,7 +322,6 @@ End;
 
 Procedure TImage.BeginUpdate;
 Begin
-  exit; // TODO: Aktuell deaktiviert - Weil das übernehmen ins OpenGL bei EndUpdate noch nicht geht :(
   inc(fUpdate.Counter);
   If fUpdate.Counter = 1 Then Begin
     fUpdate.tl := Point(Width + 1, Height + 1);
@@ -344,12 +343,12 @@ Begin
     c := 0;
     data := Nil;
     setlength(data, w * h);
-    For i := 0 To w - 1 Do Begin
-      For j := 0 To h - 1 Do Begin
-        data[c][0] := fPixels[i, j].r;
-        data[c][1] := fPixels[i, j].g;
-        data[c][2] := fPixels[i, j].b;
-        data[c][3] := fPixels[i, j].a;
+    For j := 0 To h - 1 Do Begin
+      For i := 0 To w - 1 Do Begin
+        data[c][0] := fPixels[x + i, y + j].r;
+        data[c][1] := fPixels[x + i, y + j].g;
+        data[c][2] := fPixels[x + i, y + j].b;
+        data[c][3] := fPixels[x + i, y + j].a;
         inc(c);
       End;
     End;
