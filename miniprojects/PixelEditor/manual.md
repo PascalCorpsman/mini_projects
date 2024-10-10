@@ -2,6 +2,14 @@
 
 This is the usermanual for Pixeleditor, mainly to show the "hidden" features like key combinations and other stuff.
 
+## Installation
+
+- Download the executable from the [bin](bin) subfolder and store it onto your harddrive
+- create a subfolder named "GFX" where you stored the executable and copy all files from [GFX](GFX) into this folder
+- [Linux users only], chmod +x the executable
+
+Run the executable and enjoy ;).
+
 ## Mouse actions
 | Action | Description |
 | --- | ---
