@@ -679,20 +679,20 @@ FloodFillModeButton.Height := 32;
 FloodFillModeButton.OnClick := @OnFloodFillModeButtonClick;
 AddElement(FloodFillModeButton);
 
-ColorPickButton := TOpenGL_Bevel.Create(Owner);
-ColorPickButton.Left := 3;
-ColorPickButton.Top := 394;
-image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Pincette.bmp', Fuchsia, smClamp);
+PipetteButton := TOpenGL_Bevel.Create(Owner);
+PipetteButton.Left := 3;
+PipetteButton.Top := 394;
+image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Pipette.bmp', Fuchsia, smClamp);
 If image = 0 Then Begin
   fCriticalError := true;
   exit;
 End;
-ColorPickButton.SetImage(image);
-ColorPickButton.Transparent := true;
-ColorPickButton.Width := 32;
-ColorPickButton.Height := 32;
-ColorPickButton.OnClick := @OnColorPickButtonClick;
-AddElement(ColorPickButton);
+PipetteButton.SetImage(image);
+PipetteButton.Transparent := true;
+PipetteButton.Width := 32;
+PipetteButton.Height := 32;
+PipetteButton.OnClick := @OnPipetteButtonClick;
+AddElement(PipetteButton);
 
 ColorPicDialog := TOpenGL_ColorPicDialog.Create(Owner);
 If ColorPicDialog.CriticalError Then Begin
@@ -712,24 +712,6 @@ ColorPreview.Top := 428;
 ColorPreview.Width := 49;
 ColorPreview.Height := 49;
 AddElement(ColorPreview);
-
-ColorTransparent := TOpenGL_TransparentColorBox.Create(Owner);
-ColorTransparent.Left := 128;
-ColorTransparent.Top := 428;
-image := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Transparent.bmp', Fuchsia, smClamp);
-If image = 0 Then Begin
-  fCriticalError := true;
-  exit;
-End;
-ColorTransparent.SetImage(image);
-ColorTransparent.Transparent := true;
-ColorTransparent.Width := 16;
-ColorTransparent.Height := 16;
-ColorTransparent.OnClick := @OnSelectTransparentColorClick;
-ColorTransparent.LoweredColor := rgba(0, 0, 0, 0);
-ColorTransparent.RaisedColor := rgba(0, 0, 0, 0);
-ColorTransparent.OnMouseUp := @OnColorMouseUp;
-AddElement(ColorTransparent);
 
 Color1 := TOpenGL_ColorBox.Create(Owner);
 Color1.Left := 147;

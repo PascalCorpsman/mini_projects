@@ -128,7 +128,7 @@ Type
   TTool = (
     tSelect,
     tBrighten, tDarken,
-    tEraser, tPen, tLine, tEllipse, tRectangle, tMirror, tBucket, tPincette);
+    tEraser, tPen, tLine, tEllipse, tRectangle, tMirror, tBucket, tPipette);
 
   TPixelArea = Array Of Array Of TRGBA;
 

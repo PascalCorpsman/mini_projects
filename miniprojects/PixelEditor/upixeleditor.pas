@@ -29,6 +29,7 @@ Const
    *            0.02 - CTRL + C, copies complete image if nothing is selected
    *                   ADD Missing captions for Load / Save Colorpalette buttons in ColorPicdialog
    *                   Improve Clicking on SelectModebutton
+   *                   DEL transparent button, as it is redundant and injects errors to the pipette button
    *)
   Version = '0.02';
 
@@ -109,13 +110,12 @@ Type
     Mirror4Button: TOpenGL_Bevel;
     FloodFillButton: TOpenGL_Bevel;
     FloodFillModeButton: TOpenGL_Bevel;
-    ColorPickButton: TOpenGL_Bevel;
+    PipetteButton: TOpenGL_Bevel;
 
     // Menüleiste unten
     ColorPicDialog: TOpenGL_ColorPicDialog;
 
     ColorPreview: TOpenGL_ForeBackGroundColorBox;
-    ColorTransparent: TOpenGL_TransparentColorBox;
     Color1: TOpenGL_ColorBox;
     Color2: TOpenGL_ColorBox;
     Color3: TOpenGL_ColorBox;
@@ -161,9 +161,8 @@ Type
 
     Procedure OnFloodFillButtonClick(Sender: TObject);
     Procedure OnFloodFillModeButtonClick(Sender: TObject);
-    Procedure OnColorPickButtonClick(Sender: TObject);
+    Procedure OnPipetteButtonClick(Sender: TObject);
 
-    Procedure OnSelectTransparentColorClick(Sender: TObject);
     Procedure OnColorClick(Sender: TObject);
     Procedure OnColorDblClick(Sender: TObject);
     Procedure OnColorMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -541,7 +540,7 @@ Begin
             If fCursor.Tool In [tEraser, tPen, tMirror] Then
               CursorToPixelOperation(@SetImagePixelByCursor);
           End;
-        tPincette: Begin
+        tPipette: Begin
             c := fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y);
             fCursor.LeftColor.Color := c;
             SetLeftColor(fCursor.LeftColor);
@@ -603,6 +602,10 @@ Begin
       If fCursor.Tool = tMirror Then Begin
         fCursor.Origin := fCursor.Compact.PixelPos;
       End;
+      If fCursor.tool = tPipette Then Begin
+        c := fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y);
+        SetRightColor(c);
+      End;
     End;
   End;
   UpdateInfoLabel();
@@ -647,6 +650,15 @@ Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
 Var
   i, j: integer;
   c: TRGBA;
+
+  Procedure UnselectPipette;
+  Begin
+    If fCursor.LastTool = tEraser Then Begin
+      fCursor.LastTool := tPen;
+    End;
+    SelectTool(fCursor.LastTool);
+  End;
+
 Begin
   If fCriticalError Then exit;
   // Den Dialog Schließen, wenn der User Außerhalb clickt ..
@@ -664,12 +676,7 @@ Begin
           CursorToPixelOperation(@SetImagePixelByCursor);
           fundo.PushRecording;
         End;
-      tPincette: Begin
-          If fCursor.LastTool = tEraser Then Begin
-            fCursor.LastTool := tPen;
-          End;
-          SelectTool(fCursor.LastTool);
-        End;
+      tPipette: UnselectPipette;
       TSelect: Begin
           If Not fCursor.Select.aSet Then Begin
             If fCursor.LeftMouseButton Then Begin
@@ -701,6 +708,11 @@ Begin
             End;
           End;
         End;
+    End;
+  End;
+  If (button = mbRight) And (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
+    If fCursor.Tool = tPipette Then Begin
+      UnselectPipette;
     End;
   End;
   fCursor.PixelDownPos := point(-1, -1);
@@ -958,15 +970,9 @@ Begin
   End;
 End;
 
-Procedure TPixelEditor.OnColorPickButtonClick(Sender: TObject);
+Procedure TPixelEditor.OnPipetteButtonClick(Sender: TObject);
 Begin
-  SelectTool(tPincette);
-End;
-
-Procedure TPixelEditor.OnSelectTransparentColorClick(Sender: TObject);
-Begin
-  ColorPicDialog.Visible := false;
-  SetLeftColor(ColorTransparent);
+  SelectTool(tPipette);
 End;
 
 Procedure TPixelEditor.LoadColorDialogColor(Sender: TObject);
@@ -1071,7 +1077,7 @@ Begin
    *    beim Aufruf der Callback, wird dann die Aptuelle Position als Offset wieder mit rein gerechnet.
    *)
   Case fCursor.Tool Of
-    tPincette: Callback(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y);
+    tPipette: Callback(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y);
     teraser, tPen: FoldCursorOnPixel(fCursor.Compact, Callback);
     tLine: Begin
         If (fCursor.PixelDownPos.x <> -1) And fCursor.LeftMouseButton Then Begin
@@ -1647,7 +1653,7 @@ Begin
   FloodFillButton.Style := ifThen(atool = tBucket, bsRaised, bsLowered);
   FloodFillModeButton.Visible := aTool In [tBucket, tSelect];
 
-  ColorPickButton.Style := ifThen(atool = tPincette, bsRaised, bsLowered);
+  PipetteButton.Style := ifThen(atool = tPipette, bsRaised, bsLowered);
   // Übernehmen des Cursor Tools ;)
   fCursor.LastTool := fCursor.Tool;
   fCursor.Tool := aTool;
