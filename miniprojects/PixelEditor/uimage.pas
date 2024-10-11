@@ -27,6 +27,8 @@ Type
   public
     Filename: String;
 
+    Property PixelData: TPixelArea read fPixels;
+
     Property Changed: Boolean read fChanged;
 
     Property Height: integer read getHeight;
@@ -276,6 +278,8 @@ Procedure RotatePixelArea(Var Data: TPixelArea; Angle: Single;
 Begin
   If ScaleMode = smResize Then ScaleMode := smScale;
   // TODO: implementieren drehen nach Freien Winkeln
+
+//  Das fehlt noch
 End;
 
 { TImage }
@@ -495,6 +499,7 @@ Begin
   stream.Read(i, SizeOf(i));
   stream.Read(j, SizeOf(j));
   SetSize(i, j);
+  BeginUpdate;
   For j := 0 To Height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
       stream.Read(fPixels[i, j], sizeof(fPixels[i, j]));
@@ -509,6 +514,7 @@ Begin
       SetColorAt(i, j, c);
     End;
   End;
+  EndUpdate;
   fChanged := false;
   Filename := aFilename;
 End;
@@ -559,6 +565,7 @@ Begin
   SetSize(b.Width, b.Height);
   TempIntfImg := TLazIntfImage.Create(0, 0);
   TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  BeginUpdate;
   For j := 0 To height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
       c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
@@ -571,6 +578,7 @@ Begin
       End;
     End;
   End;
+  EndUpdate;
   TempIntfImg.free;
   b.free;
   fChanged := false;
@@ -628,6 +636,7 @@ Begin
   SetSize(b.Width, b.Height);
   TempIntfImg := TLazIntfImage.Create(0, 0);
   TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  BeginUpdate;
   For j := 0 To height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
       c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
@@ -635,6 +644,7 @@ Begin
       SetColorAt(i, j, c);
     End;
   End;
+  EndUpdate;
   TempIntfImg.free;
   b.free;
   fChanged := false;
@@ -657,11 +667,13 @@ Begin
   End;
   RescalePixelArea(a, NewWidth, NewHeight, Mode);
   SetSize(NewWidth, NewHeight);
+  BeginUpdate;
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
       SetColorAt(i, j, a[i, j]);
     End;
   End;
+  EndUpdate;
 End;
 
 Procedure TImage.UpsideDown;
@@ -677,11 +689,13 @@ Begin
     End;
   End;
   UpsideDownPixelArea(a);
+  BeginUpdate;
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
       SetColorAt(i, j, a[i, j]);
     End;
   End;
+  EndUpdate;
   setlength(a, 0, 0);
 End;
 
@@ -701,11 +715,13 @@ Begin
   If Height <> Width Then Begin
     SetSize(Height, Width);
   End;
+  BeginUpdate;
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
       SetColorAt(i, j, a[i, j]);
     End;
   End;
+  EndUpdate;
   setlength(a, 0, 0);
 End;
 
@@ -722,11 +738,13 @@ Begin
     End;
   End;
   LeftRightPixelArea(a);
+  BeginUpdate;
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
       SetColorAt(i, j, a[i, j]);
     End;
   End;
+  EndUpdate;
   setlength(a, 0, 0);
 End;
 
@@ -743,12 +761,16 @@ Begin
     End;
   End;
   RotatePixelArea(a, Angle, ScaleMode);
-  SetSize(length(a), length(a[0]));
+  If (length(a) <> Width) Or (Length(a[0]) <> Height) Then Begin
+    SetSize(length(a), length(a[0]));
+  End;
+  BeginUpdate;
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
       SetColorAt(i, j, a[i, j]);
     End;
   End;
+  EndUpdate;
   setlength(a, 0, 0);
 End;
 

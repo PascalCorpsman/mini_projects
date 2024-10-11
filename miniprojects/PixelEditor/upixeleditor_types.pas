@@ -207,6 +207,8 @@ Function ColorMatch(Const A, B: TRGBA; Toleranz_in_Percent: Integer): Boolean;
  *)
 Function ClampAdd(Color: TRGBA; R, G, B: Integer): TRGBA;
 
+Operator Div (p: TPoint; value: Integer): TPoint;
+
 Implementation
 
 Uses math;
@@ -629,6 +631,12 @@ Begin
     result.b := tb;
   End;
   result.a := Result.a;
+End;
+
+Operator Div (p: TPoint; value: Integer): TPoint;
+Begin
+  result.x := p.x Div value;
+  result.Y := p.Y Div value;
 End;
 
 Initialization

@@ -32,10 +32,14 @@ Const
    *                   DEL transparent button, as it is redundant and injects errors to the pipette button
    *                   Eraser for all tools who make sense
    *                   Speedup Engine to be able to handle "huge" images
-   *            0.03 -
+   *            0.03 - CTRL + L
    *
    * Known Bugs:
+   *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
    *
+   * Missing Features:
+   *           - Freies drehen nach Winkeln (Selektion und Gesamtbild)
+   *           - Hints für alle Controls
    *)
   Version = '0.03';
 
@@ -257,6 +261,7 @@ Uses
   , unit4 // Export BMP Settings Dialog
   , Unit5 // FBucket Toleranz
   , unit6 // Resize Scale
+  , unit7 // Rotate
   ;
 
 { TPixelEditor }
@@ -408,15 +413,31 @@ Begin
 End;
 
 Procedure TPixelEditor.OnSelectRotateAngleButtonClick(Sender: TObject);
+Var
+  w, h: integer;
+  m: TPoint;
 Begin
   // TODO: Implementieren Rotate Angle
   // 1. Abfrage via Dialog
-  // 2. Das Setzen unten schon mal vorbereitet
   If fCursor.Select.aSet Then Begin
-    //RotatePixelArea(fCursor.Select.Data, Form?.Scrollbar1.position);
+    form7.InitFromPixelArea(fCursor.Select.Data);
   End
   Else Begin
-    //fImage.Rotate(Form?.Scrollbar1.position);
+    form7.InitFromPixelArea(fimage.PixelData);
+  End;
+  If form7.ShowModal = mrOK Then Begin
+    // 2. Das Setzen unten schon mal vorbereitet
+    If fCursor.Select.aSet Then Begin
+      RotatePixelArea(fCursor.Select.Data, Form7.FloatSpinEdit1.Value, Form7.GetScaleMode);
+      w := length(fCursor.Select.Data);
+      h := length(fCursor.Select.Data[0]);
+      m := (fCursor.Select.tl + fCursor.Select.br) Div 2;
+      fCursor.Select.tl := m - point(w, h) Div 2;
+      fCursor.Select.br := m + point(w, h) Div 2; // TODO: ggf muss da noch 1 drauf ;)
+    End
+    Else Begin
+      fImage.Rotate(Form7.FloatSpinEdit1.Value, Form7.GetScaleMode);
+    End;
   End;
 End;
 
@@ -501,6 +522,7 @@ Begin
     SelectTool(tPen); // Abwählen des evtl. gewählten Bereichs
     SelectTool(tSelect);
   End;
+  If (key = VK_L) And (ssCtrl In Shift) Then OnOpenButtonClick(OpenButton);
   If (key = VK_N) And (ssCtrl In Shift) Then OnNewButtonClick(NewButton);
   If (key = VK_O) And (ssCtrl In Shift) Then OnOptionsButtonClick(OptionsButton);
   If (key = VK_S) And (ssCtrl In Shift) Then OnSaveButtonClick(SaveButton);
@@ -612,6 +634,8 @@ Begin
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
       If PencilButton.Style = bsRaised Then Begin
+        // TODO: Wenn sehr weit Raus gezoomt ist (nahe 1:1) und man den curser sehr schnell bewegt
+        //       Dann "springt" das "malen" -> Alle Punktelemente müssen dann als "Linie" erzeugt werden
         CursorToPixelOperation(@SetImagePixelByCursor);
       End;
       If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
