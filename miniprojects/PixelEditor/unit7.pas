@@ -69,7 +69,7 @@ End;
 Procedure TForm7.FloatSpinEdit1KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Begin
-  If key = #13 Then button2.click;
+  If key = VK_RETURN Then button2.click;
 End;
 
 Procedure TForm7.FormDestroy(Sender: TObject);

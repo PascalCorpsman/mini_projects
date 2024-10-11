@@ -1633,8 +1633,6 @@ End;
 Procedure TPixelEditor.SelectTool(aTool: TTool);
 Const
   PenTools = [tEraser, tPen, tLine, tEllipse, tRectangle, tMirror];
-Var
-  i, j: integer;
 Begin
   If fCursor.Tool = aTool Then exit; // Das Tool ist schon angewählt, raus ..
 
