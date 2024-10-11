@@ -24,9 +24,9 @@ object Form7: TForm7
   end
   object RadioButton1: TRadioButton
     Left = 9
-    Height = 19
+    Height = 22
     Top = 200
-    Width = 58
+    Width = 69
     Caption = 'Normal'
     Checked = True
     Font.Color = clSilver
@@ -37,9 +37,9 @@ object Form7: TForm7
   end
   object RadioButton2: TRadioButton
     Left = 104
-    Height = 19
+    Height = 22
     Top = 200
-    Width = 60
+    Width = 71
     Caption = 'Smooth'
     Font.Color = clSilver
     ParentFont = False
@@ -72,7 +72,7 @@ object Form7: TForm7
   end
   object FloatSpinEdit1: TFloatSpinEdit
     Left = 81
-    Height = 23
+    Height = 26
     Top = 229
     Width = 107
     Color = clGray
@@ -83,12 +83,13 @@ object Form7: TForm7
     ParentFont = False
     TabOrder = 4
     OnChange = FloatSpinEdit1Change
+    OnKeyDown = FloatSpinEdit1KeyDown
   end
   object Label1: TLabel
     Left = 9
-    Height = 15
+    Height = 16
     Top = 236
-    Width = 31
+    Width = 36
     Caption = 'Angle'
     Font.Color = clSilver
     ParentFont = False

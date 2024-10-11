@@ -21,6 +21,8 @@ Type
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     Procedure FloatSpinEdit1Change(Sender: TObject);
+    Procedure FloatSpinEdit1KeyDown(Sender: TObject; Var Key: Word;
+      Shift: TShiftState);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
   private
@@ -62,6 +64,12 @@ Begin
   RotateDegrees(b, FloatSpinEdit1.Value, mode);
   Image1.Picture.Assign(b);
   b.free;
+End;
+
+Procedure TForm7.FloatSpinEdit1KeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  If key = #13 Then button2.click;
 End;
 
 Procedure TForm7.FormDestroy(Sender: TObject);
