@@ -167,55 +167,54 @@ Begin
   result.A := 0;
 End;
 
+Function GetPixel(Const Source: TPixelArea; x, y: Single; ScaleMode: TScaleMode): TRGBA;
+Var
+  xi, yi, i: Integer;
+  fx, fy: Single;
+  p: Array[0..3] Of TPoint;
+  a, c: Array[0..3] Of TRGBA;
+Begin
+  xi := trunc(x);
+  yi := trunc(y);
+  fx := x - xi;
+  fy := y - yi;
+  p[0] := point(xi, yi);
+  p[1] := point(min(high(source), xi + 1), yi);
+  p[2] := point(xi, min(high(source[0]), yi + 1));
+  p[3] := point(min(high(source), xi + 1), min(high(source[0]), yi + 1));
+  For i := 0 To 3 Do Begin
+    c[i] := Source[p[i].x, p[i].y];
+  End;
+  If ScaleMode = smScale Then Begin
+    If fx <= 0.5 Then Begin
+      If fy <= 0.5 Then Begin
+        result := c[0];
+      End
+      Else Begin
+        result := c[2];
+      End;
+    End
+    Else Begin
+      If fy <= 0.5 Then Begin
+        result := c[1];
+      End
+      Else Begin
+        result := c[3];
+      End;
+    End;
+  End
+  Else Begin
+    a[0] := InterpolateLinear(c[0], c[2], fy);
+    a[1] := InterpolateLinear(c[1], c[3], fy);
+    result := InterpolateLinear(a[0], a[1], fx);
+  End;
+End;
+
 Procedure RescalePixelArea(Var Data: TPixelArea; NewWidth, NewHeight: Integer;
   ScaleMode: TScaleMode);
 Var
   tmp: TPixelArea;
   w, h: integer;
-
-  Function GetPixel(x, y: Single): TRGBA;
-  Var
-    xi, yi, i: Integer;
-    fx, fy: Single;
-    p: Array[0..15] Of TPoint;
-    a, c: Array[0..3] Of TRGBA;
-  Begin
-    xi := trunc(x);
-    yi := trunc(y);
-    fx := x - xi;
-    fy := y - yi;
-    p[0] := point(xi, yi);
-    p[1] := point(min(w, xi + 1), yi);
-    p[2] := point(xi, min(h, yi + 1));
-    p[3] := point(min(w, xi + 1), min(h, yi + 1));
-    For i := 0 To 3 Do Begin
-      c[i] := tmp[p[i].x, p[i].y];
-    End;
-    If ScaleMode = smScale Then Begin
-      If fx <= 0.5 Then Begin
-        If fy <= 0.5 Then Begin
-          result := c[0];
-        End
-        Else Begin
-          result := c[2];
-        End;
-      End
-      Else Begin
-        If fy <= 0.5 Then Begin
-          result := c[1];
-        End
-        Else Begin
-          result := c[3];
-        End;
-      End;
-    End
-    Else Begin
-      a[0] := InterpolateLinear(c[0], c[2], fy);
-      a[1] := InterpolateLinear(c[1], c[3], fy);
-      result := InterpolateLinear(a[0], a[1], fx);
-    End;
-  End;
-
 Var
   i, j: Integer;
 Begin
@@ -237,7 +236,7 @@ Begin
           End;
         smScale, // Entpsricht einer Neares Neighbour Interpolation
         smSmoothScale: Begin // Entspricht einer Billinearen Interpolation
-            data[i, j] := getpixel(i * w / (NewWidth - 1), j * h / (NewHeight - 1));
+            data[i, j] := getpixel(tmp, i * w / (NewWidth - 1), j * h / (NewHeight - 1), ScaleMode);
           End;
       End;
     End;
@@ -289,11 +288,86 @@ End;
 
 Procedure RotatePixelArea(Var Data: TPixelArea; Angle: Single;
   ScaleMode: TScaleMode);
-Begin
-  If ScaleMode = smResize Then ScaleMode := smScale;
-  // TODO: implementieren drehen nach Freien Winkeln
+Var
+  im3, m3: TMatrix3x3;
 
-//  Das fehlt noch
+  Function Transform(x, y: Single): TVector2;
+  Var
+    tmp: TVector3;
+  Begin
+    tmp := v3(x, y, 1);
+    tmp := m3 * tmp;
+    result := v2(tmp.x, tmp.y);
+  End;
+
+  Function iTransform(x, y: Single): TVector2;
+  Var
+    tmp: TVector3;
+  Begin
+    tmp := v3(x, y, 1);
+    tmp := im3 * tmp;
+    result := v2(tmp.x, tmp.y);
+  End;
+Var
+  source: TPixelArea;
+  m2: TMatrix2x2;
+  v, mi, ma: TVector2;
+  ti, tj, w, h, i, j: Integer;
+  c: TRGBA;
+Begin
+  // Bestimmen der Dimension der ZielDaten
+  If ScaleMode = smResize Then ScaleMode := smScale;
+  m2 := CalculateRotationMatrix(Angle);
+  m3 := IdentityMatrix3x3;
+  For i := 0 To 1 Do Begin
+    For j := 0 To 1 Do Begin
+      m3[i, j] := m2[i, j];
+    End;
+  End;
+  source := Data;
+  w := length(source);
+  h := length(source[0]);
+  mi := Transform(0, 0);
+  ma := mi;
+  mi := minv2(mi, Transform(W, 0));
+  ma := maxv2(ma, Transform(W, 0));
+  mi := minv2(mi, Transform(W, H));
+  ma := maxv2(ma, Transform(W, H));
+  mi := minv2(mi, Transform(0, H));
+  ma := maxv2(ma, Transform(0, H));
+  v := (ma - mi);
+  data := Nil;
+  setlength(data, round(v.x), round(v.y));
+  w := length(data);
+  h := length(data[0]);
+  iM3 := InvertMatrix2(M3);
+  If iM3.Equal(Zero3x3()) Then Begin
+    (*
+     * Kommt diese AV, dann muss das halt auch noch implementiert werden !
+     *)
+    Raise exception.create('RotatePixelArea, matrix not invertable.');
+  End
+  Else Begin
+    For i := trunc(mi.x) To ceil(ma.x) Do Begin
+      For j := trunc(mi.y) To ceil(ma.y) Do Begin
+        v := iTransform(i, j);
+        v := v - v2(0.5, 0.5); // Die Pixelmitte von Links Oben nach Mitte verschieben
+        If (v.x >= 0) And (v.x < length(source)) And
+          (v.y >= 0) And (v.y < length(source[0])) Then Begin
+          c := GetPixel(Source, v.x, v.y, ScaleMode);
+        End
+        Else Begin
+          c := ColorTransparent;
+        End;
+        ti := trunc(i - mi.x);
+        tj := trunc(j - mi.y);
+        If (ti >= 0) And (ti < w) And
+          (tj >= 0) And (tj < h) Then Begin
+          data[ti, tj] := c;
+        End;
+      End;
+    End;
+  End;
 End;
 
 { TImage }
@@ -789,5 +863,4 @@ Begin
 End;
 
 End.
-
 

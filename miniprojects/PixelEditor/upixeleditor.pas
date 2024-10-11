@@ -34,12 +34,12 @@ Const
    *                   Speedup Engine to be able to handle "huge" images
    *            0.03 - CTRL + L
    *                   Speedup Image operations and loading
+   *                   Freies drehen nach Winkeln (Selektion und Gesamtbild)
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
    *
    * Missing Features:
-   *           - Freies drehen nach Winkeln (Selektion und Gesamtbild)
    *           - Hints für alle Controls
    *)
   Version = '0.03';
@@ -434,11 +434,11 @@ Begin
       h := length(fCursor.Select.Data[0]);
       m := (fCursor.Select.tl + fCursor.Select.br) Div 2;
       fCursor.Select.tl := m - point(w, h) Div 2;
-      fCursor.Select.br := m + point(w, h) Div 2; // TODO: ggf muss da noch 1 drauf ;)
+      fCursor.Select.br := fCursor.Select.tl + point(w - 1, h - 1);
       If ((W > fImage.Width) Or (H > fImage.Height)) And fSettings.AutoIncSize Then Begin
         fImage.Rescale(max(fImage.Width, W), max(fImage.Height, H), smResize);
-        fCursor.Select.br := fCursor.Select.br - fCursor.Select.tl;
         fCursor.Select.tl := point(0, 0);
+        fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
         // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
         // fUndo.Clear;
       End;
@@ -1252,8 +1252,8 @@ Begin
       fCursor.Select.br.Y := fCursor.Select.tl.Y + h - 1;
       If ((W > fImage.Width) Or (H > fImage.Height)) And fSettings.AutoIncSize Then Begin
         fImage.Rescale(max(fImage.Width, W), max(fImage.Height, H), smResize);
-        fCursor.Select.br := fCursor.Select.br - fCursor.Select.tl;
         fCursor.Select.tl := point(0, 0);
+        fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
         // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
         // fUndo.Clear;
       End;
@@ -1751,8 +1751,8 @@ Begin
     End;
     If ((b.Width > fImage.Width) Or (b.Height > fImage.Height)) And fSettings.AutoIncSize Then Begin
       fImage.Rescale(max(fImage.Width, b.Width), max(fImage.Height, b.Height), smResize);
-      fCursor.Select.br := fCursor.Select.br - fCursor.Select.tl;
       fCursor.Select.tl := point(0, 0);
+      fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
       // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
       // fUndo.Clear;
     End;
