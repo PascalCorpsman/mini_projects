@@ -418,7 +418,6 @@ Var
   w, h: integer;
   m: TPoint;
 Begin
-  // TODO: Implementieren Rotate Angle
   // 1. Abfrage via Dialog
   If fCursor.Select.aSet Then Begin
     form7.InitFromPixelArea(fCursor.Select.Data);
@@ -556,6 +555,7 @@ Begin
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fScrollInfo.ScrollPos := point(x, y);
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
+  fCursor.LastMovePos := fCursor.Compact.PixelPos;
   fCursor.Pos := point(x, y);
   fCursor.PixelDownPos := fCursor.Compact.PixelPos;
   fCursor.LeftMouseButton := ssleft In Shift;
@@ -642,9 +642,14 @@ Begin
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
       If PencilButton.Style = bsRaised Then Begin
-        // TODO: Wenn sehr weit Raus gezoomt ist (nahe 1:1) und man den curser sehr schnell bewegt
-        //       Dann "springt" das "malen" -> Alle Punktelemente müssen dann als "Linie" erzeugt werden
+        // Der Pen wird als Linie gemalt, sonst "verliert" man pixel bei zu schnellen
+        // Maus Bewegungen
+        PencilButton.Style := bsLowered;
+        LineButton.Style := bsRaised;
+        fCursor.PixelDownPos := fCursor.LastMovePos;
         CursorToPixelOperation(@SetImagePixelByCursor);
+        LineButton.Style := bsLowered;
+        PencilButton.Style := bsRaised;
       End;
       If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
         d := fCursor.Compact.PixelPos - fCursor.Select.DownPos;
@@ -662,6 +667,7 @@ Begin
     CheckScrollBorders();
   End;
   fScrollInfo.ScrollPos := point(x, y);
+  fCursor.LastMovePos := fCursor.Compact.PixelPos;
   UpdateInfoLabel();
 End;
 
