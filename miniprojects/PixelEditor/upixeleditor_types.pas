@@ -19,7 +19,7 @@ Unit upixeleditor_types;
 Interface
 
 Uses
-  Classes, SysUtils, ExtCtrls, upixeleditorlcl, ugraphics;
+  Classes, SysUtils, ExtCtrls, dialogs, upixeleditorlcl, ugraphics;
 
 Const
 
@@ -173,6 +173,7 @@ Type
     DefaultExt: String; // Die Defaut Dateiendung beim Speichern
     AutoIncSize: Boolean; // Wenn true, dann wird das Image automatisch beim Paste / Resize einer Selection "Vergrößert" wenn diese Selection größer ist als das Bild
     BackGroundTransparentPattern: Boolean;
+
     // Hier noch weitere Programmsettings einfügen ;)
 
   End;
@@ -206,6 +207,8 @@ Function ColorMatch(Const A, B: TRGBA; Toleranz_in_Percent: Integer): Boolean;
  * Dabei überläufe ;)
  *)
 Function ClampAdd(Color: TRGBA; R, G, B: Integer): TRGBA;
+
+Procedure SetDefaultExtForDialog(Const Dialog: TOpenDialog; ext: String);
 
 Operator Div (p: TPoint; value: Integer): TPoint;
 
@@ -631,6 +634,21 @@ Begin
     result.b := tb;
   End;
   result.a := Result.a;
+End;
+
+Procedure SetDefaultExtForDialog(Const Dialog: TOpenDialog; ext: String);
+Var
+  i: Integer;
+  f: TStringArray;
+Begin
+  dialog.DefaultExt := ext;
+  f := dialog.Filter.Split('|');
+  For i := high(f) Downto 0 Do Begin
+    If pos(ext, f[i]) <> 0 Then Begin
+      dialog.FilterIndex := (i + 1) Div 2;
+      break;
+    End;
+  End;
 End;
 
 Operator Div (p: TPoint; value: Integer): TPoint;

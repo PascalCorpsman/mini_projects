@@ -35,6 +35,7 @@ Const
    *            0.03 - CTRL + L
    *                   Speedup Image operations and loading
    *                   Freies drehen nach Winkeln (Selektion und Gesamtbild)
+   *                   FIX: Default ext did not work correctly under Linux
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -291,7 +292,6 @@ Begin
   If fImage.Filename <> '' Then Begin
     form1.OpenDialog1.InitialDir := ExtractFileDir(fImage.Filename);
   End;
-  form1.OpenDialog1.DefaultExt := fSettings.DefaultExt;
   If Form1.OpenDialog1.Execute Then Begin
     fImage.Clear(); // Sicherstellen dass das Changed Flag zurück gesetzt ist.
     LoadImage(Form1.OpenDialog1.FileName);
@@ -313,7 +313,7 @@ Begin
   If fImage.Filename <> '' Then Begin
     form1.SaveDialog1.InitialDir := ExtractFileDir(fImage.Filename);
   End;
-  form1.SaveDialog1.DefaultExt := fSettings.DefaultExt;
+  SetDefaultExtForDialog(form1.SaveDialog1, fSettings.DefaultExt);
   If form1.SaveDialog1.Execute Then Begin
     SaveImage(form1.SaveDialog1.Filename);
   End;
