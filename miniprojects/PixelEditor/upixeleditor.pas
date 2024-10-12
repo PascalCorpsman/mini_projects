@@ -32,10 +32,12 @@ Const
    *                   DEL transparent button, as it is redundant and injects errors to the pipette button
    *                   Eraser for all tools who make sense
    *                   Speedup Engine to be able to handle "huge" images
-   *            0.03 - CTRL + L
+   * -Released- 0.03 - CTRL + L
    *                   Speedup Image operations and loading
    *                   Freies drehen nach Winkeln (Selektion und Gesamtbild)
    *                   FIX: Default ext did not work correctly under Linux
+   *                   FIX: Bei zu schnellen mausbewegungen hatte das penciltool keine durchgezogenen Linien gemalt
+   *            0.04 -
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -43,7 +45,7 @@ Const
    * Missing Features:
    *           - Hints für alle Controls
    *)
-  Version = '0.03';
+  Version = '0.04';
 
   (*
    * History: 1 - Initialversion
@@ -673,7 +675,6 @@ End;
 
 Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-
 
   Procedure UnselectPipette;
   Begin

@@ -147,7 +147,7 @@ Type
 
   TCursor = Record
     Compact: TCompactCursor;
-    LastMovePos: TPoint; // letzte Pixelpos von MouseMove
+    LastMovePos: TPoint; // die letzte Pixelpos von MouseMove
     // Alles was der Cursor noch mehr braucht
     LeftColor: TOpenGL_ColorBox;
     RightColor: TRGBA;
