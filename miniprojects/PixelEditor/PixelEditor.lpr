@@ -21,7 +21,7 @@ Uses
   cthreads,
 {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, imagesforlazarus, Unit1, unit2, unit3, unit4,
+  Forms, Unit1, unit2, unit3, unit4,
   uundo, Unit5, unit6, unit7;
 
 Begin

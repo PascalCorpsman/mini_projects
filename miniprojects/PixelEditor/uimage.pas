@@ -90,7 +90,7 @@ Procedure RotatePixelArea(Var Data: TPixelArea; Angle: Single; ScaleMode: TScale
 Implementation
 
 Uses
-  IntfGraphics, fpImage, Graphics, LCLType, math
+  FPWritePNG, IntfGraphics, Graphics, LCLType, math
   , dglOpenGL, uopengl_graphikengine
   , uvectormath
   ;
@@ -407,7 +407,7 @@ End;
 
 Function TImage.GetColorAt(x, y: integer): TRGBA;
 Begin
-  result := RGBA(0, 0, 0, 255);
+  result := ColorTransparent;
   If (x < 0) Or (x >= Width) Or (y < 0) Or (y >= Height) Then exit;
   result := fPixels[x, y];
 End;
@@ -678,16 +678,15 @@ Var
   png: TPortableNetworkGraphic;
   b: Tbitmap;
   TempIntfImg: TLazIntfImage;
-  ImgHandle, ImgMaskHandle: HBitmap;
   j, i: Integer;
   c: TRGBA;
+  writer: TFPWriterPNG;
 Begin
+  // 1. Convert to BMP
   b := TBitmap.Create;
-  b.Width := Width;
-  b.Height := Height;
   b.PixelFormat := pf32bit;
-  TempIntfImg := TLazIntfImage.Create(0, 0);
-  TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  TempIntfImg := b.CreateIntfImage;
+  TempIntfImg.SetSize(Width, Height);
   For j := 0 To height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
       c := GetColorAt(i, j);
@@ -695,15 +694,19 @@ Begin
       TempIntfImg.Colors[i, j] := RGBAToFPColor(c);
     End;
   End;
-  TempIntfImg.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-  b.Handle := ImgHandle;
-  b.MaskHandle := ImgMaskHandle;
+  b.LoadFromIntfImage(TempIntfImg);
   TempIntfImg.free;
+  // 2. Store as .png
   png := TPortableNetworkGraphic.Create;
   png.Assign(b);
-  png.SaveToFile(aFilename);
-  png.free;
   b.free;
+  TempIntfImg := png.CreateIntfImage;
+  writer := TFPWriterPNG.Create;
+  writer.UseAlpha := true;
+  TempIntfImg.SaveToFile(aFilename, writer);
+  writer.Free;
+  TempIntfImg.Free;
+  png.free;
   fChanged := false;
   Filename := aFilename;
 End;

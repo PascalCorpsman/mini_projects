@@ -38,6 +38,9 @@ Const
    *                   FIX: Default ext did not work correctly under Linux
    *                   FIX: Bei zu schnellen mausbewegungen hatte das penciltool keine durchgezogenen Linien gemalt
    *            0.04 - FIX: center mirror lines after resizing image
+   *                   ADD: show changed in caption
+   *                   FIX: set filext of filename, if some exists (overwriting default settings)
+   *                   FIX: hopefully fix PNG Transparent export
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -229,6 +232,7 @@ Type
     Procedure EditImageSelectionProperties;
     Procedure CutSubimageFromImageToSelection;
     Procedure PasteSubimageFromSelectionToImage;
+    Procedure Change;
   public
 
     Property Changed: Boolean read getChanged;
@@ -314,8 +318,11 @@ Procedure TPixelEditor.OnSaveAsButtonClick(Sender: TObject);
 Begin
   If fImage.Filename <> '' Then Begin
     form1.SaveDialog1.InitialDir := ExtractFileDir(fImage.Filename);
+    SetDefaultExtForDialog(form1.SaveDialog1, ExtractFileExt(fImage.Filename));
+  End
+  Else Begin
+    SetDefaultExtForDialog(form1.SaveDialog1, fSettings.DefaultExt);
   End;
-  SetDefaultExtForDialog(form1.SaveDialog1, fSettings.DefaultExt);
   If form1.SaveDialog1.Execute Then Begin
     SaveImage(form1.SaveDialog1.Filename);
   End;
@@ -1217,6 +1224,7 @@ Begin
         fImage.SetColorAt(i, j, nColor);
       End;
     End;
+    Change;
   End;
 End;
 
@@ -1325,6 +1333,13 @@ Begin
     End;
     fImage.EndUpdate;
     fUndo.PushRecording;
+  End;
+End;
+
+Procedure TPixelEditor.Change;
+Begin
+  If fImage.Changed And (pos('*', form1.caption) = 0) Then Begin
+    form1.caption := form1.caption + '*';
   End;
 End;
 
