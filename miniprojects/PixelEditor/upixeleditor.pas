@@ -37,7 +37,7 @@ Const
    *                   Freies drehen nach Winkeln (Selektion und Gesamtbild)
    *                   FIX: Default ext did not work correctly under Linux
    *                   FIX: Bei zu schnellen mausbewegungen hatte das penciltool keine durchgezogenen Linien gemalt
-   *            0.04 -
+   *            0.04 - FIX: center mirror lines after resizing image
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -440,6 +440,7 @@ Begin
         fImage.Rescale(max(fImage.Width, W), max(fImage.Height, H), smResize);
         fCursor.Select.tl := point(0, 0);
         fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
+        fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
         // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
         // fUndo.Clear;
       End;
@@ -1261,6 +1262,7 @@ Begin
         fImage.Rescale(max(fImage.Width, W), max(fImage.Height, H), smResize);
         fCursor.Select.tl := point(0, 0);
         fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
+        fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
         // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
         // fUndo.Clear;
       End;
@@ -1758,6 +1760,7 @@ Begin
       fImage.Rescale(max(fImage.Width, b.Width), max(fImage.Height, b.Height), smResize);
       fCursor.Select.tl := point(0, 0);
       fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
+      fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
       // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
       // fUndo.Clear;
     End;
@@ -1914,6 +1917,7 @@ Begin
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
   CheckScrollBorders;
+  fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
   fUndo.Clear;
   UpdateInfoLabel;
 End;
