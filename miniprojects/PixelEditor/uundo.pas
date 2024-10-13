@@ -61,7 +61,7 @@ Type
     Procedure StartNewRecording;
 
 
-    Procedure RecordPixelChange(x, y: integer; from: TRGBA);// Zeichnet eine Pixeländerung auf
+    Procedure RecordPixelChange(x, y: integer; from: TRGBA); // Zeichnet eine Pixeländerung auf
 
     (*
      * Beendet eine Aufzeichnung und legt diese auf dem Stack ab
@@ -118,6 +118,9 @@ Begin
   If (faRecord.Kind <> rkPixelChange) And
     (faRecord.Kind <> rkUnknown) Then Begin
     Raise exception.create('Error, mixing undo recordings.');
+  End;
+  If Not assigned(faRecord.PixelChange) Then Begin // Zur Not starten wir das neue Recording eben selbst.
+    StartNewRecording;
   End;
   faRecord.Kind := rkPixelChange;
   faRecord.PixelChange[fPixelChangeRecordCount].x := x;
