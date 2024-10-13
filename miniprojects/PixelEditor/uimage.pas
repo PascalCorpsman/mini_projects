@@ -683,7 +683,7 @@ Var
 Begin
   // 1. Convert to BMP
   b := TBitmap.Create;
-  b.PixelFormat := pf32bit;
+  b.PixelFormat := pf32bit; // Wichtig für Alpha
   TempIntfImg := b.CreateIntfImage;
   TempIntfImg.SetSize(Width, Height);
   For j := 0 To height - 1 Do Begin
@@ -695,6 +695,7 @@ Begin
   End;
   writer := TFPWriterPNG.Create;
   writer.UseAlpha := true;
+  writer.Indexed := true; // Schaltet die Kompression ein
   TempIntfImg.SaveToFile(aFilename, writer);
   writer.Free;
   TempIntfImg.Free;
