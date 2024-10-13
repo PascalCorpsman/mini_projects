@@ -37,10 +37,11 @@ Const
    *                   Freies drehen nach Winkeln (Selektion und Gesamtbild)
    *                   FIX: Default ext did not work correctly under Linux
    *                   FIX: Bei zu schnellen mausbewegungen hatte das penciltool keine durchgezogenen Linien gemalt
-   *            0.04 - FIX: center mirror lines after resizing image
+   * -Released- 0.04 - FIX: center mirror lines after resizing image
    *                   ADD: show changed in caption
    *                   FIX: set filext of filename, if some exists (overwriting default settings)
    *                   FIX: hopefully fix PNG Transparent export
+   *            0.05 -
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -48,7 +49,7 @@ Const
    * Missing Features:
    *           - Hints für alle Controls
    *)
-  Version = '0.04';
+  Version = '0.05';
 
   (*
    * History: 1 - Initialversion
