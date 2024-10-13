@@ -790,8 +790,10 @@ Procedure TImage.RotateCounterClockwise90;
 Var
   a: TPixelArea;
   i, j: integer;
+  fn: String;
 Begin
   a := Nil;
+  fn := Filename;
   setlength(a, width, height);
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
@@ -810,6 +812,7 @@ Begin
   End;
   EndUpdate;
   setlength(a, 0, 0);
+  Filename := fn;
 End;
 
 Procedure TImage.LeftRight;
@@ -839,8 +842,10 @@ Procedure TImage.Rotate(Angle: Single; ScaleMode: TScaleMode);
 Var
   a: TPixelArea;
   i, j: integer;
+  fn: String;
 Begin
   a := Nil;
+  fn := Filename;
   setlength(a, width, height);
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
@@ -859,6 +864,7 @@ Begin
   End;
   EndUpdate;
   setlength(a, 0, 0);
+  Filename := fn;
 End;
 
 End.
