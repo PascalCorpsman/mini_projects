@@ -739,8 +739,10 @@ Procedure TImage.Rescale(NewWidth, NewHeight: integer; Mode: TScaleMode);
 Var
   a: TPixelArea;
   i, j: Integer;
+  fn: String;
 Begin
   If (NewWidth = Width) And (NewHeight = Height) Then exit; // Alles bereits bestens
+  fn := Filename;
   // Am Einfachsten ist es sich alles zu Bakupen und dann das Bild neu zu erstellen
   a := Nil;
   setlength(a, Width, Height);
@@ -758,6 +760,7 @@ Begin
     End;
   End;
   EndUpdate;
+  Filename := fn;
 End;
 
 Procedure TImage.UpsideDown;

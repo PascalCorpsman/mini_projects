@@ -41,7 +41,7 @@ Const
    *                   ADD: show changed in caption
    *                   FIX: set filext of filename, if some exists (overwriting default settings)
    *                   FIX: hopefully fix PNG Transparent export
-   *            0.05 -
+   *            0.05 - FIX: Lost filename during image resize
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
