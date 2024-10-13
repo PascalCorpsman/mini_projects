@@ -675,7 +675,6 @@ End;
 
 Procedure TImage.ExportAsPNG(aFilename: String);
 Var
-  png: TPortableNetworkGraphic;
   b: Tbitmap;
   TempIntfImg: TLazIntfImage;
   j, i: Integer;
@@ -694,19 +693,12 @@ Begin
       TempIntfImg.Colors[i, j] := RGBAToFPColor(c);
     End;
   End;
-  b.LoadFromIntfImage(TempIntfImg);
-  TempIntfImg.free;
-  // 2. Store as .png
-  png := TPortableNetworkGraphic.Create;
-  png.Assign(b);
-  b.free;
-  TempIntfImg := png.CreateIntfImage;
   writer := TFPWriterPNG.Create;
   writer.UseAlpha := true;
   TempIntfImg.SaveToFile(aFilename, writer);
   writer.Free;
   TempIntfImg.Free;
-  png.free;
+  b.free;
   fChanged := false;
   Filename := aFilename;
 End;

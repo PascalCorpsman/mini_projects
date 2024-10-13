@@ -28,7 +28,7 @@
 (*                      via clFuchsia                                         *)
 (*               0.04 - Umstellung auf eigene Zoom Algorithmen beim Rendern   *)
 (*               0.05 - start mit drag / drop                                 *)
-(*               0.06 - improove drag / drop                                  *)
+(*               0.06 - improve drag / drop                                   *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -94,7 +94,7 @@ Implementation
 {$R *.lfm}
 
 Uses
-  IntfGraphics, fpImage, LCLType, ugraphics, GraphType, Math, types;
+  FPWritePNG, IntfGraphics, fpImage, LCLType, ugraphics, GraphType, Math, types;
 
 { TForm1 }
 
@@ -155,6 +155,7 @@ Var
   ImgHandle, ImgMaskHandle: HBitmap;
   png: TPortableNetworkGraphic;
   i, j: Integer;
+  writer: TFPWriterPNG;
 Begin
   If Not assigned(fNormalImage) Or Not assigned(fAlphaImage) Then Begin
     showmessage('Error, need both images to store as .png');
@@ -167,15 +168,14 @@ Begin
   // Save PNG
   If SaveDialog2.Execute Then Begin
     DestBitmap := TBitmap.Create;
-    DestBitmap.Width := fAlphaImage.Width;
-    DestBitmap.Height := fAlphaImage.Height;
+    DestBitmap.PixelFormat := pf32bit; // Wichtig für Alpha !
 
     NormalSource := TLazIntfImage.Create(0, 0);
     NormalSource.LoadFromBitmap(fNormalImage.Handle, fNormalImage.MaskHandle);
     AlphaSource := TLazIntfImage.Create(0, 0);
     AlphaSource.LoadFromBitmap(fAlphaImage.Handle, fAlphaImage.MaskHandle);
 
-    Dest := TLazIntfImage.Create(0, 0, [riqfRGB, riqfAlpha]);
+    Dest := DestBitmap.CreateIntfImage;
     Dest.SetSize(fAlphaImage.Width, fAlphaImage.Height);
 
     For i := 0 To fAlphaImage.Width - 1 Do Begin
@@ -186,15 +186,29 @@ Begin
         Dest.Colors[i, j] := NormalColor;
       End;
     End;
-    Dest.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-    DestBitmap.Handle := ImgHandle;
-    DestBitmap.MaskHandle := ImgMaskHandle;
+
+    DestBitmap.LoadFromIntfImage(dest);
+    Dest.free;
+
+    // Speichern als png - Variante 2
     png := TPortableNetworkGraphic.Create;
     png.Assign(DestBitmap);
-    png.SaveToFile(SaveDialog2.FileName);
+    png.SaveToFile(SaveDialog2.Filename);
     png.free;
+    // Ende Variante 2}
+
+    {// Speichern als png - Variante 1
+    png := TPortableNetworkGraphic.Create;
+    png.Assign(DestBitmap);
     DestBitmap.free;
-    Dest.free;
+    dest := png.CreateIntfImage;
+    writer := TFPWriterPNG.Create;
+    writer.UseAlpha := true;
+    dest.SaveToFile(SaveDialog2.Filename, writer);
+    writer.Free;
+    dest.free;
+    png.free;
+    // Ende Variante 1 }
   End;
 End;
 
