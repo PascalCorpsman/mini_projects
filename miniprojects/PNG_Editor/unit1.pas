@@ -189,7 +189,7 @@ Begin
 
     writer := TFPWriterPNG.Create;
     writer.UseAlpha := true;
-    writer.Indexed := true; // Important to be set, so that Kolourpaint can load the image
+    writer.WordSized := false; // Reduce to 32-Bit (default 64-Bit)
     dest.SaveToFile(SaveDialog2.Filename, writer);
     writer.Free;
     dest.free;

@@ -695,7 +695,7 @@ Begin
   End;
   writer := TFPWriterPNG.Create;
   writer.UseAlpha := true;
-  writer.Indexed := true; // Schaltet die Kompression ein
+  writer.WordSized := false; // Reduce to 32-Bit (default 64-Bit)
   TempIntfImg.SaveToFile(aFilename, writer);
   writer.Free;
   TempIntfImg.Free;
