@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* PNG Editor                                                      ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.06                                                         *)
+(* Version     : 0.07                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -29,6 +29,8 @@
 (*               0.04 - Umstellung auf eigene Zoom Algorithmen beim Rendern   *)
 (*               0.05 - start mit drag / drop                                 *)
 (*               0.06 - improve drag / drop                                   *)
+(*               0.07 - FIX: Memleak                                          *)
+(*                      ADD: new .png creation method                         *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -152,8 +154,6 @@ Var
   DestBitmap: TBitmap;
   NormalSource, AlphaSource, Dest: TLazIntfImage;
   NormalColor, AlphaColor: TFPColor;
-  ImgHandle, ImgMaskHandle: HBitmap;
-  png: TPortableNetworkGraphic;
   i, j: Integer;
   writer: TFPWriterPNG;
 Begin
@@ -187,28 +187,15 @@ Begin
       End;
     End;
 
-    DestBitmap.LoadFromIntfImage(dest);
-    Dest.free;
-
-    // Speichern als png - Variante 2
-    png := TPortableNetworkGraphic.Create;
-    png.Assign(DestBitmap);
-    png.SaveToFile(SaveDialog2.Filename);
-    png.free;
-    // Ende Variante 2}
-
-    {// Speichern als png - Variante 1
-    png := TPortableNetworkGraphic.Create;
-    png.Assign(DestBitmap);
-    DestBitmap.free;
-    dest := png.CreateIntfImage;
     writer := TFPWriterPNG.Create;
     writer.UseAlpha := true;
+    writer.Indexed := true; // Important to be set, so that Kolourpaint can load the image
     dest.SaveToFile(SaveDialog2.Filename, writer);
     writer.Free;
     dest.free;
-    png.free;
-    // Ende Variante 1 }
+    DestBitmap.free;
+    NormalSource.free;
+    AlphaSource.free;
   End;
 End;
 
@@ -404,7 +391,7 @@ End;
 
 Procedure TForm1.LoadPNG(Const Filename: String);
 Var
-  p: TPortableNetworkGraphic;
+  PNG: TPortableNetworkGraphic;
   i, j: Integer;
   Normal, Alpha: TLazIntfImage;
   ImgHandle, ImgMaskHandle: HBitmap;
@@ -416,10 +403,11 @@ Begin
   SaveDialog1.InitialDir := ExtractFileDir(Filename);
   SaveDialog2.InitialDir := ExtractFileDir(Filename);
   Clear(true, true);
-  p := TPortableNetworkGraphic.Create;
-  p.LoadFromFile(FileName);
+  PNG := TPortableNetworkGraphic.Create;
+  PNG.LoadFromFile(FileName);
   fNormalImage := TBitmap.Create;
-  fNormalImage.Assign(p);
+  fNormalImage.Assign(PNG);
+  PNG.free;
   fAlphaImage := TBitmap.Create;
   fAlphaImage.Width := fNormalImage.Width;
   fAlphaImage.Height := fNormalImage.Height;
@@ -451,6 +439,8 @@ Begin
   ScaledImage := CreateScaledImage(fAlphaImage);
   Image2.Picture.Assign(ScaledImage);
   ScaledImage.free;
+  Normal.free;
+  Alpha.free;
   RefreshDimensions();
 End;
 
