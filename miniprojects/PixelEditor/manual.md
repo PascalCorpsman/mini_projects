@@ -28,6 +28,7 @@ Run the executable and enjoy ;).
 | CTRL + S | Save / Save as
 | CTRL + V | paste image from clipboard
 | CTRL + Z | Undo last pixeloperation
+| + / - | Zoom in / out
 | DEL | clears "selected" part if something is selected
 | ESC | skips actual selection / terminates application in error mode
 | SHIFT | when pressed during line / rectangle / ellipse creation the shape will be forced to be equal in width / height
