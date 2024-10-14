@@ -1932,23 +1932,29 @@ Begin
         m.free;
       End;
   Else Begin
-      b := Tbitmap.create;
       gc := TPicture.FindGraphicClassWithFileExt(ExtractFileExt(aFilename));
       g := gc.Create;
-      g.LoadFromFile(aFileName);
-      b.Assign(g);
-      g.free;
-      form4.Shape1.Brush.Color := clFuchsia;
-      form4.caption := 'BMP import settings';
-      If form4.ShowModal = mrOK Then Begin
-        fImage.ImportFromBMP(b, aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
-      End
-      Else Begin
-        showmessage('Skip, nothing loaded.');
+      Try
+        g.LoadFromFile(aFileName);
+        b := Tbitmap.create;
+        b.Assign(g);
+        form4.Shape1.Brush.Color := clFuchsia;
+        form4.caption := 'BMP import settings';
+        If form4.ShowModal = mrOK Then Begin
+          fImage.ImportFromBMP(b, aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
+        End
+        Else Begin
+          showmessage('Skip, nothing loaded.');
+          b.free;
+          exit;
+        End;
         b.free;
-        exit;
+      Except
+        On av: exception Do Begin
+          showmessage('Error unable to load: ' + av.Message);
+        End;
       End;
-      b.free;
+      g.free;
     End;
   End;
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
