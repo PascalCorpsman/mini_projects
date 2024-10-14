@@ -43,7 +43,6 @@ Type
 
   TKnob = Class(TEventerClass)
   private
-    FOwner: TPaintBox;
     fParent: TMeasureElement;
     dx, dy: integer;
   protected
