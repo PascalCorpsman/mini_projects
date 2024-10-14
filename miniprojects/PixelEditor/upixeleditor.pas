@@ -48,7 +48,7 @@ Const
    *                   ADD: more detailes error message
    *                   ADD: more robust image loading during startup
    *                   ADD: Resize to UndoEngine
-   *            0.06 -
+   *            0.06 - ADD: Support as many image input formats as possible ;)
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -56,7 +56,7 @@ Const
    * Missing Features:
    *           - Hints für alle Controls
    *)
-  Version = '0.05';
+  Version = '0.06';
 
   (*
    * History: 1 - Initialversion
@@ -1886,6 +1886,9 @@ Var
   m: TMemoryStream;
   LoadedFileVersion, i: Integer;
   c: TRGBA;
+  gc: TGraphicClass;
+  g: TGraphic;
+  b: Tbitmap;
 Begin
   If fImage.Changed Then Begin
     If ID_NO = Application.MessageBox('There are unsaved changes which will get lost. Do you really want to load without saving?', 'Question', MB_YESNO Or MB_ICONQUESTION) Then Begin
@@ -1895,17 +1898,6 @@ Begin
   Case LowerCase(ExtractFileExt(aFilename)) Of
     '.png': Begin
         fImage.ImportFromPNG(aFilename);
-      End;
-    '.bmp': Begin
-        form4.Shape1.Brush.Color := clFuchsia;
-        form4.caption := 'BMP import settings';
-        If form4.ShowModal = mrOK Then Begin
-          fImage.ImportFromBMP(aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
-        End
-        Else Begin
-          showmessage('Skip, nothing loaded.');
-          exit;
-        End;
       End;
     '.pe': Begin
         m := TMemoryStream.Create;
@@ -1940,8 +1932,23 @@ Begin
         m.free;
       End;
   Else Begin
-      showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be loaded.');
-      exit;
+      b := Tbitmap.create;
+      gc := TPicture.FindGraphicClassWithFileExt(ExtractFileExt(aFilename));
+      g := gc.Create;
+      g.LoadFromFile(aFileName);
+      b.Assign(g);
+      g.free;
+      form4.Shape1.Brush.Color := clFuchsia;
+      form4.caption := 'BMP import settings';
+      If form4.ShowModal = mrOK Then Begin
+        fImage.ImportFromBMP(b, aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
+      End
+      Else Begin
+        showmessage('Skip, nothing loaded.');
+        b.free;
+        exit;
+      End;
+      b.free;
     End;
   End;
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);

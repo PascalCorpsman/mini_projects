@@ -19,7 +19,7 @@ Unit uimage;
 Interface
 
 Uses
-  Classes, SysUtils, ugraphics, upixeleditor_types;
+  Classes, SysUtils, Graphics, ugraphics, upixeleditor_types;
 
 Type
 
@@ -66,7 +66,7 @@ Type
     Procedure LoadFromPEStream(Const Stream: TStream; Const aFilename: String);
 
     Procedure ExportAsBMP(aFilename: String; TransparentColor: TRGBA);
-    Procedure ImportFromBMP(aFilename: String; TransparentColor: TRGBA);
+    Procedure ImportFromBMP(Const Bitmap: TBitmap; aFilename: String; TransparentColor: TRGBA);
 
     Procedure ExportAsPNG(aFilename: String);
     Procedure ImportFromPNG(aFilename: String);
@@ -90,7 +90,7 @@ Procedure RotatePixelArea(Var Data: TPixelArea; Angle: Single; ScaleMode: TScale
 Implementation
 
 Uses
-  FPWritePNG, IntfGraphics, Graphics, LCLType, math
+  FPWritePNG, IntfGraphics, LCLType, math
   , dglOpenGL, uopengl_graphikengine
   , uvectormath
   ;
@@ -641,18 +641,17 @@ Begin
   Filename := aFilename;
 End;
 
-Procedure TImage.ImportFromBMP(aFilename: String; TransparentColor: TRGBA);
+Procedure TImage.ImportFromBMP(Const Bitmap: TBitmap; aFilename: String;
+  TransparentColor: TRGBA);
 Var
   b: TBitmap;
   i, j: Integer;
   TempIntfImg: TLazIntfImage;
   c: TRGBA;
 Begin
-  b := TBitmap.Create;
-  b.LoadFromFile(aFilename);
-  SetSize(b.Width, b.Height);
+  SetSize(Bitmap.Width, Bitmap.Height);
   TempIntfImg := TLazIntfImage.Create(0, 0);
-  TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  TempIntfImg.LoadFromBitmap(Bitmap.Handle, Bitmap.MaskHandle);
   BeginUpdate;
   For j := 0 To height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
@@ -668,7 +667,6 @@ Begin
   End;
   EndUpdate;
   TempIntfImg.free;
-  b.free;
   fChanged := false;
   Filename := aFilename;
 End;
