@@ -209,7 +209,7 @@ Type
     Procedure OnColorClick(Sender: TObject);
 
   public
-    CriticalError: Boolean;
+    CriticalError: String;
     SelectorPos: integer;
     OnSetColor: TColorBoxEvent;
     Property OnSaveColorPalette: TNotifyEvent write setOnSaveColorPalette;
@@ -227,7 +227,7 @@ Procedure RenderTransparentQuad(x, y, w, h: Single);
 Implementation
 
 Uses
-  math
+  math, FileUtil
   , dglOpenGL
   , uvectormath
   , upixeleditor_types
@@ -918,10 +918,51 @@ Begin
 End;
 
 Constructor TOpenGL_ColorPicDialog.Create(Owner: TOpenGLControl);
+
+  Function LoadAlphaColorGraphik(Const Filename: String): integer;
+  Begin
+    // 1. Ganz normal Laden
+    result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
+    If result = 0 Then Begin
+      // 2. Der User hat das Repo geklont aber die Dateien nicht korrekt um kopiert
+      If FileExists('..' + PathDelim + 'GFX' + PathDelim + Filename) Then Begin
+        // 3. Dann machen wir das geschwind für den User ..
+        If ForceDirectories('GFX') Then Begin
+          If copyfile('..' + PathDelim + 'GFX' + PathDelim + Filename, 'GFX' + PathDelim + Filename) Then Begin
+            result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
+          End;
+        End;
+      End;
+    End;
+    If result = 0 Then Begin
+      CriticalError := Filename;
+    End;
+  End;
+
+  Function LoadGraphik(Const Filename: String): integer;
+  Begin
+    // 1. Ganz normal Laden
+    result := OpenGL_GraphikEngine.LoadGraphik('GFX' + PathDelim + Filename, smClamp);
+    If result = 0 Then Begin
+      // 2. Der User hat das Repo geklont aber die Dateien nicht korrekt um kopiert
+      If FileExists('..' + PathDelim + 'GFX' + PathDelim + Filename) Then Begin
+        // 3. Dann machen wir das geschwind für den User ..
+        If ForceDirectories('GFX') Then Begin
+          If copyfile('..' + PathDelim + 'GFX' + PathDelim + Filename, 'GFX' + PathDelim + Filename) Then Begin
+            result := OpenGL_GraphikEngine.LoadGraphik('GFX' + PathDelim + Filename, smClamp);
+          End;
+        End;
+      End;
+    End;
+    If result = 0 Then Begin
+      CriticalError := Filename;
+    End;
+  End;
+
 Var
   img: Integer;
 Begin
-  CriticalError := false;
+  CriticalError := '';
   // Alle Elemente vor dem eigentlichen erstellt werden
   // Das hat 2 Gründe
   // 1. Nur so können sie die OnMouse* Events Capturen
@@ -951,28 +992,20 @@ Begin
   fWhitePlus := TPlus.Create(Owner);
   Inherited Create(Owner);
   Transparent := true;
-  img := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Color_Pic_Dialog.bmp', Fuchsia, smClamp);
-  If img = 0 Then Begin
-    CriticalError := true;
-    exit;
-  End;
+  img := LoadAlphaColorGraphik('Color_Pic_Dialog.bmp');
+  If img = 0 Then exit;
   SetImage(img);
   SelectorPos := 0;
 
-  img := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + 'Arror_down.bmp', Fuchsia, smClamp);
-  If Img = 0 Then Begin
-    CriticalError := true;
-    exit;
-  End;
+  img := LoadAlphaColorGraphik('Arror_down.bmp');
+  If img = 0 Then exit;
   fSelectorTex := OpenGL_GraphikEngine.GetInfo(img);
 
-  img := OpenGL_GraphikEngine.LoadGraphik('GFX' + PathDelim + 'ColorPalette.bmp', smClamp);
-  If img = 0 Then Begin
-    CriticalError := true;
-    exit;
-  End;
+  img := LoadGraphik('ColorPalette.bmp');
+  If img = 0 Then exit;
+
   fColorTableRaw := TBitmap.Create;
-  fColorTableRaw.LoadFromFile('GFX' + PathDelim + 'ColorPalette.bmp');
+  fColorTableRaw.LoadFromFile('GFX' + PathDelim + 'ColorPalette.bmp'); // Die Probe findet 4 Zeilen drüber eh schon statt ;)
   fColorTable.SetImage(img);
   fColorTable.OnMouseDown := @OpenColorTableMouseDown;
   fColorTable.OnDblClick := @OnColorDBLClick;

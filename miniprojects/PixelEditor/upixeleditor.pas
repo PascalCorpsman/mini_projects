@@ -43,6 +43,11 @@ Const
    *                   FIX: hopefully fix PNG Transparent export
    *            0.05 - FIX: Lost filename during image resize
    *                   FIX: AV, when closing color choose dialog via doubleclick on color
+   *                   FIX: AV, when floodfilling after Image Resize
+   *                   ADD: + / - key's to zoom
+   *                   ADD: more detailes error message
+   *                   ADD: more robust image loading during startup
+   *                   ADD: Resize to UndoEngine
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -70,7 +75,7 @@ Type
 
   TPixelEditor = Class
   private
-    fCriticalError: Boolean; // Der Kommt wenn beim Laden eine Graphik nicht geladen werden konnte
+    fCriticalError: String; // Der Kommt wenn beim Laden eine Graphik nicht geladen werden konnte
 
     fDarkBrightMask: Array Of Array Of Boolean; // Während eines MouseDown Zyklus kann jeder Pixel nur 1 mal heller / Dunkler gemacht werden !
     fSettings: TSettings;
@@ -235,6 +240,7 @@ Type
     Procedure CutSubimageFromImageToSelection;
     Procedure PasteSubimageFromSelectionToImage;
     Procedure Change;
+    Procedure RescaleImageTo(aWidth, aHeight: integer; sm: TScaleMode);
   public
 
     Property Changed: Boolean read getChanged;
@@ -261,7 +267,7 @@ Var
 Implementation
 
 Uses
-  Forms, Dialogs, LCLType, math, Clipbrd, LCLIntf, IntfGraphics // LCL- Units
+  Forms, Dialogs, LCLType, math, Clipbrd, LCLIntf, IntfGraphics, fileutil // LCL- Units
   , dglOpenGL // OpenGL Header
   , uOpenGL_ASCII_Font, uopengl_graphikengine // Corspan OpenGL-Engine
   , uvectormath // Math library
@@ -446,10 +452,9 @@ Begin
       fCursor.Select.tl := m - point(w, h) Div 2;
       fCursor.Select.br := fCursor.Select.tl + point(w - 1, h - 1);
       If ((W > fImage.Width) Or (H > fImage.Height)) And fSettings.AutoIncSize Then Begin
-        fImage.Rescale(max(fImage.Width, W), max(fImage.Height, H), smResize);
+        RescaleImageTo(max(fImage.Width, W), max(fImage.Height, H), smResize);
         fCursor.Select.tl := point(0, 0);
         fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
-        fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
         // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
         // fUndo.Clear;
       End;
@@ -527,12 +532,13 @@ Procedure TPixelEditor.OpenGLControlKeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Begin
   // Global Hotkeys
-  If fCriticalError Then Begin
+  If fCriticalError <> '' Then Begin
     If (key = VK_ESCAPE) Then Begin
       halt;
     End;
     exit;
   End;
+  If (key = VK_ADD) Then OnZoomInButtonClick(ZoomInButton);
   If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
   If (key = VK_C) And (ssCtrl In Shift) Then CopySelectionToClipboard;
   If (key = VK_DELETE) Then EraserButton.click;
@@ -545,8 +551,10 @@ Begin
   If (key = VK_N) And (ssCtrl In Shift) Then OnNewButtonClick(NewButton);
   If (key = VK_O) And (ssCtrl In Shift) Then OnOptionsButtonClick(OptionsButton);
   If (key = VK_S) And (ssCtrl In Shift) Then OnSaveButtonClick(SaveButton);
+  If (key = VK_SUBTRACT) Then OnZoomOutButtonClick(ZoomOutButton);
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
   If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
+
   fCursor.Shift := ssShift In Shift;
 End;
 
@@ -563,7 +571,7 @@ Var
   c: TRGBA;
   p: TPoint;
 Begin
-  If fCriticalError Then exit;
+  If fCriticalError <> '' Then exit;
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fScrollInfo.ScrollPos := point(x, y);
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
@@ -647,7 +655,7 @@ Var
   dx, dy: integer;
   d: TPoint;
 Begin
-  If fCriticalError Then exit;
+  If fCriticalError <> '' Then exit;
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fCursor.Compact.PixelPos := CursorToPixel(x, y);
   fCursor.Pos := point(x, y);
@@ -695,7 +703,7 @@ Procedure TPixelEditor.OpenGLControlMouseUp(Sender: TObject;
   End;
 
 Begin
-  If fCriticalError Then exit;
+  If fCriticalError <> '' Then exit;
   // Den Dialog Schließen, wenn der User Außerhalb clickt ..
   If ColorPicDialog.Visible Then Begin
     ColorPicDialog.Visible := false;
@@ -1269,10 +1277,9 @@ Begin
       fCursor.Select.br.x := fCursor.Select.tl.X + w - 1;
       fCursor.Select.br.Y := fCursor.Select.tl.Y + h - 1;
       If ((W > fImage.Width) Or (H > fImage.Height)) And fSettings.AutoIncSize Then Begin
-        fImage.Rescale(max(fImage.Width, W), max(fImage.Height, H), smResize);
+        RescaleImageTo(max(fImage.Width, W), max(fImage.Height, H), smResize);
         fCursor.Select.tl := point(0, 0);
         fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
-        fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
         // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
         // fUndo.Clear;
       End;
@@ -1281,9 +1288,7 @@ Begin
   Else Begin
     form6.InitWith(fImage.Width, fImage.Height, true);
     If Form6.ShowModal = mrOK Then Begin
-      fImage.Rescale(form6.SpinEdit3.Value, form6.SpinEdit4.Value, Form6.GetScaleMode);
-      fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
-      fUndo.Clear; // TODO: Vorerst macht ein Resize die Historie Platt -> Resizing in UndoEngine
+      RescaleImageTo(form6.SpinEdit3.Value, form6.SpinEdit4.Value, Form6.GetScaleMode);
     End;
   End;
 End;
@@ -1343,6 +1348,16 @@ Begin
   If fImage.Changed And (pos('*', form1.caption) = 0) Then Begin
     form1.caption := form1.caption + '*';
   End;
+End;
+
+Procedure TPixelEditor.RescaleImageTo(aWidth, aHeight: integer; sm: TScaleMode);
+Begin
+  fUndo.StartNewRecording;
+  fUndo.RecordSizeChange(aWidth, aHeight, sm, fImage);
+  fUndo.PushRecording;
+  fImage.Rescale(aWidth, aHeight, sm);
+  fCursor.Origin := Point(aWidth Div 2, aHeight Div 2);
+  setlength(fDarkBrightMask, aWidth, aHeight);
 End;
 
 Procedure TPixelEditor.RenderCursor;
@@ -1774,10 +1789,9 @@ Begin
       End;
     End;
     If ((b.Width > fImage.Width) Or (b.Height > fImage.Height)) And fSettings.AutoIncSize Then Begin
-      fImage.Rescale(max(fImage.Width, b.Width), max(fImage.Height, b.Height), smResize);
+      RescaleImageTo(max(fImage.Width, b.Width), max(fImage.Height, b.Height), smResize);
       fCursor.Select.tl := point(0, 0);
       fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
-      fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
       // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
       // fUndo.Clear;
     End;
@@ -1934,7 +1948,8 @@ Begin
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
   CheckScrollBorders;
-  fCursor.Origin := Point(fImage.Width Div 2, fImage.Height Div 2);
+  // An dem Bild ändert das nichts, aber alle anderen Variablen die beim Resize aktualisiert werden müssen werden so sauber initialisiert ;)
+  RescaleImageTo(fImage.Width, fImage.Height, smResize);
   fUndo.Clear;
   UpdateInfoLabel;
 End;
@@ -2084,7 +2099,7 @@ End;
 Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
-  fCriticalError := false;
+  fCriticalError := '';
   fImage := TImage.Create();
   fUndo := TUndoEngine.Create();
 End;
@@ -2106,6 +2121,26 @@ Procedure TPixelEditor.MakeCurrent(Owner: TOpenGLControl);
   Begin
     setlength(FElements, high(FElements) + 2);
     FElements[high(FElements)] := value;
+  End;
+
+  Function LoadAlphaColorGraphik(Const Filename: String): integer;
+  Begin
+    // 1. Ganz normal Laden
+    result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
+    If result = 0 Then Begin
+      // 2. Der User hat das Repo geklont aber die Dateien nicht korrekt um kopiert
+      If FileExists('..' + PathDelim + 'GFX' + PathDelim + Filename) Then Begin
+        // 3. Dann machen wir das geschwind für den User ..
+        If ForceDirectories('GFX') Then Begin
+          If copyfile('..' + PathDelim + 'GFX' + PathDelim + Filename, 'GFX' + PathDelim + Filename) Then Begin
+            result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
+          End;
+        End;
+      End;
+    End;
+    If result = 0 Then Begin
+      fCriticalError := Filename;
+    End;
   End;
 
 Var
@@ -2147,12 +2182,15 @@ End;
 
 Procedure TPixelEditor.Render;
 Begin
-  If fCriticalError Then Begin
+  If fCriticalError <> '' Then Begin
     AktColorInfoLabel.top := 200;
     AktColorInfoLabel.Left := 10;
     AktColorInfoLabel.Caption :=
-      'Error, could not load all button graphics, please update GFX folder from ' + LineEnding + LineEnding +
-      '  https://github.com/PascalCorpsman/mini_projects/tree/main/miniprojects/' + LineEnding + 'PixelEditor/GFX';
+      'Error, could not load all button graphics' + lineending + lineending +
+      'missing: ' + fCriticalError + lineending + LineEnding +
+      'please update GFX folder from:' + LineEnding +
+      '  https://github.com/PascalCorpsman/mini_projects/tree/main/miniprojects/' + LineEnding +
+      '  PixelEditor/GFX';
     AktColorInfoLabel.Render();
     exit;
   End;
