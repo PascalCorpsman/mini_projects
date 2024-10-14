@@ -41,13 +41,14 @@ Const
    *                   ADD: show changed in caption
    *                   FIX: set filext of filename, if some exists (overwriting default settings)
    *                   FIX: hopefully fix PNG Transparent export
-   *            0.05 - FIX: Lost filename during image resize
+   * -Released- 0.05 - FIX: Lost filename during image resize
    *                   FIX: AV, when closing color choose dialog via doubleclick on color
    *                   FIX: AV, when floodfilling after Image Resize
    *                   ADD: + / - key's to zoom
    *                   ADD: more detailes error message
    *                   ADD: more robust image loading during startup
    *                   ADD: Resize to UndoEngine
+   *            0.06 -
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
