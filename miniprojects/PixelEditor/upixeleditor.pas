@@ -49,12 +49,14 @@ Const
    *                   ADD: more robust image loading during startup
    *                   ADD: Resize to UndoEngine
    *            0.06 - ADD: Support as many image input formats as possible ;)
+   *                   ADD: Improve UX, unselect eraser / brighten / Darken when switching color
+   *                   ADD: Hints for all buttons
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
    *
    * Missing Features:
-   *           - Hints für alle Controls
+   *
    *)
   Version = '0.06';
 
@@ -284,12 +286,17 @@ Uses
 { TPixelEditor }
 
 Procedure TPixelEditor.OnNewButtonClick(Sender: TObject);
+Var
+  s: String;
 Begin
   form3.Edit1.Text := inttostr(fImage.Width);
   form3.Edit2.Text := inttostr(fImage.Height);
+  s := NewButton.hint;
+  NewButton.hint := '';
   If form3.ShowModal = mrOK Then Begin
     NewImage(strtointdef(form3.Edit1.Text, fImage.Width), strtointdef(form3.Edit2.Text, fImage.Height));
   End;
+  NewButton.hint := s;
 End;
 
 Function TPixelEditor.getChanged: Boolean;
@@ -314,17 +321,26 @@ Begin
 End;
 
 Procedure TPixelEditor.OnSaveButtonClick(Sender: TObject);
+Var
+  s: String;
 Begin
   If fImage.Filename = '' Then Begin
     OnSaveAsButtonClick(SaveAsButton);
   End
   Else Begin
+    s := SaveButton.hint;
+    SaveButton.hint := '';
     SaveImage(fImage.Filename);
+    SaveButton.hint := s;
   End;
 End;
 
 Procedure TPixelEditor.OnSaveAsButtonClick(Sender: TObject);
+Var
+  s: String;
 Begin
+  s := SaveAsButton.Hint;
+  SaveAsButton.Hint := '';
   If fImage.Filename <> '' Then Begin
     form1.SaveDialog1.InitialDir := ExtractFileDir(fImage.Filename);
     SetDefaultExtForDialog(form1.SaveDialog1, ExtractFileExt(fImage.Filename));
@@ -335,6 +351,7 @@ Begin
   If form1.SaveDialog1.Execute Then Begin
     SaveImage(form1.SaveDialog1.Filename);
   End;
+  SaveAsButton.Hint := s;
 End;
 
 Procedure TPixelEditor.OnExitButtonClick(Sender: TObject);
@@ -364,6 +381,8 @@ Begin
 End;
 
 Procedure TPixelEditor.OnOptionsButtonClick(Sender: TObject);
+Var
+  s: String;
 Begin
   // Settings to LCL
   form2.CheckBox1.Checked := fSettings.GridAboveImage;
@@ -374,7 +393,10 @@ Begin
   End;
   form2.CheckBox2.Checked := fSettings.AutoIncSize;
   form2.CheckBox3.Checked := fSettings.BackGroundTransparentPattern;
+  s := OptionsButton.hint;
+  OptionsButton.hint := '';
   form2.ShowModal;
+  OptionsButton.hint := s;
   // LCL to .ini
   SetValue('GridAboveImage', inttostr(ord(Form2.CheckBox1.Checked)));
   Case Form2.ComboBox1.ItemIndex Of
@@ -435,8 +457,11 @@ Procedure TPixelEditor.OnSelectRotateAngleButtonClick(Sender: TObject);
 Var
   w, h: integer;
   m: TPoint;
+  s: String;
 Begin
   // 1. Abfrage via Dialog
+  s := SelectRotateAngle.Hint;
+  SelectRotateAngle.Hint := '';
   If fCursor.Select.aSet Then Begin
     form7.InitFromPixelArea(fCursor.Select.Data);
   End
@@ -464,6 +489,7 @@ Begin
       fImage.Rotate(Form7.FloatSpinEdit1.Value, Form7.GetScaleMode);
     End;
   End;
+  SelectRotateAngle.Hint := s;
 End;
 
 Procedure TPixelEditor.OnBrightenButtonClick(Sender: TObject);
@@ -488,7 +514,7 @@ Begin
   Else Begin
     // 2. Mach den Pen zu einem "Erheller"
     BrightenButton.Style := ifthen(BrightenButton.Style = bsLowered, bsRaised, bsLowered);
-    DarkenButton.Style := bsLowered
+    DarkenButton.Style := bsLowered;
   End;
 End;
 
@@ -513,7 +539,7 @@ Begin
   Else Begin
     // 2. Mach den Pen zu einem "Dunkler"
     DarkenButton.Style := ifthen(DarkenButton.Style = bsLowered, bsRaised, bsLowered);
-    BrightenButton.Style := bsLowered
+    BrightenButton.Style := bsLowered;
   End;
 End;
 
@@ -993,11 +1019,16 @@ Begin
 End;
 
 Procedure TPixelEditor.OnFloodFillModeButtonClick(Sender: TObject);
+Var
+  s: String;
 Begin
+  s := FloodFillModeButton.Hint;
+  FloodFillModeButton.Hint := '';
   form5.ScrollBar1.Position := fCursor.ColorToleranz;
   If form5.ShowModal = mrOK Then Begin
     fCursor.ColorToleranz := form5.ScrollBar1.Position;
   End;
+  FloodFillModeButton.Hint := s;
 End;
 
 Procedure TPixelEditor.OnPipetteButtonClick(Sender: TObject);
@@ -1026,7 +1057,11 @@ Begin
     LoadColorDialogColor(sender);
     exit;
   End;
-  If fCursor.LeftColor = sender Then Begin
+  If (fCursor.LeftColor = sender) And (Not
+    ((fCursor.Tool = tEraser) Or
+    (DarkenButton.Style = bsRaised) Or
+    (BrightenButton.Style = bsRaised))
+    ) Then Begin
     ColorPicDialog.Visible := Not ColorPicDialog.Visible;
     If ColorPicDialog.Visible Then LoadColorDialogColor(sender);
   End
@@ -1610,6 +1645,11 @@ End;
 
 Procedure TPixelEditor.SetLeftColor(Const c: TOpenGL_ColorBox);
 Begin
+  If fCursor.Tool = tEraser Then Begin
+    SelectTool(fCursor.LastTool);
+  End;
+  DarkenButton.Style := bsLowered;
+  BrightenButton.Style := bsLowered;
   ColorPreview.FrontColor := c.Color;
   fCursor.LeftColor := c;
   If c.Color.a = 0 Then Begin

@@ -269,19 +269,21 @@ End;
 { TOpenGL_Bevel }
 
 Procedure TOpenGL_Bevel.OnRender;
+Var
+  p: TPoint;
 Begin
   If Not Visible Then exit;
   Inherited OnRender();
   glBindTexture(GL_TEXTURE_2D, 0);
   glPushMatrix;
-  glTranslatef(Left, Top, 0);
+  glTranslatef(Left, Top, 0.01);
   If (fStyle = bsRaised) Or (fmDown) Then Begin
     glColor3ub(RaisedColor.r, RaisedColor.g, RaisedColor.b);
   End
   Else Begin
     glColor3ub(LoweredColor.r, LoweredColor.g, LoweredColor.b);
   End;
-  glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
+  glLineWidth(max(FOwner.Width / ScreenWidth, FOwner.Height / ScreenHeight) * 2);
   // glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 1); // Debug, zum Ausmessen der Positionen !
   glBegin(GL_LINE_LOOP);
   glVertex2f(0, 1);
@@ -291,6 +293,12 @@ Begin
   glend;
   glLineWidth(1);
   glPopMatrix;
+  If fShowHint And (hint <> '') Then Begin
+    p := fOwner.ScreenToClient(Mouse.CursorPos);
+    p.x := round(p.x * ScreenWidth / fOwner.Width);
+    p.Y := round(p.Y * ScreenHeight / fOwner.Height);
+    RenderHint(p, hint);
+  End;
 End;
 
 Procedure TOpenGL_Bevel.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
@@ -315,6 +323,7 @@ End;
 Constructor TOpenGL_Bevel.Create(Owner: TOpenGLControl);
 Begin
   Inherited Create(Owner);
+  IgnoreDepthtest := false;
   fStyle := bsLowered;
   fmDown := false;
   RaisedColor := RGBA($FF, $FF, 0, 0);
@@ -433,7 +442,7 @@ Begin
   Else Begin
     glColor3ub(LoweredColor.r, LoweredColor.g, LoweredColor.b);
   End;
-
+  glTranslatef(0, 0, 0.01);
   glBegin(GL_LINE_LOOP);
   glVertex2f(0, 1);
   glVertex2f(Width - 1, 1);
@@ -475,6 +484,7 @@ Begin
   fColor := RGBA(0, 0, 0, 0);
   RaisedColor := RGBA($FF, $FF, 0, 0);
   LoweredColor := RGBA(0, 0, 0, 0);
+  IgnoreDepthtest := false;
 End;
 
 { TOpenGL_ForeBackGroundColorBox }
@@ -554,6 +564,7 @@ Begin
   Inherited Create(Owner);
   FrontColor := RGBA(0, 0, 0, 0);
   BackColor := RGBA(1, 1, 1, 0);
+  IgnoreDepthtest := false;
 End;
 
 { TOpenGL_Textbox }
@@ -565,6 +576,8 @@ Begin
 End;
 
 Procedure TOpenGL_Textbox.OnRender;
+var
+  p: TPoint;
 Begin
   If BackColor.a <> 255 Then Begin
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -609,7 +622,7 @@ Begin
   glPushMatrix;
   glTranslatef(Left, Top, 0.01);
   glColor3ub(BorderColor.r, BorderColor.g, BorderColor.b);
-  glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
+  glLineWidth(max(FOwner.Width / ScreenWidth, FOwner.Height / ScreenHeight) * 2);
   // glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 1); // Debug, zum Ausmessen der Positionen !
   glBegin(GL_LINE_LOOP);
   glVertex2f(0, 1);
@@ -619,6 +632,12 @@ Begin
   glend;
   glLineWidth(1);
   glPopMatrix;
+  If fShowHint And (hint <> '') Then Begin
+    p := fOwner.ScreenToClient(Mouse.CursorPos);
+    p.x := round(p.x * ScreenWidth / fOwner.Width);
+    p.Y := round(p.Y * ScreenHeight / fOwner.Height);
+    RenderHint(p, hint);
+  End;
 End;
 
 Constructor TOpenGL_Textbox.Create(Owner: TOpenGLControl; FontFile: String);
@@ -628,6 +647,7 @@ Begin
   Alignment := taLeftJustify;
   BorderColor := RGBA(0, 0, 0, 0);
   BackColor := RGBA(0, 0, 0, 255);
+  IgnoreDepthtest := false;
 End;
 
 { TPlus }
@@ -683,6 +703,7 @@ Begin
   OnUpdate := Nil;
   OnClick := @OnClickEvent;
   OnDblClick := @OnClickEvent;
+  IgnoreDepthtest := false;
 End;
 
 { TMinus }
@@ -774,8 +795,8 @@ Begin
   fGreenPlus.Render();
   fBluePlus.Render();
   fWhitePlus.Render();
-  fOpenButton.Render();
   fSaveAsButton.Render();
+  fOpenButton.Render();
   fResetButton.Render();
 
   // Den kleinen Auswahlzeiger malen ;)
@@ -962,6 +983,7 @@ Constructor TOpenGL_ColorPicDialog.Create(Owner: TOpenGLControl);
 Var
   img: Integer;
 Begin
+  IgnoreDepthtest := false;
   CriticalError := '';
   // Alle Elemente vor dem eigentlichen erstellt werden
   // Das hat 2 Gründe
@@ -1153,6 +1175,7 @@ Begin
   fOpenButton.Alignment := taCenter;
   fOpenButton.BorderColor := rgba(192, 192, 192, 0);
   fOpenButton.BackColor := rgba(128, 128, 128, 0);
+  fOpenButton.Hint := 'Load color palette';
 
   fSaveAsButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
   fSaveAsButton.Caption := 'S';
@@ -1162,6 +1185,7 @@ Begin
   fSaveAsButton.Alignment := taCenter;
   fSaveAsButton.BorderColor := rgba(192, 192, 192, 0);
   fSaveAsButton.BackColor := rgba(128, 128, 128, 0);
+  fSaveAsButton.Hint := 'Store color palette';
 
   fResetButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
   fResetButton.Caption := 'R';
@@ -1172,6 +1196,7 @@ Begin
   fResetButton.BorderColor := rgba(192, 192, 192, 0);
   fResetButton.BackColor := rgba(128, 128, 128, 0);
   fResetButton.OnClick := @OnResetColorClick;
+  fResetButton.Hint := 'Reset to default';
 End;
 
 Destructor TOpenGL_ColorPicDialog.Destroy;

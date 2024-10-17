@@ -35,6 +35,7 @@ Const
   LayerCursor = -0.02;
   LayerFormColor = -0.01;
   LayerLCL = 0.0;
+  LayerLCLHints = 0.5; // Hints stehen über einfach Allem !
 
   ZoomLevels: Array Of integer = (
     100, 500,
@@ -213,9 +214,11 @@ Procedure SetDefaultExtForDialog(Const Dialog: TOpenDialog; ext: String);
 
 Operator Div (p: TPoint; value: Integer): TPoint;
 
+Procedure RenderHint(p: TPoint; Text: String);
+
 Implementation
 
-Uses math;
+Uses dglopengl, math, uOpenGL_ASCII_Font, uvectormath;
 
 Var
   CursorPixelPos: Array[TCursorSize, TCursorShape] Of Array Of TPoint; // Wird im Initialization teil gesetzt, damit da nicht jedesmal bei DoCursorOnPixel berechnet werden muss
@@ -656,6 +659,39 @@ Operator Div (p: TPoint; value: Integer): TPoint;
 Begin
   result.x := p.x Div value;
   result.Y := p.Y Div value;
+End;
+
+Procedure RenderHint(p: TPoint; Text: String);
+Const
+  CurserOffset = 8; // Anzahl an Pixeln die wir den Text Künstlich Verschieben, damit er nicht unter dem Cursor beginnt
+Var
+  w, h: integer;
+Begin
+  glPushMatrix;
+  w := round(OpenGL_ASCII_Font.TextWidth(text));
+  h := round(OpenGL_ASCII_Font.TextHeight(text));
+  If p.x + w + CurserOffset > ScreenWidth Then Begin
+    p.x := p.x - w;
+  End
+  Else Begin
+    p.x := p.x + CurserOffset;
+  End;
+  If p.Y + h > ScreenHeight Then Begin
+    p.y := p.y - h;
+  End;
+  glTranslatef(p.x, p.y, LayerLCLHints);
+  // Der Schwarze Hintergrund hinter dem Text
+  glColor3f(0, 0, 0);
+  glbegin(GL_QUADS);
+  glVertex2f(-2, -2);
+  glVertex2f(w + 2, -2);
+  glVertex2f(w + 2, h + 2);
+  glVertex2f(-2, h + 2);
+  glend;
+  glTranslatef(0, 0, 0.02);
+  OpenGL_ASCII_Font.ColorV3 := v3(1, 1, 1);
+  OpenGL_ASCII_Font.Textout(0, 0, text);
+  glPopMatrix;
 End;
 
 Initialization
