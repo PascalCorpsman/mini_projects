@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uOpenGL_WidgetSet.pas                                           ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.12                                                         *)
+(* Version     : 0.13                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -38,6 +38,7 @@
 (*               0.10 = Fix Textglitch of TOpenGL_Radiobutton                 *)
 (*               0.11 = OnChange für TOpenGL_Radiobutton                      *)
 (*               0.12 = Fix Font colors where not per instance                *)
+(*               0.13 = TOpenGl_BaseClass.Hint                                *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -48,6 +49,7 @@ Unit uopengl_widgetset;
 Interface
 
 Uses
+  ExtCtrls,
   OpenGLContext,
   dglOpenGL,
   uvectormath,
@@ -65,17 +67,34 @@ Uses
   uopengl_font_common,
   ueventer;
 
+Const
+  ShowHintTimeIntervalInMS = 1000; // Time in ms how long the cursor need to stay on the Element that the "fShowHint" flag is set
+
 Type
 
   { TOpenGl_BaseClass }
 
   TOpenGl_BaseClass = Class(TEventerClass) // Die Basisklasse, welche die ganzen Captures und Events Handled, alles im Protected Teil steht zum freien "Override" bereit.
+  private
+    fHintTimer: TTimer;
+    Procedure OnHintTimer(Sender: TObject);
   protected
+    fShowHint: Boolean; // Wenn True, dann muss im OnRender der Hint gezeigt werden..
     Procedure OnRender(); virtual; abstract;
+
+    Procedure MouseEnter(Sender: TObject); override;
+    Procedure MouseLeave(Sender: TObject); override;
   public
     Name: String; // Einfach nur so, wird intern eigentlich nicht benötig.
 
+    Hint: String;
+
+    IgnoreDepthtest: Boolean; // Default = true (Nur für die Abwärtskompatibilität, im Idealfall, sollte hier false sein !)
+
+    OnShowHint: TNotifyEvent;
+
     Constructor Create(Owner: TOpenGLControl); override;
+    Destructor Destroy(); override;
 
     Procedure Render(); // Damit alles Funktionieren kann wie gewünscht muss vorher die Routine WidgetSetGo2d aufgerufen werden !!
   End;
@@ -94,7 +113,7 @@ Type
     Property FontSize: Single read FGetFontSize write FSetFontSize;
   public
     Constructor Create(Owner: TOpenGLControl; FontFile: String); virtual; reintroduce;
-    Destructor destroy; override;
+    Destructor Destroy; override;
   End;
 
   { TOpenGl_Image }
@@ -1178,13 +1197,13 @@ Begin
     glGetFloatv(GL_POINT_SIZE, @ps);
     glPointSize(nw);
     d := glIsEnabled(GL_DEPTH_TEST);
-    If d Then Begin
+    If d And IgnoreDepthtest Then Begin
       glDisable(GL_DEPTH_TEST);
     End;
     ffont.ColorV3 := FontColor;
     ffont.Textout(left, top, Caption);
     glPointSize(ps);
-    If d Then Begin
+    If d And IgnoreDepthtest Then Begin
       glenable(GL_DEPTH_TEST);
     End;
   End;
@@ -1457,7 +1476,7 @@ Begin
   Inherited create(Owner);
 End;
 
-Destructor TOpenGL_BaseFontClass.destroy;
+Destructor TOpenGL_BaseFontClass.Destroy;
 Begin
   If OpenGL_ASCII_Font <> FFont Then Begin
     ffont.free;
@@ -1467,17 +1486,52 @@ End;
 
 { TOpenGL_BaseClass }
 
+Procedure TOpenGl_BaseClass.OnHintTimer(Sender: TObject);
+Begin
+  fHintTimer.Enabled := false;
+  fShowHint := true;
+  If assigned(OnShowHint) Then OnShowHint(self);
+End;
+
+Procedure TOpenGl_BaseClass.MouseEnter(Sender: TObject);
+Begin
+  Inherited MouseEnter(Sender);
+  fHintTimer.Enabled := true;
+End;
+
+Procedure TOpenGl_BaseClass.MouseLeave(Sender: TObject);
+Begin
+  Inherited MouseLeave(Sender);
+  fHintTimer.Enabled := false;
+  fShowHint := false;
+End;
+
 Constructor TOpenGl_BaseClass.Create(Owner: TOpenGLControl);
 Begin
   Inherited create(Owner);
+  Hint := '';
   Name := '';
   Top := 10;
   Left := 10;
   Width := 100;
   Height := 25;
+  fHintTimer := TTimer.Create(Nil);
+  fHintTimer.Enabled := false;
+  fHintTimer.Interval := ShowHintTimeIntervalInMS;
+  fHintTimer.OnTimer := @OnHintTimer;
+  fShowHint := false;
+  OnShowHint := Nil;
+  IgnoreDepthtest := true;
 End;
 
-Procedure TOpenGl_BaseClass.Render();
+Destructor TOpenGl_BaseClass.Destroy;
+Begin
+  fHintTimer.free;
+  fHintTimer := Nil;
+  Inherited Destroy();
+End;
+
+Procedure TOpenGl_BaseClass.Render;
 Var
   l, d: Boolean;
 Begin
@@ -1487,12 +1541,12 @@ Begin
       glDisable(GL_LIGHTING);
     End;
     d := glIsEnabled(GL_DEPTH_TEST);
-    If d Then Begin
+    If d And IgnoreDepthtest Then Begin
       glDisable(GL_DEPTH_TEST);
     End;
     glcolor4f(1, 1, 1, 1);
     OnRender();
-    If d Then Begin
+    If d And IgnoreDepthtest Then Begin
       glenable(GL_DEPTH_TEST);
     End;
     If l Then Begin
