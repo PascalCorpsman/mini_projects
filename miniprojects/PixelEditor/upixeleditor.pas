@@ -355,8 +355,13 @@ Begin
 End;
 
 Procedure TPixelEditor.OnExitButtonClick(Sender: TObject);
+Var
+  s: String;
 Begin
+  s := ExitButton.Hint;
+  ExitButton.Hint := '';
   form1.Close;
+  ExitButton.Hint := s;
 End;
 
 Procedure TPixelEditor.OnGridButtonClick(Sender: TObject);
