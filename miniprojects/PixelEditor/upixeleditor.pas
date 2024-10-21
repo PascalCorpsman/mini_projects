@@ -51,6 +51,8 @@ Const
    *            0.06 - ADD: Support as many image input formats as possible ;)
    *                   ADD: Improve UX, unselect eraser / brighten / Darken when switching color
    *                   ADD: Hints for all buttons
+   *                   FIX: Stackoverflow on huge images while Floodfill operation
+   *                   FIX: Cursorglitch, when select range is outside image
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -1462,7 +1464,7 @@ Begin
       tl.Y := min(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
       br.x := max(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
       br.Y := max(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
-      valid := true;
+      valid := (tl.x <> -1);
     End;
     If fCursor.Select.aSet Then Begin
       // Der Rahmen wurde gezogen, dann steht der natürlich fest ;)

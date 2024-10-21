@@ -93,38 +93,46 @@ Uses
   FPWritePNG, IntfGraphics, LCLType, math
   , dglOpenGL, uopengl_graphikengine
   , uvectormath
+  , ufifo
   ;
 
 Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer;
   Const Image: TImage; Callback: TPixelCallback);
+
+Type
+  TPointFifo = specialize TBufferedFifo < TPoint > ;
 Var
   Visited: Array Of Array Of Boolean;
-
-  Procedure Visit(x, y: integer);
-  Begin
-    If (x < 0) Or (x >= Image.Width) Or
-      (y < 0) Or (y >= image.Height) Or
-      (Visited[x, y]) Then exit;
-    Visited[x, y] := true;
-    If ColorMatch(SourceColor, image.GetColorAt(x, y), Toleranz) Then Begin
-      Callback(x, y);
-      Visit(x + 1, y);
-      Visit(x - 1, y);
-      visit(x, y - 1);
-      visit(x, y + 1);
-    End;
-  End;
+  Fifo: TPointFifo;
 Var
   i, j: Integer;
+  p: TPoint;
 Begin
   Visited := Nil;
+  Fifo := TPointFifo.create(image.Width * image.Height);
   setlength(Visited, Image.Width, Image.Height);
   For i := 0 To Image.Width - 1 Do Begin
     For j := 0 To Image.Height - 1 Do Begin
       Visited[i, j] := false;
     End;
   End;
-  Visit(aPos.X, aPos.y);
+  fifo.Push(point(aPos.X, aPos.y));
+  While Not fifo.isempty Do Begin
+    p := Fifo.Pop;
+    If (p.x >= 0) And (p.x < Image.Width) And
+      (p.y >= 0) And (p.y < image.Height) And
+      (Not Visited[p.x, p.y]) Then Begin
+      Visited[p.x, p.y] := true;
+      If ColorMatch(SourceColor, image.GetColorAt(p.x, p.y), Toleranz) Then Begin
+        Callback(p.x, p.y);
+        fifo.Push(point(p.x + 1, p.y));
+        fifo.Push(point(p.x - 1, p.y));
+        fifo.Push(point(p.x, p.y - 1));
+        fifo.Push(point(p.x, p.y + 1));
+      End;
+    End;
+  End;
+  fifo.free;
 End;
 
 Function InterpolateLinear(c1, c2: TRGBA; f: Single): TRGBA;
