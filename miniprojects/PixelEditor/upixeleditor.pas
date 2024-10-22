@@ -307,6 +307,8 @@ Begin
 End;
 
 Procedure TPixelEditor.OnOpenButtonClick(Sender: TObject);
+Var
+  s: String;
 Begin
   If fImage.Changed Then Begin
     If ID_NO = Application.MessageBox('There are unsaved changes which will get lost. Do you really want to load without saving?', 'Question', MB_YESNO Or MB_ICONQUESTION) Then Begin
@@ -316,10 +318,13 @@ Begin
   If fImage.Filename <> '' Then Begin
     form1.OpenDialog1.InitialDir := ExtractFileDir(fImage.Filename);
   End;
+  s := OpenButton.Hint;
+  OpenButton.Hint := '';
   If Form1.OpenDialog1.Execute Then Begin
     fImage.Clear(); // Sicherstellen dass das Changed Flag zurück gesetzt ist.
     LoadImage(Form1.OpenDialog1.FileName);
   End;
+  OpenButton.Hint := s;
 End;
 
 Procedure TPixelEditor.OnSaveButtonClick(Sender: TObject);
