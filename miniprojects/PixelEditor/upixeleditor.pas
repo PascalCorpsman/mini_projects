@@ -48,11 +48,12 @@ Const
    *                   ADD: more detailes error message
    *                   ADD: more robust image loading during startup
    *                   ADD: Resize to UndoEngine
-   *            0.06 - ADD: Support as many image input formats as possible ;)
+   * -Released- 0.06 - ADD: Support as many image input formats as possible ;)
    *                   ADD: Improve UX, unselect eraser / brighten / Darken when switching color
    *                   ADD: Hints for all buttons
    *                   FIX: Stackoverflow on huge images while Floodfill operation
    *                   FIX: Cursorglitch, when select range is outside image
+   *            0.07 -
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -60,7 +61,7 @@ Const
    * Missing Features:
    *
    *)
-  Version = '0.06';
+  Version = '0.07';
 
   (*
    * History: 1 - Initialversion
