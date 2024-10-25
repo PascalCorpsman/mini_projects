@@ -199,6 +199,7 @@ Function AdjustToMaxAbsValue(P: Tpoint): TPoint;
 Function IfThen(val: boolean; Const iftrue: TBevelStyle; Const iffalse: TBevelStyle): TBevelStyle Inline; overload;
 Function IfThen(val: boolean; Const iftrue: TCursorSize; Const iffalse: TCursorSize): TCursorSize Inline; overload;
 Function IfThen(val: boolean; Const iftrue: TCursorShape; Const iffalse: TCursorShape): TCursorShape Inline; overload;
+Function IfThen(val: boolean; Const iftrue: String; Const iffalse: String): String Inline; overload;
 
 (*
  * True, wenn A und B sich um weniger als Toleranz_in_Percent unterscheiden
@@ -513,6 +514,12 @@ Function IfThen(val: boolean; Const iftrue: TCursorShape;
   Const iffalse: TCursorShape): TCursorShape;
 Begin
   result := specialize ifthen < TCursorShape > (val, iftrue, iffalse);
+End;
+
+Function IfThen(val: boolean; Const iftrue: String; Const iffalse: String
+  ): String;
+Begin
+  result := specialize ifthen < String > (val, iftrue, iffalse);
 End;
 
 Function ColorMatch(Const A, B: TRGBA; Toleranz_in_Percent: Integer): Boolean;

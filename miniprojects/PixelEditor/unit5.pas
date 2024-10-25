@@ -31,16 +31,13 @@ Implementation
 
 {$R *.lfm}
 
+Uses upixeleditor_types;
+
 { TForm5 }
 
 Procedure TForm5.ScrollBar1Change(Sender: TObject);
 Begin
-  If ScrollBar1.Position = 0 Then Begin
-    edit1.text := 'Exakt match';
-  End
-  Else Begin
-    edit1.text := format('%d%%', [ScrollBar1.Position]);
-  End;
+  edit1.text := IfThen(ScrollBar1.Position = 0, 'Exakt match', format('%d%%', [ScrollBar1.Position]));
 End;
 
 Procedure TForm5.FormCreate(Sender: TObject);

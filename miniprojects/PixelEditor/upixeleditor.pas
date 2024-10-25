@@ -53,7 +53,8 @@ Const
    *                   ADD: Hints for all buttons
    *                   FIX: Stackoverflow on huge images while Floodfill operation
    *                   FIX: Cursorglitch, when select range is outside image
-   *            0.07 -
+   *            0.07 - ADD: Refactor Code
+   *                   FIX: font glitch in Color Match dialog
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -1443,12 +1444,7 @@ Begin
     glColor3ub(255, 255, 0);
     If fZoom > 500 Then glLineWidth(2);
     glBegin(GL_LINES);
-    If MirrorCenterButton.style = bsLowered Then Begin
-      off := 0;
-    End
-    Else Begin
-      off := 0.5;
-    End;
+    off := IfThen(MirrorCenterButton.style = bsLowered, 0, 0.5);
     If (Mirror4Button.Style = bsRaised) Or
       (MirrorVertButton.Style = bsRaised) Then Begin
       glVertex2f(fCursor.Origin.X - off, -0.5);
@@ -1492,28 +1488,14 @@ Begin
     // Wenn Der Rahmen steht, dann wird sein Inhalt auch gerendert
     If fCursor.Select.aSet Then Begin
       glPushMatrix;
-      glTranslatef(
-        fCursor.Select.tl.X,
-        fCursor.Select.tl.y,
-        0);
+      glTranslatef(fCursor.Select.tl.X, fCursor.Select.tl.y, 0);
       glPointSize(fZoom / 100);
       For i := 0 To high(fCursor.Select.Data) Do Begin
         For j := 0 To high(fCursor.Select.Data[i]) Do Begin
           If fCursor.Select.Data[i, j] = upixeleditor_types.ColorTransparent Then Begin
             If SelectModeButton.Style = bsLowered Then Begin
               // Wenn der SelectMode so ist das die Transparenz nicht ignoriert wird, muss hier auch das "optische" Feedback gezeigt werden
-              glPointSize(fZoom / 200);
-              glColor3ub(TransparentDarkLuminance, TransparentDarkLuminance, TransparentDarkLuminance);
-              glbegin(GL_POINTS);
-              glVertex2f(i - 0.25, j - 0.25);
-              glVertex2f(i + 0.25, j + 0.25);
-              glend();
-              glColor3ub(TransparentBrightLuminance, TransparentBrightLuminance, TransparentBrightLuminance);
-              glbegin(GL_POINTS);
-              glVertex2f(i + 0.25, j - 0.25);
-              glVertex2f(i - 0.25, j + 0.25);
-              glend();
-              glPointSize(fZoom / 100);
+              RenderTransparentQuad(i - 0.5, j - 0.5, 1, 1);
             End;
           End
           Else Begin
