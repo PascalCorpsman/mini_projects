@@ -55,6 +55,7 @@ Const
    *                   FIX: Cursorglitch, when select range is outside image
    *            0.07 - ADD: Refactor Code
    *                   FIX: font glitch in Color Match dialog
+   *                   FIX: Set change when erasing colors
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -1256,6 +1257,7 @@ Begin
       If aColor <> upixeleditor_types.ColorTransparent Then Begin
         fUndo.RecordPixelChange(i, j, aColor);
         fImage.SetColorAt(i, j, upixeleditor_types.ColorTransparent);
+        Change;
       End;
     End
     Else Begin
@@ -1282,9 +1284,9 @@ Begin
       If aColor <> nColor Then Begin
         fUndo.RecordPixelChange(i, j, aColor);
         fImage.SetColorAt(i, j, nColor);
+        Change;
       End;
     End;
-    Change;
   End;
 End;
 
@@ -1436,7 +1438,7 @@ Begin
     glPointSize(1);
   End;
   (*
-   * Ab hier kommen sachen Die der Cursor gerendert braucht aber keine offiziellen Pixel geschichten sind !
+   * Ab hier kommen sachen Die der Cursor gerendert braucht aber keine offiziellen Pixel Geschichten sind !
    *)
   // Der Mirror Cursor muss noch die "Achsen" einmalen
   If MirrorButton.Style = bsRaised Then Begin
