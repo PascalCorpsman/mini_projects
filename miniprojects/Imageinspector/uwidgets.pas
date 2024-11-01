@@ -50,7 +50,7 @@ Type
     Procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     Procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
   public
-    Constructor Create(Owner: TPaintBox); override;
+    Constructor Create(aOwner: TPaintBox); override;
     Procedure Render; virtual;
   End;
 
@@ -67,7 +67,7 @@ Type
   public
     ReadOnly: Boolean;
     Property Text: String read fText write setText;
-    Constructor Create(Owner: TPaintBox); override;
+    Constructor Create(aOwner: TPaintBox); override;
     Procedure Render; override;
   End;
 
@@ -1711,9 +1711,9 @@ End;
 
 { TTextField }
 
-Constructor TTextField.Create(Owner: TPaintBox);
+Constructor TTextField.Create(aOwner: TPaintBox);
 Begin
-  Inherited Create(Owner);
+  Inherited Create(aOwner);
   Text := '';
   ReadOnly := false;
 End;
@@ -2075,9 +2075,9 @@ End;
 
 { TKnob }
 
-Constructor TKnob.Create(Owner: TPaintBox);
+Constructor TKnob.Create(aOwner: TPaintBox);
 Begin
-  Inherited Create(Owner);
+  Inherited Create(aOwner);
   fParent := Nil;
   FOwner := Owner;
   Width := 10;
