@@ -56,6 +56,7 @@ Const
    *            0.07 - ADD: Refactor Code
    *                   FIX: font glitch in Color Match dialog
    *                   FIX: Set change when erasing colors
+   *                   ADD: Export Selection
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -241,6 +242,7 @@ Type
     Procedure UpdateInfoLabel;
     Procedure LoadSettings;
     Procedure SaveImage(Const aFilename: String);
+    Function SaveTImage(Const Image: TImage; Const aFilename: String): Boolean;
 
     Procedure PasteImageFromClipboard;
     Procedure CopySelectionToClipboard;
@@ -264,6 +266,7 @@ Type
     Procedure LoadImage(Const aFilename: String);
     Procedure Spritify();
     Procedure InvertSelection;
+    Procedure ExportSelection;
     Procedure SelectByColor;
     Procedure InvertColors;
     Procedure ConvertToGrayscale;
@@ -1877,18 +1880,30 @@ Begin
 End;
 
 Procedure TPixelEditor.SaveImage(Const aFilename: String);
+Begin
+  If SaveTImage(fImage, aFileName) Then Begin
+    form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
+    Application.Title := ExtractFileName(aFilename);
+  End;
+End;
+
+Function TPixelEditor.SaveTImage(Const Image: TImage; Const aFilename: String
+  ): Boolean;
 Var
   m: TMemoryStream;
 Begin
+  result := false;
   Case LowerCase(ExtractFileExt(aFilename)) Of
     '.png': Begin
-        fImage.ExportAsPNG(aFilename);
+        Image.ExportAsPNG(aFilename);
+        result := true;
       End;
     '.bmp': Begin
         form4.Shape1.Brush.Color := clFuchsia;
         form4.caption := 'BMP export settings';
         If form4.ShowModal = mrOK Then Begin
-          fImage.ExportAsBMP(aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
+          Image.ExportAsBMP(aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
+          result := true;
         End
         Else Begin
           showmessage('Skip, nothing saved.');
@@ -1905,17 +1920,15 @@ Begin
         m.Write(Color6.Color, sizeof(Color6.Color));
         m.Write(Color7.Color, sizeof(Color7.Color));
         m.Write(Color8.Color, sizeof(Color8.Color));
-        fImage.AppendToPEStream(m, aFilename);
+        Image.AppendToPEStream(m, aFilename);
         m.SaveToFile(aFilename);
         m.free;
+        result := true;
       End;
   Else Begin
       showmessage('Error unknown fileextension "' + ExtractFileExt(aFilename) + '" nothing will be saved.');
-      exit;
     End;
   End;
-  form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
-  Application.Title := ExtractFileName(aFilename);
 End;
 
 Procedure TPixelEditor.LoadImage(Const aFilename: String);
@@ -2072,6 +2085,30 @@ Begin
     fCursor.LeftColor.Color := c;
     fCursor.Tool := tSelect;
     fUndo.PushRecording;
+  End;
+End;
+
+Procedure TPixelEditor.ExportSelection;
+Var
+  img2: TImage;
+  i, j: Integer;
+Begin
+  If Not fCursor.Select.aSet Then Begin
+    showmessage('Error, nothing selected.');
+    exit;
+  End;
+  If form1.SaveDialog1.Execute Then Begin
+    img2 := TImage.Create();
+    img2.SetSize(length(fCursor.Select.Data), length(fCursor.Select.Data[0]));
+    img2.BeginUpdate;
+    For i := 0 To high(fCursor.Select.Data) Do Begin
+      For j := 0 To high(fCursor.Select.Data[i]) Do Begin
+        img2.SetColorAt(i, j, fCursor.Select.Data[i, j]);
+      End;
+    End;
+    img2.EndUpdate;
+    SaveTImage(img2, form1.SaveDialog1.FileName);
+    img2.free;
   End;
 End;
 

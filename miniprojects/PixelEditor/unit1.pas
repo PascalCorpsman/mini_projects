@@ -56,6 +56,7 @@ Type
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
     OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
@@ -65,6 +66,7 @@ Type
     Separator1: TMenuItem;
     Separator2: TMenuItem;
     Separator3: TMenuItem;
+    Separator4: TMenuItem;
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
@@ -76,6 +78,7 @@ Type
     Procedure MenuItem4Click(Sender: TObject);
     Procedure MenuItem5Click(Sender: TObject);
     Procedure MenuItem6Click(Sender: TObject);
+    Procedure MenuItem7Click(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
@@ -244,6 +247,11 @@ End;
 Procedure TForm1.MenuItem6Click(Sender: TObject);
 Begin
   Editor.InvertSelection;
+End;
+
+Procedure TForm1.MenuItem7Click(Sender: TObject);
+Begin
+  Editor.ExportSelection;
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);
