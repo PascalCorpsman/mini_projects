@@ -59,6 +59,7 @@ Const
    *                   ADD: Export Selection
    *                   ADD: Feature show color values as HEX
    *                   FIX: Render glitch when deselecting cursor
+   *                   FIX: infoglitch after options, when switching color representation
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -1810,6 +1811,10 @@ Begin
   fSettings.AutoIncSize := GetValue('AutoIncSize', '1') = '1';
   fsettings.BackGroundTransparentPattern := GetValue('BackGroundTransparentPattern', '1') = '1';
   fsettings.RGBHEXValues := GetValue('RGBHEXValues', '0') = '1';
+  // In Case of change hex vs decimal representation we need to refresh the infolabel
+  If assigned(fCursor.LeftColor) Then Begin
+    SetLeftColor(fCursor.LeftColor);
+  End;
 End;
 
 Procedure TPixelEditor.PasteImageFromClipboard;
