@@ -57,6 +57,7 @@ Type
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
     OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
@@ -79,6 +80,7 @@ Type
     Procedure MenuItem5Click(Sender: TObject);
     Procedure MenuItem6Click(Sender: TObject);
     Procedure MenuItem7Click(Sender: TObject);
+    Procedure MenuItem8Click(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
@@ -252,6 +254,14 @@ End;
 Procedure TForm1.MenuItem7Click(Sender: TObject);
 Begin
   Editor.ExportSelection;
+End;
+
+Procedure TForm1.MenuItem8Click(Sender: TObject);
+Var
+  key: word;
+Begin
+  key := VK_C;
+  OpenGLControl1.OnKeyDown(OpenGLControl1, key, [ssCtrl]);
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);

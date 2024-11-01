@@ -30,6 +30,7 @@ Type
     ColorDialog1: TColorDialog;
     Label1: TLabel;
     Shape1: TShape;
+    Procedure FormCreate(Sender: TObject);
     Procedure Shape1Click(Sender: TObject);
   private
 
@@ -52,6 +53,13 @@ Begin
   If ColorDialog1.Execute Then Begin
     Shape1.Brush.Color := ColorDialog1.Color;
   End;
+End;
+
+Procedure TForm4.FormCreate(Sender: TObject);
+Begin
+  // If you get a compiler error here, your Lazarus version is "too old"
+  // Just uncomment this line and you can use the app without the transparent color select feature for .bmp graphics
+  Shape1.OnClick := @Shape1Click;
 End;
 
 End.

@@ -10,6 +10,7 @@ object Form4: TForm4
   Color = clGray
   Position = poScreenCenter
   LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
   object Button1: TButton
     Left = 8
     Height = 25
@@ -36,7 +37,6 @@ object Form4: TForm4
     Height = 26
     Top = 8
     Width = 26
-    OnClick = Shape1Click
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
