@@ -57,6 +57,8 @@ Const
    *                   FIX: font glitch in Color Match dialog
    *                   FIX: Set change when erasing colors
    *                   ADD: Export Selection
+   *                   ADD: Feature show color values as HEX
+   *                   FIX: Render glitch when deselecting cursor
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -411,6 +413,7 @@ Begin
   End;
   form2.CheckBox2.Checked := fSettings.AutoIncSize;
   form2.CheckBox3.Checked := fSettings.BackGroundTransparentPattern;
+  form2.CheckBox4.Checked := fSettings.RGBHEXValues;
   s := OptionsButton.hint;
   OptionsButton.hint := '';
   form2.ShowModal;
@@ -424,6 +427,7 @@ Begin
   End;
   Setvalue('AutoIncSize', inttostr(ord(Form2.CheckBox2.Checked)));
   Setvalue('BackGroundTransparentPattern', inttostr(ord(Form2.CheckBox3.Checked)));
+  Setvalue('RGBHEXValues', inttostr(ord(Form2.CheckBox4.Checked)));
   LoadSettings;
 End;
 
@@ -662,6 +666,7 @@ Begin
                 PasteSubimageFromSelectionToImage;
                 fCursor.Select.aSet := false;
                 setlength(fCursor.Select.Data, 0, 0);
+                UpdateInfoLabel;
               End;
             End;
           End;
@@ -680,6 +685,7 @@ Begin
           PasteSubimageFromSelectionToImage;
           fCursor.Select.aSet := false;
           setlength(fCursor.Select.Data, 0, 0);
+          UpdateInfoLabel;
         End;
       End;
       If fCursor.Tool = tMirror Then Begin
@@ -778,6 +784,12 @@ Begin
               If Not (((fCursor.Select.br.x - fCursor.Select.tl.X) = 0)
                 And ((fCursor.Select.br.Y - fCursor.Select.tl.Y) = 0)) Then Begin
                 CutSubimageFromImageToSelection();
+              End
+              Else Begin
+                // Wir wählen "nichts" an, also auch die passenden Labels zurücksetzen
+                fCursor.PixelDownPos := point(-1, -1);
+                fCursor.Compact.PixelPos := point(-1, -1);
+                UpdateInfoLabel;
               End;
             End;
           End;
@@ -1064,7 +1076,7 @@ Begin
   If sender = Color6 Then ColorPicDialog.SelectorPos := 5;
   If sender = Color7 Then ColorPicDialog.SelectorPos := 6;
   If sender = Color8 Then ColorPicDialog.SelectorPos := 7;
-  ColorPicDialog.LoadColor(sender As TOpenGL_ColorBox);
+  ColorPicDialog.LoadColor(sender As TOpenGL_ColorBox, fSettings.RGBHEXValues);
 End;
 
 Procedure TPixelEditor.OnColorClick(Sender: TObject);
@@ -1653,7 +1665,7 @@ Begin
   ColorPreview.FrontColor := c.Color;
   fCursor.LeftColor := c;
   If c.Color.a = 0 Then Begin
-    AktColorInfoLabel.caption := format('%d/%d/%d', [c.color.r, c.color.g, c.color.b]);
+    AktColorInfoLabel.caption := RGBAToFormatString(c.Color, fSettings.RGBHEXValues);
   End
   Else Begin
     AktColorInfoLabel.caption := '';
@@ -1665,15 +1677,15 @@ Var
   c: TRGBA;
   tl, br: TPoint;
 Begin
+  InfoDetailLabel.Caption := '';
   If Not CursorIsInImageWindow() Then Begin
     InfoLabel.caption := '';
-    InfoDetailLabel.Caption := '';
   End
   Else Begin
     c := fImage.GetColorAt(fCursor.compact.PixelPos.x, fCursor.compact.PixelPos.y);
     InfoLabel.caption := format('%d,%d', [fCursor.compact.PixelPos.x, fCursor.compact.PixelPos.y]);
     If c.a = 0 Then Begin
-      InfoLabel.caption := InfoLabel.caption + LineEnding + format('%d/%d/%d', [c.r, c.g, c.b]);
+      InfoLabel.caption := InfoLabel.caption + LineEnding + RGBAToFormatString(c, fSettings.RGBHEXValues);
     End;
     Case fCursor.Tool Of
       tSelect: Begin
@@ -1771,6 +1783,7 @@ Begin
   fCursor.LastTool := fCursor.Tool;
   fCursor.Tool := aTool;
   fCursor.Select.aSet := false;
+  UpdateInfoLabel;
 End;
 
 Procedure TPixelEditor.CheckScrollBorders;
@@ -1796,6 +1809,7 @@ Begin
   fSettings.DefaultExt := GetValue('DefaultExt', '.pe');
   fSettings.AutoIncSize := GetValue('AutoIncSize', '1') = '1';
   fsettings.BackGroundTransparentPattern := GetValue('BackGroundTransparentPattern', '1') = '1';
+  fsettings.RGBHEXValues := GetValue('RGBHEXValues', '0') = '1';
 End;
 
 Procedure TPixelEditor.PasteImageFromClipboard;
@@ -2266,6 +2280,7 @@ Begin
   OnMirrorModeButtonClick(MirrorVertButton);
   MirrorCenterButton.Style := bsRaised;
   GridButton.Style := bsRaised;
+  UpdateInfoLabel;
 End;
 
 Procedure TPixelEditor.Render;

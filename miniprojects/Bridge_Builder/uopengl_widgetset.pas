@@ -93,7 +93,7 @@ Type
 
     OnShowHint: TNotifyEvent;
 
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
     Destructor Destroy(); override;
 
     Procedure Render(); // Damit alles Funktionieren kann wie gewünscht muss vorher die Routine WidgetSetGo2d aufgerufen werden !!
@@ -112,7 +112,7 @@ Type
     Property FontColor: TVector3 read fGetFontColor write fSetFontColor;
     Property FontSize: Single read FGetFontSize write FSetFontSize;
   public
-    Constructor Create(Owner: TOpenGLControl; FontFile: String); virtual; reintroduce;
+    Constructor Create(aOwner: TOpenGLControl; FontFile: String); virtual; reintroduce;
     Destructor Destroy; override;
   End;
 
@@ -136,7 +136,7 @@ Type
     Procedure SetImage(Filename: String); overload;
     Procedure SetImage(OpenGLIndex: integer); overload;
 
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
   End;
 
   { TOpenGL_Label }
@@ -153,7 +153,7 @@ Type
     Property Caption: String read fcaption write Setcaption;
     Property FontColor;
     Property FontSize;
-    Constructor Create(Owner: TOpenGLControl; FontFile: String); override;
+    Constructor Create(aOwner: TOpenGLControl; FontFile: String); override;
   End;
 
   { TOpenGL_Button }
@@ -173,7 +173,7 @@ Type
     RenderCaption: Boolean;
     Property OnClick;
 
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
     (*
      * Lädt die 3 Texturen
      * Normal = die die immer angezeigt wird
@@ -238,7 +238,7 @@ Type
     Property Min: integer read FMin write SetMin;
     Property Max: Integer read FMax write SetMax;
     Property Kind: TScrollBarKind read FKind write SetKind;
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
     Destructor Destroy(); override;
   End;
 
@@ -281,7 +281,7 @@ Type
     Property LineColor[index: integer]: TVector3 read fGetLineColor write fSetLineColor;
     Property ItemCount: Integer read getItemCount;
 
-    Constructor create(Owner: TOpenGLControl; FontFile: String); override;
+    Constructor create(aOwner: TOpenGLControl; FontFile: String); override;
     Destructor destroy; override;
 
     Function AddItem(Value: String; Color_: TVector3): integer; overload; // Jede Zeile kann ihre eigene Schriftfarbe haben
@@ -312,7 +312,7 @@ Type
     PassWordChar: Char;
     Property FontColor;
     Property OnKeyPress;
-    Constructor Create(Owner: TOpenGLControl; FontFile: String); override;
+    Constructor Create(aOwner: TOpenGLControl; FontFile: String); override;
   End;
 
   { TOpenGL_Radiobutton }
@@ -338,7 +338,7 @@ Type
     Property Caption: String read fCaption write setCaption;
     Property Checked: Boolean read fChecked write setChecked;
 
-    Constructor Create(Owner: TOpenGLControl; FontFile: String); override;
+    Constructor Create(aOwner: TOpenGLControl; FontFile: String); override;
   End;
 
 Procedure WidgetSetGo2d(Width_2D, Height_2d: Integer);
@@ -396,7 +396,7 @@ End;
 
 { TOpenGL_Scrollbar }
 
-Constructor TOpenGL_Scrollbar.Create(Owner: TOpenGLControl);
+Constructor TOpenGL_Scrollbar.Create(aOwner: TOpenGLControl);
 Begin
   (*
    * Dadurch, dass die Elemente zuerst erstellt werden hat das 2 Vorteile
@@ -688,9 +688,9 @@ End;
 
 { TOpenGL_Image }
 
-Constructor TOpenGl_Image.Create(Owner: TOpenGLControl);
+Constructor TOpenGl_Image.Create(aOwner: TOpenGLControl);
 Begin
-  Inherited Create(Owner);
+  Inherited Create(aOwner);
   Transparent := false;
 End;
 
@@ -768,10 +768,10 @@ End;
 
 { TOpenGL_Listbox }
 
-Constructor TOpenGl_Listbox.create(Owner: TOpenGLControl; FontFile: String);
+Constructor TOpenGl_Listbox.create(aOwner: TOpenGLControl; FontFile: String);
 Begin
-  fScrollbar := TOpenGL_Scrollbar.create(Owner);
-  Inherited Create(Owner, FontFile);
+  fScrollbar := TOpenGL_Scrollbar.create(aOwner);
+  Inherited Create(aOwner, FontFile);
   fScrollbar.OnChange := @OnScrollbarChange;
   FItems := TStringList.Create;
   fScrollbar.top := 0;
@@ -1164,9 +1164,9 @@ Begin
   End;
 End;
 
-Constructor TOpenGl_Button.Create(Owner: TOpenGLControl);
+Constructor TOpenGl_Button.Create(aOwner: TOpenGLControl);
 Begin
-  Inherited Create(Owner);
+  Inherited Create(aOwner);
   RenderCaption := true;
   caption := self.ClassName;
 End;
@@ -1226,17 +1226,17 @@ Begin
   FFontColor := value;
 End;
 
-Constructor TOpenGl_Label.Create(Owner: TOpenGLControl; FontFile: String);
+Constructor TOpenGl_Label.Create(aOwner: TOpenGLControl; FontFile: String);
 Begin
-  Inherited Create(Owner, FontFile);
+  Inherited Create(aOwner, FontFile);
   FFontColor := v3(1, 1, 1);
 End;
 
 { TOPenGL_Edit }
 
-Constructor TOpenGl_Edit.Create(Owner: TOpenGLControl; FontFile: String);
+Constructor TOpenGl_Edit.Create(aOwner: TOpenGLControl; FontFile: String);
 Begin
-  Inherited create(Owner, FontFile);
+  Inherited create(aOwner, FontFile);
   FLastTimeStamp := GetTickCount;
   BorderColor := v3(0.5, 0.5, 0.5);
   Color := v3(0.25, 0.25, 0.25);
@@ -1427,9 +1427,9 @@ Begin
   SetChecked(true);
 End;
 
-Constructor TOpenGL_Radiobutton.Create(Owner: TOpenGLControl; FontFile: String);
+Constructor TOpenGL_Radiobutton.Create(aOwner: TOpenGLControl; FontFile: String);
 Begin
-  Inherited Create(Owner, FontFile);
+  Inherited Create(aOwner, FontFile);
   OnChange := Nil;
   Caption := self.ClassName;
   fChecked := false;
@@ -1460,7 +1460,7 @@ Begin
   FFont.Size := value;
 End;
 
-Constructor TOpenGL_BaseFontClass.create(Owner: TOpenGLControl; FontFile: String
+Constructor TOpenGL_BaseFontClass.create(aOwner: TOpenGLControl; FontFile: String
   );
 Begin
   If (FontFile <> '') And FileExists(FontFile) Then Begin
@@ -1473,7 +1473,7 @@ Begin
     End;
     FFont := OpenGL_ASCII_Font;
   End;
-  Inherited create(Owner);
+  Inherited create(aOwner);
 End;
 
 Destructor TOpenGL_BaseFontClass.Destroy;
@@ -1506,9 +1506,9 @@ Begin
   fShowHint := false;
 End;
 
-Constructor TOpenGl_BaseClass.Create(Owner: TOpenGLControl);
+Constructor TOpenGl_BaseClass.Create(aOwner: TOpenGLControl);
 Begin
-  Inherited create(Owner);
+  Inherited create(aOwner);
   Hint := '';
   Name := '';
   Top := 10;

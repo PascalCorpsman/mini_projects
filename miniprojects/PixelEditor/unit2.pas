@@ -30,6 +30,7 @@ Type
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
+    CheckBox4: TCheckBox;
     ComboBox1: TComboBox;
     Label1: TLabel;
     Procedure FormCreate(Sender: TObject);

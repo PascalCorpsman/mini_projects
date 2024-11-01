@@ -81,4 +81,14 @@ object Form2: TForm2
     ParentFont = False
     TabOrder = 4
   end
+  object CheckBox4: TCheckBox
+    Left = 16
+    Height = 22
+    Top = 156
+    Width = 174
+    Caption = 'Show RGB-Values as HEX'
+    Font.Color = clSilver
+    ParentFont = False
+    TabOrder = 5
+  end
 end

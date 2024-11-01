@@ -45,7 +45,7 @@ Type
 
     Procedure Click; override;
 
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
   End;
 
   { TOpenGL_ToggleButton }
@@ -99,7 +99,7 @@ Type
     Property OnMouseUp;
     Property OnMouseDown;
 
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
   End;
 
   { TOpenGL_ForeBackGroundColorBox }
@@ -111,7 +111,7 @@ Type
   public
     FrontColor: TRGBA;
     BackColor: TRGBA;
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
   End;
 
   TColorBoxEvent = Procedure(Const C: TOpenGL_ColorBox) Of Object;
@@ -127,7 +127,7 @@ Type
     Layout: TTextLayout;
     BorderColor: TRGBA;
     BackColor: TRGBA;
-    Constructor Create(Owner: TOpenGLControl; FontFile: String); override;
+    Constructor Create(aOwner: TOpenGLControl; FontFile: String); override;
   End;
 
   TDelta = Record
@@ -145,7 +145,7 @@ Type
     Target: TOpenGL_ColorBox;
     Delta: TDelta;
     OnUpdate: TColorBoxEvent;
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
   End;
 
   { TMinus }
@@ -195,6 +195,7 @@ Type
 
     fOpenButton: TOpenGL_Textbox;
     fSaveAsButton: TOpenGL_Textbox;
+    fColorAsHex: Boolean;
 
     Procedure OnRender(); override;
     Procedure SetVisible(AValue: Boolean); override;
@@ -217,9 +218,9 @@ Type
 
     Property Shower: TOpenGL_ColorBox read getShower;
 
-    Constructor Create(Owner: TOpenGLControl); override;
+    Constructor Create(aOwner: TOpenGLControl); override;
     Destructor Destroy; override;
-    Procedure LoadColor(aColor: TOpenGL_ColorBox);
+    Procedure LoadColor(aColor: TOpenGL_ColorBox; aColorAsHex: Boolean);
   End;
 
 Procedure RenderTransparentQuad(x, y, w, h: Single);
@@ -320,9 +321,9 @@ Begin
   Inherited Click;
 End;
 
-Constructor TOpenGL_Bevel.Create(Owner: TOpenGLControl);
+Constructor TOpenGL_Bevel.Create(aOwner: TOpenGLControl);
 Begin
-  Inherited Create(Owner);
+  Inherited Create(aOwner);
   IgnoreDepthtest := false;
   fStyle := bsLowered;
   fmDown := false;
@@ -478,9 +479,9 @@ Begin
   result := RaisedColor;
 End;
 
-Constructor TOpenGL_ColorBox.Create(Owner: TOpenGLControl);
+Constructor TOpenGL_ColorBox.Create(aOwner: TOpenGLControl);
 Begin
-  Inherited Create(Owner);
+  Inherited Create(aOwner);
   fColor := RGBA(0, 0, 0, 0);
   RaisedColor := RGBA($FF, $FF, 0, 0);
   LoweredColor := RGBA(0, 0, 0, 0);
@@ -559,9 +560,9 @@ Begin
   glPopMatrix;
 End;
 
-Constructor TOpenGL_ForeBackGroundColorBox.Create(Owner: TOpenGLControl);
+Constructor TOpenGL_ForeBackGroundColorBox.Create(aOwner: TOpenGLControl);
 Begin
-  Inherited Create(Owner);
+  Inherited Create(aOwner);
   FrontColor := RGBA(0, 0, 0, 0);
   BackColor := RGBA(1, 1, 1, 0);
   IgnoreDepthtest := false;
@@ -576,7 +577,7 @@ Begin
 End;
 
 Procedure TOpenGL_Textbox.OnRender;
-var
+Var
   p: TPoint;
 Begin
   If BackColor.a <> 255 Then Begin
@@ -640,9 +641,9 @@ Begin
   End;
 End;
 
-Constructor TOpenGL_Textbox.Create(Owner: TOpenGLControl; FontFile: String);
+Constructor TOpenGL_Textbox.Create(aOwner: TOpenGLControl; FontFile: String);
 Begin
-  Inherited Create(Owner, FontFile);
+  Inherited Create(aOwner, FontFile);
   Layout := tlTop;
   Alignment := taLeftJustify;
   BorderColor := RGBA(0, 0, 0, 0);
@@ -692,9 +693,9 @@ Begin
   End;
 End;
 
-Constructor TPlus.Create(Owner: TOpenGLControl);
+Constructor TPlus.Create(aOwner: TOpenGLControl);
 Begin
-  Inherited Create(Owner);
+  Inherited Create(aOwner);
   Color := RGBA(0, 0, 0, 0);
   Target := Nil;
   Delta.r := 0;
@@ -740,7 +741,7 @@ Begin
   fBlue.Color := ClampAdd(Color, 0, 0, 30);
   fBrighten.Color := ClampAdd(Color, 30, 30, 30);
   fPicColorButton.FontColor := v3(Color.r / 255, Color.g / 255, Color.b / 255);
-  fColorInfo.caption := format('%d/%d/%d', [Color.r, Color.g, Color.b]);
+  fColorInfo.caption := RGBAToFormatString(Color, fColorAsHex);
 End;
 
 Procedure TOpenGL_ColorPicDialog.ApplyColor(Const CB: TOpenGL_ColorBox);
@@ -751,7 +752,7 @@ Begin
   If cb <> fBlue Then fBlue.Color := ClampAdd(cb.Color, 0, 0, 30);
   If cb <> fBrighten Then fBrighten.Color := ClampAdd(cb.Color, 30, 30, 30);
   fPicColorButton.FontColor := v3(cb.Color.r / 255, cb.Color.g / 255, cb.Color.b / 255);
-  fColorInfo.caption := format('%d/%d/%d', [cb.Color.r, cb.Color.g, cb.Color.b]);
+  fColorInfo.caption := RGBAToFormatString(cb.Color, fColorAsHex);
 End;
 
 Function TOpenGL_ColorPicDialog.getShower: TOpenGL_ColorBox;
@@ -938,7 +939,7 @@ Begin
   ApplyColor((sender As TOpenGL_ColorBox));
 End;
 
-Constructor TOpenGL_ColorPicDialog.Create(Owner: TOpenGLControl);
+Constructor TOpenGL_ColorPicDialog.Create(aOwner: TOpenGLControl);
 
   Function LoadAlphaColorGraphik(Const Filename: String): integer;
   Begin
@@ -989,30 +990,30 @@ Begin
   // Das hat 2 Gründe
   // 1. Nur so können sie die OnMouse* Events Capturen
   // 2. Sonst braucht man Nil Prüfungen im SetTop, SetLeft
-  fResetButton := TOpenGL_Textbox.Create(Owner, ''); // Muss vor fColorTable erzeugt werden !
-  fOpenButton := TOpenGL_Textbox.Create(Owner, ''); // Muss vor fColorTable erzeugt werden !
-  fSaveAsButton := TOpenGL_Textbox.Create(Owner, ''); // Muss vor fColorTable erzeugt werden !
-  fColorTable := TOpenGl_Image.Create(Owner);
-  fPicColorButton := TOpenGL_Textbox.Create(Owner, '');
-  fColorInfo := TOpenGl_Label.Create(Owner, '');
-  fBlack := TOpenGL_ColorBox.Create(Owner);
-  fDarken := TOpenGL_ColorBox.Create(Owner);
-  fRed := TOpenGL_ColorBox.Create(Owner);
-  fGreen := TOpenGL_ColorBox.Create(Owner);
-  fBlue := TOpenGL_ColorBox.Create(Owner);
-  fBrighten := TOpenGL_ColorBox.Create(Owner);
-  fWhite := TOpenGL_ColorBox.Create(Owner);
-  fDarkenMinus := TMinus.Create(Owner);
-  fRedMinus := TMinus.Create(Owner);
-  fGreenMinus := TMinus.Create(Owner);
-  fBlueMinus := TMinus.Create(Owner);
-  fWhiteMinus := TMinus.Create(Owner);
-  fDarkenPlus := TPlus.Create(Owner);
-  fRedPlus := TPlus.Create(Owner);
-  fGreenPlus := TPlus.Create(Owner);
-  fBluePlus := TPlus.Create(Owner);
-  fWhitePlus := TPlus.Create(Owner);
-  Inherited Create(Owner);
+  fResetButton := TOpenGL_Textbox.Create(aOwner, ''); // Muss vor fColorTable erzeugt werden !
+  fOpenButton := TOpenGL_Textbox.Create(aOwner, ''); // Muss vor fColorTable erzeugt werden !
+  fSaveAsButton := TOpenGL_Textbox.Create(aOwner, ''); // Muss vor fColorTable erzeugt werden !
+  fColorTable := TOpenGl_Image.Create(aOwner);
+  fPicColorButton := TOpenGL_Textbox.Create(aOwner, '');
+  fColorInfo := TOpenGl_Label.Create(aOwner, '');
+  fBlack := TOpenGL_ColorBox.Create(aOwner);
+  fDarken := TOpenGL_ColorBox.Create(aOwner);
+  fRed := TOpenGL_ColorBox.Create(aOwner);
+  fGreen := TOpenGL_ColorBox.Create(aOwner);
+  fBlue := TOpenGL_ColorBox.Create(aOwner);
+  fBrighten := TOpenGL_ColorBox.Create(aOwner);
+  fWhite := TOpenGL_ColorBox.Create(aOwner);
+  fDarkenMinus := TMinus.Create(aOwner);
+  fRedMinus := TMinus.Create(aOwner);
+  fGreenMinus := TMinus.Create(aOwner);
+  fBlueMinus := TMinus.Create(aOwner);
+  fWhiteMinus := TMinus.Create(aOwner);
+  fDarkenPlus := TPlus.Create(aOwner);
+  fRedPlus := TPlus.Create(aOwner);
+  fGreenPlus := TPlus.Create(aOwner);
+  fBluePlus := TPlus.Create(aOwner);
+  fWhitePlus := TPlus.Create(aOwner);
+  Inherited Create(aOwner);
   Transparent := true;
   img := LoadAlphaColorGraphik('Color_Pic_Dialog.bmp');
   If img = 0 Then exit;
@@ -1252,8 +1253,10 @@ Begin
   Inherited Destroy;
 End;
 
-Procedure TOpenGL_ColorPicDialog.LoadColor(aColor: TOpenGL_ColorBox);
+Procedure TOpenGL_ColorPicDialog.LoadColor(aColor: TOpenGL_ColorBox;
+  aColorAsHex: Boolean);
 Begin
+  fColorAsHex := aColorAsHex;
   fShower := aColor;
   ApplyColor(fShower.Color);
 End;

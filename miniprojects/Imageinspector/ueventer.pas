@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Eventer                                                         09.05.2019 *)
 (*                                                                            *)
-(* Version     : 0.04                                                         *)
+(* Version     : 0.05                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -25,6 +25,7 @@
 (*               0.02 - IterateAllEventClasses                                *)
 (*               0.03 - improve .click detection                              *)
 (*               0.04 - MouseEnter / MouseLeave                               *)
+(*               0.05 - Owner property public                                 *)
 (*                                                                            *)
 (* Known Bugs  : none                                                         *)
 (*                                                                            *)
@@ -148,6 +149,7 @@ Type
     Property OnKeyPress: TKeyPressEvent read fOnKeyPress write FOnKeyPress;
 
   public
+    Property Owner: TOwnerClass read fOwner;
     Property ClientRect: Trect read getClientRect;
 
     Property Left: integer read fLeft write SetLeft;
@@ -160,7 +162,7 @@ Type
 
     Procedure SetFocus(); virtual; // Ist mit vorsicht zu geniesen, aber prinzipiell brauchbar ( Das Problem ist das der Focus evtl. noch auf einem Anderen Element sitzen könnte )
 
-    Constructor Create(Owner: TOwnerClass); virtual;
+    Constructor Create(aOwner: TOwnerClass); virtual;
     Destructor Destroy; override;
   End;
 
@@ -511,10 +513,10 @@ End;
 
 { TEventerClass }
 
-Constructor TEventerClass.Create(Owner: TOwnerClass);
+Constructor TEventerClass.Create(aOwner: TOwnerClass);
 Begin
   Inherited create;
-  fOwner := Owner;
+  fOwner := aOwner;
   fVisible := true;
   fEnabled := true;
   EventerHandler.RegisterEventer(owner, self);

@@ -175,6 +175,7 @@ Type
     DefaultExt: String; // Die Defaut Dateiendung beim Speichern
     AutoIncSize: Boolean; // Wenn true, dann wird das Image automatisch beim Paste / Resize einer Selection "Vergrößert" wenn diese Selection größer ist als das Bild
     BackGroundTransparentPattern: Boolean;
+    RGBHEXValues: Boolean; // If True, all RGB Values will be displayed as HEXvalues
 
     // Hier noch weitere Programmsettings einfügen ;)
 
@@ -216,6 +217,8 @@ Procedure SetDefaultExtForDialog(Const Dialog: TOpenDialog; ext: String);
 Operator Div (p: TPoint; value: Integer): TPoint;
 
 Procedure RenderHint(p: TPoint; Text: String);
+
+Function RGBAToFormatString(Const c: TRGBA; AsHex: Boolean): String;
 
 Implementation
 
@@ -699,6 +702,16 @@ Begin
   OpenGL_ASCII_Font.ColorV3 := v3(1, 1, 1);
   OpenGL_ASCII_Font.Textout(0, 0, text);
   glPopMatrix;
+End;
+
+Function RGBAToFormatString(Const c: TRGBA; AsHex: Boolean): String;
+Begin
+  If AsHex Then Begin
+    result := format('%0.2X/%0.2X/%0.2X', [c.r, c.g, c.b]);
+  End
+  Else Begin
+    result := format('%d/%d/%d', [c.r, c.g, c.b]);
+  End;
 End;
 
 Initialization
