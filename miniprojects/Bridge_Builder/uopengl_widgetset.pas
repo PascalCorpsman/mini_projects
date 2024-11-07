@@ -404,10 +404,10 @@ Begin
    * 2. Im Eventer klauen sie der Komponente die OnMouse* Events -> und sind
    *    damit wie WYSIWYG ;)
    *)
-  fUpButton := TOpenGL_Button.create(Owner);
-  fScrollButton := TOpenGL_Button.create(Owner);
-  fDownButton := TOpenGL_Button.create(Owner);
-  Inherited Create(Owner);
+  fUpButton := TOpenGL_Button.create(aOwner);
+  fScrollButton := TOpenGL_Button.create(aOwner);
+  fDownButton := TOpenGL_Button.create(aOwner);
+  Inherited Create(aOwner);
   fUpButton.OnClick := @OnUpClick;
   fDownButton.OnClick := @OnDownClick;
   FScrollButton.OnMouseDown := @OnScrollMouseDown;

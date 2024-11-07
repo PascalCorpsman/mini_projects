@@ -519,7 +519,7 @@ Begin
   fOwner := aOwner;
   fVisible := true;
   fEnabled := true;
-  EventerHandler.RegisterEventer(owner, self);
+  EventerHandler.RegisterEventer(aowner, self);
   fMouseDown := false;
   fOnMouseEnter := Nil;
   fOnMouseUp := Nil;
