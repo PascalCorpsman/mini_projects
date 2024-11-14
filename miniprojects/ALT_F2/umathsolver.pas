@@ -584,8 +584,12 @@ End;
 
 Function EvalString(Value: String; DetailedIntFormats: Boolean): String;
   Function PrettyHex(V: int64): String;
+  Var
+    tmp: String;
+    dist: String;
   Begin
     result := format('%0.16X', [v]);
+    dist := ' '; // " " wenn die Nibble separiert werden sollen, sonst ""
     If v >= 0 Then Begin
       // Führende 0en löschen
       While (length(result) > 1) And (result[1] = '0') Do Begin
@@ -610,6 +614,15 @@ Function EvalString(Value: String; DetailedIntFormats: Boolean): String;
         5..7: result := AddChar('F', result, 8);
         9..15: result := AddChar('F', result, 16);
       End;
+    End;
+    // Einfügen der "Nibble" Gruppierungen
+    If length(result) > 4 Then Begin
+      tmp := '';
+      While result <> '' Do Begin
+        tmp := tmp + dist + copy(result, 1, 4);
+        delete(result, 1, 4);
+      End;
+      result := trim(tmp);
     End;
     result := '0x' + result;
   End;

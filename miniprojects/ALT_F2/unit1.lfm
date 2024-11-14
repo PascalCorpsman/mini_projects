@@ -8,10 +8,10 @@ object Form1: TForm1
   ClientHeight = 212
   ClientWidth = 491
   FormStyle = fsSystemStayOnTop
+  LCLVersion = '3.99.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow
-  LCLVersion = '2.3.0.0'
   object SpeedButton1: TSpeedButton
     Left = 8
     Height = 22
@@ -282,27 +282,27 @@ object Form1: TForm1
     Top = 40
     Width = 479
     ItemHeight = 32
+    PopupMenu = PopupMenu1
+    ScrollWidth = 477
+    Style = lbOwnerDrawFixed
+    TabOrder = 0
     OnDblClick = ListBox1DblClick
     OnDrawItem = ListBox1DrawItem
     OnKeyPress = ListBox1KeyPress
     OnKeyUp = ListBox1KeyUp
     OnMouseUp = ListBox1MouseUp
-    PopupMenu = PopupMenu1
-    ScrollWidth = 477
-    Style = lbOwnerDrawFixed
-    TabOrder = 0
   end
   object Edit1: TEdit
     Left = 72
     Height = 23
     Top = 8
     Width = 344
-    OnKeyDown = Edit1KeyDown
-    OnKeyPress = Edit1KeyPress
-    OnKeyUp = Edit1KeyUp
     PopupMenu = PopupMenu2
     TabOrder = 1
     Text = 'Edit1'
+    OnKeyDown = Edit1KeyDown
+    OnKeyPress = Edit1KeyPress
+    OnKeyUp = Edit1KeyUp
   end
   object ImageList1: TImageList
     BkColor = clFuchsia

@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* ALT_F2                                                          ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.48                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -94,6 +94,7 @@
 (*               0.45 - Fix Bug, did not close when press "ESC"               *)
 (*               0.46 - Tanh                                                  *)
 (*               0.47 - Bessere Fehlermeldung in "Open Program folder"        *)
+(*               0.48 - Hex Zahlen ebenfalls mit Nibbletrenner schreiben      *)
 (*                                                                            *)
 (* Feature Request:     Ein "freifeld" mit dem man Infos zur Anwendung mit    *)
 (*                      ablegen kann ??                                       *)
@@ -119,7 +120,7 @@ Uses
   umathsolver, UniqueInstance, math, Clipbrd;
 
 Const
-  ALT_F2_Version = '0.47';
+  ALT_F2_Version = '0.48';
 
 Type
 
@@ -487,7 +488,8 @@ Begin
   s := TryEvalString(copy(Edit1.Text, 2, length(Edit1.Text)), Ini_File.ReadBool('General', 'ShowDetailedIntValues', false));
   If pos('(', s) <> 0 Then Begin
     s := copy(s, pos('(', s) + 1, length(s));
-    s := copy(s, 1, pos(' ', s) - 1);
+    s := copy(s, 1, pos('%', s) - 1);
+    s := StringReplace(s, ' ', '', [rfReplaceAll]);
     Clipboard.AsText := s;
   End
   Else Begin
@@ -503,8 +505,9 @@ Begin
   s := TryEvalString(copy(Edit1.Text, 2, length(Edit1.Text)), Ini_File.ReadBool('General', 'ShowDetailedIntValues', false));
   If pos('(', s) <> 0 Then Begin
     s := copy(s, pos('(', s) + 1, length(s));
-    s := copy(s, pos(' ', s) + 1, length(s));
+    s := copy(s, pos('%', s) + 1, length(s));
     s := copy(s, 1, pos(')', s) - 1);
+    s := StringReplace(s, ' ', '', [rfReplaceAll]);
     Clipboard.AsText := s;
   End
   Else Begin
