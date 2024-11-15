@@ -53,13 +53,16 @@ Const
    *                   ADD: Hints for all buttons
    *                   FIX: Stackoverflow on huge images while Floodfill operation
    *                   FIX: Cursorglitch, when select range is outside image
-   *            0.07 - ADD: Refactor Code
+   * -Released- 0.07 - ADD: Refactor Code
    *                   FIX: font glitch in Color Match dialog
    *                   FIX: Set change when erasing colors
    *                   ADD: Export Selection
    *                   ADD: Feature show color values as HEX
    *                   FIX: Render glitch when deselecting cursor
    *                   FIX: infoglitch after options, when switching color representation
+   *                   FIX: Crash on SaveAs, when image selection is active
+   *                   FIX: Render glitch when saving
+   *            0.08 -
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -340,21 +343,27 @@ Procedure TPixelEditor.OnSaveButtonClick(Sender: TObject);
 Var
   s: String;
 Begin
+  s := SaveButton.Hint;
+  SaveButton.Hint := '';
   If fImage.Filename = '' Then Begin
     OnSaveAsButtonClick(SaveAsButton);
   End
   Else Begin
-    s := SaveButton.hint;
-    SaveButton.hint := '';
     SaveImage(fImage.Filename);
-    SaveButton.hint := s;
   End;
+  SaveButton.Hint := s;
 End;
 
 Procedure TPixelEditor.OnSaveAsButtonClick(Sender: TObject);
 Var
   s: String;
+  KEY: Word;
 Begin
+  // Abwahl der Aktuellen Selection, sonst geht das in die Hose ...
+  If fCursor.Select.aSet And (fCursor.Tool = tSelect) Then Begin
+    key := VK_ESCAPE;
+    OpenGLControlKeyDown(FOwner, KEY, []);
+  End;
   s := SaveAsButton.Hint;
   SaveAsButton.Hint := '';
   If fImage.Filename <> '' Then Begin
