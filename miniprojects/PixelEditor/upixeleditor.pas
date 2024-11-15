@@ -70,7 +70,7 @@ Const
    * Missing Features:
    *
    *)
-  Version = '0.07';
+  Version = '0.08';
 
   (*
    * History: 1 - Initialversion
