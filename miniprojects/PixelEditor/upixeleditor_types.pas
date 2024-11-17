@@ -142,7 +142,7 @@ Type
   TSelectData = Record
     aSet: Boolean; // Wenn True, dann wurde auch etwas "ausgewählt"
     tl, br: TPoint;
-    Data: TPixelArea;
+    Data: TObject; // ist eigentlich TPixelImage aber das geht nicht sonst müsste TPixelImage in dieser Unit definiert sein ..
     DownPos: TPoint;
   End;
 

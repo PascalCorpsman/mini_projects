@@ -76,16 +76,8 @@ Type
     Procedure RotateCounterClockwise90;
     Procedure LeftRight;
     Procedure Rotate(Angle: Single; ScaleMode: TScaleMode);
+    Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Callback: TPixelCallback);
   End;
-
-Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Const Image: TPixelImage; Callback: TPixelCallback);
-
-Procedure RescalePixelArea(Var Data: TPixelArea; NewWidth, NewHeight: Integer; ScaleMode: TScaleMode);
-Procedure RotatePixelAreaCounterClockwise90(Var Data: TPixelArea);
-Procedure UpsideDownPixelArea(Var Data: TPixelArea);
-Procedure LeftRightPixelArea(Var Data: TPixelArea);
-
-Procedure RotatePixelArea(Var Data: TPixelArea; Angle: Single; ScaleMode: TScaleMode);
 
 Implementation
 
@@ -96,8 +88,8 @@ Uses
   , ufifo
   ;
 
-Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer;
-  Const Image: TPixelImage; Callback: TPixelCallback);
+Procedure TPixelImage.FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer;
+  Callback: TPixelCallback);
 
 Type
   TPointFifo = specialize TBufferedFifo < TPoint > ;
@@ -108,22 +100,23 @@ Var
   i, j: Integer;
   p: TPoint;
 Begin
+  BeginUpdate;
   Visited := Nil;
-  Fifo := TPointFifo.create(image.Width * image.Height);
-  setlength(Visited, Image.Width, Image.Height);
-  For i := 0 To Image.Width - 1 Do Begin
-    For j := 0 To Image.Height - 1 Do Begin
+  Fifo := TPointFifo.create(Width * Height);
+  setlength(Visited, Width, Height);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
       Visited[i, j] := false;
     End;
   End;
   fifo.Push(point(aPos.X, aPos.y));
   While Not fifo.isempty Do Begin
     p := Fifo.Pop;
-    If (p.x >= 0) And (p.x < Image.Width) And
-      (p.y >= 0) And (p.y < image.Height) And
+    If (p.x >= 0) And (p.x < Width) And
+      (p.y >= 0) And (p.y < Height) And
       (Not Visited[p.x, p.y]) Then Begin
       Visited[p.x, p.y] := true;
-      If ColorMatch(SourceColor, image.GetColorAt(p.x, p.y), Toleranz) Then Begin
+      If ColorMatch(SourceColor, GetColorAt(p.x, p.y), Toleranz) Then Begin
         Callback(p.x, p.y);
         fifo.Push(point(p.x + 1, p.y));
         fifo.Push(point(p.x - 1, p.y));
@@ -133,9 +126,10 @@ Begin
     End;
   End;
   fifo.free;
+  EndUpdate;
 End;
 
-Function InterpolateLinear(c1, c2: TRGBA; f: Single): TRGBA;
+Function InterpolateLinear(c1, c2: TRGBA; f: Single): TRGBA; // TODO: in TPixelImage integrieren
 Var
   r, g, b, r1, r2, g1, g2, b1, b2: integer;
 Begin
@@ -175,7 +169,7 @@ Begin
   result.A := 0;
 End;
 
-Function GetPixel(Const Source: TPixelArea; x, y: Single; ScaleMode: TScaleMode): TRGBA;
+Function GetPixel(Const Source: TPixelArea; x, y: Single; ScaleMode: TScaleMode): TRGBA; // TODO: in TPixelImage integrieren
 Var
   xi, yi, i: Integer;
   fx, fy: Single;
@@ -219,7 +213,7 @@ Begin
 End;
 
 Procedure RescalePixelArea(Var Data: TPixelArea; NewWidth, NewHeight: Integer;
-  ScaleMode: TScaleMode);
+  ScaleMode: TScaleMode); // TODO: in TPixelImage integrieren
 Var
   tmp: TPixelArea;
   w, h: integer;
@@ -251,7 +245,7 @@ Begin
   End;
 End;
 
-Procedure RotatePixelAreaCounterClockwise90(Var Data: TPixelArea);
+Procedure RotatePixelAreaCounterClockwise90(Var Data: TPixelArea); // TODO: in TPixelImage integrieren
 Var
   tmp: TPixelArea;
   i, j: Integer;
@@ -266,21 +260,7 @@ Begin
   End;
 End;
 
-Procedure UpsideDownPixelArea(Var Data: TPixelArea);
-Var
-  i, j: Integer;
-  c: TRGBA;
-Begin
-  For i := 0 To high(Data) Do Begin
-    For j := 0 To high(Data[0]) Div 2 Do Begin
-      c := data[i, j];
-      data[i, j] := data[i, high(data[0]) - j];
-      data[i, high(data[0]) - j] := c;
-    End;
-  End;
-End;
-
-Procedure LeftRightPixelArea(Var Data: TPixelArea);
+Procedure LeftRightPixelArea(Var Data: TPixelArea); // TODO: in TPixelImage integrieren
 Var
   i, j: Integer;
   c: TRGBA;
@@ -295,7 +275,7 @@ Begin
 End;
 
 Procedure RotatePixelArea(Var Data: TPixelArea; Angle: Single;
-  ScaleMode: TScaleMode);
+  ScaleMode: TScaleMode); // TODO: in TPixelImage integrieren
 Var
   im3, m3: TMatrix3x3;
 
@@ -773,6 +753,7 @@ Procedure TPixelImage.UpsideDown;
 Var
   a: TPixelArea;
   i, j: integer;
+  c: TRGBA;
 Begin
   a := Nil;
   setlength(a, width, height);
@@ -781,7 +762,13 @@ Begin
       a[i, j] := fPixels[i, j];
     End;
   End;
-  UpsideDownPixelArea(a);
+  For i := 0 To high(a) Do Begin
+    For j := 0 To high(a[0]) Div 2 Do Begin
+      c := a[i, j];
+      a[i, j] := a[i, high(a[0]) - j];
+      a[i, high(a[0]) - j] := c;
+    End;
+  End;
   BeginUpdate;
   For i := 0 To Width - 1 Do Begin
     For j := 0 To Height - 1 Do Begin
