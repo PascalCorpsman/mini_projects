@@ -19,7 +19,7 @@ Unit uundo;
 Interface
 
 Uses
-  Classes, SysUtils, ugraphics, uimage, upixeleditor_types;
+  Classes, SysUtils, ugraphics, upixelimage, upixeleditor_types;
 
 Const
   RecordChunkSize = 1024;
@@ -64,7 +64,7 @@ Type
     Procedure StartNewRecording;
 
     Procedure RecordPixelChange(x, y: integer; from: TRGBA); // Zeichnet eine Pixeländerung auf
-    Procedure RecordSizeChange(NewHeight, NewWidth: Integer; ScaleMode: TScaleMode; Const Image: TImage);
+    Procedure RecordSizeChange(NewHeight, NewWidth: Integer; ScaleMode: TScaleMode; Const Image: TPixelImage);
 
     (*
      * Beendet eine Aufzeichnung und legt diese auf dem Stack ab
@@ -74,7 +74,7 @@ Type
     (*
      * Wendet die zuletzt pegushte Aufzeichnung auf Image an und löscht das oberste Element
      *)
-    Procedure PopRecording(Const image: TImage);
+    Procedure PopRecording(Const image: TPixelImage);
   End;
 
 Implementation
@@ -138,7 +138,7 @@ Begin
 End;
 
 Procedure TUndoEngine.RecordSizeChange(NewHeight, NewWidth: Integer;
-  ScaleMode: TScaleMode; Const Image: TImage);
+  ScaleMode: TScaleMode; Const Image: TPixelImage);
 Var
   i, j: Integer;
   c: TRGBA;
@@ -210,7 +210,7 @@ Begin
   End;
 End;
 
-Procedure TUndoEngine.PopRecording(Const image: TImage);
+Procedure TUndoEngine.PopRecording(Const image: TPixelImage);
 Var
   i: Integer;
 Begin

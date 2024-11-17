@@ -20,7 +20,7 @@ Interface
 
 Uses
   Graphics, Classes, SysUtils, Controls, OpenGLContext, uopengl_widgetset, upixeleditorlcl,
-  ExtCtrls, uimage, ugraphics, upixeleditor_types, uundo;
+  ExtCtrls, upixelimage, ugraphics, upixeleditor_types, uundo;
 
 Const
   (*
@@ -62,7 +62,7 @@ Const
    *                   FIX: infoglitch after options, when switching color representation
    *                   FIX: Crash on SaveAs, when image selection is active
    *                   FIX: Render glitch when saving
-   *            0.08 -
+   *            0.08 - ADD: Refactor Timage -> TPixelImage
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -98,7 +98,7 @@ Type
     FOwner: TOpenGLControl;
     fScrollInfo: TScrollInfo;
     fZoom: integer; // Akruelle Zoomstufe in %
-    fImage: TImage; // Das Object um das es hier eigentlich geht ;)
+    fImage: TPixelImage; // Das Object um das es hier eigentlich geht ;)
     fUndo: TUndoEngine;
 
     FElements: Array Of TOpenGL_BaseClass;
@@ -248,7 +248,7 @@ Type
     Procedure UpdateInfoLabel;
     Procedure LoadSettings;
     Procedure SaveImage(Const aFilename: String);
-    Function SaveTImage(Const Image: TImage; Const aFilename: String): Boolean;
+    Function SaveTImage(Const Image: TPixelImage; Const aFilename: String): Boolean;
 
     Procedure PasteImageFromClipboard;
     Procedure CopySelectionToClipboard;
@@ -1262,7 +1262,7 @@ Begin
     End;
   End;
   If FloodFillButton.Style = bsRaised Then Begin
-    uimage.FloodFill(
+    upixelimage.FloodFill(
       fImage.GetColorAt(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
       point(fCursor.Compact.PixelPos.X, fCursor.Compact.PixelPos.y),
       fCursor.ColorToleranz,
@@ -1915,7 +1915,7 @@ Begin
   End;
 End;
 
-Function TPixelEditor.SaveTImage(Const Image: TImage; Const aFilename: String
+Function TPixelEditor.SaveTImage(Const Image: TPixelImage; Const aFilename: String
   ): Boolean;
 Var
   m: TMemoryStream;
@@ -2118,7 +2118,7 @@ End;
 
 Procedure TPixelEditor.ExportSelection;
 Var
-  img2: TImage;
+  img2: TPixelImage;
   i, j: Integer;
 Begin
   If Not fCursor.Select.aSet Then Begin
@@ -2126,7 +2126,7 @@ Begin
     exit;
   End;
   If form1.SaveDialog1.Execute Then Begin
-    img2 := TImage.Create();
+    img2 := TPixelImage.Create();
     img2.SetSize(length(fCursor.Select.Data), length(fCursor.Select.Data[0]));
     img2.BeginUpdate;
     For i := 0 To high(fCursor.Select.Data) Do Begin
@@ -2216,7 +2216,7 @@ Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
   fCriticalError := '';
-  fImage := TImage.Create();
+  fImage := TPixelImage.Create();
   fUndo := TUndoEngine.Create();
 End;
 

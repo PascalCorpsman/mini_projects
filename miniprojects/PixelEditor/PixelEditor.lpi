@@ -114,7 +114,7 @@
         <IsPartOfProject Value="True"/>
       </Unit15>
       <Unit16>
-        <Filename Value="uimage.pas"/>
+        <Filename Value="upixelimage.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit16>
       <Unit17>
