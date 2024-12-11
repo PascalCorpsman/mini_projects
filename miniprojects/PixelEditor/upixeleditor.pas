@@ -62,9 +62,10 @@ Const
    *                   FIX: infoglitch after options, when switching color representation
    *                   FIX: Crash on SaveAs, when image selection is active
    *                   FIX: Render glitch when saving
-   *            0.08 - ADD: Refactor Timage -> TPixelImage
+   * -Released- 0.08 - ADD: Refactor Timage -> TPixelImage
    *                   FIX: Move Selected Image into "TPixelImage" Datastructure -> Das hilft wenn sehr Große Bildbereiche Selektiert werden !
    *                   FIX: Crash when copy whole image to clipboard
+   *            0.09 -
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -72,7 +73,7 @@ Const
    * Missing Features:
    *
    *)
-  Version = '0.08';
+  Version = '0.09';
 
   (*
    * History: 1 - Initialversion

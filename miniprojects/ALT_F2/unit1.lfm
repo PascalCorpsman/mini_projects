@@ -8,7 +8,7 @@ object Form1: TForm1
   ClientHeight = 212
   ClientWidth = 491
   FormStyle = fsSystemStayOnTop
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow
@@ -286,6 +286,7 @@ object Form1: TForm1
     ScrollWidth = 477
     Style = lbOwnerDrawFixed
     TabOrder = 0
+    TopIndex = -1
     OnDblClick = ListBox1DblClick
     OnDrawItem = ListBox1DrawItem
     OnKeyPress = ListBox1KeyPress
@@ -294,7 +295,7 @@ object Form1: TForm1
   end
   object Edit1: TEdit
     Left = 72
-    Height = 23
+    Height = 26
     Top = 8
     Width = 344
     PopupMenu = PopupMenu2
