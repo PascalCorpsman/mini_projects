@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* umathsolver.pas                                                 ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.08                                                         *)
+(* Version     : 0.09                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -31,6 +31,7 @@
 (*               0.06 - =, <>                                                 *)
 (*               0.07 - Formatieren von Binärzahlen Nibble weise              *)
 (*               0.08 - trunc, floor repariert                                *)
+(*               0.09 - a^b für a < 0 und b ganzzahlig                        *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -540,15 +541,58 @@ End;
 
 Function Pow_Float(v1, v2: Pointer): Pointer;
 Var
+  tmp, tmp2: mp_float;
+  tmpi: mp_int;
   res: pmp_float;
 Begin
+  (*
+   * Für a^b gibt es verschiendene Fälle
+   *
+   * a > 0: res := a^b;
+   *
+   * a = 0: res := 0;
+   *
+   * a < 0:
+   *     if ganzzahlig(b) then begin
+   *       if b mod 2 = 0 then begin
+   *         res := abs(a)^b;
+   *       end else begin
+   *         res := -(abs(a)^b);
+   *       end;
+   *     end else begin
+   *       res := 0;
+   *     end;
+   *
+   *)
   new(res);
   mpf_init(res^);
-  If (s_mpf_is_ge0(pmp_float(v1)^) And (Not s_mpf_is0(pmp_float(v1)^))) Then Begin
-    mpf_expt(pmp_float(v1)^, pmp_float(v2)^, res^);
+  If s_mpf_is0(pmp_float(v1)^) Then Begin
+    mpf_set0(res^);
   End
   Else Begin
-    mpf_set0(res^);
+    If s_mpf_is_ge0(pmp_float(v1)^) Then Begin
+      mpf_expt(pmp_float(v1)^, pmp_float(v2)^, res^);
+    End
+    Else Begin
+      mpf_init(tmp2);
+      mpf_int(pmp_float(v2)^, tmp2);
+      If mpf_is_eq(pmp_float(v2)^, tmp2) Then Begin
+        mpf_init(tmp);
+        mpf_abs(pmp_float(v1)^, tmp);
+        mpf_expt(tmp, pmp_float(v2)^, res^);
+        mp_init(tmpi);
+        mpf_trunc(tmp2, tmpi);
+        If mp_isodd(tmpi) Then Begin
+          mpf_chs(res^, res^);
+        End;
+        mp_clear(tmpi);
+        mpf_clear(tmp);
+      End
+      Else Begin
+        mpf_set0(res^);
+      End;
+      mpf_clear(tmp2);
+    End;
   End;
   result := res;
 End;
