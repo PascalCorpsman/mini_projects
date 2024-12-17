@@ -21,7 +21,7 @@ Uses
   cthreads,
 {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, Unit1, uopengl_font_common;
+  Forms, Unit1, dglOpenGL;
 
 {$R *.res}
 
