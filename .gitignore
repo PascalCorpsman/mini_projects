@@ -2,6 +2,7 @@ use/*/
 **/backup/
 src/lib/
 *.res
+*.lps
 *.compiled
 *.o
 *.so

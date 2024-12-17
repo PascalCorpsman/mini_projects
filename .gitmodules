@@ -1,3 +1,6 @@
 [submodule "use/dglOpenGL"]
 	path = use/dglOpenGL
 	url = https://github.com/SaschaWillems/dglOpenGL.git
+[submodule "use/MPArith"]
+	path = use/MPArith
+	url = git@github.com:JulStrat/MPArith.git
