@@ -1,2 +1,5 @@
 UniqueInstance
 Synapse40.1
+LNet
+EpikTimer
+TurboPowerIPro

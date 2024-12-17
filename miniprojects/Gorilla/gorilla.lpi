@@ -13,8 +13,71 @@
       <Language Value=""/>
       <CharSet Value=""/>
     </VersionInfo>
-    <BuildModes Count="1">
+    <BuildModes Count="3" Active="Debug">
       <Item1 Name="default" Default="True"/>
+      <Item2 Name="Debug">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;/home/corpsman/lazarus/components/images/;../../use/dglOpenGL"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;/home/corpsman/lazarus/components/images/;../../use/dglOpenGL"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <RunWithoutDebug Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item3>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -43,7 +106,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="27">
+    <Units Count="28">
       <Unit0>
         <Filename Value="gorilla.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -76,13 +139,11 @@
         <UsageCount Value="91"/>
       </Unit3>
       <Unit4>
-        <Filename Value="/home/corpsman/lazarus/components/images/lazpng.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/components/images/lazpng.pas"/>
         <UsageCount Value="86"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit4>
       <Unit5>
         <Filename Value="../../Graphik/ugraphics.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="10"/>
         <UsageCount Value="20"/>
@@ -94,7 +155,6 @@
       </Unit6>
       <Unit7>
         <Filename Value="../../DatenSteuerung/uvectormath.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="21"/>
       </Unit7>
@@ -103,8 +163,8 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="34"/>
-        <CursorPos X="142" Y="56"/>
+        <TopLine Value="44"/>
+        <CursorPos X="89" Y="56"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
@@ -119,7 +179,7 @@
         <Loaded Value="True"/>
       </Unit8>
       <Unit9>
-        <Filename Value="/home/corpsman/lazarus/lcl/graphics.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/graphics.pp"/>
         <UnitName Value="Graphics"/>
         <WindowIndex Value="1"/>
         <TopLine Value="231"/>
@@ -127,7 +187,7 @@
         <UsageCount Value="11"/>
       </Unit9>
       <Unit10>
-        <Filename Value="/home/corpsman/lazarus/lcl/lcltype.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/lcltype.pp"/>
         <UnitName Value="LCLType"/>
         <TopLine Value="562"/>
         <CursorPos X="16" Y="585"/>
@@ -151,10 +211,9 @@
         <CursorPos Y="15"/>
         <UsageCount Value="56"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit12>
       <Unit13>
-        <Filename Value="/home/corpsman/lazarus/components/lnet/lib/lnet.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/components/lnet/lib/lnet.pp"/>
         <UnitName Value="lNet"/>
         <TopLine Value="631"/>
         <CursorPos Y="648"/>
@@ -177,7 +236,6 @@
         <CursorPos Y="15"/>
         <UsageCount Value="41"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit15>
       <Unit16>
         <Filename Value="/usr/share/fpcsrc/2.4.4/rtl/inc/systemh.inc"/>
@@ -221,7 +279,7 @@
         <UsageCount Value="21"/>
       </Unit21>
       <Unit22>
-        <Filename Value="/home/corpsman/lazarus/components/opengl/openglcontext.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/components/opengl/openglcontext.pas"/>
         <UnitName Value="OpenGLContext"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="162"/>
@@ -230,7 +288,6 @@
       </Unit22>
       <Unit23>
         <Filename Value="../uopengl_ascii_font.pas"/>
-        <IsPartOfProject Value="True"/>
         <UnitName Value="uOpenGL_ASCII_Font"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="19" Y="5"/>
@@ -238,23 +295,29 @@
       </Unit23>
       <Unit24>
         <Filename Value="../uopengl_ascii_font.ressource"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="21"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit24>
       <Unit25>
         <Filename Value="../uopengl_graphikengine.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="21"/>
       </Unit25>
       <Unit26>
         <Filename Value="../uopengl_font_common.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
       </Unit26>
+      <Unit27>
+        <Filename Value="../../use/dglOpenGL/dglOpenGL.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit27>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
@@ -383,7 +446,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL;/home/corpsman/lazarus/components/images;../../Graphik;../../DatenSteuerung;.."/>
+      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;/home/corpsman/lazarus/components/images/;../../use/dglOpenGL"/>
     </SearchPaths>
     <Linking>
       <Options>
