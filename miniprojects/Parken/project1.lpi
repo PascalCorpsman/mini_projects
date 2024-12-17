@@ -16,8 +16,79 @@
       <Language Value=""/>
       <CharSet Value=""/>
     </VersionInfo>
-    <BuildModes Count="1">
+    <BuildModes Count="3" Active="Debug">
       <Item1 Name="default" Default="True"/>
+      <Item2 Name="Debug">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="project1"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/;/sda5/sda5/Tools/Projects/Sample/Graphik/;../../DatenSteuerung;../../use/dglOpenGL"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="project1"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/;/sda5/sda5/Tools/Projects/Sample/Graphik/;../../DatenSteuerung"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <RunWithoutDebug Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item3>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -83,7 +154,7 @@
         <UsageCount Value="52"/>
       </Unit3>
       <Unit4>
-        <Filename Value="/home/corpsman/lazarus/lcl/controls.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/controls.pp"/>
         <UnitName Value="Controls"/>
         <TopLine Value="2355"/>
         <CursorPos X="32" Y="2363"/>
@@ -96,13 +167,13 @@
         <UsageCount Value="8"/>
       </Unit5>
       <Unit6>
-        <Filename Value="/home/corpsman/lazarus/lcl/include/winapih.inc"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/include/winapih.inc"/>
         <TopLine Value="120"/>
         <CursorPos X="10" Y="133"/>
         <UsageCount Value="8"/>
       </Unit6>
       <Unit7>
-        <Filename Value="/home/corpsman/lazarus/lcl/lcltype.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/lcltype.pp"/>
         <UnitName Value="LCLType"/>
         <TopLine Value="527"/>
         <CursorPos X="3" Y="423"/>
@@ -150,7 +221,7 @@
         <UsageCount Value="45"/>
       </Unit12>
       <Unit13>
-        <Filename Value="/home/corpsman/lazarus/lcl/graphics.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/graphics.pp"/>
         <UnitName Value="Graphics"/>
         <TopLine Value="2399"/>
         <CursorPos X="3" Y="2401"/>
@@ -167,7 +238,7 @@
         <UsageCount Value="34"/>
       </Unit14>
       <Unit15>
-        <Filename Value="/home/corpsman/lazarus/components/opengl/openglcontext.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/components/opengl/openglcontext.pas"/>
         <UnitName Value="OpenGLContext"/>
         <TopLine Value="375"/>
         <CursorPos Y="390"/>
@@ -194,7 +265,7 @@
         <UsageCount Value="30"/>
       </Unit17>
       <Unit18>
-        <Filename Value="/home/corpsman/lazarus/lcl/fileutil.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/fileutil.pas"/>
         <UnitName Value="FileUtil"/>
         <TopLine Value="175"/>
         <CursorPos X="10" Y="189"/>
