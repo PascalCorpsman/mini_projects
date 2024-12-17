@@ -1,0 +1,9 @@
+use/*/
+**/backup/
+src/lib/
+*.res
+*.compiled
+*.o
+*.so
+*.ppu
+
