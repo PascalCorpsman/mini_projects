@@ -67,7 +67,7 @@ Function Build-Project {
         }
     }
     Get-ChildItem -Filter '*.lpi' -Recurse -File –Path 'src' | ForEach-Object {
-        & $VAR.Cmd --no-write-project --recursive --build-mode=release $_ | Out-Host
+        Start-Process -Wait -FilePath $VAR.Cmd -ArgumentList '--no-write-project', '--recursive', $_.Name
     }
 }
 

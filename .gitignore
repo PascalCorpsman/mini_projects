@@ -1,6 +1,6 @@
 use/*/
 **/backup/
-src/lib/
+**/lib/
 *.res
 *.lps
 *.compiled
