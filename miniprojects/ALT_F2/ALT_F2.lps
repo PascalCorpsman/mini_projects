@@ -2,8 +2,8 @@
 <CONFIG>
   <ProjectSession>
     <Version Value="12"/>
-    <BuildModes Active="Debug"/>
-    <Units Count="9">
+    <BuildModes Active="Default"/>
+    <Units Count="10">
       <Unit0>
         <Filename Value="ALT_F2.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -40,22 +40,18 @@
       </Unit3>
       <Unit4>
         <Filename Value="../Sample/DatenSteuerung/umathsolver.pas"/>
-        <IsPartOfProject Value="True"/>
         <UsageCount Value="20"/>
       </Unit4>
       <Unit5>
         <Filename Value="../Sample/DatenSteuerung/umixfile.pas"/>
-        <IsPartOfProject Value="True"/>
         <UsageCount Value="20"/>
       </Unit5>
       <Unit6>
         <Filename Value="../Sample/DatenSteuerung/utokenizer.pas"/>
-        <IsPartOfProject Value="True"/>
         <UsageCount Value="20"/>
       </Unit6>
       <Unit7>
         <Filename Value="../Sample/DatenSteuerung/ugenmathcalc.pas"/>
-        <IsPartOfProject Value="True"/>
         <UsageCount Value="20"/>
       </Unit7>
       <Unit8>
@@ -63,6 +59,15 @@
         <IsPartOfProject Value="True"/>
         <UsageCount Value="20"/>
       </Unit8>
+      <Unit9>
+        <Filename Value="../../use/MPArith/mp_types.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit9>
     </Units>
     <JumpHistory HistoryIndex="-1"/>
     <RunParams>

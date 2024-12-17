@@ -26,7 +26,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="..\Sample\DatenSteuerung;..\Sample\mp\library;..\..\use\MPArith"/>
+            <OtherUnitFiles Value="..\..\use\MPArith"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -67,7 +67,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="..\Sample\DatenSteuerung;..\Sample\mp\library"/>
+            <OtherUnitFiles Value="..\..\use\MPArith"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -111,7 +111,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="6">
       <Unit0>
         <Filename Value="ALT_F2.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -141,25 +141,13 @@
         <UnitName Value="Unit3"/>
       </Unit3>
       <Unit4>
-        <Filename Value="..\Sample\DatenSteuerung\umathsolver.pas"/>
+        <Filename Value="ugenmathcalc.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
       <Unit5>
-        <Filename Value="..\Sample\DatenSteuerung\umixfile.pas"/>
+        <Filename Value="..\..\use\MPArith\mp_types.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit5>
-      <Unit6>
-        <Filename Value="..\Sample\DatenSteuerung\utokenizer.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="..\Sample\DatenSteuerung\ugenmathcalc.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="ugenmathcalc.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -170,7 +158,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\Sample\DatenSteuerung;..\Sample\mp\library"/>
+      <OtherUnitFiles Value="..\..\use\MPArith"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

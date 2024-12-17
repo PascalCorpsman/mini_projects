@@ -44,7 +44,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="27">
+    <Units Count="28">
       <Unit0>
         <Filename Value="bridge_builder.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -89,7 +89,6 @@
       </Unit5>
       <Unit6>
         <Filename Value="../Sample/DatenSteuerung/uvectormath.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="541"/>
         <CursorPos X="109" Y="548"/>
@@ -132,7 +131,6 @@
       </Unit9>
       <Unit10>
         <Filename Value="../Sample/OpenGL/uopengl_graphikengine.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="22"/>
         <CursorPos X="167" Y="85"/>
@@ -140,7 +138,6 @@
       </Unit10>
       <Unit11>
         <Filename Value="../Sample/Graphik/ugraphics.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="50"/>
       </Unit11>
@@ -154,7 +151,6 @@
       </Unit12>
       <Unit13>
         <Filename Value="../Sample/OpenGL/uopengl_widgetset.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos X="79" Y="39"/>
@@ -168,7 +164,6 @@
       </Unit13>
       <Unit14>
         <Filename Value="../Sample/DatenSteuerung/ueventer.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <TopLine Value="108"/>
@@ -184,7 +179,6 @@
       </Unit15>
       <Unit16>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.pas"/>
-        <IsPartOfProject Value="True"/>
         <UnitName Value="uOpenGL_ASCII_Font"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
@@ -194,14 +188,12 @@
       </Unit16>
       <Unit17>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.ressource"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="49"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit17>
       <Unit18>
         <Filename Value="../Sample/DatenSteuerung/ufifo.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
@@ -210,7 +202,6 @@
       </Unit18>
       <Unit19>
         <Filename Value="../Sample/OpenGL/uopengl_truetype_font.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="71" Y="22"/>
         <UsageCount Value="49"/>
@@ -244,7 +235,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <TopLine Value="333"/>
-        <CursorPos X="38" Y="344"/>
+        <CursorPos X="18" Y="344"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
@@ -257,7 +248,6 @@
       </Unit23>
       <Unit24>
         <Filename Value="../Sample/OpenGL/uopengl_font_common.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <TopLine Value="25"/>
@@ -280,6 +270,15 @@
         <CursorPos X="25" Y="455"/>
         <UsageCount Value="10"/>
       </Unit26>
+      <Unit27>
+        <Filename Value="../../use/dglOpenGL/dglOpenGL.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit27>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
@@ -408,7 +407,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../Graphik;../../DatenSteuerung;../Sample/OpenGL;../Sample/DatenSteuerung;../Sample/Graphik;../../use/dglOpenGL"/>
+      <OtherUnitFiles Value="../../Graphik;../../DatenSteuerung;../../use/dglOpenGL"/>
     </SearchPaths>
     <Linking>
       <Debugging>

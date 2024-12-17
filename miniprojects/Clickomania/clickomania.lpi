@@ -13,8 +13,77 @@
       <Language Value=""/>
       <CharSet Value=""/>
     </VersionInfo>
-    <BuildModes Count="1">
+    <BuildModes Count="3" Active="Debug">
       <Item1 Name="default" Default="True"/>
+      <Item2 Name="Debug">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="../../Sample/OpenGL;../../Sample/DatenSteuerung;../../Sample/Graphik;../../use/dglOpenGL"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+              <UseAnsiStrings Value="False"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="../../Sample/OpenGL;../../Sample/DatenSteuerung;../../Sample/Graphik;../../use/dglOpenGL"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <UseAnsiStrings Value="False"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <RunWithoutDebug Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item3>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -44,7 +113,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="31">
+    <Units Count="32">
       <Unit0>
         <Filename Value="clickomania.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -75,15 +144,14 @@
         <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="/home/corpsman/lazarus/components/images/lazpng.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/components/images/lazpng.pas"/>
         <UsageCount Value="67"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit2>
       <Unit3>
         <Filename Value="uclickomania.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="7"/>
-        <CursorPos X="195" Y="44"/>
+        <CursorPos X="96" Y="44"/>
         <ExtraEditorCount Value="2"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
@@ -107,7 +175,7 @@
         <UnitName Value="Unit2"/>
         <EditorIndex Value="1"/>
         <TopLine Value="124"/>
-        <CursorPos X="44" Y="128"/>
+        <CursorPos X="21" Y="128"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
@@ -115,55 +183,42 @@
         </ExtraEditor1>
         <UsageCount Value="70"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/objpas/classes/classesh.inc"/>
         <TopLine Value="690"/>
         <CursorPos X="3" Y="709"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit5>
       <Unit6>
-        <Filename Value="/home/corpsman/lazarus/components/opengl/openglcontext.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/components/opengl/openglcontext.pas"/>
         <UnitName Value="OpenGLContext"/>
         <TopLine Value="99"/>
         <CursorPos X="15" Y="116"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit6>
       <Unit7>
         <Filename Value="../../Sample/OpenGL/dglopengl.pas"/>
         <UnitName Value="dglOpenGL"/>
         <TopLine Value="5307"/>
         <CursorPos X="3" Y="5321"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit7>
       <Unit8>
         <Filename Value="clickomania.inc"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="41" Y="4"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit8>
       <Unit9>
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/objpas/sysutils/finah.inc"/>
         <CursorPos X="10" Y="28"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit9>
       <Unit10>
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/unix/sysutils.pp"/>
         <TopLine Value="243"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit10>
       <Unit11>
         <Filename Value="../../Sample/OpenGL/opengl_graphikengine.pas"/>
@@ -173,17 +228,13 @@
       </Unit11>
       <Unit12>
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/linux/i386/syscallh.inc"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="9"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit12>
       <Unit13>
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/objpas/sysutils/filutilh.inc"/>
         <TopLine Value="69"/>
         <CursorPos Y="89"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit13>
       <Unit14>
         <Filename Value="unit3.pas"/>
@@ -209,35 +260,28 @@
         <Loaded Value="True"/>
       </Unit15>
       <Unit16>
-        <Filename Value="/home/corpsman/lazarus/lcl/include/control.inc"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/include/control.inc"/>
         <TopLine Value="3330"/>
         <CursorPos Y="3344"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="9"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit16>
       <Unit17>
         <Filename Value="../../Sample/OpenGL/opengl_spriteengine.pas"/>
         <TopLine Value="48"/>
         <CursorPos Y="66"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <TopLine Value="34"/>
           <CursorPos X="3" Y="75"/>
-          <SyntaxHighlighter Value="FreePascal"/>
         </ExtraEditor1>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit17>
       <Unit18>
-        <Filename Value="/home/corpsman/lazarus/lcl/forms.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/forms.pp"/>
         <UnitName Value="Forms"/>
         <TopLine Value="1295"/>
         <CursorPos X="14" Y="1312"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit18>
       <Unit19>
         <Filename Value="unit5.pas"/>
@@ -262,22 +306,18 @@
         <Loaded Value="True"/>
       </Unit20>
       <Unit21>
-        <Filename Value="/home/corpsman/lazarus/lcl/graphics.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/graphics.pp"/>
         <UnitName Value="Graphics"/>
         <TopLine Value="32"/>
         <CursorPos X="20" Y="50"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit21>
       <Unit22>
-        <Filename Value="/home/corpsman/lazarus/lcl/graphtype.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/graphtype.pp"/>
         <UnitName Value="GraphType"/>
         <TopLine Value="21"/>
         <CursorPos X="3" Y="39"/>
-        <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit22>
       <Unit23>
         <Filename Value="unit7.pas"/>
@@ -288,11 +328,10 @@
         <UnitName Value="Unit7"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
-        <TopLine Value="4"/>
-        <CursorPos X="71" Y="29"/>
+        <TopLine Value="17"/>
+        <CursorPos X="22" Y="29"/>
         <UsageCount Value="28"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit23>
       <Unit24>
         <Filename Value="../../Sample/Graphik/ugraphics.pas"/>
@@ -339,6 +378,15 @@
         <EditorIndex Value="-1"/>
         <UsageCount Value="23"/>
       </Unit30>
+      <Unit31>
+        <Filename Value="../../use/dglOpenGL/dglOpenGL.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit31>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
@@ -465,7 +513,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../Sample/OpenGL;../../Sample/DatenSteuerung;../../Sample/Graphik"/>
+      <OtherUnitFiles Value="../../Sample/OpenGL;../../Sample/DatenSteuerung;../../Sample/Graphik;../../use/dglOpenGL"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
