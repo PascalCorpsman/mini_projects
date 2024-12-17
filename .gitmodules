@@ -4,3 +4,6 @@
 [submodule "use/MPArith"]
 	path = use/MPArith
 	url = git@github.com:JulStrat/MPArith.git
+[submodule "use/NativeDragDrop"]
+	path = use/NativeDragDrop
+	url = git@github.com:prof7bit/NativeDragDrop.git
