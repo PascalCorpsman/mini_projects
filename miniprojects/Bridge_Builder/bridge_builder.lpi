@@ -60,7 +60,7 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
         <TopLine Value="193"/>
-        <CursorPos X="92" Y="211"/>
+        <CursorPos X="6" Y="211"/>
         <UsageCount Value="66"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -71,9 +71,8 @@
         <UsageCount Value="24"/>
       </Unit2>
       <Unit3>
-        <Filename Value="/home/corpsman/lazarus/components/images/lazpng.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/components/images/lazpng.pas"/>
         <UsageCount Value="19"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit3>
       <Unit4>
         <Filename Value="../../DatenSteuerung/uvectormath.ppu"/>
@@ -217,7 +216,7 @@
         <UsageCount Value="49"/>
       </Unit19>
       <Unit20>
-        <Filename Value="/home/corpsman/lazarus/lcl/menus.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/menus.pp"/>
         <UnitName Value="Menus"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="337"/>
@@ -225,7 +224,7 @@
         <UsageCount Value="9"/>
       </Unit20>
       <Unit21>
-        <Filename Value="/home/corpsman/lazarus/lcl/lclclasses.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/lclclasses.pp"/>
         <UnitName Value="LCLClasses"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="25"/>
@@ -244,13 +243,12 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="326"/>
+        <TopLine Value="333"/>
         <CursorPos X="38" Y="344"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <IsVisibleTab Value="True"/>
           <EditorIndex Value="-1"/>
-          <WindowIndex Value="1"/>
+          <WindowIndex Value="-1"/>
           <TopLine Value="328"/>
           <CursorPos X="16" Y="361"/>
         </ExtraEditor1>
@@ -267,7 +265,7 @@
         <UsageCount Value="46"/>
       </Unit24>
       <Unit25>
-        <Filename Value="/home/corpsman/lazarus/components/opengl/openglcontext.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/components/opengl/openglcontext.pas"/>
         <UnitName Value="OpenGLContext"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="236"/>
@@ -275,7 +273,7 @@
         <UsageCount Value="10"/>
       </Unit25>
       <Unit26>
-        <Filename Value="/home/corpsman/lazarus/lcl/controls.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/controls.pp"/>
         <UnitName Value="Controls"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="417"/>
@@ -410,7 +408,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../Graphik;../../DatenSteuerung;../Sample/OpenGL;../Sample/DatenSteuerung;../Sample/Graphik"/>
+      <OtherUnitFiles Value="../../Graphik;../../DatenSteuerung;../Sample/OpenGL;../Sample/DatenSteuerung;../Sample/Graphik;../../use/dglOpenGL"/>
     </SearchPaths>
     <Linking>
       <Debugging>
