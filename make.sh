@@ -39,8 +39,10 @@ function priv_lazbuild
                     fi
             done < "${COMPONENTS}"
         fi
-        find "${COMPONENTS%%/*}" -type 'f' -name '*.lpk' -exec \
-            lazbuild --add-package-link {} +
+        while read -r; do
+            lazbuild --add-package "${REPLY}" ||
+                lazbuild --add-package-link "${REPLY}"
+        done < <(find "${COMPONENTS%%/*}" -type 'f' -name '*.lpk')
     fi
     find 'miniprojects' -type 'f' -name '*.lpi' -exec \
         lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 {} + 1>&2
