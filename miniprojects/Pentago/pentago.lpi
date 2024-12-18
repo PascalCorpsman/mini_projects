@@ -14,14 +14,14 @@
       <Language Value=""/>
       <CharSet Value=""/>
     </VersionInfo>
-    <BuildModes Count="3" Active="Debug">
+    <BuildModes Count="3" Active="Release">
       <Item1 Name="default" Default="True"/>
       <Item2 Name="Debug">
         <CompilerOptions>
           <Version Value="11"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../Sample/DatenSteuerung;../Sample/Graphik;../Sample/OpenGL;../../use/dglOpenGL"/>
+            <OtherUnitFiles Value="../../use/dglOpenGL"/>
           </SearchPaths>
           <Parsing>
             <SyntaxOptions>
@@ -57,7 +57,7 @@
           <Version Value="11"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../Sample/DatenSteuerung;../Sample/Graphik;../Sample/OpenGL"/>
+            <OtherUnitFiles Value="../../use/dglOpenGL"/>
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
@@ -104,7 +104,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="pentago.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -140,7 +140,6 @@
       </Unit4>
       <Unit5>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.pas"/>
-        <IsPartOfProject Value="True"/>
         <UnitName Value="uOpenGL_ASCII_Font"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="40"/>
@@ -152,8 +151,8 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="741"/>
-        <CursorPos X="2" Y="753"/>
+        <TopLine Value="21"/>
+        <CursorPos X="66" Y="25"/>
         <UsageCount Value="30"/>
         <Bookmarks Count="1">
           <Item0 Y="633" ID="1"/>
@@ -182,7 +181,6 @@
       </Unit9>
       <Unit10>
         <Filename Value="../Sample/Graphik/ugraphics.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
       </Unit10>
@@ -195,7 +193,6 @@
       </Unit11>
       <Unit12>
         <Filename Value="../Sample/DatenSteuerung/ufifo.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
       </Unit12>
@@ -207,25 +204,31 @@
       </Unit13>
       <Unit14>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.ressource"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit14>
       <Unit15>
         <Filename Value="../Sample/DatenSteuerung/uvectormath.pas"/>
-        <IsPartOfProject Value="True"/>
         <UsageCount Value="20"/>
       </Unit15>
       <Unit16>
         <Filename Value="../Sample/OpenGL/uopengl_font_common.pas"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="20"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="../../use/dglOpenGL/dglOpenGL.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit17>
     </Units>
     <JumpHistory Count="10" HistoryIndex="9">
       <Position1>
@@ -266,7 +269,7 @@
       </Position9>
       <Position10>
         <Filename Value="upentogo.pas"/>
-        <Caret Line="753" Column="2" TopLine="698"/>
+        <Caret Line="753" Column="2" TopLine="696"/>
       </Position10>
     </JumpHistory>
   </ProjectOptions>
@@ -274,7 +277,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../Sample/DatenSteuerung;../Sample/Graphik;../Sample/OpenGL"/>
+      <OtherUnitFiles Value="../../use/dglOpenGL"/>
     </SearchPaths>
     <Linking>
       <Options>
