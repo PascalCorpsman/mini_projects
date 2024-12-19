@@ -44,7 +44,7 @@ function priv_lazbuild
                 lazbuild --add-package-link "${REPLY}"
         done < <(find "${COMPONENTS%%/*}" -type 'f' -name '*.lpk')
     fi
-    find 'Lazarus' -type 'f' -name '*.lpi' | sort | xargs --replace={} \
+    find 'miniprojects' -type 'f' -name '*.lpi' | sort | xargs --replace={} \
         lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 '{}'
 )
 
