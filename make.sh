@@ -15,6 +15,7 @@ function priv_lazbuild
         source '/etc/os-release'
         case ${ID:?} in
             debian | ubuntu)
+                printf '\x1b[32m\Install Lazarus\x1b[0m\n' 1>&2
                 sudo apt-get update
                 sudo apt-get install -y lazarus{-ide-qt5,}
                 ;;
@@ -24,12 +25,13 @@ function priv_lazbuild
     if [[ -d "${COMPONENTS%%/*}" ]]; then
         git submodule update --init --recursive --force --remote
         if [[ -f "${COMPONENTS}" ]]; then
+            printf '\x1b[32m\Downwoad packages\x1b[0m\n' 1>&2
             while read -r; do
                 if [[ -n "${REPLY}" ]] &&
                     ! (lazbuild --verbose-pkgsearch "${REPLY}") &&
                     ! (lazbuild --add-package "${REPLY}") &&
                     ! [[ -d "${COMPONENTS%%/*}/${REPLY}" ]]; then
-                        printf '%(%y-%m-%d_%T)T\x1b[32m\t:Downwoad package %s\x1b[0m\n' -1 "${REPLY}" 1>&2
+                        printf '\x1b[32m\tdownwoad package %s\x1b[0m\n' "${REPLY}" 1>&2
                         declare -A VAR=(
                             [url]="https://packages.lazarus-ide.org/${REPLY}.zip"
                             [out]=$(mktemp)
@@ -40,14 +42,16 @@ function priv_lazbuild
                     fi
             done < "${COMPONENTS}"
         fi
+        printf '\x1b[32m\Add dependencies\x1b[0m\n' 1>&2
         while read -r; do
-            printf '%(%y-%m-%d_%T)T\x1b[32m\t:Add dependence %s\x1b[0m\n' -1 "${REPLY}" 1>&2
+            printf '\x1b[32m\tadd dependence %s\x1b[0m\n' "${REPLY}" 1>&2
             lazbuild --add-package "${REPLY}" ||
                 lazbuild --add-package-link "${REPLY}"
         done < <(find "${COMPONENTS%%/*}" -type 'f' -name '*.lpk' | sort)
     fi
+    printf '\x1b[32m\Build projects\x1b[0m\n' 1>&2
     while read -r; do
-        printf '%(%y-%m-%d_%T)T\x1b[32m\t:Build project %s\x1b[0m\n' -1 "${REPLY}" 1>&2
+        printf '\x1b[32m\tbuild project %s\x1b[0m\n' "${REPLY}" 1>&2
         if ! (lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}"); then
             lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}" 1>&2
         fi
