@@ -44,8 +44,10 @@ function priv_lazbuild
                 lazbuild --add-package-link "${REPLY}"
         done < <(find "${COMPONENTS%%/*}" -type 'f' -name '*.lpk')
     fi
-    find 'miniprojects' -type 'f' -name '*.lpi' | sort | xargs --replace={} \
+    find 'miniprojects' -type 'f' -name '*.lpi' | sort | xargs --replace={} bash -c "
+        printf '%(%y-%m-%d_%T)T\x1b[32m\t:Build {}\x1b[0m\n' -1
         lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 '{}'
+    " 1>&2
 )
 
 function priv_main
