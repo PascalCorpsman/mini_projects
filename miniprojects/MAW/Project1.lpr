@@ -18,7 +18,7 @@ Program Project1;
 
 Uses
   Forms, lazopenglcontext, Interfaces,
-  Unit1 In 'Unit1.pas' {Form1};
+  Unit1 In 'Unit1.pas', dglOpenGL {Form1};
 
 Begin
   Application.Initialize;
