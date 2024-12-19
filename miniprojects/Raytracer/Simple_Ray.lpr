@@ -22,7 +22,7 @@ Uses
   Unit1 In 'Unit1.pas' {Form1},
   Unit2 In 'Unit2.pas' {Form2},
   Replace In 'Replace.pas' {Form3},
-  Unit4 In 'Unit4.pas', utokenizer, uncommenter {Form4};
+  Unit4 In 'Unit4.pas';
 
 Begin
   Application.Title := '';

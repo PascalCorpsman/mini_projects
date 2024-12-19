@@ -23,7 +23,9 @@ function priv_lazbuild
     fi
     declare -r COMPONENTS='use/components.txt'
     if [[ -d "${COMPONENTS%%/*}" ]]; then
-        git submodule update --init --recursive --force --remote
+        if [[ -f '.gitmodules' ]]; then
+            git submodule update --init --recursive --force --remote
+        fi
         if [[ -f "${COMPONENTS}" ]]; then
             printf '\x1b[32mDownload packages:\x1b[0m\n' 1>&2
             while read -r; do
@@ -52,10 +54,10 @@ function priv_lazbuild
     printf '\x1b[32mBuild projects:\x1b[0m\n' 1>&2
     while read -r; do
         printf '\x1b[32m\tbuild project %s\x1b[0m\n' "${REPLY}" 1>&2
-        if ! (lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}"); then
-            lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}" 1>&2
+        if ! (lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 --build-mode=release "${REPLY}"); then
+            lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 --build-mode=release "${REPLY}" 1>&2
         fi
-    done < <(find 'miniprojects' -type 'f' -name '*.lpi' | grep -vE '(3d_Printer|Gorilla|Imageshop|LAN_Chat|Network)' | sort)
+    done < <(find 'miniprojects' -type 'f' -name '*.lpi' | grep -vE '(backup|3d_Printer|Gorilla|Imageshop|LAN_Chat|Network|SFXR)' | sort)
 )
 
 function priv_main

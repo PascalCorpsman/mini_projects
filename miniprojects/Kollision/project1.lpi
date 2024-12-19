@@ -20,7 +20,7 @@
           <Version Value="11"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;../../use/dglOpenGL"/>
+            <OtherUnitFiles Value="../../use/dglOpenGL"/>
           </SearchPaths>
           <Parsing>
             <SyntaxOptions>
@@ -113,6 +113,7 @@
       <Unit0>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos X="56" Y="14"/>
@@ -138,7 +139,6 @@
           <CursorPos X="81" Y="11"/>
         </ExtraEditor1>
         <UsageCount Value="37"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="/usr/lib/lazarus/lcl/customtimer.pas"/>
@@ -164,6 +164,7 @@
       <Unit5>
         <Filename Value="elements.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos Y="15"/>
@@ -196,6 +197,7 @@
         <ComponentName Value="Form2"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos X="9" Y="5"/>
@@ -225,12 +227,14 @@
       </Unit12>
       <Unit13>
         <Filename Value="../Sample/DatenSteuerung/uvectormath.pas"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <UsageCount Value="25"/>
       </Unit13>
       <Unit14>
         <Filename Value="../Sample/OpenGL/uopengl_primitives.pas"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <TopLine Value="46"/>
@@ -240,6 +244,7 @@
       <Unit15>
         <Filename Value="uvectormath.inc"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos Y="15"/>
@@ -248,6 +253,7 @@
       <Unit16>
         <Filename Value="../../../../corpsman/lazarus/components/lazutils/laztracer.pas"/>
         <UnitName Value="LazTracer"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <TopLine Value="2"/>
@@ -256,6 +262,7 @@
       </Unit16>
       <Unit17>
         <Filename Value="../Sample/DatenSteuerung/uHighscoreEngine.pas"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <UsageCount Value="20"/>
