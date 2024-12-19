@@ -40,14 +40,18 @@ function priv_lazbuild
             done < "${COMPONENTS}"
         fi
         while read -r; do
+            printf '%(%y-%m-%d_%T)T\x1b[32m\t:Add dependence {}\x1b[0m\n' -1
             lazbuild --add-package "${REPLY}" ||
                 lazbuild --add-package-link "${REPLY}"
-        done < <(find "${COMPONENTS%%/*}" -type 'f' -name '*.lpk')
+        done < <(find "${COMPONENTS%%/*}" -type 'f' -name '*.lpk' | sort)
     fi
-    find 'miniprojects' -type 'f' -name '*.lpi' | sort | xargs --replace={} bash -c "
-        printf '%(%y-%m-%d_%T)T\x1b[32m\t:Build {}\x1b[0m\n' -1
-        lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 '{}'
-    " 1>&2
+    while read -r; do
+        printf '%(%y-%m-%d_%T)T\x1b[32m\t:Build project {}\x1b[0m\n' -1
+        if ! (lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}") {
+            lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}" 1>&2
+            exit 0
+        }
+    done < <(find 'miniprojects' -type 'f' -name '*.lpi' | sort)
 )
 
 function priv_main
