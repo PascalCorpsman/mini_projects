@@ -55,7 +55,7 @@ function priv_lazbuild
         if ! (lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}"); then
             lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}" 1>&2
         fi
-    done < <(find 'miniprojects' -type 'f' -name '*.lpi' | grep -vE '(3d_Printer|Gorilla|Imageshop|LAN_Chat)' | sort)
+    done < <(find 'miniprojects' -type 'f' -name '*.lpi' | grep -vE '(3d_Printer|Gorilla|Imageshop|LAN_Chat|Network)' | sort)
 )
 
 function priv_main
