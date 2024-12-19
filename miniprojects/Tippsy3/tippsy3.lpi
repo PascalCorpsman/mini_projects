@@ -8,13 +8,81 @@
       </Flags>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
-      <Icon Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <BuildModes Count="1" Active="Default">
+    <BuildModes Count="3" Active="Debug">
       <Item1 Name="Default" Default="True"/>
+      <Item2 Name="Debug">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="tippsy3"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="tippsy3"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <RunWithoutDebug Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item3>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -53,7 +121,7 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="165"/>
+        <TopLine Value="95"/>
         <CursorPos X="26" Y="95"/>
         <UsageCount Value="26"/>
         <Bookmarks Count="1">
@@ -63,20 +131,20 @@
         <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="/home/corpsman/lazarus/lcl/stdctrls.pp"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/stdctrls.pp"/>
         <UnitName Value="StdCtrls"/>
         <TopLine Value="671"/>
         <CursorPos X="15" Y="708"/>
         <UsageCount Value="10"/>
       </Unit2>
       <Unit3>
-        <Filename Value="/home/corpsman/lazarus/lcl/include/customedit.inc"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/include/customedit.inc"/>
         <TopLine Value="342"/>
         <CursorPos X="33" Y="352"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
-        <Filename Value="/home/corpsman/lazarus/lcl/lclproc.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/lclproc.pas"/>
         <UnitName Value="LCLProc"/>
         <TopLine Value="3701"/>
         <CursorPos X="3" Y="3696"/>
@@ -90,13 +158,13 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
         <EditorIndex Value="1"/>
-        <CursorPos X="36" Y="29"/>
+        <CursorPos X="22" Y="29"/>
         <UsageCount Value="24"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit5>
     </Units>
-    <JumpHistory Count="29" HistoryIndex="28">
+    <JumpHistory Count="28" HistoryIndex="27">
       <Position1>
         <Filename Value="unit1.pas"/>
         <Caret Line="293" Column="10" TopLine="283"/>
@@ -190,28 +258,24 @@
       </Position23>
       <Position24>
         <Filename Value="unit1.pas"/>
-        <Caret Line="381" Column="23" TopLine="400"/>
+        <Caret Line="457" TopLine="445"/>
       </Position24>
       <Position25>
         <Filename Value="unit1.pas"/>
-        <Caret Line="457" TopLine="445"/>
+        <Caret Line="122" Column="4" TopLine="111"/>
       </Position25>
       <Position26>
         <Filename Value="unit1.pas"/>
-        <Caret Line="122" Column="4" TopLine="111"/>
+        <Caret Line="213" Column="45" TopLine="199"/>
       </Position26>
       <Position27>
         <Filename Value="unit1.pas"/>
-        <Caret Line="213" Column="45" TopLine="199"/>
+        <Caret Line="214" Column="62" TopLine="199"/>
       </Position27>
       <Position28>
         <Filename Value="unit1.pas"/>
-        <Caret Line="214" Column="62" TopLine="199"/>
-      </Position28>
-      <Position29>
-        <Filename Value="unit1.pas"/>
         <Caret Line="213" Column="45" TopLine="199"/>
-      </Position29>
+      </Position28>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

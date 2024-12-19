@@ -21,12 +21,13 @@ Uses
   cthreads,
 {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, Unit1, uopengl_font_common;
+  Forms, Unit1, dglOpenGL;
 
 {$R *.res}
 
 Begin
   Application.Initialize;
+  Application.Title:='';
   Application.CreateForm(TForm1, Form1);
   Application.Run;
 End.

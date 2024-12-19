@@ -4,7 +4,7 @@ Program Project1;
 
 Uses
   Forms, Interfaces,
-  Unit1 In 'Unit1.pas', ufilo;
+  Unit1 In 'Unit1.pas';
 
 Begin
   Application.Initialize;

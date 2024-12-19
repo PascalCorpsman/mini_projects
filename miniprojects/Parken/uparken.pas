@@ -19,7 +19,7 @@ Unit uparken;
 Interface
 
 Uses
-  dglopengl, Classes, SysUtils, graphics, math, ugraphics, uvectormath, fileutil;
+  dglOpenGL, Classes, SysUtils, graphics, math, ugraphics, uvectormath, fileutil;
 
 Type
 

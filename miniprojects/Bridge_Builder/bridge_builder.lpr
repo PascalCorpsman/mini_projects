@@ -21,10 +21,9 @@ Uses
   cthreads,
 {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, imagesforlazarus, Unit1, uphysik, uvectormath, ufifo, ueventer,
-  uopengl_graphikengine, uopengl_widgetset, uOpenGL_ASCII_Font,
-  uopengl_truetype_font, uopengl_font_common, ugraphics, ubridge_builder,
-  uscreens, umap;
+  Forms, imagesforlazarus, Unit1, uphysik,
+  ubridge_builder,
+  uscreens, umap, dglOpenGL;
 
 Begin
   Application.Initialize;

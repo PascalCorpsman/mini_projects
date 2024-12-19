@@ -19,10 +19,11 @@ Program Project1;
 
 Uses
   Forms, lazopenglcontext, Interfaces,
-  Unit1, uvectormath;
+  Unit1, dglOpenGL;
 
 Begin
   Application.Initialize;
+  Application.Title:='';
   Application.CreateForm(TForm1, Form1);
   Application.Run;
 End.

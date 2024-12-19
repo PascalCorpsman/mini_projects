@@ -1,0 +1,12 @@
+use/*/
+**/backup/
+**/lib/
+*.res
+*.dbg
+*.lps
+*.compiled
+*.o
+*.or
+*.so
+*.ppu
+

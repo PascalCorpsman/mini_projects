@@ -173,7 +173,9 @@ Begin
   End;
 
 
+{
   Nun müssen die "wege" von isFinalbolt zum Start gefunden und danach alle "Knoten" bewegt werden
+}
 
 
 End;
