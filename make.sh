@@ -47,10 +47,9 @@ function priv_lazbuild
     fi
     while read -r; do
         printf '%(%y-%m-%d_%T)T\x1b[32m\t:Build project {}\x1b[0m\n' -1
-        if ! (lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}") {
+        if ! (lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}"); then
             lazbuild --no-write-project --recursive --no-write-project --widgetset=qt5 "${REPLY}" 1>&2
-            exit 0
-        }
+        fi
     done < <(find 'miniprojects' -type 'f' -name '*.lpi' | sort)
 )
 
