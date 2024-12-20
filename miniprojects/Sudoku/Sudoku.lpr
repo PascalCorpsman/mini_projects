@@ -20,10 +20,11 @@ Uses
   Forms,
   Interfaces,
   Unit1, Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, Unit11,
-  Unit12, Unit13, Unit14, Unit15, Unit16, Unit17;
+  Unit12, Unit13, Unit14, Unit15, Unit16, Unit17, usudoku;
 
 Begin
   Application.Initialize;
+  Application.Title:='';
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TForm2, Form2);
   Application.CreateForm(TForm3, Form3);

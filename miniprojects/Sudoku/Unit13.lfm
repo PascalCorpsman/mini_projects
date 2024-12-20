@@ -7,17 +7,17 @@ object Form13: TForm13
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyPress = FormKeyPress
   OnMouseDown = FormMouseDown
   OnPaint = FormPaint
   OnResize = FormResize
-  Position = poScreenCenter
-  LCLVersion = '0.9.29'
   object MainMenu1: TMainMenu
-    left = 8
-    top = 8
+    Left = 8
+    Top = 8
     object Datei1: TMenuItem
       Caption = 'File'
       object New1: TMenuItem
@@ -79,18 +79,18 @@ object Form13: TForm13
   object OpenDialog1: TOpenDialog
     DefaultExt = '.sd5'
     Filter = 'Sudoku|*.sd5|All|*.*'
-    left = 40
-    top = 8
+    Left = 40
+    Top = 8
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.sd5'
     Filter = 'Sudoku|*.sd5|All|*.*'
-    left = 72
-    top = 8
+    Left = 72
+    Top = 8
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 8
-    top = 40
+    Left = 8
+    Top = 40
   end
-end
+end

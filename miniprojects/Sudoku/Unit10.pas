@@ -50,7 +50,7 @@ Procedure DruckeWerbung(Printer: TPrinter);
 
 Implementation
 
-Uses Unit1;
+Uses usudoku;
 
 {$R *.lfm}
 

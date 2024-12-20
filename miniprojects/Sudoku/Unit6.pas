@@ -44,7 +44,12 @@ Var
 
 Implementation
 
-Uses Unit1, Unit11, Unit12, Unit13;
+Uses
+  Unit1
+  , Unit11
+  , Unit12
+  , Unit13
+  ;
 
 {$R *.lfm}
 
@@ -58,12 +63,12 @@ End;
 
 Procedure TForm6.FormCreate(Sender: TObject);
 Begin
-  Label1.caption := 'Sometimes it could be possible that the Computer' + #13 + 'hang''s.' + #13 + 'Maybe the Computer is trying to solve a not' + #13 + 'solvable Sudoku.' + #13 + 'In this Case push the Cancel Button';
+  Label1.caption := 'Sometimes it could be possible that the Computer' + LineEnding + 'hang''s.' + LineEnding + 'Maybe the Computer is trying to solve a not' + LineEnding + 'solvable Sudoku.' + LineEnding + 'In this Case push the Cancel Button';
 End;
 
 Procedure TForm6.FormPaint(Sender: TObject);
 Begin
-  if not Timer1.enabled then begin
+  If Not Timer1.enabled Then Begin
     Timer1.enabled := true;
     ProgressBar1.Position := 0;
     canvas.pen.color := clblack;
@@ -72,7 +77,7 @@ Begin
     canvas.rectangle(0, 0, form6.width, form6.height);
     label1.Repaint;
     Button1.Repaint;
-  end;
+  End;
 End;
 
 Procedure TForm6.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -86,7 +91,7 @@ Begin
   // Graphischer Schnickschnack hat nichts zu bedeuten sied aber net aus  ;)
   ProgressBar1.Position := ProgressBar1.Position + 1;
   If ProgressBar1.Position = 100 Then ProgressBar1.Position := 0;
-  If (Form11.visible Or form12.visible or form13.visible) And Form6.visible Then
+  If (Form11.visible Or form12.visible Or form13.visible) And Form6.visible Then
     Form6.BringToFront;
 End;
 

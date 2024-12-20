@@ -73,7 +73,13 @@ Var
 
 Implementation
 
-Uses Unit1, Unit6, Unit15, Unit17;
+Uses
+  math
+  , usudoku
+  , Unit6
+  , Unit15
+  , Unit17
+  ;
 
 {$R *.lfm}
 
@@ -236,7 +242,7 @@ Begin
   For x := 0 To 3 Do
     For y := 0 To 3 Do
       If twoField[x, y].value <> 0 Then inc(z);
-  Showmessage('This Sudoku needs ' + inttostr(4 * 4) + ' numbers to be complete.' + #13#13 +
+  Showmessage('This Sudoku needs ' + inttostr(4 * 4) + ' numbers to be complete.' + LineEnding + LineEnding +
     'At the moment there were ' + inttostr(z) + ' numbers inserted.');
 End;
 

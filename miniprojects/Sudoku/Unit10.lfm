@@ -12,45 +12,45 @@ object Form10: TForm10
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '3.99.0.0'
   object Label1: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 24
-    Width = 68
+    Width = 62
     Caption = 'Actual printer'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 48
-    Width = 101
+    Width = 89
     Caption = 'Number of copies :'
     ParentColor = False
   end
   object Label3: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 96
-    Width = 55
+    Width = 51
     Caption = 'Line width:'
     ParentColor = False
   end
   object Label4: TLabel
     Left = 104
-    Height = 19
+    Height = 13
     Top = 72
-    Width = 274
+    Width = 157
     Caption = 'thin                                       thick'
     ParentColor = False
   end
   object ComboBox1: TComboBox
     Left = 112
-    Height = 28
+    Height = 21
     Top = 16
     Width = 145
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 0
     Text = 'ComboBox1'
   end
@@ -60,8 +60,8 @@ object Form10: TForm10
     Top = 128
     Width = 121
     Caption = '&OK'
-    OnClick = Button1Click
     TabOrder = 2
+    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 136
@@ -69,17 +69,17 @@ object Form10: TForm10
     Top = 128
     Width = 121
     Caption = '&Cancel'
-    OnClick = Button2Click
     TabOrder = 3
+    OnClick = Button2Click
   end
   object Edit1: TEdit
     Left = 112
-    Height = 26
+    Height = 21
     Top = 40
     Width = 145
-    OnKeyPress = Edit1KeyPress
     TabOrder = 1
     Text = 'Edit1'
+    OnKeyPress = Edit1KeyPress
   end
   object ScrollBar1: TScrollBar
     Left = 112
@@ -91,4 +91,4 @@ object Form10: TForm10
     Position = 1
     TabOrder = 4
   end
-end
+end

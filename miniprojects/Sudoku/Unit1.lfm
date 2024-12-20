@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 323
+  Left = 330
   Height = 480
-  Top = 107
+  Top = 116
   Width = 610
   ActiveControl = CheckBox1
   Caption = 'Form1'
@@ -11,18 +11,19 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   Position = poScreenCenter
-  LCLVersion = '4.99.0.0'
+  LCLVersion = '3.99.0.0'
   OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   OnMouseDown = FormMouseDown
-  OnPaint = FormPaint
   OnResize = FormResize
+  OnShow = FormShow
   object CheckBox1: TCheckBox
-    Left = 416
-    Height = 22
+    Left = 424
+    Height = 17
     Top = 32
-    Width = 185
+    Width = 154
     Caption = 'show selected number effect'
     Color = clBtnFace
     ParentColor = False
@@ -31,30 +32,30 @@ object Form1: TForm1
     OnKeyPress = FormKeyPress
   end
   object CheckBox2: TCheckBox
-    Left = 416
-    Height = 22
+    Left = 424
+    Height = 17
     Top = 56
-    Width = 128
+    Width = 104
     Caption = 'add fixed numbers'
     TabOrder = 1
     OnClick = CheckBox2Click
     OnKeyPress = FormKeyPress
   end
   object CheckBox3: TCheckBox
-    Left = 416
-    Height = 22
+    Left = 424
+    Height = 17
     Top = 104
-    Width = 134
+    Width = 109
     Caption = 'edit pencil numbers'
     TabOrder = 3
     OnClick = CheckBox3Click
     OnKeyPress = FormKeyPress
   end
   object CheckBox4: TCheckBox
-    Left = 416
-    Height = 22
+    Left = 424
+    Height = 17
     Top = 80
-    Width = 148
+    Width = 122
     Caption = 'show pencils numbers'
     TabOrder = 2
     OnClick = CheckBox4Click
@@ -296,10 +297,10 @@ object Form1: TForm1
     end
   end
   object CheckBox5: TCheckBox
-    Left = 416
-    Height = 22
+    Left = 424
+    Height = 17
     Top = 128
-    Width = 165
+    Width = 136
     Caption = 'show line pencil numbers'
     TabOrder = 4
     OnClick = CheckBox5Click
@@ -326,24 +327,23 @@ object Form1: TForm1
     OnKeyPress = FormKeyPress
   end
   object CheckBox6: TCheckBox
-    Left = 416
-    Height = 22
+    Left = 424
+    Height = 17
     Top = 152
-    Width = 157
+    Width = 128
     Caption = 'edit line pencil numbers'
     TabOrder = 5
     OnClick = CheckBox6Click
     OnKeyPress = FormKeyPress
   end
-  object Panel1: TPanel
+  object PaintBox1: TPaintBox
     Left = 8
     Height = 437
     Top = 8
     Width = 402
     Anchors = [akTop, akLeft, akRight, akBottom]
-    Caption = 'Panel1'
-    TabOrder = 9
-    OnMouseDown = Panel1MouseDown
+    OnMouseDown = PaintBox1MouseDown
+    OnPaint = Panel1Paint
   end
   object MainMenu1: TMainMenu
     Left = 456

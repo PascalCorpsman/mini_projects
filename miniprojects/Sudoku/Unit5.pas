@@ -20,9 +20,12 @@ Interface
 
 Uses
   SysUtils, Forms, Dialogs, Classes, Controls, StdCtrls, Buttons, LResources,
-  Sudoku3x3;
+  usudoku;
 
 Type
+
+  { TForm5 }
+
   TForm5 = Class(TForm)
     GroupBox1: TGroupBox;
     BitBtn1: TBitBtn;
@@ -59,8 +62,11 @@ Type
     Procedure BitBtn8Click(Sender: TObject);
   private
     { Private-Deklarationen }
+    fField: TSudoku;
+    fRepaintEvent: TNotifyEvent;
   public
     { Public-Deklarationen }
+    Procedure Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent);
   End;
 
 Var
@@ -70,7 +76,8 @@ Implementation
 
 {$R *.lfm}
 
-Uses Unit1;
+Uses unit1;
+
 Var
   beenden: boolean;
 
@@ -88,7 +95,7 @@ Begin
   If beenden Then Begin
     For x := 1 To 9 Do
       substitution[x] := TCombobox(Form5.findcomponent('Combobox' + inttostr(x))).text;
-    drawfield;
+    fRepaintEvent(Nil);
     close;
   End;
 End;
@@ -99,115 +106,35 @@ Begin
 End;
 
 Procedure TForm5.BitBtn3Click(Sender: TObject);
-Var
-  f: T3field;
-  x, y, z: integer;
 Begin
-  // Kopieren des Feldes
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      f[x, y].Value := field[x, y].value;
-      f[x, y].Marked := field[x, y].Marked;
-      f[x, y].Maybeed := field[x, y].Maybeed;
-      f[x, y].Fixed := field[x, y].Fixed;
-      For z := 0 To 8 Do
-        f[x, y].Pencil[z] := field[x, y].pencil[z];
-    End;
-  // Überschreiben des Orginales mit der Gedrehten Kopie
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      field[x, y].Value := f[8 - y, x].value;
-      field[x, y].Marked := f[8 - y, x].Marked;
-      field[x, y].Maybeed := f[8 - y, x].Maybeed;
-      field[x, y].Fixed := f[8 - y, x].Fixed;
-      For z := 0 To 8 Do
-        field[x, y].Pencil[z] := f[8 - y, x].pencil[z];
-    End;
-  Drawfield;
+  fField.LoadFrom(Field);
+  fField.Rotate(false);
+  fField.storeTo(Field);
+  fRepaintEvent(Nil);
 End;
 
 Procedure TForm5.BitBtn2Click(Sender: TObject);
-Var
-  f: T3field;
-  x, y, z: integer;
 Begin
-  // Kopieren des Feldes
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      f[x, y].Value := field[x, y].value;
-      f[x, y].Marked := field[x, y].Marked;
-      f[x, y].Maybeed := field[x, y].Maybeed;
-      f[x, y].Fixed := field[x, y].Fixed;
-      For z := 0 To 8 Do
-        f[x, y].Pencil[z] := field[x, y].pencil[z];
-    End;
-  // Überschreiben des Orginales mit der Gedrehten Kopie
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      field[x, y].Value := f[8 - x, y].value;
-      field[x, y].Marked := f[8 - x, y].Marked;
-      field[x, y].Maybeed := f[8 - x, y].Maybeed;
-      field[x, y].Fixed := f[8 - x, y].Fixed;
-      For z := 0 To 8 Do
-        field[x, y].Pencil[z] := f[8 - x, y].pencil[z];
-    End;
-  Drawfield;
+  fField.LoadFrom(Field);
+  fField.Mirror(true);
+  fField.storeTo(Field);
+  fRepaintEvent(Nil);
 End;
 
 Procedure TForm5.BitBtn1Click(Sender: TObject);
-Var
-  f: T3field;
-  x, y, z: integer;
 Begin
-  // Kopieren des Feldes
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      f[x, y].Value := field[x, y].value;
-      f[x, y].Marked := field[x, y].Marked;
-      f[x, y].Maybeed := field[x, y].Maybeed;
-      f[x, y].Fixed := field[x, y].Fixed;
-      For z := 0 To 8 Do
-        f[x, y].Pencil[z] := field[x, y].pencil[z];
-    End;
-  // Überschreiben des Orginales mit der Gedrehten Kopie
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      field[x, y].Value := f[x, 8 - y].value;
-      field[x, y].Marked := f[x, 8 - y].Marked;
-      field[x, y].Maybeed := f[x, 8 - y].Maybeed;
-      field[x, y].Fixed := f[x, 8 - y].Fixed;
-      For z := 0 To 8 Do
-        field[x, y].Pencil[z] := f[x, 8 - y].pencil[z];
-    End;
-  Drawfield;
+  fField.LoadFrom(Field);
+  fField.Mirror(false);
+  fField.storeTo(Field);
+  fRepaintEvent(Nil);
 End;
 
 Procedure TForm5.BitBtn4Click(Sender: TObject);
-Var
-  f: T3field;
-  x, y, z: integer;
 Begin
-  // Kopieren des Feldes
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      f[x, y].Value := field[x, y].value;
-      f[x, y].Marked := field[x, y].Marked;
-      f[x, y].Maybeed := field[x, y].Maybeed;
-      f[x, y].Fixed := field[x, y].Fixed;
-      For z := 0 To 8 Do
-        f[x, y].Pencil[z] := field[x, y].pencil[z];
-    End;
-  // Überschreiben des Orginales mit der Gedrehten Kopie
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      field[x, y].Value := f[y, 8 - x].value;
-      field[x, y].Marked := f[y, 8 - x].Marked;
-      field[x, y].Maybeed := f[y, 8 - x].Maybeed;
-      field[x, y].Fixed := f[y, 8 - x].Fixed;
-      For z := 0 To 8 Do
-        field[x, y].Pencil[z] := f[y, 8 - x].pencil[z];
-    End;
-  Drawfield;
+  fField.LoadFrom(Field);
+  fField.Rotate(true);
+  fField.storeTo(Field);
+  fRepaintEvent(Nil);
 End;
 
 Procedure TForm5.BitBtn7Click(Sender: TObject);
@@ -247,6 +174,12 @@ Begin
   // Reset der Substitution Felder
   For x := 1 To 9 Do
     TCombobox(Form5.findcomponent('Combobox' + inttostr(x))).text := inttostr(x);
+End;
+
+Procedure TForm5.Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent);
+Begin
+  fField := aField;
+  fRepaintEvent := RepaintEvent;
 End;
 
 End.

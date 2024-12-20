@@ -42,7 +42,14 @@ Var
 
 Implementation
 
-Uses Unit10, Unit11, Unit1, Unit6, Unit15;
+Uses
+  math
+  , usudoku
+  , Unit6
+  , Unit10
+  , Unit11
+  , Unit15
+  ;
 
 {$R *.lfm}
 
@@ -102,8 +109,8 @@ Var
 Begin
   // Fals der Druckauftrag abgebrochen werden soll
   Drucken := false;
-  p := Printer;//TPrinter.create;
-  p.PrinterIndex:=-1;
+  p := Printer; //TPrinter.create;
+  p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
   Form10.ComboBox1.Items := p.Printers;
   Form10.Edit1.text := '1';
@@ -152,8 +159,8 @@ Begin
   If CreaterOptions <= 0 Then exit;
   // Fals der Druckauftrag abgebrochen werden soll
   Drucken := false;
-  p := Printer;//TPrinter.create;
-  p.PrinterIndex:=-1;
+  p := Printer; //TPrinter.create;
+  p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
   Form10.ComboBox1.Items := p.Printers;
   Form10.Edit1.text := '1';

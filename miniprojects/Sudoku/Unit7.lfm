@@ -12,7 +12,7 @@ object Form7: TForm7
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '4.99.0.0'
+  LCLVersion = '3.99.0.0'
   OnCreate = FormCreate
   OnPaint = FormPaint
   object Button1: TButton
@@ -39,81 +39,81 @@ object Form7: TForm7
     Top = 8
     Width = 272
     Caption = ' Select the solve method''s you want to use '
-    ClientHeight = 274
-    ClientWidth = 270
+    ClientHeight = 271
+    ClientWidth = 268
     TabOrder = 2
     object CheckBox1: TCheckBox
       Left = 40
-      Height = 22
-      Top = 24
-      Width = 115
+      Height = 17
+      Top = 8
+      Width = 94
       Caption = 'by hidden single'
       TabOrder = 0
     end
     object CheckBox2: TCheckBox
       Left = 40
-      Height = 22
-      Top = 48
-      Width = 111
+      Height = 17
+      Top = 32
+      Width = 92
       Caption = 'by naked single'
       TabOrder = 1
     end
     object CheckBox3: TCheckBox
       Left = 40
-      Height = 22
-      Top = 72
-      Width = 207
+      Height = 17
+      Top = 56
+      Width = 173
       Caption = 'by block and column interactions'
       TabOrder = 2
       Visible = False
     end
     object CheckBox4: TCheckBox
       Left = 40
-      Height = 22
-      Top = 96
-      Width = 195
+      Height = 17
+      Top = 80
+      Width = 165
       Caption = 'by block and block interactions'
       TabOrder = 3
       Visible = False
     end
     object CheckBox5: TCheckBox
       Left = 40
-      Height = 22
-      Top = 120
-      Width = 115
+      Height = 17
+      Top = 104
+      Width = 96
       Caption = 'by naked subset'
       TabOrder = 4
     end
     object CheckBox6: TCheckBox
       Left = 40
-      Height = 22
-      Top = 144
-      Width = 119
+      Height = 17
+      Top = 128
+      Width = 98
       Caption = 'by hidden subset'
       TabOrder = 5
     end
     object CheckBox7: TCheckBox
       Left = 40
-      Height = 22
-      Top = 168
-      Width = 151
+      Height = 17
+      Top = 152
+      Width = 130
       Caption = 'by X - Wing / Swordfish'
       TabOrder = 6
       Visible = False
     end
     object CheckBox8: TCheckBox
       Left = 40
-      Height = 22
-      Top = 192
-      Width = 94
+      Height = 17
+      Top = 176
+      Width = 80
       Caption = 'by XY - Wing'
       TabOrder = 7
     end
     object CheckBox9: TCheckBox
       Left = 40
-      Height = 22
-      Top = 216
-      Width = 105
+      Height = 17
+      Top = 200
+      Width = 88
       Caption = 'Forcing Chains'
       TabOrder = 8
       Visible = False
@@ -121,7 +121,7 @@ object Form7: TForm7
     object Button3: TButton
       Left = 19
       Height = 25
-      Top = 242
+      Top = 226
       Width = 97
       Caption = 'select all'
       TabOrder = 9
@@ -130,7 +130,7 @@ object Form7: TForm7
     object Button4: TButton
       Left = 141
       Height = 25
-      Top = 242
+      Top = 226
       Width = 97
       Caption = 'select none'
       TabOrder = 10
@@ -139,9 +139,9 @@ object Form7: TForm7
   end
   object CheckBox10: TCheckBox
     Left = 48
-    Height = 22
+    Height = 17
     Top = 304
-    Width = 172
+    Width = 146
     Caption = 'create Sudoku with pattern'
     TabOrder = 3
   end

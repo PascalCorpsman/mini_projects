@@ -17,20 +17,7 @@ Unit Sudoku3x3;
 Interface
 
 Uses
-  unit6, Dialogs, Forms;
-
-Type
-  T3Pencil = Array[0..8] Of Boolean;
-
-  T3SubField = Record
-    Value: 0..9;
-    Marked: Boolean;
-    Maybeed: Boolean;
-    Fixed: Boolean;
-    Pencil: T3pencil;
-  End;
-
-  T3Field = Array[0..8] Of Array[0..8] Of T3subfield;
+  unit6, Dialogs, Forms, usudoku;
 
 Procedure GetKomplettSudoku(Var Data: T3Field);
 Procedure Solvebyxywing(Var Data: T3field);
@@ -38,7 +25,6 @@ Function pencilcount(Value: T3pencil): integer;
 Function comppencil(v1, v2: T3pencil): boolean;
 Procedure Hiddensubset(Var data: T3field);
 
-Procedure ClearField(Var Value: t3field);
 Procedure Mark(Var Value: T3field; Number: integer);
 Procedure GetPencil(Var Value: t3field);
 Function isready3(Value: t3field): boolean;
@@ -117,25 +103,6 @@ Begin
     End;
   End;
   result := erg;
-End;
-
-// Löscht das Spielfeld
-
-Procedure ClearField(Var Value: t3field);
-Var
-  x, y, z: Integer;
-Begin
-  mx := 0;
-  my := 0;
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      Value[x, y].Value := 0;
-      Value[x, y].marked := False;
-      Value[x, y].Maybeed := False;
-      Value[x, y].Fixed := false;
-      For z := 0 To 8 Do
-        Value[x, y].Pencil[z] := false;
-    End;
 End;
 
 // schaut ob wir unser Feld gelöst haben

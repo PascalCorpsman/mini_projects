@@ -11,14 +11,14 @@ object Form3: TForm3
   ClientWidth = 258
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
   object CheckBox1: TCheckBox
     Left = 8
-    Height = 22
+    Height = 17
     Top = 24
-    Width = 261
+    Width = 232
     Caption = 'Insert number after deletion to pencil numbers'
     TabOrder = 0
   end
@@ -28,15 +28,15 @@ object Form3: TForm3
     Top = 88
     Width = 75
     Caption = 'OK'
-    OnClick = Button1Click
     TabOrder = 1
+    OnClick = Button1Click
   end
   object CheckBox2: TCheckBox
     Left = 8
-    Height = 22
+    Height = 17
     Top = 56
-    Width = 162
+    Width = 146
     Caption = 'allow insert invalid numbers'
     TabOrder = 2
   end
-end
+end

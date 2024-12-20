@@ -1,7 +1,7 @@
 (******************************************************************************)
-(* Sudoku                                                          ??.??.???? *)
+(* Sudoku                                                          ??.??.2005 *)
 (*                                                                            *)
-(* Version     : 1.13                                                         *)
+(* Version     : see usudoku.pas                                              *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -22,9 +22,7 @@
 (*                                                                            *)
 (* Known Issues: none                                                         *)
 (*                                                                            *)
-(* History     : 0.01 - 1.11 = not tracked                                    *)
-(*               1.12 = Fix LCL Crash in unit1.lfm                            *)
-(*               1.13 = publish code -> start with refactoring                *)
+(* History     : see usudoku.pas                                              *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -36,17 +34,13 @@ Interface
 
 Uses
   SysUtils, Graphics, Forms, Classes, Controls, Dialogs, Menus,
-  StdCtrls, ComCtrls, Sudoku3x3, ExtCtrls, lcltype;
-
-Const
-  Ver = '1.13';
+  StdCtrls, ComCtrls, usudoku, Sudoku3x3, ExtCtrls, lcltype;
 
 Type
 
   { TForm1 }
 
   TForm1 = Class(TForm)
-    Panel1: TPanel;
     MainMenu1: TMainMenu;
     Datei1: TMenuItem;
     Beenden1: TMenuItem;
@@ -55,6 +49,7 @@ Type
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
     Load1: TMenuItem;
+    PaintBox1: TPaintBox;
     Save1: TMenuItem;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
@@ -122,8 +117,8 @@ Type
     Info1: TMenuItem;
     N2x21: TMenuItem;
     Procedure Beenden1Click(Sender: TObject);
+    Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
-    Procedure FormPaint(Sender: TObject);
     Procedure FormResize(Sender: TObject);
     Procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -133,7 +128,8 @@ Type
     Procedure CheckBox2Click(Sender: TObject);
     Procedure CheckBox4Click(Sender: TObject);
     Procedure Clearfield1Click(Sender: TObject);
-    Procedure Panel1MouseDown(Sender: TObject; Button: TMouseButton;
+    Procedure FormShow(Sender: TObject);
+    Procedure PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     Procedure Panel1Paint(Sender: TObject);
     Procedure Support1Click(Sender: TObject);
@@ -172,40 +168,18 @@ Type
     Procedure N2x21Click(Sender: TObject);
   private
     { Private-Deklarationen }
+    ffield: TSudoku;
   public
     { Public-Deklarationen }
+    mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
+    Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden
   End;
-
-  // die Line Pencils welche extra erstellt werden
-  TLinepencil = Array[0..17] Of T3Pencil;
 
 Var
   Form1: TForm1;
   bm: Tbitmap; // gegen das Flimmern
-  Linepencil: TLinepencil; // Die LinienPencil's
-  Field: T3field; // Das Speilfeld
-  Druckbreite, Breite: Integer; // Globale Variable die die Breite eines Feldes auf dem Spielfeld in Pixeln angibt
-  mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
-  lc: integer; // Für das Line Edit brauchen wir ne Extra Variable
-  Bretthintergrundfarbe1: Tcolor; // Optische eigenschaften des Spieles
-  Bretthintergrundfarbe2: Tcolor; // Optische eigenschaften des Spieles
-  Maybeedcolor: Tcolor; // Optische eigenschaften des Spieles
-  MarkedColor1: Tcolor; // Optische eigenschaften des Spieles
-  MarkedColor2: Tcolor; // Optische eigenschaften des Spieles
-  CursorMarker: Tcolor; // Optische eigenschaften des Spieles
-  Fixedcolor: Tcolor; // Optische eigenschaften des Spieles
-  Gitterfarbe: Tcolor; // Optische eigenschaften des Spieles
-  FontColor: Tcolor; // Optische eigenschaften des Spieles
-  Pencilcolor: Tcolor; // Optische eigenschaften des Spieles
-  PencilcolorMarked: Tcolor; // Optische eigenschaften des Spieles
-  LightenColor: Tcolor; // Optische eigenschaften des Spieles
-  FormBackground: Tcolor; // Optische eigenschaften des Spieles
-  unpencilallow: boolean;
-  invalidnallow: boolean;
-  substitution: Array[1..9] Of String[1];
+  Field: T3field; // Das Spielfeld
 
-  // Zeichnet das Komplette Spielfeld neu
-Procedure Drawfield;
 Procedure Solve(Step, invisible: boolean; Var Data: T3field);
 Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
 // die nachfolgenden Proceduren sind nur damit Ki nicht nach unten Kopiert werden mus hier oben
@@ -213,26 +187,29 @@ Procedure Resetopt;
 //Procedure Marknumbers(Value: integer; Var Data: T3field);
 //Procedure GetrealPencilnumbers(Var data: T3field);
 Procedure getLinePencil(Var Data: T3Field);
-Function min(v1, v2: Integer): integer;
 
 Implementation
 
-Uses Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9,
-  Unit11, Unit13, Unit16;
+Uses
+  math
+  , Unit2 // Edit Color Dialog
+  , Unit3 // Settings
+  , Unit4 // Online Help
+  , Unit5 // Modify dialog
+  , Unit6 // Progressbar during creation
+  , Unit7 // New Dialog
+  , Unit8 // Mask Editor
+  , Unit9 // Print Dialog
+  // Unit10 // Print Setup Dialog
+  , Unit11 // 4x4 Fields
+  // Unit12 // Print Detail dialog 4x4 ?
+  , Unit13 // 5x5 Fields
+  // Unit14 // Print Detail dialog 5x5 ?
+  // Unit15 // New Dialog for 2x2, 4x4, 5x5
+  , Unit16 // 2x2 Fields
+  ;
 
 {$R *.lfm}
-
-
-// Liefert den Kleineren von V1 und V2 zurück
-
-Function min(v1, v2: Integer): integer;
-Var
-  erg: integer;
-Begin
-  erg := v1;
-  If erg > V2 Then erg := v2;
-  result := erg;
-End;
 
 // Ist Step = True dann wird nur ein Step gemacht bei step = False, wird das Rätsel Komplett gelöst.
 
@@ -241,8 +218,8 @@ Procedure Solve(Step, invisible: boolean; Var Data: T3field);
   Procedure setfocus(x, y: integer);
   Begin
     If Step Then Begin
-      mx := x;
-      my := y;
+      form1.mx := x;
+      form1.my := y;
     End;
   End;
 
@@ -597,7 +574,7 @@ Begin
     // Wenn nur ein Step gewünscht war dann schauen wir uns nun mal an was die Pencil's gemacht haben
   //    If Step { And (form1.Checkbox4.checked Or form1.Checkbox5.checked) } Then
   //      form1.button1.onclick(Nil);
-    Drawfield;
+    form1.Drawfield(Nil);
   End;
 End;
 
@@ -745,68 +722,6 @@ Begin
   closefile(f);
 End;
 
-{// Diese Procedur kann nur Pencil einträge Löschen !!
-
-Procedure GetrealPencilnumbers(Var data: T3field);
-Var
-  x, y, z: integer;
-  zahlen: Array Of Integer;
-
-  // Fügt dem Array Zahlen den Wert Value ein wenn dieser noch nicht vorhanden ist.
-  Procedure add(Value: integer);
-  Var
-    b: Boolean;
-    w: integer;
-  Begin
-    b := true;
-    For w := 0 To high(Zahlen) Do
-      If Value = Zahlen[w] Then Begin
-        b := false;
-        break;
-      End;
-    If b Then Begin
-      setlength(zahlen, high(zahlen) + 2);
-      Zahlen[high(zahlen)] := value;
-    End;
-  End;
-
-  // Ermitteln der Zahlen des Feldes x1,y1 die nicht mehr in Frage kommen können !!
-  Procedure Getz(x1, y1: integer);
-  Var
-    a, b, c, d, w: integer;
-  Begin
-    setlength(Zahlen, 0);
-    // Suchen der Zahlen Waagrecht und Senkrecht
-    For w := 0 To 8 Do Begin
-      If data[x1, w].value <> 0 Then add(data[x1, w].value);
-      If data[w, y1].value <> 0 Then add(data[w, y1].value);
-    End;
-    // Suchen der Zahlen im 9er Feld
-    a := x1 - (x1 Mod 3);
-    b := y1 - (y1 Mod 3);
-    For c := 0 To 2 Do
-      For d := 0 To 2 Do
-        // Prüfen der auser dem gewählten Feld
-        If ((a + c) <> x1) Or ((b + d) <> y1) Then Begin
-          If data[a + c, b + d].value <> 0 Then add(data[a + c, b + d].value);
-        End;
-  End;
-
-Begin
-  setlength(Zahlen, 0);
-  For x := 0 To 8 Do Begin
-    For y := 0 To 8 Do Begin
-      // Ermitteln der bereits gesetzten Nummern
-      getz(x, y);
-      // löschen der Pencil einträge
-      For z := 0 To High(Zahlen) Do
-        If data[x, y].Pencil[Zahlen[z] - 1] Then data[x, y].Pencil[Zahlen[z] - 1] := false;
-    End;
-  End;
-  setlength(Zahlen, 0);
-End;
-}
-
 // Fügt wieder einen Penzil wert ein
 
 Procedure UnPencil(x, y, value: integer; Var Data: T3field);
@@ -826,43 +741,10 @@ Begin
   For c := 0 To 2 Do
     For d := 0 To 2 Do
       Data[a + c, b + d].Pencil[value - 1] := true;
-  // UNpencil für die Lines
+  // Unpencil für die Lines
   Linepencil[x][Value - 1] := true;
   Linepencil[9 + y][Value - 1] := true;
-
 End;
-{
-// Markiert alle Zahlen = Value und die Felder die durch diese Zahl verdeckt werden
-
-Procedure Marknumbers(Value: integer; Var Data: T3field);
-// Markiert alles Waagrecht und Senkrecht
-Procedure Submark(x1, y1: integer);
-Var
-a, b, c, d, z: integer;
-Begin
-For z := 0 To 8 Do Begin
-Data[x1, z].marked := true;
-Data[z, y1].marked := true;
-End;
-// MArkieren des 9 er Blockes der Zahl
-a := x1 - (x1 Mod 3);
-b := y1 - (y1 Mod 3);
-For c := 0 To 2 Do
-For d := 0 To 2 Do
-Data[a + c, b + d].marked := true;
-End;
-Var
-x2, y2: integer;
-Begin
-If value = 0 Then exit;
-// Markeiren aller Zahlen die Gleich dem Field [x,y] sind
-For x2 := 0 To 8 Do
-For y2 := 0 To 8 Do Begin
-If Data[x2, y2].value = value Then Submark(x2, y2);
-// markeiren aller Zahlen die schon eingetragen sind
-If Data[x2, y2].value <> 0 Then Data[x2, y2].MArked := true;
-End;
-End;      }
 
 // Ermittelt die Line Pencils
 
@@ -917,257 +799,30 @@ End;
 
 // Zeichnet das Komplette Spielfeld
 
-Procedure Drawfield;
+Procedure TForm1.Drawfield(Sender: TObject);
 Var
-  x, y, z, d: integer;
+  Info: TRenderInfo;
+  i: Integer;
 Begin
   If bm = Nil Then exit;
-  With bm.canvas Do Begin
-    If Form1.checkbox1.checked And (mx > -1) Then MArk(field, field[mx, my].value);
-    // Löschen des Bildschirms
-    brush.style := bssolid;
-    brush.color := FormBackground;
-    rectangle(-1, -1, form1.width + 1, form1.height + 1);
-    //rectangle(-1,-1,Breite*10,Breite *10);
-   // Die LinePencil's
-    If form1.Checkbox6.checked Then Begin
-      brush.style := bssolid;
-      brush.color := CursorMarker;
-      Pen.color := CursorMarker;
-      If lc < 9 Then Begin
-        rectangle(breite * (lc + 1), 1, breite * (lc + 2), Breite);
-      End
-      Else Begin
-        rectangle(breite * 10, breite * (lc - 8), Breite * 11, breite * (lc - 7));
-      End;
-      brush.style := bsclear;
-    End;
-    // Malen der Line Pencil geschichten !!
-    If form1.Checkbox5.checked Then Begin
-      // Die Waagrechten beschriftungen.
-      font.size := breite Div 5;
-      For x := 0 To 8 Do
-        For z := 0 To 8 Do
-          If Linepencil[x][z] Then Begin
-            If (Lc = x) And (form1.checkbox6.checked) Then
-              font.color := PencilcolorMarked
-            Else
-              font.color := Pencilcolor;
-            Case z Of
-              0..2: Begin
-                  If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                    brush.color := LightenColor;
-                    pen.color := LightenColor;
-                    brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), {Breite * (y + 1) + } 2 + 0, breite * (x + 1) - 2 + (Breite Div 3) * d, {Breite * (y + 1) } -2 + Breite Div 3);
-                    Brush.style := bsclear;
-                  End;
-                  textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, {Breite * (y + 1) } 1 + 0, substitution[(z + 1)]);
-                End;
-              3..5: Begin
-                  If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                    brush.color := LightenColor;
-                    pen.color := LightenColor;
-                    brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), { Breite * (y + 1) + } 2 + breite Div 3, breite * (x + 1) - 2 + (Breite Div 3) * d, { Breite * (y + 1) } -2 + (Breite Div 3) * 2);
-                    Brush.style := bsclear;
-                  End;
-                  textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, { Breite * (y + 1) +} 1 + Breite Div 3, substitution[(z + 1)]);
-                End;
-              6..8: Begin
-                  If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                    brush.color := LightenColor;
-                    pen.color := LightenColor;
-                    brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), { Breite * (y + 1) + } 2 + (breite Div 3) * 2, breite * (x + 1) - 2 + (Breite Div 3) * d, { Breite * (y + 1) } -2 + Breite);
-                    Brush.style := bsclear;
-                  End;
-                  textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, {Breite * (y + 1) +} 1 + (Breite Div 3) * 2, substitution[(z + 1)]);
-                End;
-            End;
-          End;
-      // Die senkrechten beschriftungen.
-      font.size := breite Div 5;
-      font.color := Pencilcolor;
-      For x := 0 To 8 Do
-        For z := 0 To 8 Do
-          If Linepencil[x + 9][z] Then Begin
-            If (Lc = x + 9) And (form1.checkbox6.checked) Then
-              font.color := PencilcolorMarked
-            Else
-              font.color := Pencilcolor;
-            Case z Of
-              0..2: Begin
-                  If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                    brush.color := LightenColor;
-                    pen.color := LightenColor;
-                    brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    ellipse(breite * (10) + 2 + (Breite Div 3) * (z Mod 3), Breite * (x + 1) + 2 + 0, breite * (10) - 2 + (Breite Div 3) * d, Breite * (x + 1) - 2 + Breite Div 3);
-                    Brush.style := bsclear;
-                  End;
-                  textout(breite * (10) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, Breite * (x + 1) + 1 + 0, substitution[(z + 1)]);
-                End;
-              3..5: Begin
-                  If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                    brush.color := LightenColor;
-                    pen.color := LightenColor;
-                    brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    ellipse(breite * (10) + 2 + (Breite Div 3) * (z Mod 3), Breite * (x + 1) + 2 + breite Div 3, breite * (10) - 2 + (Breite Div 3) * d, Breite * (x + 1) - 2 + (Breite Div 3) * 2);
-                    Brush.style := bsclear;
-                  End;
-                  textout(breite * (10) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, Breite * (x + 1) + 1 + Breite Div 3, substitution[(z + 1)]);
-                End;
-              6..8: Begin
-                  If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                    brush.color := LightenColor;
-                    pen.color := LightenColor;
-                    brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    ellipse(breite * (10) + 2 + (Breite Div 3) * (z Mod 3), Breite * (x + 1) + 2 + (breite Div 3) * 2, breite * (10) - 2 + (Breite Div 3) * d, Breite * (x + 1) - 2 + Breite);
-                    Brush.style := bsclear;
-                  End;
-                  textout(breite * (10) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, Breite * (x + 1) + 1 + (Breite Div 3) * 2, substitution[(z + 1)]);
-                End;
-            End;
-          End;
-      // Die linien zwischen den Zahlen
-      pen.color := Gitterfarbe;
-      For z := 1 To 10 Do Begin
-        If Z <> 10 Then Begin
-          moveto(Breite * z, 1);
-          lineto(Breite * z, Breite);
-          moveto(Breite * 10, Breite * z);
-          lineto(Breite * 11, Breite * z);
-        End;
-        If Z <> 1 Then Begin
-          moveto(Breite * z - 1, 1);
-          lineto(Breite * z - 1, Breite);
-          moveto(Breite * 10, Breite * z - 1);
-          lineto(Breite * 11, Breite * z - 1);
-        End;
-      End;
-    End;
-    // Markieren der Felder die Permanent Markiert werden müssen
-    For x := 1 To 9 Do
-      If TToolbutton(form1.findcomponent('ToolButton' + inttostr(x))).down Then
-        Mark(field, x);
-    // Malen des Gitters
-    For y := 0 To 8 Do
-      For x := 0 To 8 Do Begin
-        Case x Of
-          0..2, 6..8: Begin
-              If y In [0..2, 6..8] Then Begin
-                brush.color := Bretthintergrundfarbe1;
-                If Field[x, y].marked Then brush.color := markedColor1;
-              End
-              Else Begin
-                brush.color := Bretthintergrundfarbe2;
-                If Field[x, y].marked Then brush.color := markedColor2;
-              End;
-            End;
-          3..5: Begin
-              If y In [3..5] Then Begin
-                brush.color := Bretthintergrundfarbe1;
-                If Field[x, y].marked Then brush.color := markedColor1;
-              End
-              Else Begin
-                brush.color := Bretthintergrundfarbe2;
-                If Field[x, y].marked Then brush.color := markedColor2;
-              End;
-            End;
-        End;
-        // Farbe zum Markieren des Aktuellen Feldes
-        If (x = mx) And (y = my) And Not Form1.checkbox6.checked Then brush.color := CursorMarker;
-        // Malen des Feldes
-        pen.color := Gitterfarbe;
-        brush.Style := bssolid;
-        rectangle(breite * (x + 1), Breite * (y + 1), breite * (x + 2), Breite * (y + 2));
-        // Falls Zahlen Hervorgehoben werden sollen dann geschieht das hier !!
-        If TToolbutton(form1.findcomponent('ToolButton' + inttostr(field[x, y].Value + 10))).down Then Begin
-          brush.color := LightenColor;
-          pen.color := LightenColor;
-          Ellipse(breite * (x + 1) + 1, Breite * (y + 1) + 1, breite * (x + 2) - 1, Breite * (y + 2) - 1);
-        End;
-        // Malen der Beschriftung der Felder
-        Brush.style := bsclear;
-        // Malen der Pencil Zahlen
-        If form1.Checkbox4.checked And (Field[x, y].value = 0) Then Begin
-          font.size := breite Div 5;
-          If ((mx = x) And (my = y)) Or Field[x, y].marked Then
-            font.color := PencilcolorMarked
-          Else
-            font.color := Pencilcolor;
-          For z := 0 To 8 Do
-            If Field[x, y].Pencil[z] Then Begin
-              Case z Of
-                0..2: Begin
-                    If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                      brush.color := LightenColor;
-                      pen.color := LightenColor;
-                      brush.style := bssolid;
-                      d := (z + 1) Mod 3;
-                      If D = 0 Then d := 3;
-                      ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), Breite * (y + 1) + 2 + 0, breite * (x + 1) - 2 + (Breite Div 3) * d, Breite * (y + 1) - 2 + Breite Div 3);
-                      Brush.style := bsclear;
-                    End;
-                    textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, Breite * (y + 1) + 1 + 0, substitution[(z + 1)]);
-                  End;
-                3..5: Begin
-                    If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                      brush.color := LightenColor;
-                      pen.color := LightenColor;
-                      brush.style := bssolid;
-                      d := (z + 1) Mod 3;
-                      If D = 0 Then d := 3;
-                      ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), Breite * (y + 1) + 2 + breite Div 3, breite * (x + 1) - 2 + (Breite Div 3) * d, Breite * (y + 1) - 2 + (Breite Div 3) * 2);
-                      Brush.style := bsclear;
-                    End;
-                    textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, Breite * (y + 1) + 1 + Breite Div 3, substitution[(z + 1)]);
-                  End;
-                6..8: Begin
-                    If TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + z))).Down Then Begin
-                      brush.color := LightenColor;
-                      pen.color := LightenColor;
-                      brush.style := bssolid;
-                      d := (z + 1) Mod 3;
-                      If D = 0 Then d := 3;
-                      ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), Breite * (y + 1) + 2 + (breite Div 3) * 2, breite * (x + 1) - 2 + (Breite Div 3) * d, Breite * (y + 1) - 2 + Breite);
-                      Brush.style := bsclear;
-                    End;
-                    textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - Textwidth(inttostr(z + 1))) Div 2, Breite * (y + 1) + 1 + (Breite Div 3) * 2, substitution[(z + 1)]);
-                  End;
-              End;
-            End;
-        End;
-        // Malen des Textes des Feldes
-        If Field[x, y].Value <> 0 Then Begin
-          // Textgröße
-          Font.size := Breite Div 2;
-          // Textfarbe
-          If Field[x, y].Fixed Then
-            font.color := fixedcolor
-          Else
-            font.color := FontColor;
-          // Farbe für geratene Felder
-          If (Field[x, y].Maybeed) Then Font.color := Maybeedcolor;
-          // Malen des Feldinhaltes
-          textout(breite * (x + 1) + (Breite - textwidth(inttostr(Field[x, y].value))) Div 2, Breite * (y + 1) + 1 + (Breite - textheight(inttostr(Field[x, y].value))) Div 2, substitution[(Field[x, y].value)]);
-        End;
-      End;
+  If Form1.checkbox1.checked And (mx > -1) Then Mark(field, field[mx, my].value);
+  // Markieren der Felder die Permanent Markiert werden müssen
+  For i := 1 To 9 Do
+    If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then
+      Mark(field, i);
+  ffield.LoadFrom(Field);
+  info.Cursor := point(mx, my);
+  setlength(info.NumberHighLights, 9);
+  setlength(info.NumberMarks, 9);
+  For i := 0 To 8 Do Begin
+    info.NumberHighLights[i] := TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + i))).Down
   End;
+  info.Show_Pencils_Numbers := Checkbox4.checked;
+  info.Show_Line_Pencil_numbers := Checkbox5.checked;
+  info.Edit_Line_Pencil_Numbers := Checkbox6.checked;
+  ffield.RenderTo(bm.Canvas, info);
   //  Form1.canvas.Draw(0, 0, bm);
-  Form1.Panel1.Canvas.Draw(0, 0, bm);
+  Form1.PaintBox1.Canvas.Draw(0, 0, bm);
 End;
 
 Procedure Resetopt;
@@ -1190,34 +845,6 @@ Begin
       ttoolbutton(findcomponent('Toolbutton' + inttostr(x))).enabled := true;
       ttoolbutton(findcomponent('Toolbutton' + inttostr(x))).Down := false;
     End;
-  End;
-End;
-
-(*
-Berechnet den Korrespondierenden Punkt zu (x,y) im Feld (0..N-1) x (0..N-1) gespiegelt an
-der Achse Direction ( 0..3 )
-*)
-
-Function Mirrow(x, y, n, Direction: Integer): TPoint;
-Begin
-  n := n - 1;
-  Case Direction Of
-    0: Begin // an der Waagrechten Spiegeln
-        result.x := x;
-        result.y := n - y;
-      End;
-    1: Begin // an der 1. Winkelhalbierenden
-        result := point(y, x);
-      End;
-    2: Begin // and der Senkrechten
-        result.x := n - x;
-        result.y := y;
-      End;
-    3: Begin // an der 2. Winkelhalbierenden
-        result := point(n - y, n - x);
-      End
-  Else // Fehlerfall
-    result := point(x, y);
   End;
 End;
 
@@ -1301,6 +928,12 @@ Begin
   Close;
 End;
 
+Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
+Begin
+  ffield.Free;
+  ffield := Nil;
+End;
+
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   {
@@ -1318,6 +951,7 @@ Begin
   ForcingChains1 + Hilfe für diese KI;
   //}
   Randomize;
+  ffield := TSudoku.Create(3);
   bm := tbitmap.create;
   bm.width := form1.width;
   bm.height := form1.height;
@@ -1325,14 +959,10 @@ Begin
   Readini;
   SaveDialog1.initialdir := ExtractFilePath(application.exename);
   openDialog1.initialdir := ExtractFilePath(application.exename);
-  ClearField(Field);
+  mx := 0;
+  my := 0;
   Caption := 'Sudoku ver. : ' + ver + ' by Corpsman | www.Corpsman.de |';
-  Panel1.OnKeyPress := OnKeyPress;
-End;
-
-Procedure TForm1.FormPaint(Sender: TObject);
-Begin
-  Drawfield;
+  //PaintBox1.OnKeyPress := OnKeyPress;
 End;
 
 Procedure TForm1.FormResize(Sender: TObject);
@@ -1342,15 +972,15 @@ Begin
   If Form1.height < 480 Then Form1.height := 480;
   If form1.Width < form1.height + 130 Then form1.Width := form1.height + 130;
   //  Breite := min(Form1.height - 32, Form1.width - 120) Div 11;
-  Breite := min(Panel1.ClientHeight, Panel1.ClientWidth) Div 11;
+  Breite := min(PaintBox1.ClientHeight, PaintBox1.ClientWidth) Div 11;
   For x := 1 To 6 Do
     TCheckbox(findcomponent('Checkbox' + inttostr(x))).left := Form1.width - 195;
   button1.left := Form1.width - 160;
   button2.left := Form1.width - 160;
   If Assigned(bm) Then Begin
-    bm.width := Panel1.ClientWidth;
-    bm.height := Panel1.ClientHeight;
-    Drawfield;
+    bm.width := PaintBox1.ClientWidth;
+    bm.height := PaintBox1.ClientHeight;
+    Drawfield(Nil);
   End;
 End;
 
@@ -1463,35 +1093,6 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
         showmessage('Your Number is not allowed in this position');
     End;
   End;
-  {
-    Function keygueltig(taste: Char): boolean;
-    Var
-      erg: Boolean;
-      z: integer;
-    Begin
-      erg := false;
-      For z := 1 To 9 Do
-        If substitution[1] = Taste Then Begin
-          erg := true;
-          break;
-        End;
-      result := erg;
-    End;
-
-    Function getkeyindex(Taste: Char): integer;
-    Var
-      erg: integer;
-      z: integer;
-    Begin
-      erg := 0;
-      For z := 1 To 9 Do
-        If substitution[1] = Taste Then Begin
-          erg := z;
-          break;
-        End;
-      result := erg;
-    End;
-       }
 Var
   x1, x2, y1, y2: integer;
   zah: Array[1..9] Of 0..9;
@@ -1504,7 +1105,7 @@ Begin
     If (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W']) Then Begin
       If ((Key = 'a') Or (Key = 'A') Or (Key = 'w') Or (Key = 'W')) And (lc > 0) Then dec(lc);
       If ((Key = 's') Or (Key = 'S') Or (Key = 'd') Or (Key = 'D')) And (lc < 17) Then inc(lc);
-      Drawfield;
+      Drawfield(Nil);
       exit;
     End
     Else Begin
@@ -1526,7 +1127,7 @@ Begin
         Else
           showmessage('Character for this field impossible.');
       End;
-      Drawfield;
+      Drawfield(Nil);
     End;
     exit;
   End;
@@ -1604,10 +1205,10 @@ Begin
 //    If TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled Then a := false;
   a := isreadyUser3(field, true);
   // Zeichnen des Feldes
-  drawfield;
+  Drawfield(Nil);
   // Anzeigen das Fertig
   If A Then Begin
-    Drawfield;
+    Drawfield(Nil);
     If Not (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W', '0']) Then
       showmessage('You solved the Sudoku.');
   End;
@@ -1624,7 +1225,7 @@ Begin
     If (mx In [0..8]) And (my In [0..8]) Then
       Field[mx, my].Marked := true;
   End;
-  drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.CheckBox3Click(Sender: TObject);
@@ -1648,17 +1249,26 @@ Procedure TForm1.CheckBox4Click(Sender: TObject);
 Begin
   If Checkbox4.checked Then GetPencil(field);
   If checkbox3.checked And Not Checkbox4.checked Then checkbox3.checked := false;
-  drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.Clearfield1Click(Sender: TObject);
 Begin
   Resetopt;
-  ClearField(Field);
-  Drawfield;
+  mx := 0;
+  my := 0;
+  ffield.LoadFrom(Field);
+  ffield.ClearField;
+  ffield.StoreTo(Field);
+  Drawfield(Nil);
 End;
 
-Procedure TForm1.Panel1MouseDown(Sender: TObject; Button: TMouseButton;
+Procedure TForm1.FormShow(Sender: TObject);
+Begin
+  PaintBox1.Invalidate;
+End;
+
+Procedure TForm1.PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Var
   x1, y1: integer;
@@ -1688,27 +1298,23 @@ Begin
       my := y1;
     End;
   End;
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.Panel1Paint(Sender: TObject);
 Begin
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.Support1Click(Sender: TObject);
 Begin
-  Showmessage('Sudoku ' + ver + #13 + 'Support : http://www.corpsman.de.vu/');
-
-  // Uses shellapi;
-  // ShellExecute(0,Nil,PChar('http://www.corpsman.de.vu/'),Nil,Nil,SW_NORMAL);
-
+  Showmessage('Sudoku ' + ver + LineEnding + 'Support : http://www.corpsman.de/');
 End;
 
 Procedure TForm1.Warranty1Click(Sender: TObject);
 Begin
-  Showmessage('This programm is freeware' + #13 +
-    'in case of this there is no warranty.' + #13 + #13 +
+  Showmessage('This programm is freeware' + LineEnding +
+    'in case of this there is no warranty.' + LineEnding + LineEnding +
     'The programmer takes no warrenty for damages in soft- or hardware.');
 End;
 
@@ -1743,7 +1349,7 @@ Begin
     For x := 0 To 8 Do
       For y := 0 To 8 Do
         Field[x, y].marked := false;
-    drawfield;
+    Drawfield(Nil);
   End;
 End;
 
@@ -1758,7 +1364,7 @@ Begin
       If Not (Field[x, y].Fixed) Then Field[x, y].value := 0;
       Field[x, y].MArked := false;
     End;
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.ToolButton1Click(Sender: TObject);
@@ -1770,12 +1376,12 @@ Begin
       For y := 0 To 8 Do
         Field[x, y].marked := false;
   End;
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.ToolButton11Click(Sender: TObject);
 Begin
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.Colors1Click(Sender: TObject);
@@ -1817,7 +1423,7 @@ Begin
         field[x, y].Pencil[z] := true;
   GetPencil(field);
   //  checkbox4.checked := true;
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
@@ -1834,7 +1440,7 @@ Begin
       For z := 0 To 8 Do
         field[x, y].Pencil[z] := false;
   //  checkbox3.checked := true;
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.CheckBox5Click(Sender: TObject);
@@ -1843,7 +1449,7 @@ Begin
   If Not Checkbox5.checked Then Begin
     checkbox6.checked := false;
   End;
-  drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.CheckBox6Click(Sender: TObject);
@@ -1854,7 +1460,7 @@ Begin
     checkbox5.checked := True;
     Checkbox3.checked := false;
   End;
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.ToolButton1MouseDown(Sender: TObject;
@@ -1869,7 +1475,7 @@ Begin
     For x1 := 1 To 9 Do
       TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(x1))).down := false;
     TTOolbutton(sender).Down := true;
-    Drawfield;
+    Drawfield(Nil);
   End;
 End;
 
@@ -1889,7 +1495,7 @@ Begin
     For x1 := 11 To 19 Do
       TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(x1))).down := false;
     TTOolbutton(sender).Down := true;
-    Drawfield;
+    Drawfield(Nil);
   End;
 End;
 
@@ -1903,12 +1509,12 @@ Procedure TForm1.Solveit1Click(Sender: TObject);
 Begin
   If Not (Sudoku3solvable(field)) Then Begin
     showmessage('Impossible to solve Sudoku');
-    Drawfield;
+    Drawfield(Nil);
   End
   Else Begin
     Solve(False, false, field);
     Showmessage('Ready');
-    Drawfield;
+    Drawfield(Nil);
   End;
 End;
 
@@ -1922,7 +1528,9 @@ Begin
   End
   Else Begin
     If form1.bytryanderror1.checked Then Begin
-      If ID_NO = application.messagebox(pchar('You slected the solving method by try and error.' + #13 + 'If this step is necessary your Sudoku will be completed at all.' + #13 + #13 + 'do you want this ?'), 'Question', MB_YESNO + MB_ICONQUESTION) Then
+      If ID_NO = application.messagebox(pchar('You slected the solving method by try and error.' + LineEnding +
+        'If this step is necessary your Sudoku will be completed at all.' + LineEnding + LineEnding +
+        'do you want this ?'), 'Question', MB_YESNO + MB_ICONQUESTION) Then
         exit;
     End;
     Solve(true, false, field);
@@ -1935,7 +1543,7 @@ Begin
     If A Then Begin
       mx := -1;
       my := -1;
-      Drawfield;
+      Drawfield(Nil);
       showmessage('You solved the Sudoku.');
     End;
   End;
@@ -1981,6 +1589,7 @@ Begin
   For x := 1 To 9 Do Begin
     TCombobox(Form5.findcomponent('Combobox' + inttostr(x))).text := substitution[x];
   End;
+  form5.Init(ffield, @Drawfield);
   Form5.showmodal;
 End;
 
@@ -2001,7 +1610,7 @@ Begin
     Form7.showmodal;
     // Nach dem Schliesen sollte das Hauptfenster wieder aktiviert werden
     Form1.SetFocus;
-    Drawfield;
+    Drawfield(Nil);
   End;
 End;
 
@@ -2012,7 +1621,7 @@ Begin
   For x := 0 To 8 Do
     For y := 0 To 8 Do
       If Field[x, y].Maybeed Then Field[x, y].Maybeed := false;
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.MaybanumberclearField1Click(Sender: TObject);
@@ -2026,7 +1635,7 @@ Begin
         UnPencil(x, y, Field[x, y].Value, Field);
         Field[x, y].Value := 0;
       End;
-  Drawfield;
+  Drawfield(Nil);
 End;
 
 Procedure TForm1.SpecialPuzzle1Click(Sender: TObject);
@@ -2042,16 +1651,18 @@ End;
 
 Procedure TForm1.N4x41Click(Sender: TObject);
 Begin
-  showmessage('These Sudoku''s were something Special, partly there Debuggininfo''s aviable.' + #13#13 +
-    'If you want to so the progress of the creater then' + #13 + 'click on the field while the creating message is shown.' + #13#13 +
+  showmessage('These Sudoku''s were something Special, partly there Debuggininfo''s aviable.' + LineEnding + LineEnding +
+    'If you want to so the progress of the creater then' + LineEnding +
+    'click on the field while the creating message is shown.' + LineEnding + LineEnding +
     'Normal time for creating a Sudoko with this size 10 - 20 sek.');
   Form11.showmodal;
 End;
 
 Procedure TForm1.N5x51Click(Sender: TObject);
 Begin
-  showmessage('These Sudoku''s were something Special, partly there Debuggininfo''s aviable.' + #13#13 +
-    'If you want to so the progress of the creater then' + #13 + 'click on the field while the creating message is shown.' + #13#13 +
+  showmessage('These Sudoku''s were something Special, partly there Debuggininfo''s aviable.' + LineEnding + LineEnding +
+    'If you want to so the progress of the creater then' + LineEnding +
+    'click on the field while the creating message is shown.' + LineEnding + LineEnding +
     'Normal time for creating a Sudoko with this size 30 - 90 sek.');
   Form13.showmodal;
 End;
@@ -2064,7 +1675,7 @@ Begin
   For x := 0 To 8 Do
     For y := 0 To 8 Do
       If Field[x, y].value <> 0 Then inc(z);
-  Showmessage('This Sudoku needs ' + inttostr(9 * 9) + ' numbers to be complete.' + #13#13 +
+  Showmessage('This Sudoku needs ' + inttostr(9 * 9) + ' numbers to be complete.' + LineEnding + LineEnding +
     'At the moment there were ' + inttostr(z) + ' numbers inserted.');
 End;
 
@@ -2074,6 +1685,4 @@ Begin
 End;
 
 End.
-
-
 

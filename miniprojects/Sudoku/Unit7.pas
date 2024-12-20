@@ -59,7 +59,11 @@ Var
 
 Implementation
 
-Uses Unit1, Unit6;
+Uses
+  usudoku
+  , unit1
+  , Unit6
+  ;
 
 {$R *.lfm}
 
@@ -81,6 +85,7 @@ Var
   s: String;
   ch: Tcheckbox;
 Begin
+  // Create New Field
   // es mus mindestens hidden single , oder naked singele activiert sein die anderen methoden fügen keine Zahlen ein.
   If Checkbox2.checked Or Checkbox1.checked Then Begin
     If Not checkbox2.checked And (checkbox3.checked Or checkbox4.checked Or checkbox5.checked Or checkbox6.checked Or checkbox7.checked Or checkbox8.checked Or checkbox9.checked) Then Begin
@@ -88,10 +93,10 @@ Begin
       For x := 3 To 9 Do Begin
         ch := Tcheckbox(findcomponent('Checkbox' + inttostr(x)));
         If ch.Checked And ch.Visible Then
-          s := s + #13 + ch.Caption;
+          s := s + LineEnding + ch.Caption;
       End;
       If Length(s) <> 0 Then
-        If ID_NO = Application.messagebox(pchar('You did not select "by naked single", this will automaticaly disable ' + #13 + s + #13#13 + ' would you like to go on anyway ?'), 'question', MB_ICONQUESTION + MB_YESNO) Then
+        If ID_NO = Application.messagebox(pchar('You did not select "by naked single", this will automaticaly disable ' + LineEnding + s + LineEnding + LineEnding + ' would you like to go on anyway ?'), 'question', MB_ICONQUESTION + MB_YESNO) Then
           exit;
     End;
     If Visible Then
@@ -237,7 +242,7 @@ Begin
         End;
     End;
     // Ausgabe auf den Monitor
-    Drawfield;
+    form1.Drawfield(Nil);
     // Beenden
     Close;
   End

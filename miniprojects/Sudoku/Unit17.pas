@@ -50,7 +50,13 @@ Var
 
 Implementation
 
-Uses Unit10, Unit1, Unit16, Unit15, Unit6;
+Uses
+  math
+  , usudoku
+  , Unit6
+  , Unit10
+  , Unit15
+  , Unit16;
 
 {$R *.lfm}
 

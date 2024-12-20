@@ -12,15 +12,15 @@ object Form15: TForm15
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '3.99.0.0'
   object Button1: TButton
     Left = 16
     Height = 25
     Top = 296
     Width = 97
     Caption = 'OK'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 136
@@ -28,8 +28,8 @@ object Form15: TForm15
     Top = 296
     Width = 97
     Caption = 'Cancel'
-    OnClick = Button2Click
     TabOrder = 1
+    OnClick = Button2Click
   end
   object GroupBox1: TGroupBox
     Left = 8
@@ -37,14 +37,14 @@ object Form15: TForm15
     Top = 8
     Width = 233
     Caption = ' Select the solve method''s you want to use '
-    ClientHeight = 253
+    ClientHeight = 255
     ClientWidth = 229
     TabOrder = 2
     object CheckBox1: TCheckBox
       Left = 40
-      Height = 22
-      Top = 24
-      Width = 105
+      Height = 17
+      Top = 0
+      Width = 94
       Caption = 'by hidden single'
       Checked = True
       State = cbChecked
@@ -52,9 +52,9 @@ object Form15: TForm15
     end
     object CheckBox2: TCheckBox
       Left = 40
-      Height = 22
-      Top = 48
-      Width = 102
+      Height = 17
+      Top = 24
+      Width = 92
       Caption = 'by naked single'
       Checked = True
       State = cbChecked
@@ -62,9 +62,9 @@ object Form15: TForm15
     end
     object CheckBox3: TCheckBox
       Left = 40
-      Height = 22
-      Top = 72
-      Width = 191
+      Height = 17
+      Top = 48
+      Width = 173
       Caption = 'by block and column interactions'
       Checked = True
       State = cbChecked
@@ -73,9 +73,9 @@ object Form15: TForm15
     end
     object CheckBox4: TCheckBox
       Left = 40
-      Height = 22
-      Top = 96
-      Width = 181
+      Height = 17
+      Top = 72
+      Width = 165
       Caption = 'by block and block interactions'
       Checked = True
       State = cbChecked
@@ -84,9 +84,9 @@ object Form15: TForm15
     end
     object CheckBox5: TCheckBox
       Left = 40
-      Height = 22
-      Top = 120
-      Width = 106
+      Height = 17
+      Top = 96
+      Width = 96
       Caption = 'by naked subset'
       Checked = True
       State = cbChecked
@@ -95,9 +95,9 @@ object Form15: TForm15
     end
     object CheckBox6: TCheckBox
       Left = 40
-      Height = 22
-      Top = 144
-      Width = 109
+      Height = 17
+      Top = 120
+      Width = 98
       Caption = 'by hidden subset'
       Checked = True
       State = cbChecked
@@ -106,9 +106,9 @@ object Form15: TForm15
     end
     object CheckBox7: TCheckBox
       Left = 40
-      Height = 22
-      Top = 168
-      Width = 149
+      Height = 17
+      Top = 144
+      Width = 130
       Caption = 'by X - Wing / Swordfish'
       Checked = True
       State = cbChecked
@@ -117,9 +117,9 @@ object Form15: TForm15
     end
     object CheckBox8: TCheckBox
       Left = 40
-      Height = 22
-      Top = 192
-      Width = 94
+      Height = 17
+      Top = 168
+      Width = 80
       Caption = 'by XY - Wing'
       Checked = True
       State = cbChecked
@@ -128,9 +128,9 @@ object Form15: TForm15
     end
     object CheckBox9: TCheckBox
       Left = 40
-      Height = 22
-      Top = 216
-      Width = 99
+      Height = 17
+      Top = 192
+      Width = 88
       Caption = 'Forcing Chains'
       Checked = True
       State = cbChecked
@@ -140,20 +140,20 @@ object Form15: TForm15
     object Button3: TButton
       Left = 8
       Height = 25
-      Top = 240
+      Top = 216
       Width = 97
       Caption = 'select all'
-      OnClick = Button3Click
       TabOrder = 9
+      OnClick = Button3Click
     end
     object Button4: TButton
       Left = 128
       Height = 25
-      Top = 240
+      Top = 216
       Width = 97
       Caption = 'select none'
-      OnClick = Button4Click
       TabOrder = 10
+      OnClick = Button4Click
     end
   end
-end
+end

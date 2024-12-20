@@ -73,7 +73,9 @@ Var
 
 Implementation
 
-Uses Unit1;
+Uses
+  usudoku
+  , unit1;
 
 {$R *.lfm}
 
@@ -213,7 +215,7 @@ Begin
       TCheckbox(Form1.findcomponent('Checkbox' + inttostr(x))).font.color := clblack;
   End;
   // Neuzeichnen
-  Drawfield;
+  form1.Drawfield(Nil);
   // Raus
   close;
 End;

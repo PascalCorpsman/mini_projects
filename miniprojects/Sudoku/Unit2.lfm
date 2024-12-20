@@ -11,11 +11,11 @@ object Form2: TForm2
   ClientWidth = 394
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
+  Position = poScreenCenter
+  LCLVersion = '3.99.0.0'
   OnCreate = FormCreate
   OnPaint = FormPaint
   OnShow = FormShow
-  Position = poScreenCenter
-  LCLVersion = '0.9.29'
   object Image1: TImage
     Left = 192
     Height = 193
@@ -24,97 +24,97 @@ object Form2: TForm2
   end
   object Label1: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 32
-    Width = 99
+    Width = 91
     Caption = 'Field background 1'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 48
-    Width = 99
+    Width = 91
     Caption = 'Field background 2'
     ParentColor = False
   end
   object Label3: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 160
-    Width = 63
+    Width = 58
     Caption = 'Maybe color'
     ParentColor = False
   end
   object Label4: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 96
-    Width = 79
+    Width = 71
     Caption = 'Marked color 1'
     ParentColor = False
   end
   object Label5: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 112
-    Width = 79
+    Width = 71
     Caption = 'Marked color 2'
     ParentColor = False
   end
   object Label6: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 80
-    Width = 64
+    Width = 56
     Caption = 'Cursor color'
     ParentColor = False
   end
   object Label7: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 144
-    Width = 57
+    Width = 51
     Caption = 'Fixed color'
     ParentColor = False
   end
   object Label8: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 64
-    Width = 51
+    Width = 45
     Caption = 'Grid color'
     ParentColor = False
   end
   object Label9: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 128
-    Width = 53
+    Width = 47
     Caption = 'Font color'
     ParentColor = False
   end
   object Label10: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 192
-    Width = 60
+    Width = 55
     Caption = 'Pencil color'
     ParentColor = False
   end
   object Label11: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 208
-    Width = 102
+    Width = 93
     Caption = 'Pencil color marked'
     ParentColor = False
   end
   object Label12: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 176
-    Width = 66
+    Width = 61
     Caption = 'Lighten color'
     ParentColor = False
   end
@@ -204,9 +204,9 @@ object Form2: TForm2
   end
   object Label13: TLabel
     Left = 16
-    Height = 19
+    Height = 13
     Top = 16
-    Width = 138
+    Width = 126
     Caption = 'Formular background color'
     ParentColor = False
   end
@@ -223,8 +223,8 @@ object Form2: TForm2
     Top = 232
     Width = 121
     Caption = 'OK'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 264
@@ -232,8 +232,8 @@ object Form2: TForm2
     Top = 232
     Width = 121
     Caption = 'Cancel'
-    OnClick = Button2Click
     TabOrder = 2
+    OnClick = Button2Click
   end
   object Button3: TButton
     Left = 136
@@ -241,8 +241,8 @@ object Form2: TForm2
     Top = 232
     Width = 121
     Caption = 'Standard'
-    OnClick = Button3Click
     TabOrder = 1
+    OnClick = Button3Click
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
@@ -268,7 +268,7 @@ object Form2: TForm2
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    left = 208
-    top = 40
+    Left = 208
+    Top = 40
   end
 end

@@ -44,7 +44,11 @@ Var
 
 Implementation
 
-Uses Unit1, Unit6;
+Uses
+  usudoku
+  , Unit1
+  , Unit6
+  ;
 
 {$R *.lfm}
 
@@ -120,7 +124,7 @@ Begin
       x := random(9); // Die neuen Koordinaten
       y := random(9); // Die neuen Koordinaten
       n := Random(9) + 1; // Die eingefügte Zahl
-      Mark( f,n); // Markieren der Zahlen
+      Mark(f, n); // Markieren der Zahlen
       // Suchen eines Freien Feldes
       While (F[x, y].value <> 0) Or (f[x, y].Marked) Do Begin
         Application.ProcessMessages;
@@ -149,9 +153,9 @@ Begin
     If isready3(f) Then geschafft := true;
   End;
 
-    If Geschafft Then Begin
-  raus:
-  //Begin
+  If Geschafft Then Begin
+    raus:
+    //Begin
     form6.Close;
     For x := 0 To 8 Do
       For y := 0 To 8 Do Begin
@@ -162,7 +166,7 @@ Begin
         For z := 0 To 8 Do
           field[x, y].Pencil[z] := false;
       End;
-    drawfield;
+        form1.Drawfield(Nil);
     close;
 
   End;

@@ -47,18 +47,17 @@ Var
 
 Implementation
 
-Uses Unit1, Unit7, Unit10, Unit6, Sudoku3x3;
+Uses
+  math
+  , usudoku
+  , Sudoku3x3
+  , Unit1
+  , Unit6
+  , Unit7
+  , Unit10
+  ;
 
 {$R *.lfm}
-
-Function min(v1, v2: integer): integer;
-Var
-  erg: integer;
-Begin
-  erg := v1;
-  If erg > v2 Then erg := v2;
-  result := erg;
-End;
 
 // Druckt ein Sudoku in das Rect das hier angegeben wird, allerdings ohne Begin und Enddock !!!!
 
