@@ -1,0 +1,41 @@
+object Form14: TForm14
+  Left = 238
+  Height = 149
+  Top = 122
+  Width = 297
+  ActiveControl = Button1
+  Caption = 'Print Options'
+  ClientHeight = 149
+  ClientWidth = 297
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 16
+    Width = 273
+    Caption = 'Print &Actual field'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 48
+    Width = 273
+    Caption = 'Print &new field '
+    OnClick = Button2Click
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 8
+    Height = 25
+    Top = 80
+    Width = 273
+    Caption = 'Cancel'
+    OnClick = Button3Click
+    TabOrder = 2
+  end
+end

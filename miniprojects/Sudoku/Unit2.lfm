@@ -1,0 +1,274 @@
+object Form2: TForm2
+  Left = 238
+  Height = 284
+  Top = 124
+  Width = 394
+  ActiveControl = Button1
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Form2'
+  ClientHeight = 284
+  ClientWidth = 394
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnPaint = FormPaint
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Image1: TImage
+    Left = 192
+    Height = 193
+    Top = 24
+    Width = 193
+  end
+  object Label1: TLabel
+    Left = 16
+    Height = 19
+    Top = 32
+    Width = 99
+    Caption = 'Field background 1'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 16
+    Height = 19
+    Top = 48
+    Width = 99
+    Caption = 'Field background 2'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 16
+    Height = 19
+    Top = 160
+    Width = 63
+    Caption = 'Maybe color'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 16
+    Height = 19
+    Top = 96
+    Width = 79
+    Caption = 'Marked color 1'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 16
+    Height = 19
+    Top = 112
+    Width = 79
+    Caption = 'Marked color 2'
+    ParentColor = False
+  end
+  object Label6: TLabel
+    Left = 16
+    Height = 19
+    Top = 80
+    Width = 64
+    Caption = 'Cursor color'
+    ParentColor = False
+  end
+  object Label7: TLabel
+    Left = 16
+    Height = 19
+    Top = 144
+    Width = 57
+    Caption = 'Fixed color'
+    ParentColor = False
+  end
+  object Label8: TLabel
+    Left = 16
+    Height = 19
+    Top = 64
+    Width = 51
+    Caption = 'Grid color'
+    ParentColor = False
+  end
+  object Label9: TLabel
+    Left = 16
+    Height = 19
+    Top = 128
+    Width = 53
+    Caption = 'Font color'
+    ParentColor = False
+  end
+  object Label10: TLabel
+    Left = 16
+    Height = 19
+    Top = 192
+    Width = 60
+    Caption = 'Pencil color'
+    ParentColor = False
+  end
+  object Label11: TLabel
+    Left = 16
+    Height = 19
+    Top = 208
+    Width = 102
+    Caption = 'Pencil color marked'
+    ParentColor = False
+  end
+  object Label12: TLabel
+    Left = 16
+    Height = 19
+    Top = 176
+    Width = 66
+    Caption = 'Lighten color'
+    ParentColor = False
+  end
+  object Image2: TImage
+    Left = 152
+    Height = 13
+    Top = 32
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image3: TImage
+    Left = 152
+    Height = 13
+    Top = 48
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image4: TImage
+    Left = 152
+    Height = 13
+    Top = 160
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image5: TImage
+    Left = 152
+    Height = 13
+    Top = 96
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image6: TImage
+    Left = 152
+    Height = 13
+    Top = 112
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image7: TImage
+    Left = 152
+    Height = 13
+    Top = 80
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image8: TImage
+    Left = 152
+    Height = 13
+    Top = 144
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image9: TImage
+    Left = 152
+    Height = 13
+    Top = 64
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image10: TImage
+    Left = 152
+    Height = 13
+    Top = 128
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image11: TImage
+    Left = 152
+    Height = 13
+    Top = 192
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image12: TImage
+    Left = 152
+    Height = 13
+    Top = 208
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Image13: TImage
+    Left = 152
+    Height = 13
+    Top = 176
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Label13: TLabel
+    Left = 16
+    Height = 19
+    Top = 16
+    Width = 138
+    Caption = 'Formular background color'
+    ParentColor = False
+  end
+  object Image14: TImage
+    Left = 152
+    Height = 13
+    Top = 16
+    Width = 30
+    OnClick = Image2Click
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 41
+    Top = 232
+    Width = 121
+    Caption = 'OK'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 264
+    Height = 41
+    Top = 232
+    Width = 121
+    Caption = 'Cancel'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 136
+    Height = 41
+    Top = 232
+    Width = 121
+    Caption = 'Standard'
+    OnClick = Button3Click
+    TabOrder = 1
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 208
+    top = 40
+  end
+end

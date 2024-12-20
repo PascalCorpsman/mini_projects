@@ -1,0 +1,582 @@
+object Form1: TForm1
+  Left = 323
+  Height = 480
+  Top = 107
+  Width = 610
+  ActiveControl = CheckBox1
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 610
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
+  OnMouseDown = FormMouseDown
+  OnPaint = FormPaint
+  OnResize = FormResize
+  object CheckBox1: TCheckBox
+    Left = 416
+    Height = 22
+    Top = 32
+    Width = 185
+    Caption = 'show selected number effect'
+    Color = clBtnFace
+    ParentColor = False
+    TabOrder = 0
+    OnClick = CheckBox1Click
+    OnKeyPress = FormKeyPress
+  end
+  object CheckBox2: TCheckBox
+    Left = 416
+    Height = 22
+    Top = 56
+    Width = 128
+    Caption = 'add fixed numbers'
+    TabOrder = 1
+    OnClick = CheckBox2Click
+    OnKeyPress = FormKeyPress
+  end
+  object CheckBox3: TCheckBox
+    Left = 416
+    Height = 22
+    Top = 104
+    Width = 134
+    Caption = 'edit pencil numbers'
+    TabOrder = 3
+    OnClick = CheckBox3Click
+    OnKeyPress = FormKeyPress
+  end
+  object CheckBox4: TCheckBox
+    Left = 416
+    Height = 22
+    Top = 80
+    Width = 148
+    Caption = 'show pencils numbers'
+    TabOrder = 2
+    OnClick = CheckBox4Click
+    OnKeyPress = FormKeyPress
+  end
+  object ToolBar1: TToolBar
+    Left = 0
+    Height = 30
+    Top = 450
+    Width = 610
+    Align = alBottom
+    BorderWidth = 1
+    Caption = 'ToolBar1'
+    EdgeBorders = [ebLeft, ebTop, ebRight, ebBottom]
+    Images = ImageList1
+    TabOrder = 8
+    object ToolButton1: TToolButton
+      Left = 3
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton1'
+      ImageIndex = 0
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton2: TToolButton
+      Left = 26
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton2'
+      ImageIndex = 1
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton3: TToolButton
+      Left = 49
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton3'
+      ImageIndex = 2
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton4: TToolButton
+      Left = 72
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton4'
+      ImageIndex = 3
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton5: TToolButton
+      Left = 95
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton5'
+      ImageIndex = 4
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton6: TToolButton
+      Left = 118
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton6'
+      ImageIndex = 5
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton7: TToolButton
+      Left = 141
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton7'
+      ImageIndex = 6
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton8: TToolButton
+      Left = 164
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton8'
+      ImageIndex = 7
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton9: TToolButton
+      Left = 187
+      Hint = 'click to show number''s efeckt'
+      Top = 2
+      Caption = 'ToolButton9'
+      ImageIndex = 8
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton1Click
+      OnMouseDown = ToolButton1MouseDown
+    end
+    object ToolButton10: TToolButton
+      Left = 210
+      Height = 22
+      Top = 2
+      Caption = 'ToolButton10'
+      Style = tbsSeparator
+    end
+    object ToolButton11: TToolButton
+      Left = 218
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton11'
+      ImageIndex = 9
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+    object ToolButton12: TToolButton
+      Left = 241
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton12'
+      ImageIndex = 10
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+    object ToolButton13: TToolButton
+      Left = 264
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton13'
+      ImageIndex = 11
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+    object ToolButton14: TToolButton
+      Left = 287
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton14'
+      ImageIndex = 12
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+    object ToolButton15: TToolButton
+      Left = 310
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton15'
+      ImageIndex = 13
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+    object ToolButton16: TToolButton
+      Left = 333
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton16'
+      ImageIndex = 14
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+    object ToolButton17: TToolButton
+      Left = 356
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton17'
+      ImageIndex = 15
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+    object ToolButton18: TToolButton
+      Left = 379
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton18'
+      ImageIndex = 16
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+    object ToolButton19: TToolButton
+      Left = 402
+      Hint = 'show positions of number''s'
+      Top = 2
+      Caption = 'ToolButton19'
+      ImageIndex = 17
+      ParentShowHint = False
+      ShowHint = True
+      Style = tbsCheck
+      OnClick = ToolButton11Click
+      OnMouseDown = ToolButton11MouseDown
+    end
+  end
+  object CheckBox5: TCheckBox
+    Left = 416
+    Height = 22
+    Top = 128
+    Width = 165
+    Caption = 'show line pencil numbers'
+    TabOrder = 4
+    OnClick = CheckBox5Click
+    OnKeyPress = FormKeyPress
+  end
+  object Button1: TButton
+    Left = 440
+    Height = 25
+    Top = 192
+    Width = 129
+    Caption = 'auto pencil numbers'
+    TabOrder = 6
+    OnClick = Button1Click
+    OnKeyPress = FormKeyPress
+  end
+  object Button2: TButton
+    Left = 440
+    Height = 25
+    Top = 224
+    Width = 129
+    Caption = 'clear pencil numbers'
+    TabOrder = 7
+    OnClick = Button2Click
+    OnKeyPress = FormKeyPress
+  end
+  object CheckBox6: TCheckBox
+    Left = 416
+    Height = 22
+    Top = 152
+    Width = 157
+    Caption = 'edit line pencil numbers'
+    TabOrder = 5
+    OnClick = CheckBox6Click
+    OnKeyPress = FormKeyPress
+  end
+  object Panel1: TPanel
+    Left = 8
+    Height = 437
+    Top = 8
+    Width = 402
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = 'Panel1'
+    TabOrder = 9
+    OnMouseDown = Panel1MouseDown
+  end
+  object MainMenu1: TMainMenu
+    Left = 456
+    Top = 312
+    object Datei1: TMenuItem
+      Caption = 'File'
+      object New1: TMenuItem
+        Caption = '&New'
+        object Puzzle1: TMenuItem
+          Caption = 'Puzzle'
+          ShortCut = 16462
+          OnClick = Puzzle1Click
+        end
+        object SpecialPuzzle1: TMenuItem
+          Caption = 'Special Puzzle in Work'
+          Visible = False
+          OnClick = SpecialPuzzle1Click
+        end
+        object Clearfield1: TMenuItem
+          Caption = 'Clear field'
+          OnClick = Clearfield1Click
+        end
+        object UNbeli1: TMenuItem
+          Caption = 'Other Sudoku'
+          object N2x21: TMenuItem
+            Caption = '2x2'
+            OnClick = N2x21Click
+          end
+          object N4x41: TMenuItem
+            Caption = '4x4'
+            OnClick = N4x41Click
+          end
+          object N5x51: TMenuItem
+            Caption = '5x5'
+            OnClick = N5x51Click
+          end
+        end
+      end
+      object Print1: TMenuItem
+        Caption = '&Print'
+        OnClick = Print1Click
+      end
+      object Load1: TMenuItem
+        Caption = '&Load'
+        OnClick = Load1Click
+      end
+      object Save1: TMenuItem
+        Caption = '&Save'
+        OnClick = Save1Click
+      end
+      object Beenden1: TMenuItem
+        Caption = '&Close'
+        OnClick = Beenden1Click
+      end
+    end
+    object EditMenue1: TMenuItem
+      Caption = 'Edit'
+      object Resetfield1: TMenuItem
+        Caption = 'Reset field'
+        ShortCut = 16466
+        OnClick = Resetfield1Click
+      end
+      object Maybenumbersgoodnumbers1: TMenuItem
+        Caption = 'Maybe number''s - > good number''s'
+        OnClick = Maybenumbersgoodnumbers1Click
+      end
+      object MaybanumberclearField1: TMenuItem
+        Caption = 'Mayba number'' - > clear Field'
+        OnClick = MaybanumberclearField1Click
+      end
+      object Modify1: TMenuItem
+        Caption = 'Modify'
+        OnClick = Modify1Click
+      end
+    end
+    object Action1: TMenuItem
+      Caption = 'Action'
+      object Info1: TMenuItem
+        Caption = 'Info'
+        OnClick = Info1Click
+      end
+      object Solveit1: TMenuItem
+        Caption = 'Solve it'
+        ShortCut = 16457
+        OnClick = Solveit1Click
+      end
+      object Solvestep1: TMenuItem
+        Caption = 'Solve step'
+        ShortCut = 16464
+        OnClick = Solvestep1Click
+      end
+      object SolveOptions1: TMenuItem
+        Caption = 'Solve Options'
+        object byhiddensingle1: TMenuItem
+          Caption = 'by hidden single'
+          Checked = True
+          OnClick = bymarkingnumbersClick
+        end
+        object bynakedsingle1: TMenuItem
+          Caption = 'by naked single'
+          Checked = True
+          OnClick = bymarkingnumbersClick
+        end
+        object byBlockandColumninteractions1: TMenuItem
+          Caption = 'by block and column interactions'
+          Checked = True
+          Visible = False
+          OnClick = bymarkingnumbersClick
+        end
+        object byblockandblockinteractions1: TMenuItem
+          Caption = 'by block and block interactions'
+          Checked = True
+          Visible = False
+          OnClick = bymarkingnumbersClick
+        end
+        object bynakedsubset1: TMenuItem
+          Caption = 'by naked subset'
+          Checked = True
+          OnClick = bymarkingnumbersClick
+        end
+        object byhiddensubset1: TMenuItem
+          Caption = 'by hidden subset'
+          Checked = True
+          OnClick = bymarkingnumbersClick
+        end
+        object byXWingSwordfish1: TMenuItem
+          Caption = 'by X - Wing / Swordfish'
+          Checked = True
+          Visible = False
+          OnClick = bymarkingnumbersClick
+        end
+        object byXYWing1: TMenuItem
+          Caption = 'by XY - Wing'
+          Checked = True
+          OnClick = bymarkingnumbersClick
+        end
+        object ForcingChains1: TMenuItem
+          Caption = 'Forcing Chains'
+          Checked = True
+          Visible = False
+          OnClick = bymarkingnumbersClick
+        end
+        object bytryanderror1: TMenuItem
+          Caption = 'by try and error'
+          Checked = True
+          OnClick = bymarkingnumbersClick
+        end
+        object Allowall1: TMenuItem
+          Caption = 'Allow all'
+          OnClick = Allowall1Click
+        end
+        object Allownone1: TMenuItem
+          Caption = 'Allow none'
+          OnClick = Allownone1Click
+        end
+      end
+    end
+    object Options1: TMenuItem
+      Caption = 'Options'
+      object General2: TMenuItem
+        Caption = 'General'
+        OnClick = General2Click
+      end
+      object Colors1: TMenuItem
+        Caption = 'Colors'
+        OnClick = Colors1Click
+      end
+    end
+    object Help1: TMenuItem
+      Caption = 'Help'
+      object General1: TMenuItem
+        Caption = 'General'
+        OnClick = General1Click
+      end
+      object Warranty1: TMenuItem
+        Caption = 'Warranty'
+        OnClick = Warranty1Click
+      end
+      object Support1: TMenuItem
+        Caption = 'Support'
+        OnClick = Support1Click
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.sd3'
+    Filter = 'Sudoka|*.sd3|All|*.*'
+    Options = [ofReadOnly, ofHideReadOnly, ofPathMustExist, ofFileMustExist]
+    Left = 488
+    Top = 312
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.sd3'
+    Filter = 'Sudoka|*.sd3|All|*.*'
+    Options = [ofHideReadOnly]
+    Left = 520
+    Top = 312
+  end
+  object ImageList1: TImageList
+    Left = 456
+    Top = 344
+    Bitmap = {
+      4C7A170000001000000010000000C40300000000000078DAED9C0972E4200C45
+      75B41C4D3767924C75C7696BF95AF092A65CCE4CD279C6803E120232689C70D1
+      F87F03BF49DF5FC62BCB00FF607FF81C4BCFF78DB18FFF47D81F265E5FAD9DAB
+      2C85F9DF6C8CFFFDCE317E5F5F9C97DB0AE3F57646F95C1FDDF5F2F5BFD71F6E
+      D3AF6C44C3A4DA2CA6A50A3B5B876768F84CB65A5FD986F2ACC52FFDFB1A3E52
+      FFB37C69884AC40EB3F570173F4C42D936EF6B3853DFE5FF6BF1FFBEEFE3B174
+      2686DF977D1F561A3B285876D60F4BEF9C1D3B621AECD7303EF6D87D84F04BFF
+      88FF9EEFFFAB317C76CED29177B0C63B0AE75B96FF5FFEFFFDE2FF2EFD67E3FF
+      8EDCE199FAD7DEF94CFD477DF8D2FF79FAF7F32758AC55D17FE73CBC730E7F47
+      F68E79C763D71D96FEAF98FFCFEAA1D3FF67B554F1FF33E6FFF758875BFE7FE9
+      5FB693A3E60E1DFAB7E2FFAC862BF37F0AFBD37EFD1F9D3BCCE42DAFA47FE2CF
+      2FC20DB3DA653CE3598EC07CB7E1F67BE139264BF67BB82CE97511D92DA3F19B
+      BA883F1F057EBC0FEFDA9CD37FAEDD02F663DA2F61F65BD54F977E2FA3FFADFE
+      38A87F6D0C47FA9E9532859F89F565C5DE143B72ED7FCB7392675D032ECF4AD9
+      086FB11EEFB1993E40F4CFCE1E1E4FFF1EBFF49FD33F37E89F03FA07C671B7BE
+      55FD6A63E051BCA7C5E8F8858C7FA81FD5FA20387E9B3640BA0FEAF65F4BFF17
+      8BFF4721FE1F822F88C6FF95F9C3D6E6A23C17E61FD2D819E109F0BD561F44F8
+      15FF5F57FF4EEC3535FE1F40DC89C49EA85FB5784AC4CF1CD30FE47F8FF6FFB4
+      FCFF8AFF5FFA2D12FF7321FED7F45F9DFF67FC6F66FE4C45FD13A81F8F3F4BFF
+      6392FE69E9FF94F85FB159B55C2406B4FA1E8D2123F3FF8EFC5B257FCE49DE1B
+      CB66F3D9FC1F38769A76CBFEBA03A47FD07E553B5EF9BF58FE9FE9DCFC7F97FF
+      CBFA5F247E9DC9F3B1F1C394F89F96FFFF73EB7FDCA0FF51D4FF91F133637950
+      336705E4D0E0F5BB48AE3FB07E02ADDF7020FFC771FBD9D9AF3677BDB0FED1F3
+      12D29E266B8F13397BEDACF2CDB09879783C19E740A871BF1519E7CDC8398BF6
+      FAAF5577AF3FC8D97F267D1EE927AB8F08DCFBDADDFE683B23E57BF544EB8F96
+      8F3C17B10754A768FB1FE3FF85F1175CFF13F77882EB7F299682ACB0FF4FDD97
+      0EECFF33CF3B39FED3DDEFCC3E4B091EDD772CF1D17338DB6764CF1DA87615D8
+      B7BCFEFE97B7FF7E2EEFDADAE4CFABEF378B7FB772BBF8ABE8E85DEAEFCD23BC
+      D80DF9CC8B15917990155F77CFA33C3EF2AEF8EF3E8FFF0CABFD501E1DD3A367
+      94B27CA44D23FE28C2FF155F6F85FA8FBBC2469F21B191679CCD57EBDFD1FE5F
+      D7078FF1B8EFC07F0191BBC2BE3EA3CA57DFBF72FD036F5B180D
+    }
+  end
+end

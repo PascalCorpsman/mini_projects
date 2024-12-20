@@ -1,0 +1,42 @@
+object Form3: TForm3
+  Left = 238
+  Height = 135
+  Top = 122
+  Width = 258
+  ActiveControl = CheckBox1
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Form3'
+  ClientHeight = 135
+  ClientWidth = 258
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object CheckBox1: TCheckBox
+    Left = 8
+    Height = 22
+    Top = 24
+    Width = 261
+    Caption = 'Insert number after deletion to pencil numbers'
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 88
+    Height = 25
+    Top = 88
+    Width = 75
+    Caption = 'OK'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object CheckBox2: TCheckBox
+    Left = 8
+    Height = 22
+    Top = 56
+    Width = 162
+    Caption = 'allow insert invalid numbers'
+    TabOrder = 2
+  end
+end

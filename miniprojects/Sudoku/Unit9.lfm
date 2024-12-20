@@ -1,0 +1,69 @@
+object Form9: TForm9
+  Left = 238
+  Height = 211
+  Top = 123
+  Width = 295
+  ActiveControl = CheckBox1
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Print Options'
+  ClientHeight = 211
+  ClientWidth = 295
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 40
+    Width = 265
+    Caption = 'Print &actual field'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 16
+    Height = 25
+    Top = 72
+    Width = 265
+    Caption = 'Print &new field with current action options'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 16
+    Height = 25
+    Top = 104
+    Width = 265
+    Caption = 'Print &4 new fields with current action options'
+    OnClick = Button3Click
+    TabOrder = 3
+  end
+  object Button4: TButton
+    Left = 16
+    Height = 25
+    Top = 168
+    Width = 265
+    Caption = '&Cancel'
+    OnClick = Button4Click
+    TabOrder = 5
+  end
+  object Button5: TButton
+    Left = 16
+    Height = 25
+    Top = 136
+    Width = 265
+    Caption = 'Print &6 new fields with current action options'
+    OnClick = Button5Click
+    TabOrder = 4
+  end
+  object CheckBox1: TCheckBox
+    Left = 88
+    Height = 22
+    Top = 8
+    Width = 131
+    Caption = 'Print with pencil data'
+    TabOrder = 0
+  end
+end
