@@ -157,59 +157,66 @@ Begin
 End;
 
 Destructor TSudoku.Destroy;
+var
+  i, j: Integer;
 Begin
-
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      setlength(fField[i, j].Pencil, 0);
+    End;
+  End;
+  setlength(fField, 0, 0);
 End;
 
 Procedure TSudoku.Rotate(Clockwise: Boolean);
-//Var
-//  f: T3field;
-//  x, y, z: integer;
+Var
+  tmp: Tfield;
+  x, y, z: integer;
 Begin
+  tmp := Nil;
+  setlength(tmp, fsqrDim, fsqrDim);
+  For x := 0 To fsqrDim - 1 Do Begin
+    For y := 0 To fsqrDim - 1 Do Begin
+      tmp[x, y].Value := ffield[x, y].value;
+      tmp[x, y].Marked := ffield[x, y].Marked;
+      tmp[x, y].Maybeed := ffield[x, y].Maybeed;
+      tmp[x, y].Fixed := ffield[x, y].Fixed;
+      setlength(tmp[x, y].Pencil, fsqrDim);
+      For z := 0 To fsqrDim - 1 Do Begin
+        tmp[x, y].Pencil[z] := ffield[x, y].pencil[z];
+      End;
+    End;
+  End;
   If Clockwise Then Begin
-    // Kopieren des Feldes
- //For x := 0 To 8 Do
- //  For y := 0 To 8 Do Begin
- //    f[x, y].Value := field[x, y].value;
- //    f[x, y].Marked := field[x, y].Marked;
- //    f[x, y].Maybeed := field[x, y].Maybeed;
- //    f[x, y].Fixed := field[x, y].Fixed;
- //    For z := 0 To 8 Do
- //      f[x, y].Pencil[z] := field[x, y].pencil[z];
- //  End;
- //// Überschreiben des Orginales mit der Gedrehten Kopie
- //For x := 0 To 8 Do
- //  For y := 0 To 8 Do Begin
- //    field[x, y].Value := f[y, 8 - x].value;
- //    field[x, y].Marked := f[y, 8 - x].Marked;
- //    field[x, y].Maybeed := f[y, 8 - x].Maybeed;
- //    field[x, y].Fixed := f[y, 8 - x].Fixed;
- //    For z := 0 To 8 Do
- //      field[x, y].Pencil[z] := f[y, 8 - x].pencil[z];
- //  End;
+    // Überschreiben des Orginales mit der Gedrehten Kopie
+    For x := 0 To fsqrDim - 1 Do Begin
+      For y := 0 To fsqrDim - 1 Do Begin
+        ffield[x, y].Value := tmp[y, fsqrDim - 1 - x].value;
+        ffield[x, y].Marked := tmp[y, fsqrDim - 1 - x].Marked;
+        ffield[x, y].Maybeed := tmp[y, fsqrDim - 1 - x].Maybeed;
+        ffield[x, y].Fixed := tmp[y, fsqrDim - 1 - x].Fixed;
+        For z := 0 To fsqrDim - 1 Do Begin
+          ffield[x, y].Pencil[z] := tmp[y, fsqrDim - 1 - x].pencil[z];
+        End;
+        setlength(tmp[y, fsqrDim - 1 - x].Pencil, 0);
+      End;
+    End;
   End
   Else Begin
-    // Kopieren des Feldes
-    //For x := 0 To 8 Do
-    //  For y := 0 To 8 Do Begin
-    //    f[x, y].Value := field[x, y].value;
-    //    f[x, y].Marked := field[x, y].Marked;
-    //    f[x, y].Maybeed := field[x, y].Maybeed;
-    //    f[x, y].Fixed := field[x, y].Fixed;
-    //    For z := 0 To 8 Do
-    //      f[x, y].Pencil[z] := field[x, y].pencil[z];
-    //  End;
-    //// Überschreiben des Orginales mit der Gedrehten Kopie
-    //For x := 0 To 8 Do
-    //  For y := 0 To 8 Do Begin
-    //    field[x, y].Value := f[8 - y, x].value;
-    //    field[x, y].Marked := f[8 - y, x].Marked;
-    //    field[x, y].Maybeed := f[8 - y, x].Maybeed;
-    //    field[x, y].Fixed := f[8 - y, x].Fixed;
-    //    For z := 0 To 8 Do
-    //      field[x, y].Pencil[z] := f[8 - y, x].pencil[z];
-    //  End;
+    For x := 0 To fsqrDim - 1 Do Begin
+      For y := 0 To fsqrDim - 1 Do Begin
+        ffield[x, y].Value := tmp[fsqrDim - 1 - y, x].value;
+        ffield[x, y].Marked := tmp[fsqrDim - 1 - y, x].Marked;
+        ffield[x, y].Maybeed := tmp[fsqrDim - 1 - y, x].Maybeed;
+        ffield[x, y].Fixed := tmp[fsqrDim - 1 - y, x].Fixed;
+        For z := 0 To fsqrDim - 1 Do Begin
+          ffield[x, y].Pencil[z] := tmp[fsqrDim - 1 - y, x].pencil[z];
+        End;
+        setlength(tmp[fsqrDim - 1 - y, x].Pencil, 0);
+      End;
+    End;
   End;
+  setlength(tmp, 0, 0);
 End;
 
 Procedure TSudoku.Mirror(Horizontal: Boolean);
@@ -219,21 +226,19 @@ Var
 Begin
   tmp := Nil;
   setlength(tmp, fsqrDim, fsqrDim);
-  If Horizontal Then Begin
-    // Kopieren des Feldes
-    For x := 0 To fsqrDim - 1 Do Begin
-      For y := 0 To fsqrDim - 1 Do Begin
-        tmp[x, y].Value := ffield[x, y].value;
-        tmp[x, y].Marked := ffield[x, y].Marked;
-        tmp[x, y].Maybeed := ffield[x, y].Maybeed;
-        tmp[x, y].Fixed := ffield[x, y].Fixed;
-        setlength(tmp[x, y].Pencil, fsqrDim);
-        For z := 0 To fsqrDim - 1 Do Begin
-          tmp[x, y].Pencil[z] := ffield[x, y].pencil[z];
-        End;
+  For x := 0 To fsqrDim - 1 Do Begin
+    For y := 0 To fsqrDim - 1 Do Begin
+      tmp[x, y].Value := ffield[x, y].value;
+      tmp[x, y].Marked := ffield[x, y].Marked;
+      tmp[x, y].Maybeed := ffield[x, y].Maybeed;
+      tmp[x, y].Fixed := ffield[x, y].Fixed;
+      setlength(tmp[x, y].Pencil, fsqrDim);
+      For z := 0 To fsqrDim - 1 Do Begin
+        tmp[x, y].Pencil[z] := ffield[x, y].pencil[z];
       End;
     End;
-    // Überschreiben des Orginales mit der Gedrehten Kopie
+  End;
+  If Horizontal Then Begin
     For x := 0 To fsqrDim - 1 Do Begin
       For y := 0 To fsqrDim - 1 Do Begin
         ffield[x, y].Value := tmp[fsqrDim - 1 - x, y].value;
@@ -248,20 +253,6 @@ Begin
     End;
   End
   Else Begin
-    // Kopieren des Feldes
-    For x := 0 To fsqrDim - 1 Do Begin
-      For y := 0 To fsqrDim - 1 Do Begin
-        tmp[x, y].Value := ffield[x, y].value;
-        tmp[x, y].Marked := ffield[x, y].Marked;
-        tmp[x, y].Maybeed := ffield[x, y].Maybeed;
-        tmp[x, y].Fixed := ffield[x, y].Fixed;
-        setlength(tmp[x, y].Pencil, fsqrDim);
-        For z := 0 To fsqrDim - 1 Do Begin
-          tmp[x, y].Pencil[z] := ffield[x, y].pencil[z];
-        End;
-      End;
-    End;
-    // Überschreiben des Orginales mit der Gedrehten Kopie
     For x := 0 To fsqrDim - 1 Do Begin
       For y := 0 To fsqrDim - 1 Do Begin
         ffield[x, y].Value := tmp[x, fsqrDim - 1 - y].value;
@@ -298,10 +289,6 @@ Procedure TSudoku.RenderTo(Const Canvas: TCanvas; Info: TRenderInfo);
 Var
   x, y, z, d: integer;
 Begin
-  // Löschen des Bildschirms
-  canvas.brush.style := bssolid;
-  canvas.brush.color := FormBackground;
-  canvas.rectangle(-1, -1, canvas.width + 1, canvas.height + 1);
   //rectangle(-1,-1,Breite*10,Breite *10);
   // Die LinePencil's
   If info.Edit_Line_Pencil_Numbers Then Begin

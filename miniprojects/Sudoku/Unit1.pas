@@ -169,6 +169,7 @@ Type
   private
     { Private-Deklarationen }
     ffield: TSudoku;
+    Procedure RefreshField(Sender: TObject);
   public
     { Public-Deklarationen }
     mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
@@ -571,10 +572,7 @@ Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
       End;
-    // Wenn nur ein Step gewünscht war dann schauen wir uns nun mal an was die Pencil's gemacht haben
-  //    If Step { And (form1.Checkbox4.checked Or form1.Checkbox5.checked) } Then
-  //      form1.button1.onclick(Nil);
-    form1.Drawfield(Nil);
+    form1.PaintBox1.Invalidate;
   End;
 End;
 
@@ -820,6 +818,11 @@ Begin
   info.Show_Pencils_Numbers := Checkbox4.checked;
   info.Show_Line_Pencil_numbers := Checkbox5.checked;
   info.Edit_Line_Pencil_Numbers := Checkbox6.checked;
+  // Löschen des Bildschirms
+  bm.canvas.brush.style := bssolid;
+  bm.canvas.brush.color := FormBackground;
+  bm.canvas.rectangle(-1, -1, bm.width + 1, bm.height + 1);
+
   ffield.RenderTo(bm.Canvas, info);
   //  Form1.canvas.Draw(0, 0, bm);
   Form1.PaintBox1.Canvas.Draw(0, 0, bm);
@@ -950,6 +953,7 @@ Begin
   byXWingSwordfish1 + Hilfe für diese KI;
   ForcingChains1 + Hilfe für diese KI;
   //}
+  Constraints.MinHeight := 480;
   Randomize;
   ffield := TSudoku.Create(3);
   bm := tbitmap.create;
@@ -969,18 +973,17 @@ Procedure TForm1.FormResize(Sender: TObject);
 Var
   x: Integer;
 Begin
-  If Form1.height < 480 Then Form1.height := 480;
-  If form1.Width < form1.height + 130 Then form1.Width := form1.height + 130;
+  If form1.Width < form1.height + Scale96ToForm(130) Then form1.Width := form1.height + Scale96ToForm(130);
   //  Breite := min(Form1.height - 32, Form1.width - 120) Div 11;
-  Breite := min(PaintBox1.ClientHeight, PaintBox1.ClientWidth) Div 11;
+  Breite := min(PaintBox1.Height, PaintBox1.Width) Div 11;
   For x := 1 To 6 Do
-    TCheckbox(findcomponent('Checkbox' + inttostr(x))).left := Form1.width - 195;
-  button1.left := Form1.width - 160;
-  button2.left := Form1.width - 160;
+    TCheckbox(findcomponent('Checkbox' + inttostr(x))).left := Form1.width - Scale96ToForm(195);
+  button1.left := Form1.width - Scale96ToForm(160);
+  button2.left := Form1.width - Scale96ToForm(160);
   If Assigned(bm) Then Begin
-    bm.width := PaintBox1.ClientWidth;
-    bm.height := PaintBox1.ClientHeight;
-    Drawfield(Nil);
+    bm.width := PaintBox1.Width;
+    bm.height := PaintBox1.Height;
+    PaintBox1.Invalidate;
   End;
 End;
 
@@ -1105,7 +1108,7 @@ Begin
     If (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W']) Then Begin
       If ((Key = 'a') Or (Key = 'A') Or (Key = 'w') Or (Key = 'W')) And (lc > 0) Then dec(lc);
       If ((Key = 's') Or (Key = 'S') Or (Key = 'd') Or (Key = 'D')) And (lc < 17) Then inc(lc);
-      Drawfield(Nil);
+      PaintBox1.Invalidate;
       exit;
     End
     Else Begin
@@ -1127,7 +1130,7 @@ Begin
         Else
           showmessage('Character for this field impossible.');
       End;
-      Drawfield(Nil);
+      PaintBox1.Invalidate;
     End;
     exit;
   End;
@@ -1205,10 +1208,10 @@ Begin
 //    If TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled Then a := false;
   a := isreadyUser3(field, true);
   // Zeichnen des Feldes
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
   // Anzeigen das Fertig
   If A Then Begin
-    Drawfield(Nil);
+    PaintBox1.Invalidate;
     If Not (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W', '0']) Then
       showmessage('You solved the Sudoku.');
   End;
@@ -1225,7 +1228,7 @@ Begin
     If (mx In [0..8]) And (my In [0..8]) Then
       Field[mx, my].Marked := true;
   End;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.CheckBox3Click(Sender: TObject);
@@ -1249,7 +1252,7 @@ Procedure TForm1.CheckBox4Click(Sender: TObject);
 Begin
   If Checkbox4.checked Then GetPencil(field);
   If checkbox3.checked And Not Checkbox4.checked Then checkbox3.checked := false;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.Clearfield1Click(Sender: TObject);
@@ -1260,7 +1263,7 @@ Begin
   ffield.LoadFrom(Field);
   ffield.ClearField;
   ffield.StoreTo(Field);
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.FormShow(Sender: TObject);
@@ -1298,7 +1301,7 @@ Begin
       my := y1;
     End;
   End;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.Panel1Paint(Sender: TObject);
@@ -1349,7 +1352,7 @@ Begin
     For x := 0 To 8 Do
       For y := 0 To 8 Do
         Field[x, y].marked := false;
-    Drawfield(Nil);
+    PaintBox1.Invalidate;
   End;
 End;
 
@@ -1364,7 +1367,7 @@ Begin
       If Not (Field[x, y].Fixed) Then Field[x, y].value := 0;
       Field[x, y].MArked := false;
     End;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.ToolButton1Click(Sender: TObject);
@@ -1376,12 +1379,12 @@ Begin
       For y := 0 To 8 Do
         Field[x, y].marked := false;
   End;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.ToolButton11Click(Sender: TObject);
 Begin
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.Colors1Click(Sender: TObject);
@@ -1413,6 +1416,7 @@ Procedure TForm1.Button1Click(Sender: TObject);
 Var
   x, y, z: integer;
 Begin
+  // Auto Pencil Numbers
   For x := 0 To 17 Do
     For y := 0 To 8 Do
       Linepencil[x][y] := true;
@@ -1422,8 +1426,7 @@ Begin
       For z := 0 To 8 Do
         field[x, y].Pencil[z] := true;
   GetPencil(field);
-  //  checkbox4.checked := true;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
@@ -1440,7 +1443,7 @@ Begin
       For z := 0 To 8 Do
         field[x, y].Pencil[z] := false;
   //  checkbox3.checked := true;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.CheckBox5Click(Sender: TObject);
@@ -1449,22 +1452,21 @@ Begin
   If Not Checkbox5.checked Then Begin
     checkbox6.checked := false;
   End;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.CheckBox6Click(Sender: TObject);
 Begin
-
   Checkbox2.checked := false;
   If Checkbox6.checked Then Begin
     checkbox5.checked := True;
     Checkbox3.checked := false;
   End;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
-Procedure TForm1.ToolButton1MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+Procedure TForm1.ToolButton1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
 Var
   x1, y1: integer;
 Begin
@@ -1475,7 +1477,7 @@ Begin
     For x1 := 1 To 9 Do
       TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(x1))).down := false;
     TTOolbutton(sender).Down := true;
-    Drawfield(Nil);
+    PaintBox1.Invalidate;
   End;
 End;
 
@@ -1486,8 +1488,8 @@ Begin
   form3.showmodal;
 End;
 
-Procedure TForm1.ToolButton11MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+Procedure TForm1.ToolButton11MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
 Var
   x1: integer;
 Begin
@@ -1495,7 +1497,7 @@ Begin
     For x1 := 11 To 19 Do
       TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(x1))).down := false;
     TTOolbutton(sender).Down := true;
-    Drawfield(Nil);
+    PaintBox1.Invalidate;
   End;
 End;
 
@@ -1509,12 +1511,12 @@ Procedure TForm1.Solveit1Click(Sender: TObject);
 Begin
   If Not (Sudoku3solvable(field)) Then Begin
     showmessage('Impossible to solve Sudoku');
-    Drawfield(Nil);
+    PaintBox1.Invalidate;
   End
   Else Begin
     Solve(False, false, field);
     Showmessage('Ready');
-    Drawfield(Nil);
+    PaintBox1.Invalidate;
   End;
 End;
 
@@ -1543,7 +1545,7 @@ Begin
     If A Then Begin
       mx := -1;
       my := -1;
-      Drawfield(Nil);
+      PaintBox1.Invalidate;
       showmessage('You solved the Sudoku.');
     End;
   End;
@@ -1589,7 +1591,7 @@ Begin
   For x := 1 To 9 Do Begin
     TCombobox(Form5.findcomponent('Combobox' + inttostr(x))).text := substitution[x];
   End;
-  form5.Init(ffield, @Drawfield);
+  form5.Init(ffield, @RefreshField);
   Form5.showmodal;
 End;
 
@@ -1610,7 +1612,7 @@ Begin
     Form7.showmodal;
     // Nach dem Schliesen sollte das Hauptfenster wieder aktiviert werden
     Form1.SetFocus;
-    Drawfield(Nil);
+    PaintBox1.Invalidate;
   End;
 End;
 
@@ -1621,7 +1623,7 @@ Begin
   For x := 0 To 8 Do
     For y := 0 To 8 Do
       If Field[x, y].Maybeed Then Field[x, y].Maybeed := false;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.MaybanumberclearField1Click(Sender: TObject);
@@ -1635,7 +1637,7 @@ Begin
         UnPencil(x, y, Field[x, y].Value, Field);
         Field[x, y].Value := 0;
       End;
-  Drawfield(Nil);
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.SpecialPuzzle1Click(Sender: TObject);
@@ -1682,6 +1684,11 @@ End;
 Procedure TForm1.N2x21Click(Sender: TObject);
 Begin
   Form16.showmodal;
+End;
+
+Procedure TForm1.RefreshField(Sender: TObject);
+Begin
+  PaintBox1.Invalidate;
 End;
 
 End.
