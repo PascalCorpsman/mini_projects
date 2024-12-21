@@ -137,7 +137,7 @@ Begin
    // Drawfield; // Löschen der Anzeige auf der Form 1
    // Dafür sorgen das wir auf alle Fälle jedesmal eine andere Startposition haben
     For z := 1 To Numbercount Do Begin
-      F.ClearAllMarks;
+      F.ResetAllMarker;
       x := random(9); // Die neuen Koordinaten
       y := random(9); // Die neuen Koordinaten
       n := Random(9) + 1; // Die eingefügte Zahl

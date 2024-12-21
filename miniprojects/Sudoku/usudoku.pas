@@ -79,7 +79,7 @@ Type
     Procedure ClearField;
 
     Procedure Mark(Number: integer);
-    Procedure ClearAllMarks;
+    Procedure ResetAllMarker;
     Function IsMarked(x, y: Integer): Boolean;
 
     Procedure SetValue(x, y, Value: integer; Fixed: Boolean);
@@ -322,13 +322,16 @@ Begin
   End;
 End;
 
-Procedure TSudoku.ClearAllMarks;
+Procedure TSudoku.ResetAllMarker;
 Var
-  i, j: Integer;
+  i, j, k: Integer;
 Begin
-  For i := 0 To 8 Do Begin
-    For j := 0 To 8 Do Begin
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
       fField[i, j].Marked := false;
+      For k := 0 To fsqrDim - 1 Do Begin
+        fField[i, j].Pencil[k] := true;
+      End;
     End;
   End;
 End;
@@ -353,7 +356,6 @@ Procedure TSudoku.RenderTo(Const Canvas: TCanvas; Info: TRenderInfo);
 Var
   x, y, z, d: integer;
 Begin
-  //rectangle(-1,-1,Breite*10,Breite *10);
   // Die LinePencil's
   If info.Edit_Line_Pencil_Numbers Then Begin
     canvas.brush.style := bssolid;
@@ -371,14 +373,14 @@ Begin
   If info.Show_Line_Pencil_numbers Then Begin
     // Die Waagrechten beschriftungen.
     canvas.font.size := breite Div 5;
-    For x := 0 To 8 Do
-      For z := 0 To 8 Do
+    For x := 0 To fsqrDim - 1 Do
+      For z := 0 To fsqrDim - 1 Do
         If Linepencil[x][z] Then Begin
           If (Lc = x) And (info.Edit_Line_Pencil_Numbers) Then
             canvas.font.color := PencilcolorMarked
           Else
             canvas.font.color := Pencilcolor;
-          Case z Of
+          Case z Of // TODO: das ist noch nicht abhängig von DIM !
             0..2: Begin
                 If info.NumberHighLights[z] Then Begin
                   canvas.brush.color := LightenColor;
@@ -420,14 +422,14 @@ Begin
     // Die senkrechten Beschriftungen.
     canvas.font.size := breite Div 5;
     canvas.font.color := Pencilcolor;
-    For x := 0 To 8 Do
-      For z := 0 To 8 Do
-        If Linepencil[x + 9][z] Then Begin
-          If (Lc = x + 9) And (info.Edit_Line_Pencil_Numbers) Then
+    For x := 0 To fsqrDim - 1 Do
+      For z := 0 To fsqrDim - 1 Do
+        If Linepencil[x + fsqrDim][z] Then Begin
+          If (Lc = x + fsqrDim) And (info.Edit_Line_Pencil_Numbers) Then
             canvas.font.color := PencilcolorMarked
           Else
             canvas.font.color := Pencilcolor;
-          Case z Of
+          Case z Of // TODO: das ist noch nicht abhängig von DIM !
             0..2: Begin
                 If info.NumberHighLights[z] Then Begin
                   canvas.brush.color := LightenColor;
@@ -468,8 +470,8 @@ Begin
         End;
     // Die linien zwischen den Zahlen
     canvas.pen.color := Gitterfarbe;
-    For z := 1 To 10 Do Begin
-      If Z <> 10 Then Begin
+    For z := 1 To fsqrDim + 1 Do Begin
+      If Z <> fsqrDim + 1 Then Begin
         canvas.moveto(Breite * z, 1);
         canvas.lineto(Breite * z, Breite);
         canvas.moveto(Breite * 10, Breite * z);
@@ -484,9 +486,9 @@ Begin
     End;
   End;
   // Malen des Gitters
-  For y := 0 To 8 Do
-    For x := 0 To 8 Do Begin
-      Case x Of
+  For y := 0 To fsqrDim - 1 Do
+    For x := 0 To fsqrDim - 1 Do Begin
+      Case x Of // TODO: das ist noch nicht abhängig von DIM !
         0..2, 6..8: Begin
             If y In [0..2, 6..8] Then Begin
               canvas.brush.color := Bretthintergrundfarbe1;
@@ -530,9 +532,9 @@ Begin
           canvas.font.color := PencilcolorMarked
         Else
           canvas.font.color := Pencilcolor;
-        For z := 0 To 8 Do
+        For z := 0 To fsqrDim - 1 Do
           If fField[x, y].Pencil[z] Then Begin
-            Case z Of
+            Case z Of // TODO: das ist noch nicht abhängig von DIM !
               0..2: Begin
                   If info.NumberHighLights[z] Then Begin
                     canvas.brush.color := LightenColor;

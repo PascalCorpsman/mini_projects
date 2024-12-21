@@ -58,7 +58,7 @@ End;
 
 // Alle MArker Resetten
 
-Procedure ResetMArker(Var Data: T3field);
+Procedure ResetAllMarker(Var Data: T3field);
 Var
   x, y, z: Integer;
 Begin
@@ -79,7 +79,7 @@ Var
 Begin
   erg := true;
   For z := 1 To 9 Do Begin
-    ResetMarker(Value);
+    ResetAllMarker(Value);
     Mark(Value, z);
     For y := 0 To 2 Do
       For x := 0 To 2 Do Begin
@@ -547,7 +547,7 @@ Begin
       Formclose := true;
       form6.show;
     End;
-    ResetMarker(data); // Reset Aller Marker
+    ResetAllMarker(data); // Reset Aller Marker
     stack := Nil; // Initialisieren des Stack's
     add(data); // Start für die Breitensuche
     // Die Tiefensuche
