@@ -23,10 +23,11 @@ Uses
   Interfaces, // this includes the LCL widgetset
   Forms,
   Unit1,
-  Unit2 { you can add units after this };
+  Unit2, dglOpenGL { you can add units after this };
 
 Begin
   Application.Initialize;
+  Application.Title:='';
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TForm2, Form2);
   Application.Run;

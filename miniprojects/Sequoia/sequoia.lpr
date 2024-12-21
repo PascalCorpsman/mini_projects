@@ -24,14 +24,13 @@ Uses
   athreads,
 {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, unit1, usunburstchart, ufifo
-  { you can add units after this };
+  Forms, unit1;
 
 {$R *.res}
 
 Begin
   RequireDerivedFormResource := True;
-  Application.Scaled := True;
+  Application.Scaled:=True;
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
   Application.Run;

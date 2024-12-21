@@ -22,7 +22,7 @@ Uses
   Unit1 In 'Unit1.pas' {Form1},
   Unit2 In 'Unit2.pas' {Form2},
   Unit3 In 'Unit3.pas' {Form3},
-  Unit4 In 'Unit4.pas', ugenmathcalc, utokenizer;
+  Unit4 In 'Unit4.pas';
 
 {$R *.res}
 

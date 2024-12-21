@@ -22,7 +22,7 @@ Uses
 {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, Unit1, unit2, unit3, unit4,
-  uundo, Unit5, unit6, unit7;
+  uundo, Unit5, unit6, unit7, dglOpenGL;
 
 Begin
   Application.Initialize;

@@ -4,6 +4,9 @@
     <Version Value="12"/>
     <General>
       <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
         <CompatibilityMode Value="True"/>
       </Flags>
       <ResourceType Value="res"/>
@@ -13,8 +16,76 @@
       <Language Value=""/>
       <CharSet Value=""/>
     </VersionInfo>
-    <BuildModes Count="1">
+    <BuildModes Count="3" Active="Debug">
       <Item1 Name="default" Default="True"/>
+      <Item2 Name="Debug">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <SearchPaths>
+            <IncludeFiles Value="/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/GenMathCalc/;$(ProjOutDir)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+              <UseAnsiStrings Value="False"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <SearchPaths>
+            <IncludeFiles Value="/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/GenMathCalc/;$(ProjOutDir)"/>
+            <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/GenMathCalc/"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <UseAnsiStrings Value="False"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <RunWithoutDebug Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item3>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -45,7 +116,7 @@
       <Unit0>
         <Filename Value="QProgrammer.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="4"/>
         <CursorPos Y="27"/>
         <UsageCount Value="41"/>
         <Loaded Value="True"/>
@@ -70,7 +141,7 @@
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="1"/>
         <TopLine Value="35"/>
-        <CursorPos X="63" Y="81"/>
+        <CursorPos X="6" Y="81"/>
         <UsageCount Value="41"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -95,13 +166,14 @@
         <ResourceBaseClass Value="Form"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
+        <TopLine Value="34"/>
         <CursorPos X="3" Y="46"/>
         <UsageCount Value="41"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit4>
       <Unit5>
-        <Filename Value="/home/corpsman/lazarus/lcl/include/control.inc"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/include/control.inc"/>
         <TopLine Value="2212"/>
         <CursorPos Y="2228"/>
         <UsageCount Value="10"/>
@@ -113,7 +185,7 @@
         <UsageCount Value="20"/>
       </Unit6>
       <Unit7>
-        <Filename Value="/home/corpsman/lazarus/lcl/lclproc.pas"/>
+        <Filename Value="../../../../corpsman/lazarus/lcl/lclproc.pas"/>
         <UnitName Value="LCLProc"/>
         <TopLine Value="1143"/>
         <CursorPos X="12" Y="1172"/>
@@ -127,10 +199,8 @@
       </Unit8>
       <Unit9>
         <Filename Value="../Sample/DatenSteuerung/uncommenter.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit9>
       <Unit10>
         <Filename Value="../Sample/DatenSteuerung/genmathcalc.pas"/>
@@ -141,33 +211,27 @@
       </Unit10>
       <Unit11>
         <Filename Value="../Sample/DatenSteuerung/uinterpreter.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit11>
       <Unit12>
         <Filename Value="ugenmathcalc.inc"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="5"/>
         <CursorPos Y="15"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit12>
       <Unit13>
         <Filename Value="../Sample/DatenSteuerung/ugenmathcalc.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="18" Y="92"/>
         <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit13>
       <Unit14>
         <Filename Value="../Sample/DatenSteuerung/utokenizer.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="QProgrammer.rc"/>
@@ -176,133 +240,113 @@
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit15>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="25" HistoryIndex="24">
       <Position1>
-        <Filename Value="../Sample/DatenSteuerung/uinterpreter.pas"/>
-        <Caret Line="93" Column="17" TopLine="67"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="243" Column="52" TopLine="217"/>
       </Position1>
       <Position2>
-        <Filename Value="../Sample/DatenSteuerung/uinterpreter.pas"/>
-        <Caret Line="93" Column="31" TopLine="67"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="244" Column="16" TopLine="218"/>
       </Position2>
       <Position3>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="243" Column="52" TopLine="217"/>
+        <Caret Line="324" Column="45" TopLine="309"/>
       </Position3>
       <Position4>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="244" Column="16" TopLine="218"/>
+        <Caret Line="2" Column="20"/>
       </Position4>
       <Position5>
-        <Filename Value="../Sample/DatenSteuerung/uinterpreter.pas"/>
-        <Caret Line="190" TopLine="172"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="187" TopLine="154"/>
       </Position5>
       <Position6>
-        <Filename Value="../Sample/DatenSteuerung/uinterpreter.pas"/>
-        <Caret Line="189" Column="57" TopLine="172"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="53" Column="26" TopLine="43"/>
       </Position6>
       <Position7>
-        <Filename Value="../Sample/DatenSteuerung/uinterpreter.pas"/>
-        <Caret Line="184" Column="30" TopLine="172"/>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="31" Column="18" TopLine="24"/>
       </Position7>
       <Position8>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="324" Column="45" TopLine="309"/>
+        <Filename Value="Unit3.pas"/>
+        <Caret Line="10" Column="37"/>
       </Position8>
       <Position9>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="2" Column="20"/>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="15"/>
       </Position9>
       <Position10>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="187" TopLine="154"/>
+        <Caret Line="2" Column="4"/>
       </Position10>
       <Position11>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="53" Column="26" TopLine="43"/>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="70" Column="24" TopLine="67"/>
       </Position11>
       <Position12>
-        <Filename Value="Unit2.pas"/>
-        <Caret Line="31" Column="18" TopLine="24"/>
+        <Filename Value="Unit3.pas"/>
+        <Caret Line="46" Column="19" TopLine="7"/>
       </Position12>
       <Position13>
-        <Filename Value="Unit3.pas"/>
-        <Caret Line="10" Column="37"/>
+        <Filename Value="Unit4.pas"/>
+        <Caret Line="12" Column="36"/>
       </Position13>
       <Position14>
-        <Filename Value="Unit2.pas"/>
-        <Caret Line="15"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="178" Column="61" TopLine="165"/>
       </Position14>
       <Position15>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="2" Column="4"/>
       </Position15>
       <Position16>
-        <Filename Value="Unit2.pas"/>
-        <Caret Line="70" Column="24" TopLine="67"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="48" Column="77" TopLine="34"/>
       </Position16>
       <Position17>
-        <Filename Value="Unit3.pas"/>
-        <Caret Line="46" Column="19" TopLine="7"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="125" Column="9" TopLine="66"/>
       </Position17>
       <Position18>
-        <Filename Value="Unit4.pas"/>
-        <Caret Line="12" Column="36"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="127" Column="9" TopLine="68"/>
       </Position18>
       <Position19>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="178" Column="61" TopLine="165"/>
+        <Caret Line="129" Column="9" TopLine="70"/>
       </Position19>
       <Position20>
         <Filename Value="Unit1.pas"/>
+        <Caret Line="136" Column="9" TopLine="77"/>
       </Position20>
       <Position21>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="48" Column="77" TopLine="34"/>
+        <Caret Line="138" Column="21" TopLine="79"/>
       </Position21>
       <Position22>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="125" Column="9" TopLine="66"/>
+        <Caret Line="159" Column="9" TopLine="100"/>
       </Position22>
       <Position23>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="127" Column="9" TopLine="68"/>
+        <Caret Line="303" Column="38" TopLine="244"/>
       </Position23>
       <Position24>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="129" Column="9" TopLine="70"/>
+        <Caret Line="344" Column="33" TopLine="285"/>
       </Position24>
       <Position25>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="136" Column="9" TopLine="77"/>
-      </Position25>
-      <Position26>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="138" Column="21" TopLine="79"/>
-      </Position26>
-      <Position27>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="159" Column="9" TopLine="100"/>
-      </Position27>
-      <Position28>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="303" Column="38" TopLine="244"/>
-      </Position28>
-      <Position29>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="344" Column="33" TopLine="285"/>
-      </Position29>
-      <Position30>
-        <Filename Value="Unit1.pas"/>
         <Caret Line="383" Column="88" TopLine="324"/>
-      </Position30>
+      </Position25>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/GenMathCalc/;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/GenMathCalc/;../Sample/DatenSteuerung"/>
+      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/Tokenizer/GenMathCalc/"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
