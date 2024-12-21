@@ -85,6 +85,7 @@ Var
   x, y, z, n: integer;
   geschafft: Boolean;
   //  save: boolean;
+  fs: TSudoku;
 Begin
   For x := 0 To 8 Do
     For y := 0 To 8 Do Begin
@@ -109,6 +110,7 @@ Begin
     byXYWing1.checked := true;
     ForcingChains1.checked := true;
   End;
+  fs := TSudoku.Create(3);
   While (Not geschafft) And (Not zwangsabbruch) Do Begin
     rein:
     For x := 0 To 8 Do
@@ -124,13 +126,16 @@ Begin
       x := random(9); // Die neuen Koordinaten
       y := random(9); // Die neuen Koordinaten
       n := Random(9) + 1; // Die eingefügte Zahl
-      Mark(f, n); // Markieren der Zahlen
+      fs.LoadFrom(f);
+      fs.Mark(n); // Markieren der Zahlen
+      fs.StoreTo(f);
       // Suchen eines Freien Feldes
       While (F[x, y].value <> 0) Or (f[x, y].Marked) Do Begin
         Application.ProcessMessages;
         x := random(9);
         y := random(9);
         If Zwangsabbruch Then Begin
+          fs.free;
           Goto Raus; // Es ist Versuch jede While Schleife mit dieser Abbruch möglichkeit zu versehen, man weis ja nie !
         End;
       End;
@@ -152,7 +157,7 @@ Begin
     Solve(false, True, f);
     If isready3(f) Then geschafft := true;
   End;
-
+  fs.free;
   If Geschafft Then Begin
     raus:
     //Begin
@@ -166,7 +171,7 @@ Begin
         For z := 0 To 8 Do
           field[x, y].Pencil[z] := false;
       End;
-        form1.Drawfield(Nil);
+    form1.Drawfield(Nil);
     close;
 
   End;

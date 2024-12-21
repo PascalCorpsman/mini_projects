@@ -78,11 +78,17 @@ Type
 
     Procedure ClearField;
 
+    Procedure Mark(Number: integer);
+    Procedure ClearAllMarks;
+    Function IsMarked(x, y: Integer): Boolean;
+
+    Procedure SetValue(x, y, Value: integer; Fixed: Boolean);
+
     Procedure RenderTo(Const Canvas: TCanvas; Info: TRenderInfo);
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
-    Procedure StoreTo(Var f: T3Field);
+    Procedure StoreTo(Out f: T3Field);
   End;
 
 Var
@@ -157,7 +163,7 @@ Begin
 End;
 
 Destructor TSudoku.Destroy;
-var
+Var
   i, j: Integer;
 Begin
   For i := 0 To fsqrDim - 1 Do Begin
@@ -282,6 +288,64 @@ Begin
       For k := 0 To fsqrDim - 1 Do
         fField[i, j].Pencil[k] := false;
     End;
+  End;
+End;
+
+Procedure TSudoku.Mark(Number: integer);
+  Procedure Submark(x, y: Integer);
+  Var
+    i, j: integer;
+  Begin
+    // Markieren des subBlock's
+    For i := x - x Mod fDim To x - x Mod fDim + (fDim - 1) Do
+      For j := y - y Mod fDim To y - y Mod fDim + (fDim - 1) Do
+        fField[i, j].marked := True;
+    // Markieren Waagrecht, Senkrecht
+    For i := 0 To fsqrDim - 1 Do Begin
+      fField[i, y].marked := true;
+      fField[x, i].marked := true;
+    End;
+  End;
+Var
+  x, y: Integer;
+Begin
+  If Number In [1..fsqrDim] Then Begin
+    // Markieren
+    For x := 0 To fsqrDim - 1 Do Begin
+      For y := 0 To fsqrDim - 1 Do Begin
+        If fField[x, y].Value = Number Then
+          Submark(x, y);
+        // Alle Bereits eingetragenen Nummern müssen auch markiert werden !!
+        If fField[x, y].Value <> 0 Then fField[x, y].Marked := True;
+      End;
+    End;
+  End;
+End;
+
+Procedure TSudoku.ClearAllMarks;
+Var
+  i, j: Integer;
+Begin
+  For i := 0 To 8 Do Begin
+    For j := 0 To 8 Do Begin
+      fField[i, j].Marked := false;
+    End;
+  End;
+End;
+
+Function TSudoku.IsMarked(x, y: Integer): Boolean;
+Begin
+  result := (fField[x, y].Value <> 0) Or (fField[x, y].Marked);
+End;
+
+Procedure TSudoku.SetValue(x, y, Value: integer; Fixed: Boolean);
+Begin
+  fField[x, y].Value := Value;
+  If value <> 0 Then Begin
+    fField[x, y].Fixed := Fixed;
+  End
+  Else Begin
+    fField[x, y].Fixed := false;
   End;
 End;
 
@@ -542,7 +606,7 @@ Begin
   End;
 End;
 
-Procedure TSudoku.StoreTo(Var f: T3Field);
+Procedure TSudoku.StoreTo(Out f: T3Field);
 Var
   i, j, k: Integer;
 Begin

@@ -25,21 +25,14 @@ Function pencilcount(Value: T3pencil): integer;
 Function comppencil(v1, v2: T3pencil): boolean;
 Procedure Hiddensubset(Var data: T3field);
 
-Procedure Mark(Var Value: T3field; Number: integer);
 Procedure GetPencil(Var Value: t3field);
-Function isready3(Value: t3field): boolean;
+Function isready3(const Value: t3field): boolean;
 Function isreadyUser3(Value: t3field; Allowmessage: boolean): boolean;
 Function Sudoku3Solvable(Value: t3field): Boolean;
 
-{
-Procedure New2Field(Var Value: t2field; Technik: Integer);
-Procedure Solve2(Var Value: t2field; Step: boolean; Technik: Integer);
-Function Sudoku2Solvable(Value: t2field): Boolean;
-}
 
 Implementation
 
-Uses Unit1;
 Type
 
   Pstack = ^Tstack;
@@ -52,7 +45,18 @@ Type
 Var
   Stack: PStack; // Eine Breitensuche ist hier Tödlich !!!
 
-  // Alle MArker Resetten
+Procedure Mark(Value: t3field; Number: integer);
+Var
+  s: TSudoku;
+Begin
+  s := TSudoku.Create(3);
+  s.LoadFrom(Value);
+  s.Mark(Number);
+  s.StoreTo(value);
+  s.free;
+End;
+
+// Alle MArker Resetten
 
 Procedure ResetMArker(Var Data: T3field);
 Var
@@ -107,7 +111,7 @@ End;
 
 // schaut ob wir unser Feld gelöst haben
 
-Function isready3(Value: t3field): boolean;
+Function isready3(const Value: t3field): boolean;
 Var
   erg: boolean;
   x, y: Integer;
@@ -212,7 +216,7 @@ Begin
   result := erg;
 End;
 
-// Gibt True zurück wenn die beiden Bencil's gleich sind
+// Gibt True zurück wenn die beiden Pencil's gleich sind
 
 Function comppencil(v1, v2: T3pencil): boolean;
 Var
@@ -522,46 +526,6 @@ Begin
     dispose(z1);
   End;
   stack := Nil;
-End;
-
-// MArkeirt die Nummern 1.. 16 in Value , Nicht getestet !!
-
-Procedure Mark(Var Value: T3field; Number: integer);
-  Procedure Submark(x, y: Integer);
-  Var
-    xx, yy: integer;
-  Begin
-    // Markieren des 16 er Block's
-    For xx := x - x Mod 3 To x - x Mod 3 + 2 Do
-      For yy := y - y Mod 3 To y - y Mod 3 + 2 Do
-        Value[xx, yy].marked := True;
-    // Markeiren Waagrecht, Senkrecht
-    For xx := 0 To 8 Do Begin
-      Value[xx, y].marked := true;
-      Value[x, xx].marked := true;
-    End;
-  End;
-Var
-  x, y: Integer;
-Begin
-  {  // Demarkieren
-    For x := 0 To 3 Do
-      For y := 0 To 3 Do Begin
-        Value[x, y].Marked := false;
-        If Number = 0 Then
-          For z := 0 To 3 Do
-            Value[x, y].Pencil[z] := true;
-      End;    }
-  If Number In [1..9] Then Begin
-    // Markieren
-    For x := 0 To 8 Do
-      For y := 0 To 8 Do Begin
-        If Value[x, y].value = Number Then
-          Submark(x, y);
-        // Alle Bereits eingetragenen Nummern müssen auch markiert werden !!
-        If Value[x, y].value <> 0 Then Value[x, y].Marked := True;
-      End;
-  End;
 End;
 
 // Versuch ein Komplettes Feld zu ermitteln

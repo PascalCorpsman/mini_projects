@@ -241,6 +241,7 @@ Var
   y3, x2, y2, w, x1, y1, x, y, z: Integer;
   wieder, ssolve, nochmal, weiter, b: Boolean;
   zah: Array[1..9] Of 0..9; // Kann zu Boolean gemacht werden!
+  fs: TSudoku;
 Begin
   // Erst mal das Feld von altlasten säubern
   For x := 0 To 8 Do
@@ -251,6 +252,7 @@ Begin
   form1.checkbox6.checked := false;
   form1.checkbox3.checked := false;
   If (Not Step) And (Not invisible) Then resetopt;
+  fs := TSudoku.Create(3);
   b := true; // start der Endlosschleife
   While b Do Begin
     weiter := false; // Wird von jedem Allgorithmus der was verändert auf True gesetzt damit es weiter gehen kann, und gleichzeitig immer nur einer am Werk ist
@@ -262,7 +264,9 @@ Begin
           For y := 0 To 8 Do
             Data[x, y].marked := false;
         // Markieren der Zahl Z
-        Mark(Data, z);
+        fs.LoadFrom(data);
+        fs.Mark(z);
+        fs.StoreTo(data);
         // absuchen der 9er blocks ob da irgendwo ne Freie Zahl ist
         For x := 0 To 2 Do
           For y := 0 To 2 Do Begin
@@ -574,6 +578,7 @@ Begin
       End;
     form1.PaintBox1.Invalidate;
   End;
+  fs.free;
 End;
 
 // Auslesen der User.ini
@@ -803,12 +808,14 @@ Var
   i: Integer;
 Begin
   If bm = Nil Then exit;
-  If Form1.checkbox1.checked And (mx > -1) Then Mark(field, field[mx, my].value);
-  // Markieren der Felder die Permanent Markiert werden müssen
-  For i := 1 To 9 Do
-    If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then
-      Mark(field, i);
   ffield.LoadFrom(Field);
+  If Form1.checkbox1.checked And (mx > -1) Then ffield.Mark(field[mx, my].value); // TODO: das muss eigentlich ein Zugriff auf ffield sein !
+  // Markieren der Felder die Permanent Markiert werden müssen
+  For i := 1 To 9 Do Begin
+    If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then Begin
+      ffield.Mark(i);
+    End;
+  End;
   info.Cursor := point(mx, my);
   setlength(info.NumberHighLights, 9);
   setlength(info.NumberMarks, 9);
@@ -824,7 +831,6 @@ Begin
   bm.canvas.rectangle(-1, -1, bm.width + 1, bm.height + 1);
 
   ffield.RenderTo(bm.Canvas, info);
-  //  Form1.canvas.Draw(0, 0, bm);
   Form1.PaintBox1.Canvas.Draw(0, 0, bm);
 End;
 
