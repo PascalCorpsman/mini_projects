@@ -55,12 +55,14 @@ Type
     NumberMarks: Array Of Boolean;
   End;
 
+  TPencil = Array Of Boolean;
+
   Tfield = Array Of Array Of Record
     Value: integer;
     Marked: Boolean;
     Maybeed: Boolean;
     Fixed: Boolean;
-    Pencil: Array Of Boolean;
+    Pencil: TPencil;
   End;
 
   { TSudoku }
@@ -85,6 +87,8 @@ Type
     Procedure SetValue(x, y, Value: integer; Fixed: Boolean);
 
     Procedure RenderTo(Const Canvas: TCanvas; Info: TRenderInfo);
+
+    Procedure ClearAllNumberPencils;
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
@@ -119,6 +123,8 @@ Var
   *)
 Function Mirrow(x, y, n, Direction: Integer): TPoint;
 
+Function PencilEqual(Const a, b: TPencil): Boolean;
+
 Implementation
 
 Function Mirrow(x, y, n, Direction: Integer): TPoint;
@@ -142,6 +148,21 @@ Begin
   Else // Fehlerfall
     result := point(x, y);
   End;
+End;
+
+// Gibt True zurück wenn die beiden Pencil's gleich sind
+
+Function PencilEqual(Const a, b: TPencil): Boolean;
+Var
+  i: integer;
+Begin
+  result := false;
+  If high(a) <> high(b) Then exit;
+  For i := 0 To high(a) Do
+    If a[i] <> b[i] Then Begin
+      exit;
+    End;
+  result := true
 End;
 
 { TSudoku }
@@ -588,6 +609,38 @@ Begin
         // Malen des Feldinhaltes
         canvas.textout(breite * (x + 1) + (Breite - canvas.textwidth(inttostr(fField[x, y].value))) Div 2, Breite * (y + 1) + 1 + (Breite - canvas.textheight(inttostr(fField[x, y].value))) Div 2, substitution[(fField[x, y].value)]);
       End;
+    End;
+End;
+
+Procedure TSudoku.ClearAllNumberPencils;
+  Procedure Submark(x, y, Number: Integer);
+  Var
+    i, j: integer;
+  Begin
+    // Markieren des 16 er Block's
+    For i := x - x Mod fDim To x - x Mod fDim + fDim - 1 Do
+      For j := y - y Mod fDim To y - y Mod fDim + fDim - 1 Do
+        fField[i, j].Pencil[number - 1] := False;
+    // Markeiren Waagrecht, Senkrecht
+    For i := 0 To fsqrDim - 1 Do Begin
+      fField[i, y].Pencil[number - 1] := False;
+      fField[x, i].Pencil[number - 1] := False;
+    End;
+  End;
+Var
+  i, j: Integer;
+Begin
+  {  // Demarkieren der Pencil's
+    For i := 0 To 8 Do
+      For j := 0 To 8 Do Begin
+        For z := 0 To 8 Do
+          Value[i, j].Pencil[z] := true;
+      End;}
+    // Markieren Der Pencil's
+  For i := 0 To fsqrDim - 1 Do
+    For j := 0 To fsqrDim - 1 Do Begin
+      If fField[i, j].value <> 0 Then
+        Submark(i, j, fField[i, j].value);
     End;
 End;
 

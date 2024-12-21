@@ -304,7 +304,9 @@ Begin
       ssolve := true; // Da unser System recht Kompliziert ist müssen wir es auch oft woederholen
       While ssolve Do Begin
         getlinepencil(data); // Ermitteln der Korreckten Line pencil's
-        GetPencil(data); // Ermitteln der Pencil's in den Feldern
+        fs.LoadFrom(data);
+        fs.ClearAllNumberPencils; // Ermitteln der Pencil's in den Feldern
+        fs.StoreTo(data);
         ssolve := false; // Aber nicht zu oft wiederhohlen
         If form1.byhiddensubset1.checked Then Hiddensubset(Data);
         // Nachdem wir nun gute Vorraussetzungen Geschaffen haben, können wir mit unseren Tricks loslegen
@@ -323,7 +325,7 @@ Begin
                 // Prüfen des Actuellen Feldes mit allen anderen
                 For y := 0 To 8 Do
                   If X <> y Then // nicht mit sich selbst vergleichen
-                    If Comppencil(data[z, x].Pencil, data[z, y].pencil) And (data[z, x].value = 0) And (data[z, y].value = 0) Then Begin // Sind die Pencil's gleich
+                    If PencilEqual(data[z, x].Pencil, data[z, y].pencil) And (data[z, x].value = 0) And (data[z, y].value = 0) Then Begin // Sind die Pencil's gleich
                       wp.x := pencilcount(data[z, x].Pencil); // speichern der Anzahl der Pencil's
                       zah[x + 1] := 1;
                       zah[y + 1] := 1;
@@ -365,7 +367,7 @@ Begin
                       For y2 := 0 To 2 Do
                         //nicht mit sich selbst vergleichen
                         If Not ((x2 = x) And (y = y2)) Then
-                          If comppencil(data[x1 * 3 + x, y1 * 3 + y].pencil, data[x1 * 3 + x2, y1 * 3 + y2].pencil) And (data[x1 * 3 + x, y1 * 3 + y].value = 0) And (data[x1 * 3 + x2, y1 * 3 + y2].value = 0) Then Begin
+                          If PencilEqual(data[x1 * 3 + x, y1 * 3 + y].pencil, data[x1 * 3 + x2, y1 * 3 + y2].pencil) And (data[x1 * 3 + x, y1 * 3 + y].value = 0) And (data[x1 * 3 + x2, y1 * 3 + y2].value = 0) Then Begin
                             //                            inc(w);
                             wp.x := pencilcount(data[x1 * 3 + x, y1 * 3 + y].pencil);
                             zah[(x2 + y2 * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelöscht werden dürfen
@@ -410,7 +412,7 @@ Begin
                 // Prüfen des Actuellen Feldes mit allen anderen
                 For y := 0 To 8 Do
                   If X <> y Then // nicht mit sich selbst vergleichen
-                    If Comppencil(data[x, z].Pencil, data[y, z].pencil) And (Data[x, z].value = 0) And (Data[y, z].value = 0) Then Begin // Sind die Pencil's gleich
+                    If PencilEqual(data[x, z].Pencil, data[y, z].pencil) And (Data[x, z].value = 0) And (Data[y, z].value = 0) Then Begin // Sind die Pencil's gleich
                       wp.x := pencilcount(Data[x, z].Pencil); // speichern der Anzahl der Pencil's
                       zah[x + 1] := 1;
                       zah[y + 1] := 1;
@@ -1004,6 +1006,7 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
   Var
     c, d, a, b, z: integer;
     e: Boolean;
+    s: TSudoku;
   Begin
     // Fixed Zahlen können nicht überschrieben werden !!
     If Field[x, y].Fixed And Not checkbox2.checked Then Begin
@@ -1096,7 +1099,13 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
         Else
           Field[x, y].fixed := false;
         // Ermitteln der Pencil Werte
-        If checkbox4.checked Then GetPencil(field);
+        If checkbox4.checked Then Begin
+          s := TSudoku.Create(3);
+          s.LoadFrom(field);
+          s.ClearAllNumberPencils;
+          s.StoreTo(field);
+          s.free;
+        End;
       End
       Else
         showmessage('Your Number is not allowed in this position');
@@ -1255,8 +1264,16 @@ Begin
 End;
 
 Procedure TForm1.CheckBox4Click(Sender: TObject);
+Var
+  s: TSudoku;
 Begin
-  If Checkbox4.checked Then GetPencil(field);
+  If Checkbox4.checked Then Begin
+    s := TSudoku.Create(3);
+    s.LoadFrom(field);
+    s.ClearAllNumberPencils;
+    s.StoreTo(Field);
+    s.free;
+  End;
   If checkbox3.checked And Not Checkbox4.checked Then checkbox3.checked := false;
   PaintBox1.Invalidate;
 End;
@@ -1421,6 +1438,7 @@ End;
 Procedure TForm1.Button1Click(Sender: TObject);
 Var
   x, y, z: integer;
+  s: TSudoku;
 Begin
   // Auto Pencil Numbers
   For x := 0 To 17 Do
@@ -1431,7 +1449,11 @@ Begin
     For y := 0 To 8 Do
       For z := 0 To 8 Do
         field[x, y].Pencil[z] := true;
-  GetPencil(field);
+  s := TSudoku.Create(3);
+  s.LoadFrom(field);
+  s.ClearAllNumberPencils;
+  s.StoreTo(Field);
+  s.free;
   PaintBox1.Invalidate;
 End;
 

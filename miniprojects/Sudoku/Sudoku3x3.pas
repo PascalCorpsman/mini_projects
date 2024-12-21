@@ -22,11 +22,9 @@ Uses
 Procedure GetKomplettSudoku(Var Data: T3Field);
 Procedure Solvebyxywing(Var Data: T3field);
 Function pencilcount(Value: T3pencil): integer;
-Function comppencil(v1, v2: T3pencil): boolean;
 Procedure Hiddensubset(Var data: T3field);
 
-Procedure GetPencil(Var Value: t3field);
-Function isready3(const Value: t3field): boolean;
+Function isready3(Const Value: t3field): boolean;
 Function isreadyUser3(Value: t3field; Allowmessage: boolean): boolean;
 Function Sudoku3Solvable(Value: t3field): Boolean;
 
@@ -111,7 +109,7 @@ End;
 
 // schaut ob wir unser Feld gelöst haben
 
-Function isready3(const Value: t3field): boolean;
+Function isready3(Const Value: t3field): boolean;
 Var
   erg: boolean;
   x, y: Integer;
@@ -172,38 +170,6 @@ Begin
   result := erg;
 End;
 
-Procedure GetPencil(Var Value: T3field);
-  Procedure Submark(x, y, Number: Integer);
-  Var
-    xx, yy: integer;
-  Begin
-    // Markieren des 16 er Block's
-    For xx := x - x Mod 3 To x - x Mod 3 + 2 Do
-      For yy := y - y Mod 3 To y - y Mod 3 + 2 Do
-        Value[xx, yy].Pencil[number - 1] := False;
-    // Markeiren Waagrecht, Senkrecht
-    For xx := 0 To 8 Do Begin
-      Value[xx, y].Pencil[number - 1] := False;
-      Value[x, xx].Pencil[number - 1] := False;
-    End;
-  End;
-Var
-  x, y: Integer;
-Begin
-  {  // Demarkieren der Pencil's
-    For x := 0 To 8 Do
-      For y := 0 To 8 Do Begin
-        For z := 0 To 8 Do
-          Value[x, y].Pencil[z] := true;
-      End;}
-    // Markieren Der Pencil's
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      If Value[x, y].value <> 0 Then
-        Submark(x, y, Value[x, y].value);
-    End;
-End;
-
 // Ermittelt wieviele Einträge <> 0 sind
 
 Function pencilcount(Value: T3pencil): integer;
@@ -216,21 +182,7 @@ Begin
   result := erg;
 End;
 
-// Gibt True zurück wenn die beiden Pencil's gleich sind
 
-Function comppencil(v1, v2: T3pencil): boolean;
-Var
-  x: integer;
-  erg: Boolean;
-Begin
-  erg := true;
-  For x := 0 To 8 Do
-    If V1[x] <> v2[x] Then Begin
-      erg := false;
-      break;
-    End;
-  result := erg;
-End;
 
 Procedure Hiddensubset(Var data: T3field);
 Var
@@ -340,8 +292,8 @@ End;
 
 Procedure Solvebyxywing(Var Data: T3field);
 Var
-  a, b, x1, y1, w, {v,} u, c,
-  p1, p2, x, y, z, z1, z3: integer;
+  a, b, x1, y1, w, u, c,
+    p1, p2, x, y, z, z1, z3: integer;
   penc1, penc2: T3pencil;
 Begin
   For x := 0 To 8 Do
@@ -377,7 +329,7 @@ Begin
                     Penc2[p1] := false;
                     Penc2[p2] := false;
                     // es hat tatsächlich geklappt
-                    If comppencil(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
+                    If PencilEqual(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
                       // Das ist klar das das immer geht
                       For z3 := 0 To 8 Do
                         If Penc1[z3] Then Begin
@@ -398,7 +350,7 @@ Begin
                     Penc2[p1] := false;
                     Penc2[p2] := false;
                     // es hat tatsächlich geklappt
-                    If comppencil(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
+                    If PencilEqual(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
                       // Das ist klar das das immer geht
                       For z3 := 0 To 8 Do
                         If Penc1[z3] Then Begin
@@ -424,7 +376,7 @@ Begin
                         Penc2[p1] := false;
                         Penc2[p2] := false;
                         // es hat tatsächlich geklappt
-                        If comppencil(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
+                        If PencilEqual(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
                           // Hohlen der Pencil Zahl Z
                           u := -1;
                           For w := 0 To 8 Do
@@ -459,7 +411,7 @@ Begin
                   Penc2[p1] := false;
                   Penc2[p2] := false;
                   // es hat tatsächlich geklappt
-                  If comppencil(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
+                  If PencilEqual(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
                     u := -1;
                     For w := 0 To 8 Do
                       If Penc1[w] Then u := w;
@@ -538,7 +490,9 @@ Var
   x, y, z: Integer;
   sm2, sm, Formclose: boolean;
   starty: Integer;
+  fdata: TSudoku;
 Begin
+  fdata := TSudoku.Create(3);
   If Sudoku3solvable(data) Then Begin
     starty := random(9);
     Formclose := false;
@@ -557,7 +511,9 @@ Begin
       If Zwangsabbruch Then Goto Raus;
       actual := get; // Hohlen des Obersten Elementes
       // Hohlen aller Pencil Daten
-      GetPencil(Actual);
+      fdata.LoadFrom(actual);
+      fdata.ClearAllNumberPencils;
+      fdata.StoreTo(actual);
       // Suchen des Feldes Das gerade Betrachtet wird
       // Garantie das wir mindestens 1 Feld Finden, und somit die While Schleife Terminiert !!
       sm := false;
@@ -604,6 +560,7 @@ Begin
     Zwangsabbruch := true;
     showmessage('This Sudoku is impossible to solve');
   End;
+  fdata.free;
 End;
 
 End.
