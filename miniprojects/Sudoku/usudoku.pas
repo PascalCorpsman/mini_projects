@@ -301,37 +301,6 @@ Begin
   End;
 End;
 
-//{ TFieldHelper }
-//
-//Function TFieldHelper.Clone: TField;
-//Var
-//  i, j, k: Integer;
-//Begin
-//  result := Nil;
-//  setlength(result, length(self), length(self[0]));
-//  For i := 0 To high(Self) Do Begin
-//    For j := 0 To high(self[0]) Do Begin
-//      result[i, j] := self[i, j];
-//      setlength(result[i, j].Pencil, length(self[i, j].Pencil));
-//      For k := 0 To high(self[i, j].Pencil) Do Begin
-//        result[i, j].Pencil[k] := self[i, j].Pencil[k];
-//      End;
-//    End;
-//  End;
-//End;
-//
-//Procedure TFieldHelper.Free;
-//Var
-//  i, j: Integer;
-//Begin
-//  For i := 0 To high(self) Do Begin
-//    For j := 0 To high(self[0]) Do Begin
-//      setlength(self[i, j].Pencil, 0);
-//    End;
-//  End;
-//  setlength(Self, 0, 0);
-//End;
-
 { TSudoku }
 
 Constructor TSudoku.Create(Dimension: integer);
@@ -889,13 +858,7 @@ Procedure TSudoku.ClearAllNumberPencils;
 Var
   i, j: Integer;
 Begin
-  {  // Demarkieren der Pencil's
-    For i := 0 To 8 Do
-      For j := 0 To 8 Do Begin
-        For z := 0 To 8 Do
-          Value[i, j].Pencil[z] := true;
-      End;}
-    // Markieren Der Pencil's
+  // Markieren Der Pencil's
   For i := 0 To fsqrDim - 1 Do
     For j := 0 To fsqrDim - 1 Do Begin
       If fField[i, j].value <> 0 Then
@@ -1155,7 +1118,7 @@ Var
 Begin
   result := false;
   If IsSolveable() Then Begin
-    starty := random(9);
+    starty := random(fsqrDim);
     zwangsabbruch := false;
     ResetAllMarker(); // Reset Aller Marker
     //    stack := Nil; // Initialisieren des Stack's
@@ -1172,9 +1135,9 @@ Begin
       sm2 := false;
       x := 0; // Beruhigt den Compiler
       y := Starty; // Wir starten immer von der Selben Zufallszeile
-      While (y < 9) And Not sm Do Begin
+      While (y < fsqrDim) And Not sm Do Begin
         x := 0;
-        While (x < 9) And Not sm Do Begin
+        While (x < fsqrDim) And Not sm Do Begin
           If actual.fField[x, y].value = 0 Then
             sm := true; // Freischalten des Suchens nach weiteren Einträgen, sm sperrt gleichzeiteg das x und y verändert werden und somit ist die position auch schon klar
           If Not sm Then inc(x);
@@ -1182,7 +1145,7 @@ Begin
         If Not sm Then Begin
           inc(y);
           // Da wir nicht unbedingt bei x = 0 = y  anfangen müssen wir in der Lage sein von x = 8 = y nach x = 0 = y zu springen
-          If (y = 9) And Not sm2 Then Begin
+          If (y = fsqrDim) And Not sm2 Then Begin
             y := 0;
             sm2 := true; // Anzeigen das wir den Sprung von 8,8 nach 0,0 gemacht haben nd diesen kein 2. mal machen wollen.
           End;
@@ -1190,7 +1153,7 @@ Begin
       End;
       // Es ist Fragwürdig ob das Prüfen was Bringt, aber irgendwie denke ich das es das schon tut
       If sm And actual.IsSolveable() Then Begin
-        For z := 8 Downto 0 Do Begin
+        For z := fsqrDim - 1 Downto 0 Do Begin
           If Actual.fField[x, y].pencil[z] Then Begin
             Actual.fField[x, y].value := z + 1; // Setzen des Wertes
             // Das Ende Der Breitensuche
