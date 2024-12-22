@@ -19,8 +19,7 @@ Interface
 Uses
   unit6, Dialogs, Forms, usudoku;
 
-Procedure GetKomplettSudoku(Var Data: T3Field);
-Procedure Solvebyxywing(Var Data: T3field);
+Procedure GetKomplettSudoku(Var Data: T3Field); // Löst das Feld mittels BruteForce
 
 Implementation
 
@@ -59,147 +58,6 @@ Begin
       For z := 0 To 8 Do
         Data[x, y].Pencil[z] := true;
     End;
-End;
-
-// Braucht ein Field dessen pencil MArker bereits richtig Gesetzt sind, dann führt es die XY-Wing Methode durch und gibt das Ergebnins zurück.
-
-Procedure Solvebyxywing(Var Data: T3field);
-Var
-  a, b, x1, y1, w, u, c,
-    p1, p2, x, y, z, z1, z3: integer;
-  penc1, penc2: T3pencil;
-Begin
-  For x := 0 To 8 Do
-    For Y := 0 To 8 Do Begin
-      // Methode 1 die xy, xz, yz Felder sind alle in unterschiedlichen 9er Blocks
-      // das ganz geht nur wenn wir exakt 2 Penci's haben
-      If (GetSetPencilscount(data[x, y].pencil) = 2) And (data[x, y].value = 0) Then Begin
-        // ermitteln der beiden pencil werte
-        p1 := -1;
-        p2 := -1;
-        For z := 0 To 8 Do
-          If Data[x, y].pencil[z] Then Begin
-            If P1 <> -1 Then p2 := z;
-            If P2 = -1 Then p1 := z;
-          End;
-        // Nu wird Waagrecht geschaut ob es ein Tupel gibt das ebenfalls p1 , oder p2 enthällt
-        // Z brauch hier net die Zahlen 0 bis x durchlaufen da die eh von einem anderen X gefunden werden.
-        For z := 0 To 8 Do Begin
-          // Wenn wir ein zweites Feld gefunden haben das ebenfalls 2 Penzil's hat und entweder p1, oder p2 ist da mit drin
-          If (data[z, y].value = 0) And (z <> x) And (GetSetPencilscount(Data[z, y].pencil) = 2) And (Data[z, y].pencil[p1] Or Data[z, y].pencil[p2]) And (data[z, y].value = 0) Then
-            // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
-            If (Data[z, y].pencil[p1] Xor Data[z, y].pencil[p2]) Then Begin
-              // nun geht's von x, y ab nach unten und wir suchen ebenfalls ein Tupel
-              For z1 := 0 To 8 Do
-                If (data[x, z1].value = 0) And (GetSetPencilscount(Data[x, z1].pencil) = 2) And (Data[x, z1].pencil[p1] Or Data[x, z1].pencil[p2] And (z1 <> y)) Then
-                  // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
-                  If (Data[x, z1].pencil[p1] Xor Data[x, z1].pencil[p2]) Then Begin
-                    // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
-                    penc1 := Data[x, z1].pencil;
-                    penc2 := Data[z, y].pencil;
-                    Penc1[p1] := false;
-                    Penc1[p2] := false;
-                    Penc2[p1] := false;
-                    Penc2[p2] := false;
-                    // es hat tatsächlich geklappt
-                    If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
-                      // Das ist klar das das immer geht
-                      For z3 := 0 To 8 Do
-                        If Penc1[z3] Then Begin
-                          Data[z, z1].pencil[z3] := false;
-                        End;
-                    End;
-                  End;
-              // aber nicht nur von x,y aus sondern auch von z aus
-              For z1 := 0 To 8 Do
-                If (data[z, z1].value = 0) And (GetSetPencilscount(Data[z, z1].pencil) = 2) And (Data[z, z1].pencil[p1] Or Data[z, z1].pencil[p2] And (z1 <> y)) Then
-                  // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
-                  If (Data[z, z1].pencil[p1] Xor Data[z, z1].pencil[p2]) Then Begin
-                    // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
-                    penc1 := Data[z, z1].pencil;
-                    penc2 := Data[x, y].pencil;
-                    Penc1[p1] := false;
-                    Penc1[p2] := false;
-                    Penc2[p1] := false;
-                    Penc2[p2] := false;
-                    // es hat tatsächlich geklappt
-                    If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
-                      // Das ist klar das das immer geht
-                      For z3 := 0 To 8 Do
-                        If Penc1[z3] Then Begin
-                          Data[x, z1].pencil[z3] := false;
-                        End;
-                    End;
-                  End;
-              // Wir haben nun die Klassischen Fälle abgearbeitet jetzt gehtz an den Sonderfall
-              // Zuerst mus aber sichergestellt werden das wir nicht im Selbe 9er Block sind.
-              If (x Div 3) <> (z Div 3) Then Begin
-                // wir suchen einen Passenden in dem 9er block von x,y
-                a := x - x Mod 3;
-                b := y - y Mod 3;
-                For x1 := a To a + 2 Do
-                  For y1 := b To b + 2 Do
-                    If {Not ((x = x1)) And }(y <> y1) And (GetSetPencilscount(Data[x1, y1].pencil) = 2) And ((data[x1, y1].pencil[p1]) Or (data[x1, y1].pencil[p2])) Then
-                      If (data[x1, y1].pencil[p1] Xor data[x1, y1].pencil[p2]) Then Begin
-                        // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
-                        penc1 := Data[z, y].pencil;
-                        penc2 := Data[x1, y1].pencil;
-                        Penc1[p1] := false;
-                        Penc1[p2] := false;
-                        Penc2[p1] := false;
-                        Penc2[p2] := false;
-                        // es hat tatsächlich geklappt
-                        If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
-                          // Hohlen der Pencil Zahl Z
-                          u := -1;
-                          For w := 0 To 8 Do
-                            If Penc1[w] Then u := w;
-                          c := z - z Mod 3;
-                          For w := 0 To 2 Do Begin
-                            data[a + w, y].pencil[u] := false;
-                            Data[c + w, y1].pencil[u] := false;
-                          End;
-                        End;
-                      End;
-                // wir suchen einen Passenden in dem 9er block von z,y, brauchen wir net machen das erledigen diverse schleifen schon
-              End;
-            End;
-        End;
-        // Wir schauen ob es senkrecht zu unserem gefundenen 2 er Feld
-        For z := 0 To 8 Do
-          // Wenn wir ein Feld gefunden haben das IN der Senkrechten ist und genau nur einen der PEncil's gleich hat
-          If (z <> y) And (GetSetPencilscount(data[x, z].pencil) = 2) And (data[x, z].value = 0) And ((Data[x, z].pencil[p1] Xor Data[x, z].pencil[p2])) Then Begin
-            // Dann schauen wir nach einem 2. Feld im 9er Block x , y nach dem 3.ten Feld
-            a := x - x Mod 3;
-            b := y - y Mod 3;
-            For x1 := a To a + 2 Do
-              For y1 := b To b + 2 Do
-                // Wir haben ein drittes Feld gefunden das passen könte
-                If Not (x1 = x) And (GetSetPencilscount(data[x1, y1].pencil) = 2) And (data[x1, y1].pencil[p1] Xor data[x1, y1].pencil[p2]) Then Begin
-                  // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
-                  penc1 := Data[x, z].pencil;
-                  penc2 := Data[x1, y1].pencil;
-                  Penc1[p1] := false;
-                  Penc1[p2] := false;
-                  Penc2[p1] := false;
-                  Penc2[p2] := false;
-                  // es hat tatsächlich geklappt
-                  If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
-                    u := -1;
-                    For w := 0 To 8 Do
-                      If Penc1[w] Then u := w;
-                    c := z - z Mod 3;
-                    For w := 0 To 2 Do Begin
-                      Data[x, b + w].pencil[u] := false;
-                      Data[x1, c + w].pencil[u] := false;
-                    End;
-                  End;
-                End;
-            // Dann schauen wir nach einem 2. Feld im 9er Block x , z nach dem 3.ten Feld, brauchen wir net da z von 0 bis 8 läuft ;)
-          End;
-      End;
-    End;
-
 End;
 
 // Hinten Hinzufügen
@@ -340,5 +198,8 @@ Begin
 End;
 
 End.
+
+
+
 
 

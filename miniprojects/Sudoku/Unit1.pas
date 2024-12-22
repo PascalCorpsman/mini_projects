@@ -447,7 +447,9 @@ Begin
 
         End;
         If Form1.byXYWing1.checked Then Begin
-          Solvebyxywing(Field);
+          fs.LoadFrom(Field);
+          fs.ApplyXY_WingAlgorithm();
+          fs.StoreTo(Field);
         End;
         {
 
@@ -954,7 +956,7 @@ Begin
       End;
     End;
   End;
-  Solve(False, false, tmp);
+  Solve(False, true, tmp);
   s.LoadFrom(tmp);
   If Not s.IsSolved() Then Begin
     showmessage('Error, something went wrong, sudoku will not be solveable.');

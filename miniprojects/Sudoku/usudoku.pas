@@ -15,6 +15,7 @@
 Unit usudoku;
 
 {$MODE ObjFPC}{$H+}
+{$MODESWITCH TypeHelpers}
 
 Interface
 
@@ -57,6 +58,12 @@ Type
 
   TPencil = Array Of Boolean;
 
+  { TPencilhelper }
+
+  TPencilhelper = Type Helper For TPencil
+    Function Clone: TPencil;
+  End;
+
   Tfield = Array Of Array Of Record
     Value: integer;
     Marked: Boolean;
@@ -94,6 +101,7 @@ Type
 
     Procedure ClearAllNumberPencils;
     Procedure ApplyHiddenSubsetAlgorithm();
+    Procedure ApplyXY_WingAlgorithm();
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
@@ -178,6 +186,18 @@ Begin
   result := 0;
   For i := 0 To high(Value) Do
     If value[i] Then inc(result);
+End;
+
+{ TPencilhelper }
+
+Function TPencilhelper.Clone: TPencil;
+Var
+  i: Integer;
+Begin
+  setlength(result, length(self));
+  For i := 0 To high(self) Do Begin
+    result[i] := self[i];
+  End;
 End;
 
 { TSudoku }
@@ -647,7 +667,6 @@ Begin
       canvas.rectangle(breite * (x + 1), Breite * (y + 1), breite * (x + 2), Breite * (y + 2));
       // Falls Zahlen Hervorgehoben werden sollen dann geschieht das hier !!
       If (ffield[x, y].Value <> 0) And info.NumberHighLights[ffield[x, y].Value - 1] Then Begin
-        //If TToolbutton(form1.findcomponent('ToolButton' + inttostr(ffield[x, y].Value + 10))).down Then Begin
         canvas.brush.color := LightenColor;
         canvas.pen.color := LightenColor;
         canvas.Ellipse(breite * (x + 1) + 1, Breite * (y + 1) + 1, breite * (x + 2) - 1, Breite * (y + 2) - 1);
@@ -752,7 +771,7 @@ Begin
     End;
 End;
 
-Procedure TSudoku.ApplyHiddenSubsetAlgorithm();
+Procedure TSudoku.ApplyHiddenSubsetAlgorithm;
 Var
   pc, x, y, x1, y1, z: integer;
   zah, penc: T3pencil;
@@ -853,6 +872,144 @@ Begin
       End;
     End;
   End;
+End;
+
+Procedure TSudoku.ApplyXY_WingAlgorithm();
+Var
+  a, b, x1, y1, w, u, c,
+    p1, p2, x, y, z, z1, z3: integer;
+  penc1, penc2: Tpencil;
+Begin
+  For x := 0 To fsqrDim - 1 Do
+    For Y := 0 To fsqrDim - 1 Do Begin
+      // Methode 1 die xy, xz, yz Felder sind alle in unterschiedlichen 9er Blocks
+      // das ganz geht nur wenn wir exakt 2 Penci's haben
+      If (GetSetPencilscount(fField[x, y].pencil) = 2) And (fField[x, y].value = 0) Then Begin
+        // ermitteln der beiden pencil werte
+        p1 := -1;
+        p2 := -1;
+        For z := 0 To fsqrDim - 1 Do
+          If fField[x, y].pencil[z] Then Begin
+            If P1 <> -1 Then p2 := z;
+            If P2 = -1 Then p1 := z;
+          End;
+        // Nu wird Waagrecht geschaut ob es ein Tupel gibt das ebenfalls p1 , oder p2 enthällt
+        // Z brauch hier net die Zahlen 0 bis x durchlaufen da die eh von einem anderen X gefunden werden.
+        For z := 0 To fsqrDim - 1 Do Begin
+          // Wenn wir ein zweites Feld gefunden haben das ebenfalls 2 Penzil's hat und entweder p1, oder p2 ist da mit drin
+          If (fField[z, y].value = 0) And (z <> x) And (GetSetPencilscount(fField[z, y].pencil) = 2) And (fField[z, y].pencil[p1] Or fField[z, y].pencil[p2]) And (fField[z, y].value = 0) Then
+            // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
+            If (fField[z, y].pencil[p1] Xor fField[z, y].pencil[p2]) Then Begin
+              // nun geht's von x, y ab nach unten und wir suchen ebenfalls ein Tupel
+              For z1 := 0 To fsqrDim - 1 Do
+                If (fField[x, z1].value = 0) And (GetSetPencilscount(fField[x, z1].pencil) = 2) And (fField[x, z1].pencil[p1] Or fField[x, z1].pencil[p2] And (z1 <> y)) Then
+                  // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
+                  If (fField[x, z1].pencil[p1] Xor fField[x, z1].pencil[p2]) Then Begin
+                    // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
+                    penc1 := fField[x, z1].pencil.Clone;
+                    penc2 := fField[z, y].pencil.Clone;
+                    Penc1[p1] := false;
+                    Penc1[p2] := false;
+                    Penc2[p1] := false;
+                    Penc2[p2] := false;
+                    // es hat tatsächlich geklappt
+                    If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
+                      // Das ist klar das das immer geht
+                      For z3 := 0 To 8 Do
+                        If Penc1[z3] Then Begin
+                          fField[z, z1].pencil[z3] := false;
+                        End;
+                    End;
+                  End;
+              // aber nicht nur von x,y aus sondern auch von z aus
+              For z1 := 0 To fsqrDim - 1 Do
+                If (fField[z, z1].value = 0) And (GetSetPencilscount(fField[z, z1].pencil) = 2) And (fField[z, z1].pencil[p1] Or fField[z, z1].pencil[p2] And (z1 <> y)) Then
+                  // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
+                  If (fField[z, z1].pencil[p1] Xor fField[z, z1].pencil[p2]) Then Begin
+                    // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
+                    penc1 := fField[z, z1].pencil.Clone;
+                    penc2 := fField[x, y].pencil.Clone;
+                    Penc1[p1] := false;
+                    Penc1[p2] := false;
+                    Penc2[p1] := false;
+                    Penc2[p2] := false;
+                    // es hat tatsächlich geklappt
+                    If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
+                      // Das ist klar das das immer geht
+                      For z3 := 0 To fsqrDim - 1 Do
+                        If Penc1[z3] Then Begin
+                          fField[x, z1].pencil[z3] := false;
+                        End;
+                    End;
+                  End;
+              // Wir haben nun die Klassischen Fälle abgearbeitet jetzt gehts an den Sonderfall
+              // Zuerst mus aber sichergestellt werden das wir nicht im Selbe 9er Block sind.
+              If (x Div fDim) <> (z Div fDim) Then Begin
+                // wir suchen einen Passenden in dem 9er block von x,y
+                a := x - x Mod fDim;
+                b := y - y Mod fDim;
+                For x1 := a To a + fDim - 1 Do
+                  For y1 := b To b + fDim - 1 Do
+                    If {Not ((x = x1)) And }(y <> y1) And (GetSetPencilscount(fField[x1, y1].pencil) = 2) And ((fField[x1, y1].pencil[p1]) Or (fField[x1, y1].pencil[p2])) Then
+                      If (fField[x1, y1].pencil[p1] Xor fField[x1, y1].pencil[p2]) Then Begin
+                        // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
+                        penc1 := fField[z, y].pencil.Clone;
+                        penc2 := fField[x1, y1].pencil.Clone;
+                        Penc1[p1] := false;
+                        Penc1[p2] := false;
+                        Penc2[p1] := false;
+                        Penc2[p2] := false;
+                        // es hat tatsächlich geklappt
+                        If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
+                          // Hohlen der Pencil Zahl Z
+                          u := -1;
+                          For w := 0 To fsqrDim - 1 Do
+                            If Penc1[w] Then u := w;
+                          c := z - z Mod fDim;
+                          For w := 0 To fDim - 1 Do Begin
+                            fField[a + w, y].pencil[u] := false;
+                            fField[c + w, y1].pencil[u] := false;
+                          End;
+                        End;
+                      End;
+                // wir suchen einen Passenden in dem 9er block von z,y, brauchen wir net machen das erledigen diverse schleifen schon
+              End;
+            End;
+        End;
+        // Wir schauen ob es senkrecht zu unserem gefundenen 2 er Feld
+        For z := 0 To fsqrDim - 1 Do
+          // Wenn wir ein Feld gefunden haben das IN der Senkrechten ist und genau nur einen der PEncil's gleich hat
+          If (z <> y) And (GetSetPencilscount(fField[x, z].pencil) = 2) And (fField[x, z].value = 0) And ((fField[x, z].pencil[p1] Xor fField[x, z].pencil[p2])) Then Begin
+            // Dann schauen wir nach einem 2. Feld im 9er Block x , y nach dem 3.ten Feld
+            a := x - x Mod fDim;
+            b := y - y Mod fDim;
+            For x1 := a To a + fDim - 1 Do
+              For y1 := b To b + fDim - 1 Do
+                // Wir haben ein drittes Feld gefunden das passen könte
+                If Not (x1 = x) And (GetSetPencilscount(fField[x1, y1].pencil) = 2) And (fField[x1, y1].pencil[p1] Xor fField[x1, y1].pencil[p2]) Then Begin
+                  // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
+                  penc1 := fField[x, z].pencil.Clone;
+                  penc2 := fField[x1, y1].pencil.Clone;
+                  Penc1[p1] := false;
+                  Penc1[p2] := false;
+                  Penc2[p1] := false;
+                  Penc2[p2] := false;
+                  // es hat tatsächlich geklappt
+                  If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
+                    u := -1;
+                    For w := 0 To fsqrDim - 1 Do
+                      If Penc1[w] Then u := w;
+                    c := z - z Mod fDim;
+                    For w := 0 To fDim - 1 Do Begin
+                      fField[x, b + w].pencil[u] := false;
+                      fField[x1, c + w].pencil[u] := false;
+                    End;
+                  End;
+                End;
+            // Dann schauen wir nach einem 2. Feld im 9er Block x , z nach dem 3.ten Feld, brauchen wir net da z von 0 bis 8 läuft ;)
+          End;
+      End;
+    End;
 End;
 
 Procedure TSudoku.LoadFrom(Const f: T3Field);
