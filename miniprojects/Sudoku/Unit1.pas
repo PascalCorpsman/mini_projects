@@ -326,7 +326,7 @@ Begin
                 For y := 0 To 8 Do
                   If X <> y Then // nicht mit sich selbst vergleichen
                     If PencilEqual(data[z, x].Pencil, data[z, y].pencil) And (data[z, x].value = 0) And (data[z, y].value = 0) Then Begin // Sind die Pencil's gleich
-                      wp.x := pencilcount(data[z, x].Pencil); // speichern der Anzahl der Pencil's
+                      wp.x := GetSetPencilscount(data[z, x].Pencil); // speichern der Anzahl der Pencil's
                       zah[x + 1] := 1;
                       zah[y + 1] := 1;
                     End;
@@ -369,7 +369,7 @@ Begin
                         If Not ((x2 = x) And (y = y2)) Then
                           If PencilEqual(data[x1 * 3 + x, y1 * 3 + y].pencil, data[x1 * 3 + x2, y1 * 3 + y2].pencil) And (data[x1 * 3 + x, y1 * 3 + y].value = 0) And (data[x1 * 3 + x2, y1 * 3 + y2].value = 0) Then Begin
                             //                            inc(w);
-                            wp.x := pencilcount(data[x1 * 3 + x, y1 * 3 + y].pencil);
+                            wp.x := GetSetPencilscount(data[x1 * 3 + x, y1 * 3 + y].pencil);
                             zah[(x2 + y2 * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelöscht werden dürfen
                             zah[(x + y * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelöscht werden dürfen
                           End;
@@ -413,7 +413,7 @@ Begin
                 For y := 0 To 8 Do
                   If X <> y Then // nicht mit sich selbst vergleichen
                     If PencilEqual(data[x, z].Pencil, data[y, z].pencil) And (Data[x, z].value = 0) And (Data[y, z].value = 0) Then Begin // Sind die Pencil's gleich
-                      wp.x := pencilcount(Data[x, z].Pencil); // speichern der Anzahl der Pencil's
+                      wp.x := GetSetPencilscount(Data[x, z].Pencil); // speichern der Anzahl der Pencil's
                       zah[x + 1] := 1;
                       zah[y + 1] := 1;
                     End;
@@ -1574,13 +1574,14 @@ Procedure TForm1.Solveit1Click(Sender: TObject);
 Var
   s: TSudoku;
 Begin
-  If Not (Sudoku3solvable(field)) Then Begin
+  s := TSudoku.Create(3);
+  s.LoadFrom(field);
+  If Not (s.IsSolveable) Then Begin
     showmessage('Impossible to solve Sudoku');
     PaintBox1.Invalidate;
   End
   Else Begin
     Solve(False, false, field);
-    s := TSudoku.Create(3);
     s.LoadFrom(field);
     If s.isSolved() Then Begin
       Showmessage('Ready');
@@ -1588,25 +1589,30 @@ Begin
     Else Begin
       showmessage('Unable to solve');
     End;
-    s.free;
     PaintBox1.Invalidate;
   End;
+  s.free;
 End;
 
 Procedure TForm1.Solvestep1Click(Sender: TObject);
 Var
   a: Boolean;
   x1: integer;
+  s: TSudoku;
 Begin
-  If Not (Sudoku3solvable(field)) Then Begin
+  s := TSudoku.Create(3);
+  s.LoadFrom(field);
+  If Not (s.IsSolveable) Then Begin
     showmessage('Impossible to solve Sudoku');
   End
   Else Begin
     If form1.bytryanderror1.checked Then Begin
       If ID_NO = application.messagebox(pchar('You slected the solving method by try and error.' + LineEnding +
         'If this step is necessary your Sudoku will be completed at all.' + LineEnding + LineEnding +
-        'do you want this ?'), 'Question', MB_YESNO + MB_ICONQUESTION) Then
+        'do you want this ?'), 'Question', MB_YESNO + MB_ICONQUESTION) Then Begin
+        s.free;
         exit;
+      End;
     End;
     Solve(true, false, field);
     // Schauen ob Fertig.
@@ -1622,6 +1628,7 @@ Begin
       showmessage('You solved the Sudoku.');
     End;
   End;
+  s.free;
 End;
 
 Procedure TForm1.Allowall1Click(Sender: TObject);

@@ -86,6 +86,7 @@ Type
     Function IsMarked(x, y: Integer): Boolean;
     Function IsFullyFilled(): Boolean; // True, wenn alle Value's <> 0, ohne Checks ob tatsächlich gültig (nur für Algorithmen geeignet)
     Function IsSolved(): Boolean; // True, wenn das Sudoku tatsächlich korrekt gelöst ist
+    Function IsSolveable(): Boolean; // Schaut ob das Sudoko Blockiert ist, d.h. wenn eine Zahl in einen 9er Block schon gar nicht mehr setzen kann obwohl das so sein sollte
 
     Procedure SetValue(x, y, Value: integer; Fixed: Boolean);
 
@@ -127,6 +128,7 @@ Var
 Function Mirrow(x, y, n, Direction: Integer): TPoint;
 
 Function PencilEqual(Const a, b: TPencil): Boolean;
+Function GetSetPencilscount(Const Value: Tpencil): integer; // Ermittelt wieviele Einträge <> 0 sind
 
 Implementation
 
@@ -166,6 +168,15 @@ Begin
       exit;
     End;
   result := true
+End;
+
+Function GetSetPencilscount(Const Value: Tpencil): integer;
+Var
+  i: Integer;
+Begin
+  result := 0;
+  For i := 0 To high(Value) Do
+    If value[i] Then inc(result);
 End;
 
 { TSudoku }
@@ -365,7 +376,7 @@ Begin
   result := (fField[x, y].Value <> 0) Or (fField[x, y].Marked);
 End;
 
-Function TSudoku.IsFullyFilled(): Boolean;
+Function TSudoku.IsFullyFilled: Boolean;
 Var
   i, j: Integer;
 Begin
@@ -378,7 +389,7 @@ Begin
   result := true;
 End;
 
-Function TSudoku.IsSolved(): Boolean;
+Function TSudoku.IsSolved: Boolean;
 Var
   i, j, x, y, z: Integer;
   penc: TPencil;
@@ -419,6 +430,43 @@ Begin
       End;
     result := true;
   End;
+End;
+
+Function TSudoku.IsSolveable(): Boolean;
+Var
+  sm: Boolean;
+  c, x, y, x1, y1, z: integer;
+Begin
+  result := false;
+  For z := 1 To fsqrDim Do Begin
+    ResetAllMarker();
+    Mark(z);
+    For y := 0 To fDim - 1 Do
+      For x := 0 To fDim - 1 Do Begin
+        c := 0;
+        sm := false;
+        For y1 := 0 To fDim - 1 Do
+          For x1 := 0 To fDim - 1 Do Begin
+            If (fField[x * fDim + x1, y * fDim + y1].value = z) Then inc(c);
+            If (Not fField[x * fDim + x1, y * fDim + y1].marked) Or (fField[x * fDim + x1, y * fDim + y1].Value = z) Then sm := true;
+          End;
+        If Not sm Then exit;
+        If c > 1 Then exit;
+      End;
+    For y := 0 To fsqrDim - 1 Do Begin
+      c := 0;
+      For x := 0 To fsqrDim - 1 Do
+        If fField[x, y].value = z Then inc(c);
+      If c > 1 Then exit;
+    End;
+    For x := 0 To fsqrDim - 1 Do Begin
+      c := 0;
+      For y := 0 To fsqrDim - 1 Do
+        If fField[x, y].value = z Then inc(c);
+      If c > 1 Then exit;
+    End;
+  End;
+  result := true;
 End;
 
 Procedure TSudoku.SetValue(x, y, Value: integer; Fixed: Boolean);

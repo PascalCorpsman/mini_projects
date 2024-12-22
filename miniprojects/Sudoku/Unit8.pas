@@ -143,7 +143,8 @@ Begin
     End;
 
     // ist das sudoku jetzt schon nicht mehr lösbar dann neustarten
-    If Not (Sudoku3solvable(f)) Then Goto rein;
+    fs.LoadFrom(f);
+    If Not (fs.IsSolveable) Then Goto rein;
 
     form1.bytryanderror1.checked := true;
     // Lösen

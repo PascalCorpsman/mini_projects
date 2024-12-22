@@ -21,10 +21,7 @@ Uses
 
 Procedure GetKomplettSudoku(Var Data: T3Field);
 Procedure Solvebyxywing(Var Data: T3field);
-Function pencilcount(Value: T3pencil): integer;
 Procedure Hiddensubset(Var data: T3field);
-
-Function Sudoku3Solvable(Value: t3field): Boolean;
 
 Implementation
 
@@ -65,57 +62,6 @@ Begin
     End;
 End;
 
-// Schaut ob das Sudoko Blockiert ist, d.h. wenn eine Zahl in einen 9er Block schon gar nicht mehr setzen kann obwohl das so sein sollte
-
-Function Sudoku3Solvable(Value: t3field): Boolean;
-Var
-  sm, erg: Boolean;
-  c, x, y, x1, y1, z: integer;
-Begin
-  erg := true;
-  For z := 1 To 9 Do Begin
-    ResetAllMarker(Value);
-    Mark(Value, z);
-    For y := 0 To 2 Do
-      For x := 0 To 2 Do Begin
-        c := 0;
-        sm := false;
-        For y1 := 0 To 2 Do
-          For x1 := 0 To 2 Do Begin
-            If (value[x * 3 + x1, y * 3 + y1].value = z) Then inc(c);
-            If (Not Value[x * 3 + x1, y * 3 + y1].marked) Or (Value[x * 3 + x1, y * 3 + y1].Value = z) Then sm := true;
-          End;
-        If Not sm Then erg := false;
-        If c > 1 Then erg := false;
-      End;
-    For y := 0 To 8 Do Begin
-      c := 0;
-      For x := 0 To 8 Do
-        If value[x, y].value = z Then inc(c);
-      If c > 1 Then erg := false;
-    End;
-    For x := 0 To 8 Do Begin
-      c := 0;
-      For y := 0 To 8 Do
-        If value[x, y].value = z Then inc(c);
-      If c > 1 Then erg := false;
-    End;
-  End;
-  result := erg;
-End;
-
-// Ermittelt wieviele Einträge <> 0 sind
-
-Function pencilcount(Value: T3pencil): integer;
-Var
-  x, erg: Integer;
-Begin
-  erg := 0;
-  For x := 0 To 8 Do
-    If value[x] Then inc(erg);
-  result := erg;
-End;
-
 Procedure Hiddensubset(Var data: T3field);
 Var
   pc, x, y, x1, y1, z: integer;
@@ -135,7 +81,7 @@ Begin
         // Betrachten des 9 er Blocks und raussuchen aller Penzil's kleiner gleich pc
         For x1 := 0 To 2 Do
           For y1 := 0 To 2 Do
-            If (pencilcount(data[x * 3 + x1, y * 3 + y1].pencil) <= pc) And (data[x * 3 + x1, y * 3 + y1].Value = 0) Then Begin
+            If (GetSetPencilscount(data[x * 3 + x1, y * 3 + y1].pencil) <= pc) And (data[x * 3 + x1, y * 3 + y1].Value = 0) Then Begin
               // Merken von welchem Feld nachher nicht gelöscht werden darf
               zah[x1 + y1 * 3] := true;
               For z := 0 To 8 Do
@@ -143,7 +89,7 @@ Begin
                   penc[z] := true;
             End;
         // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
-        If pencilcount(zah) = pencilcount(penc) Then Begin
+        If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
           // dann können wir diese n Zahlen aus allen anderen Feldern löschen
           For x1 := 0 To 2 Do
             For y1 := 0 To 2 Do
@@ -168,7 +114,7 @@ Begin
         zah[z] := false;
       End;
       For y := 0 To 8 Do
-        If (pencilcount(data[x, y].pencil) <= pc) And (data[x, y].Value = 0) Then Begin
+        If (GetSetPencilscount(data[x, y].pencil) <= pc) And (data[x, y].Value = 0) Then Begin
           // Merken von welchem Feld nachher nicht gelöscht werden darf
           zah[y] := true;
           For z := 0 To 8 Do
@@ -176,7 +122,7 @@ Begin
               penc[z] := true;
         End;
       // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
-      If pencilcount(zah) = pencilcount(penc) Then Begin
+      If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
         For y1 := 0 To 8 Do
           // wenn unser feld nicht zu denen gehört welche die Pencil's erstellt haben
           If Not (zah[y1]) Then Begin
@@ -198,7 +144,7 @@ Begin
         zah[z] := false;
       End;
       For x := 0 To 8 Do
-        If (pencilcount(data[x, y].pencil) <= pc) And (data[x, y].Value = 0) Then Begin
+        If (GetSetPencilscount(data[x, y].pencil) <= pc) And (data[x, y].Value = 0) Then Begin
           // Merken von welchem Feld nachher nicht gelöscht werden darf
           zah[x] := true;
           For z := 0 To 8 Do
@@ -206,7 +152,7 @@ Begin
               penc[z] := true;
         End;
       // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
-      If pencilcount(zah) = pencilcount(penc) Then Begin
+      If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
         For y1 := 0 To 8 Do
           // wenn unser feld nicht zu denen gehört welche die Pencil's erstellt haben
           If Not (zah[y1]) Then Begin
@@ -232,7 +178,7 @@ Begin
     For Y := 0 To 8 Do Begin
       // Methode 1 die xy, xz, yz Felder sind alle in unterschiedlichen 9er Blocks
       // das ganz geht nur wenn wir exakt 2 Penci's haben
-      If (pencilcount(data[x, y].pencil) = 2) And (data[x, y].value = 0) Then Begin
+      If (GetSetPencilscount(data[x, y].pencil) = 2) And (data[x, y].value = 0) Then Begin
         // ermitteln der beiden pencil werte
         p1 := -1;
         p2 := -1;
@@ -245,12 +191,12 @@ Begin
         // Z brauch hier net die Zahlen 0 bis x durchlaufen da die eh von einem anderen X gefunden werden.
         For z := 0 To 8 Do Begin
           // Wenn wir ein zweites Feld gefunden haben das ebenfalls 2 Penzil's hat und entweder p1, oder p2 ist da mit drin
-          If (data[z, y].value = 0) And (z <> x) And (pencilcount(Data[z, y].pencil) = 2) And (Data[z, y].pencil[p1] Or Data[z, y].pencil[p2]) And (data[z, y].value = 0) Then
+          If (data[z, y].value = 0) And (z <> x) And (GetSetPencilscount(Data[z, y].pencil) = 2) And (Data[z, y].pencil[p1] Or Data[z, y].pencil[p2]) And (data[z, y].value = 0) Then
             // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
             If (Data[z, y].pencil[p1] Xor Data[z, y].pencil[p2]) Then Begin
               // nun geht's von x, y ab nach unten und wir suchen ebenfalls ein Tupel
               For z1 := 0 To 8 Do
-                If (data[x, z1].value = 0) And (pencilcount(Data[x, z1].pencil) = 2) And (Data[x, z1].pencil[p1] Or Data[x, z1].pencil[p2] And (z1 <> y)) Then
+                If (data[x, z1].value = 0) And (GetSetPencilscount(Data[x, z1].pencil) = 2) And (Data[x, z1].pencil[p1] Or Data[x, z1].pencil[p2] And (z1 <> y)) Then
                   // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
                   If (Data[x, z1].pencil[p1] Xor Data[x, z1].pencil[p2]) Then Begin
                     // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
@@ -261,7 +207,7 @@ Begin
                     Penc2[p1] := false;
                     Penc2[p2] := false;
                     // es hat tatsächlich geklappt
-                    If PencilEqual(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
+                    If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
                       // Das ist klar das das immer geht
                       For z3 := 0 To 8 Do
                         If Penc1[z3] Then Begin
@@ -271,7 +217,7 @@ Begin
                   End;
               // aber nicht nur von x,y aus sondern auch von z aus
               For z1 := 0 To 8 Do
-                If (data[z, z1].value = 0) And (pencilcount(Data[z, z1].pencil) = 2) And (Data[z, z1].pencil[p1] Or Data[z, z1].pencil[p2] And (z1 <> y)) Then
+                If (data[z, z1].value = 0) And (GetSetPencilscount(Data[z, z1].pencil) = 2) And (Data[z, z1].pencil[p1] Or Data[z, z1].pencil[p2] And (z1 <> y)) Then
                   // Wir müssen auch den Fall ausschliesen das es exakt die selben Pencil werte sind
                   If (Data[z, z1].pencil[p1] Xor Data[z, z1].pencil[p2]) Then Begin
                     // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
@@ -282,7 +228,7 @@ Begin
                     Penc2[p1] := false;
                     Penc2[p2] := false;
                     // es hat tatsächlich geklappt
-                    If PencilEqual(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
+                    If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
                       // Das ist klar das das immer geht
                       For z3 := 0 To 8 Do
                         If Penc1[z3] Then Begin
@@ -298,7 +244,7 @@ Begin
                 b := y - y Mod 3;
                 For x1 := a To a + 2 Do
                   For y1 := b To b + 2 Do
-                    If {Not ((x = x1)) And }(y <> y1) And (pencilcount(Data[x1, y1].pencil) = 2) And ((data[x1, y1].pencil[p1]) Or (data[x1, y1].pencil[p2])) Then
+                    If {Not ((x = x1)) And }(y <> y1) And (GetSetPencilscount(Data[x1, y1].pencil) = 2) And ((data[x1, y1].pencil[p1]) Or (data[x1, y1].pencil[p2])) Then
                       If (data[x1, y1].pencil[p1] Xor data[x1, y1].pencil[p2]) Then Begin
                         // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
                         penc1 := Data[z, y].pencil;
@@ -308,7 +254,7 @@ Begin
                         Penc2[p1] := false;
                         Penc2[p2] := false;
                         // es hat tatsächlich geklappt
-                        If PencilEqual(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
+                        If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
                           // Hohlen der Pencil Zahl Z
                           u := -1;
                           For w := 0 To 8 Do
@@ -327,14 +273,14 @@ Begin
         // Wir schauen ob es senkrecht zu unserem gefundenen 2 er Feld
         For z := 0 To 8 Do
           // Wenn wir ein Feld gefunden haben das IN der Senkrechten ist und genau nur einen der PEncil's gleich hat
-          If (z <> y) And (pencilcount(data[x, z].pencil) = 2) And (data[x, z].value = 0) And ((Data[x, z].pencil[p1] Xor Data[x, z].pencil[p2])) Then Begin
+          If (z <> y) And (GetSetPencilscount(data[x, z].pencil) = 2) And (data[x, z].value = 0) And ((Data[x, z].pencil[p1] Xor Data[x, z].pencil[p2])) Then Begin
             // Dann schauen wir nach einem 2. Feld im 9er Block x , y nach dem 3.ten Feld
             a := x - x Mod 3;
             b := y - y Mod 3;
             For x1 := a To a + 2 Do
               For y1 := b To b + 2 Do
                 // Wir haben ein drittes Feld gefunden das passen könte
-                If Not (x1 = x) And (pencilcount(data[x1, y1].pencil) = 2) And (data[x1, y1].pencil[p1] Xor data[x1, y1].pencil[p2]) Then Begin
+                If Not (x1 = x) And (GetSetPencilscount(data[x1, y1].pencil) = 2) And (data[x1, y1].pencil[p1] Xor data[x1, y1].pencil[p2]) Then Begin
                   // nun müssen wir schaun ob der 2. PArameter auch der gleiche ist
                   penc1 := Data[x, z].pencil;
                   penc2 := Data[x1, y1].pencil;
@@ -343,7 +289,7 @@ Begin
                   Penc2[p1] := false;
                   Penc2[p2] := false;
                   // es hat tatsächlich geklappt
-                  If PencilEqual(penc1, penc2) And (pencilcount(penc1) = 1) Then Begin
+                  If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
                     u := -1;
                     For w := 0 To 8 Do
                       If Penc1[w] Then u := w;
@@ -425,7 +371,8 @@ Var
   fdata: TSudoku;
 Begin
   fdata := TSudoku.Create(3);
-  If Sudoku3solvable(data) Then Begin
+  fdata.LoadFrom(Data);
+  If fdata.IsSolveable() Then Begin
     starty := random(9);
     Formclose := false;
     zwangsabbruch := false;
@@ -468,7 +415,8 @@ Begin
           End;
         End;
       End; //   Es ist Fragwürdig ob das Prüfen was Bringt, aber irgendwie denke ich das es das schon tut
-      If sm And Sudoku3solvable(actual) Then Begin
+      fdata.LoadFrom(actual);
+      If sm And fdata.IsSolveable() Then Begin
         For z := 8 Downto 0 Do
           If Actual[x, y].pencil[z] Then Begin
             Actual[x, y].value := z + 1; // Setzen des Wertes

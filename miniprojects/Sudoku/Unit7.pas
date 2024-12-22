@@ -155,7 +155,7 @@ Begin
     End;
     // ist das sudoku jetzt schon nicht mehr lösbar dann neustarten
     f.StoreTo(tmpf);
-    If Not (Sudoku3solvable(tmpf)) Then Goto rein;
+    If Not (f.IsSolveable) Then Goto rein;
     // Wegspeichern der by Try Error Methode
     Save := form1.bytryanderror1.checked;
     // Zum erstellen eines Functionierenden Sudoku brauchen wir die Try and Error methode
