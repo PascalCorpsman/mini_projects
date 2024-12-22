@@ -19,7 +19,7 @@ Unit Unit7;
 Interface
 
 Uses
-  Forms, Classes, Controls, StdCtrls, Dialogs, LResources, SysUtils, Sudoku3x3,
+  Forms, Classes, Controls, StdCtrls, Dialogs, LResources, SysUtils,
   LCLType;
 
 Type
@@ -173,7 +173,7 @@ Begin
       ForcingChains1.checked := False;
     End;
     f.StoreTo(tmpf);
-    Solve(false, True, tmpf);
+    form1.Solve(false, True, tmpf);
     f.LoadFrom(tmpf);
     If Not f.IsFullyFilled() And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
       Goto rein;

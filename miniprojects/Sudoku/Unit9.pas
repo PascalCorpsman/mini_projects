@@ -50,7 +50,6 @@ Implementation
 Uses
   math
   , usudoku
-  , Sudoku3x3
   , Unit1
   , Unit6
   , Unit7

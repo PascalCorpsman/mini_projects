@@ -34,7 +34,7 @@ Interface
 
 Uses
   SysUtils, Graphics, Forms, Classes, Controls, Dialogs, Menus,
-  StdCtrls, ComCtrls, usudoku, Sudoku3x3, ExtCtrls, lcltype;
+  StdCtrls, ComCtrls, usudoku, ExtCtrls, lcltype;
 
 Type
 
@@ -170,10 +170,14 @@ Type
     { Private-Deklarationen }
     ffield: TSudoku;
     Procedure RefreshField(Sender: TObject);
+
+    Function OnLCLUpdateEvent(): Boolean;
   public
     { Public-Deklarationen }
     mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
     Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden
+
+    Procedure Solve(Step, invisible: boolean; Var Data: T3field);
   End;
 
 Var
@@ -181,7 +185,7 @@ Var
   bm: Tbitmap; // gegen das Flimmern
   Field: T3field; // Das Spielfeld
 
-Procedure Solve(Step, invisible: boolean; Var Data: T3field);
+
 Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
 // die nachfolgenden Proceduren sind nur damit Ki nicht nach unten Kopiert werden mus hier oben
 Procedure Resetopt;
@@ -214,7 +218,7 @@ Uses
 
 // Ist Step = True dann wird nur ein Step gemacht bei step = False, wird das Rätsel Komplett gelöst.
 
-Procedure Solve(Step, invisible: boolean; Var Data: T3field);
+Procedure TForm1.Solve(Step, invisible: boolean; Var Data: T3field);
 
   Procedure setfocus(x, y: integer);
   Begin
@@ -242,6 +246,7 @@ Var
   wieder, ssolve, nochmal, weiter, b: Boolean;
   zah: Array[1..9] Of 0..9; // Kann zu Boolean gemacht werden!
   fs: TSudoku;
+  aFormclose: boolean;
 Begin
   // Erst mal das Feld von altlasten säubern
   For x := 0 To 8 Do
@@ -545,12 +550,25 @@ Begin
     // Hilft alles nichts so mus der Zufall Helfen
     If form1.bytryanderror1.checked Then Begin
       // Ist ausgelagert , da es eine ganz eigene Art von lösen ist
-      GetKomplettSudoku(Data);
+      fs.LoadFrom(data);
+      aFormclose := false;
+      zwangsabbruch := false;
+      If Not form6.visible Then Begin
+        aFormclose := true;
+        form6.show;
+      End;
+      If Not fs.FillWithSolvedValues(@OnLCLUpdateEvent) Then Begin
+        Zwangsabbruch := true;
+        If aFormclose And form6.visible Then Form6.close;
+        showmessage('This Sudoku is impossible to solve');
+      End;
+      If aFormclose And form6.visible Then Form6.close;
+      fs.StoreTo(data);
       weiter := false; // Danach braucht nichts mehr Probiert werden
     End;
     Schlus:
     fs.LoadFrom(Data);
-    If Step Or fs.IsFullyFilled Or (Not weiter) Then b := false;
+    If Step Or (Not weiter) Or fs.IsFullyFilled  Then b := false;
   End;
   If Not invisible Then Begin
     // Demarkieren aller Felder
@@ -912,7 +930,7 @@ Begin
       Data[p.x, p.y].value := 0;
 
       // Lösen des Rätsels
-      Solve(false, true, data);
+      form1.Solve(false, true, data);
       // Schaun ob es lösbar war
       s.LoadFrom(data);
       If Not s.IsFullyFilled Then
@@ -956,7 +974,7 @@ Begin
       End;
     End;
   End;
-  Solve(False, true, tmp);
+  form1.Solve(False, true, tmp);
   s.LoadFrom(tmp);
   If Not s.IsSolved() Then Begin
     showmessage('Error, something went wrong, sudoku will not be solveable.');
@@ -1771,6 +1789,12 @@ End;
 Procedure TForm1.RefreshField(Sender: TObject);
 Begin
   PaintBox1.Invalidate;
+End;
+
+Function TForm1.OnLCLUpdateEvent(): Boolean;
+Begin
+  Application.ProcessMessages;
+  result := zwangsabbruch;
 End;
 
 End.

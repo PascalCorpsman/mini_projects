@@ -32,6 +32,13 @@ Const
 
 Type
 
+  (*
+   * Callback, welche während des FillWithSolvedValues aufgerufen wird.
+   * result = true -> Abbruch der Berechnung
+   * result = false -> Weiter machen..
+   *)
+  TLCLUpdateEvent = Function(): Boolean Of Object;
+
   T3Pencil = Array[0..8] Of Boolean;
 
   T3SubField = Record
@@ -78,6 +85,9 @@ Type
   private
     fField: Tfield;
     fDim, fsqrDim: integer;
+
+    Function Clone: TSudoku;
+    Procedure CloneFieldFrom(Const aSudoku: TSudoku);
   public
     Constructor Create(Dimension: integer); virtual;
     Destructor Destroy; override;
@@ -102,6 +112,8 @@ Type
     Procedure ClearAllNumberPencils;
     Procedure ApplyHiddenSubsetAlgorithm();
     Procedure ApplyXY_WingAlgorithm();
+
+    Function FillWithSolvedValues(Const UpdateEvent: TLCLUpdateEvent): Boolean; // Erzeugt via Bruteforce ein Komplett gefülltes Feld, false wenn das nicht geklappt hat..
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
@@ -129,7 +141,6 @@ Var
   substitution: Array[1..9] Of String[1];
   lc: integer; // Für das Line Edit brauchen wir ne Extra Variable
 
-
   (*
   Berechnet den Korrespondierenden Punkt zu (x,y) im Feld (0..N-1) x (0..N-1) gespiegelt an
   der Achse Direction ( 0..3 )
@@ -140,6 +151,30 @@ Function PencilEqual(Const a, b: TPencil): Boolean;
 Function GetSetPencilscount(Const Value: Tpencil): integer; // Ermittelt wieviele Einträge <> 0 sind
 
 Implementation
+
+Type
+
+  PStackElement = ^TStackElement;
+
+  TStackElement = Record
+    data: TSudoku;
+    next: PStackElement;
+  End;
+
+  { TSudokuStack }
+
+  TSudokuStack = Class
+  private
+    fRoot: PStackElement;
+  public
+    Constructor Create; virtual;
+    Destructor Destroy; override;
+
+    Procedure Clear;
+    Function Pop: TSudoku;
+    Procedure Push(Const aSudoku: TSudoku);
+    Function IsEmpty: Boolean;
+  End;
 
 Function Mirrow(x, y, n, Direction: Integer): TPoint;
 Begin
@@ -188,17 +223,114 @@ Begin
     If value[i] Then inc(result);
 End;
 
+{ TSudokuStack }
+
+Constructor TSudokuStack.Create;
+Begin
+  Inherited create;
+  froot := Nil;
+End;
+
+Destructor TSudokuStack.Destroy;
+Begin
+  Clear;
+End;
+
+Procedure TSudokuStack.Clear;
+Var
+  z, z1: PStackElement;
+Begin
+  z := froot;
+  While z <> Nil Do Begin
+    z1 := z;
+    z := z^.next;
+    z1^.data.Free;
+    dispose(z1);
+  End;
+  froot := Nil;
+End;
+
+Function TSudokuStack.Pop: TSudoku;
+Var
+  z: PStackElement;
+Begin
+  If froot <> Nil Then Begin
+    // Wenn man einen froot nimmt
+    z := froot;
+    result := z^.data;
+    froot := z^.next;
+    dispose(z);
+  End
+  Else Begin
+    Exception.Create('TFieldStack.Pop: pop from empty stack');
+  End;
+End;
+
+Procedure TSudokuStack.Push(Const aSudoku: TSudoku);
+Var
+  Element: PStackElement;
+Begin
+  new(Element);
+  Element^.next := Nil;
+  Element^.Data := aSudoku;
+  // Wenn man einen froot nimmt
+  If froot = Nil Then Begin
+    froot := Element;
+  End
+  Else Begin
+    Element^.next := froot;
+    froot := Element;
+  End;
+End;
+
+Function TSudokuStack.IsEmpty: Boolean;
+Begin
+  result := fRoot = Nil;
+End;
+
 { TPencilhelper }
 
 Function TPencilhelper.Clone: TPencil;
 Var
   i: Integer;
 Begin
+  result := Nil;
   setlength(result, length(self));
   For i := 0 To high(self) Do Begin
     result[i] := self[i];
   End;
 End;
+
+//{ TFieldHelper }
+//
+//Function TFieldHelper.Clone: TField;
+//Var
+//  i, j, k: Integer;
+//Begin
+//  result := Nil;
+//  setlength(result, length(self), length(self[0]));
+//  For i := 0 To high(Self) Do Begin
+//    For j := 0 To high(self[0]) Do Begin
+//      result[i, j] := self[i, j];
+//      setlength(result[i, j].Pencil, length(self[i, j].Pencil));
+//      For k := 0 To high(self[i, j].Pencil) Do Begin
+//        result[i, j].Pencil[k] := self[i, j].Pencil[k];
+//      End;
+//    End;
+//  End;
+//End;
+//
+//Procedure TFieldHelper.Free;
+//Var
+//  i, j: Integer;
+//Begin
+//  For i := 0 To high(self) Do Begin
+//    For j := 0 To high(self[0]) Do Begin
+//      setlength(self[i, j].Pencil, 0);
+//    End;
+//  End;
+//  setlength(Self, 0, 0);
+//End;
 
 { TSudoku }
 
@@ -874,7 +1006,7 @@ Begin
   End;
 End;
 
-Procedure TSudoku.ApplyXY_WingAlgorithm();
+Procedure TSudoku.ApplyXY_WingAlgorithm;
 Var
   a, b, x1, y1, w, u, c,
     p1, p2, x, y, z, z1, z3: integer;
@@ -1010,6 +1142,110 @@ Begin
           End;
       End;
     End;
+End;
+
+Function TSudoku.FillWithSolvedValues(Const UpdateEvent: TLCLUpdateEvent
+  ): Boolean;
+Var
+  actual: TSudoku;
+  x, y, z: Integer;
+  sm2, sm, zwangsabbruch: boolean;
+  starty: Integer;
+  Stack: TSudokuStack;
+Begin
+  result := false;
+  If IsSolveable() Then Begin
+    starty := random(9);
+    zwangsabbruch := false;
+    ResetAllMarker(); // Reset Aller Marker
+    //    stack := Nil; // Initialisieren des Stack's
+    stack := TSudokuStack.Create;
+    stack.Push(Clone); // Start für die Breitensuche
+    // Die Tiefensuche
+    While (Not stack.IsEmpty) And (Not zwangsabbruch) Do Begin
+      actual := stack.Pop; // Hohlen des Obersten Elementes
+      // Hohlen aller Pencil Daten
+      actual.ClearAllNumberPencils;
+      // Suchen des Feldes Das gerade Betrachtet wird
+      // Garantie das wir mindestens 1 Feld Finden, und somit die While Schleife Terminiert !!
+      sm := false;
+      sm2 := false;
+      x := 0; // Beruhigt den Compiler
+      y := Starty; // Wir starten immer von der Selben Zufallszeile
+      While (y < 9) And Not sm Do Begin
+        x := 0;
+        While (x < 9) And Not sm Do Begin
+          If actual.fField[x, y].value = 0 Then
+            sm := true; // Freischalten des Suchens nach weiteren Einträgen, sm sperrt gleichzeiteg das x und y verändert werden und somit ist die position auch schon klar
+          If Not sm Then inc(x);
+        End;
+        If Not sm Then Begin
+          inc(y);
+          // Da wir nicht unbedingt bei x = 0 = y  anfangen müssen wir in der Lage sein von x = 8 = y nach x = 0 = y zu springen
+          If (y = 9) And Not sm2 Then Begin
+            y := 0;
+            sm2 := true; // Anzeigen das wir den Sprung von 8,8 nach 0,0 gemacht haben nd diesen kein 2. mal machen wollen.
+          End;
+        End;
+      End;
+      // Es ist Fragwürdig ob das Prüfen was Bringt, aber irgendwie denke ich das es das schon tut
+      If sm And actual.IsSolveable() Then Begin
+        For z := 8 Downto 0 Do Begin
+          If Actual.fField[x, y].pencil[z] Then Begin
+            Actual.fField[x, y].value := z + 1; // Setzen des Wertes
+            // Das Ende Der Breitensuche
+            If actual.IsSolved() Then Begin
+              // Actual ist vollständig, wird aber unten freigegeben -> wir übernehmen die FField Daten da das Actual unten frei gegeben wird.
+              CloneFieldFrom(Actual);
+              result := true;
+              Stack.Clear;
+              break;
+            End
+            Else Begin
+              stack.Push(Actual.Clone);
+            End;
+          End;
+        End;
+      End;
+      actual.Free;
+      zwangsabbruch := UpdateEvent();
+    End;
+    Stack.Free;
+  End;
+End;
+
+Function TSudoku.Clone: TSudoku;
+Var
+  i, j, k: Integer;
+Begin
+  result := TSudoku.Create(self.fDim);
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      result.fField[i, j].Value := fField[i, j].Value;
+      result.fField[i, j].marked := fField[i, j].Marked;
+      result.fField[i, j].Maybeed := fField[i, j].Maybeed;
+      result.fField[i, j].Fixed := fField[i, j].Fixed;
+      For k := 0 To fsqrDim - 1 Do
+        result.fField[i, j].Pencil[k] := fField[i, j].Pencil[k];
+    End;
+  End;
+End;
+
+Procedure TSudoku.CloneFieldFrom(Const aSudoku: TSudoku);
+Var
+  i, j, k: Integer;
+Begin
+  If fdim <> aSudoku.fDim Then Raise Exception.Create('TSudoku.CloneFieldFrom: error dim invalid.');
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      fField[i, j].Value := aSudoku.fField[i, j].Value;
+      fField[i, j].marked := aSudoku.fField[i, j].Marked;
+      fField[i, j].Maybeed := aSudoku.fField[i, j].Maybeed;
+      fField[i, j].Fixed := aSudoku.fField[i, j].Fixed;
+      For k := 0 To fsqrDim - 1 Do
+        fField[i, j].Pencil[k] := aSudoku.fField[i, j].Pencil[k];
+    End;
+  End;
 End;
 
 Procedure TSudoku.LoadFrom(Const f: T3Field);

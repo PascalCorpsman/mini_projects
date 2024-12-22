@@ -42,7 +42,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="23">
+    <Units Count="22">
       <Unit0>
         <Filename Value="Sudoku.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -180,13 +180,9 @@
         <IsPartOfProject Value="True"/>
       </Unit20>
       <Unit21>
-        <Filename Value="Sudoku3x3.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit21>
-      <Unit22>
         <Filename Value="usudoku.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit22>
+      </Unit21>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

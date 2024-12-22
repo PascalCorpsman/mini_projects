@@ -20,7 +20,7 @@ Interface
 
 Uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  Grids, StdCtrls, LResources, Sudoku3x3;
+  Grids, StdCtrls, LResources;
 
 Type
   TForm8 = Class(TForm)
@@ -148,14 +148,14 @@ Begin
 
     form1.bytryanderror1.checked := true;
     // Lösen
-    Solve(false, True, f);
+    form1.Solve(false, True, f);
     For x := 0 To 8 Do
       For y := 0 To 8 Do
         If Not (StringGrid1.cells[x, y] = 'X') Then f[x, y].value := 0;
     Goto raus;
     form1.bytryanderror1.checked := false;
     // Lösen
-    Solve(false, True, f);
+    form1.Solve(false, True, f);
     fs.LoadFrom(f);
     If fs.IsFullyFilled() Then geschafft := true;
   End;
