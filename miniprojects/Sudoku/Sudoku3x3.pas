@@ -24,10 +24,7 @@ Procedure Solvebyxywing(Var Data: T3field);
 Function pencilcount(Value: T3pencil): integer;
 Procedure Hiddensubset(Var data: T3field);
 
-Function isready3(Const Value: t3field): boolean;
-Function isreadyUser3(Value: t3field; Allowmessage: boolean): boolean;
 Function Sudoku3Solvable(Value: t3field): Boolean;
-
 
 Implementation
 
@@ -54,7 +51,7 @@ Begin
   s.free;
 End;
 
-// Alle MArker Resetten
+// Alle Marker Resetten
 
 Procedure ResetAllMarker(Var Data: T3field);
 Var
@@ -107,69 +104,6 @@ Begin
   result := erg;
 End;
 
-// schaut ob wir unser Feld gelöst haben
-
-Function isready3(Const Value: t3field): boolean;
-Var
-  erg: boolean;
-  x, y: Integer;
-Begin
-  erg := True;
-  x := 0;
-  While (x < 9) And erg Do Begin
-    y := 0;
-    While (y < 9) And erg Do Begin
-      If Value[x, y].value = 0 Then erg := false;
-      inc(y);
-    End;
-    inc(x);
-  End;
-  result := erg;
-End;
-
-Function isreadyUser3(Value: t3field; Allowmessage: boolean): boolean;
-Var
-  erg: Boolean;
-  x, y, x1, y1, z: Integer;
-  penc: Array[0..9] Of Boolean;
-Begin
-  erg := isready3(value);
-  If erg Then Begin
-    // Schaun Zeilenweise
-    For y := 0 To 8 Do Begin
-      For x := 0 To 8 Do
-        penc[x] := false;
-      For x := 0 To 8 Do Begin
-        If penc[Value[x, y].Value - 1] Then erg := false;
-        penc[Value[x, y].Value - 1] := true;
-      End;
-    End;
-    // Schaun Spaltenweise
-    For x := 0 To 8 Do Begin
-      For y := 0 To 8 Do
-        penc[y] := false;
-      For y := 0 To 8 Do Begin
-        If penc[Value[x, y].Value - 1] Then erg := false;
-        penc[Value[x, y].Value - 1] := true;
-      End;
-    End;
-    // Schaun Blockweise
-    For x := 0 To 2 Do
-      For y := 0 To 2 Do Begin
-        For z := 0 To 8 Do
-          penc[z] := false;
-        For x1 := 0 To 2 Do
-          For y1 := 0 To 2 Do Begin
-            If Penc[Value[x * 3 + x1, y * 3 + y1].value - 1] Then erg := false;
-            Penc[Value[x * 3 + x1, y * 3 + y1].value - 1] := true;
-          End;
-      End;
-    If (Not erg) And Allowmessage Then
-      showmessage('You filled out the Sudoku, but not correct');
-  End;
-  result := erg;
-End;
-
 // Ermittelt wieviele Einträge <> 0 sind
 
 Function pencilcount(Value: T3pencil): integer;
@@ -181,8 +115,6 @@ Begin
     If value[x] Then inc(erg);
   result := erg;
 End;
-
-
 
 Procedure Hiddensubset(Var data: T3field);
 Var
@@ -541,7 +473,8 @@ Begin
           If Actual[x, y].pencil[z] Then Begin
             Actual[x, y].value := z + 1; // Setzen des Wertes
             // Das Ende Der Breitensuche
-            If Isready3(actual) Then Begin
+            fdata.LoadFrom(actual);
+            If fdata.IsFullyFilled Then Begin
               Clear;
               Data := Actual;
             End

@@ -82,7 +82,10 @@ Type
 
     Procedure Mark(Number: integer);
     Procedure ResetAllMarker;
+
     Function IsMarked(x, y: Integer): Boolean;
+    Function IsFullyFilled(): Boolean; // True, wenn alle Value's <> 0, ohne Checks ob tatsächlich gültig (nur für Algorithmen geeignet)
+    Function IsSolved(): Boolean; // True, wenn das Sudoku tatsächlich korrekt gelöst ist
 
     Procedure SetValue(x, y, Value: integer; Fixed: Boolean);
 
@@ -360,6 +363,62 @@ End;
 Function TSudoku.IsMarked(x, y: Integer): Boolean;
 Begin
   result := (fField[x, y].Value <> 0) Or (fField[x, y].Marked);
+End;
+
+Function TSudoku.IsFullyFilled(): Boolean;
+Var
+  i, j: Integer;
+Begin
+  result := false;
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      If fField[i, j].Value = 0 Then exit;
+    End;
+  End;
+  result := true;
+End;
+
+Function TSudoku.IsSolved(): Boolean;
+Var
+  i, j, x, y, z: Integer;
+  penc: TPencil;
+Begin
+  result := IsFullyFilled();
+  If result Then Begin
+    penc := Nil;
+    setlength(penc, fsqrDim);
+    result := false;
+    // Schaun Zeilenweise
+    For j := 0 To fsqrDim - 1 Do Begin
+      For i := 0 To fsqrDim - 1 Do
+        penc[i] := false;
+      For i := 0 To fsqrDim - 1 Do Begin
+        If penc[fField[i, j].Value - 1] Then exit;
+        penc[fField[i, j].Value - 1] := true;
+      End;
+    End;
+    // Schaun Spaltenweise
+    For i := 0 To fsqrDim - 1 Do Begin
+      For j := 0 To fsqrDim - 1 Do
+        penc[j] := false;
+      For j := 0 To fsqrDim - 1 Do Begin
+        If penc[fField[i, j].Value - 1] Then exit;
+        penc[fField[i, j].Value - 1] := true;
+      End;
+    End;
+    // Schaun Blockweise
+    For i := 0 To fDim - 1 Do
+      For j := 0 To fDim - 1 Do Begin
+        For z := 0 To fsqrDim - 1 Do
+          penc[z] := false;
+        For x := 0 To fDim - 1 Do
+          For y := 0 To fDim - 1 Do Begin
+            If Penc[fField[i * fDim + x, j * fDim + y].value - 1] Then exit;
+            Penc[fField[i * fDim + x, j * fDim + y].value - 1] := true;
+          End;
+      End;
+    result := true;
+  End;
 End;
 
 Procedure TSudoku.SetValue(x, y, Value: integer; Fixed: Boolean);

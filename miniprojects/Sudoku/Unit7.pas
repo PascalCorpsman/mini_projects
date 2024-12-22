@@ -174,10 +174,10 @@ Begin
     End;
     f.StoreTo(tmpf);
     Solve(false, True, tmpf);
-    If Not isready3(tmpf) And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
+    f.LoadFrom(tmpf);
+    If Not f.IsFullyFilled() And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
       Goto rein;
     End;
-    f.LoadFrom(tmpf);
     // Zum basteln eines Puzzles mus sie allerdings wieder Raus
     form1.bytryanderror1.checked := False;
     // Basteln des Rätsel's

@@ -155,7 +155,8 @@ Begin
     form1.bytryanderror1.checked := false;
     // Lösen
     Solve(false, True, f);
-    If isready3(f) Then geschafft := true;
+    fs.LoadFrom(f);
+    If fs.IsFullyFilled() Then geschafft := true;
   End;
   fs.free;
   If Geschafft Then Begin
@@ -173,9 +174,7 @@ Begin
       End;
     form1.Drawfield(Nil);
     close;
-
   End;
-
 End;
 
 Procedure TForm8.FormCreate(Sender: TObject);

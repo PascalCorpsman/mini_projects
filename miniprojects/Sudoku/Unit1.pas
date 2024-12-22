@@ -547,7 +547,8 @@ Begin
       weiter := false; // Danach braucht nichts mehr Probiert werden
     End;
     Schlus:
-    If Step Or isready3(Data) Or (Not weiter) Then b := false;
+    fs.LoadFrom(Data);
+    If Step Or fs.IsFullyFilled Or (Not weiter) Then b := false;
   End;
   If Not invisible Then Begin
     // Demarkieren aller Felder
@@ -869,10 +870,13 @@ Var
   x, y, z: Integer;
   weiter: Boolean;
   Versuche: Integer;
-  f: T3field;
+  tmp, f: T3field;
   p: TPoint;
+  s: TSudoku;
 Begin
-  If isready3(Data) Then Begin // zuerst mus geschaut werden ob das Rätsel überhaupt Komplett ist, sonst haben wir eine Endlosschleife
+  s := TSudoku.Create(3);
+  s.LoadFrom(data);
+  If s.IsFullyFilled() Then Begin // zuerst mus geschaut werden ob das Rätsel überhaupt Komplett ist, sonst haben wir eine Endlosschleife
     form1.bytryanderror1.checked := false; // Ausschalten des Try and error teile's der Ki, da es sonst sinnlos wird
     zwangsabbruch := false;
     weiter := true; // Endlosschleife
@@ -908,7 +912,8 @@ Begin
       // Lösen des Rätsels
       Solve(false, true, data);
       // Schaun ob es lösbar war
-      If Not isready3(Data) Then
+      s.LoadFrom(data);
+      If Not s.IsFullyFilled Then
         inc(Versuche) // Wenn nicht dann ist das ein Fehlversuch mehr
       Else Begin // Wenn es lösbar war wird der Wert auch in der Sicherung gelöscht.
         f[x, y].value := 0;
@@ -924,7 +929,13 @@ Begin
     For x := 0 To 8 Do Begin
       For y := 0 To 8 Do Begin
         Data[x, y].value := f[x, y].value;
-        Data[x, y].Fixed := Not (Data[x, y].value = 0);
+        // Data[x, y].Fixed := Not (Data[x, y].value = 0); -- WTF: warum geht diese Zuweisung nicht ?
+        If data[x, y].Value = 0 Then Begin
+          Data[x, y].Fixed := false;
+        End
+        Else Begin
+          Data[x, y].Fixed := true;
+        End;
         Data[x, y].marked := false;
         For z := 0 To 8 Do Begin
           Data[x, y].Pencil[z] := false;
@@ -932,6 +943,23 @@ Begin
       End;
     End;
   End;
+  // Prüfen ob alles geklappt hat und das Data immer noch lösbar ist
+  For x := 0 To 8 Do Begin
+    For y := 0 To 8 Do Begin
+      tmp[x, y].value := data[x, y].value;
+      tmp[x, y].Fixed := data[x, y].Fixed;
+      tmp[x, y].marked := false;
+      For z := 0 To 8 Do Begin
+        tmp[x, y].Pencil[z] := false;
+      End;
+    End;
+  End;
+  Solve(False, false, tmp);
+  s.LoadFrom(tmp);
+  If Not s.IsSolved() Then Begin
+    showmessage('Error, something went wrong, sudoku will not be solveable.');
+  End;
+  s.free;
 End;
 
 Procedure TForm1.Beenden1Click(Sender: TObject);
@@ -1115,8 +1143,15 @@ Var
   x1, x2, y1, y2: integer;
   zah: Array[1..9] Of 0..9;
   a: Boolean;
+  s: TSudoku;
 Begin
-  If isreadyUser3(field, false) And Not (key In ['a', 'A', '0', 's', 'S', 'd', 'D', 'w', 'W']) Then exit;
+  s := TSudoku.Create(3);
+  s.LoadFrom(field);
+  If s.IsSolved() And Not (key In ['a', 'A', '0', 's', 'S', 'd', 'D', 'w', 'W']) Then Begin
+    s.free;
+    exit;
+  End;
+  s.free;
   // Wenn wir uns im edit Line Pencil Modus befinden
   If Checkbox6.checked Then Begin
     // Bewegen des Cursors
@@ -1218,18 +1253,18 @@ Begin
       TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
     End;
   // Schauen ob Fertig.
-//  a := true;
-//  For x1 := 1 To 9 Do
-//    If TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled Then a := false;
-  a := isreadyUser3(field, true);
-  // Zeichnen des Feldes
-  PaintBox1.Invalidate;
-  // Anzeigen das Fertig
-  If A Then Begin
-    PaintBox1.Invalidate;
-    If Not (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W', '0']) Then
+  s := TSudoku.Create(3);
+  s.LoadFrom(field);
+  If s.IsFullyFilled() And (Not (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W', '0'])) Then Begin
+    If s.IsSolved() Then Begin
       showmessage('You solved the Sudoku.');
+    End
+    Else Begin
+      showmessage('You filled out the Sudoku, but not correct.');
+    End;
   End;
+  s.free;
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.CheckBox1Click(Sender: TObject);
@@ -1536,6 +1571,8 @@ Begin
 End;
 
 Procedure TForm1.Solveit1Click(Sender: TObject);
+Var
+  s: TSudoku;
 Begin
   If Not (Sudoku3solvable(field)) Then Begin
     showmessage('Impossible to solve Sudoku');
@@ -1543,7 +1580,15 @@ Begin
   End
   Else Begin
     Solve(False, false, field);
-    Showmessage('Ready');
+    s := TSudoku.Create(3);
+    s.LoadFrom(field);
+    If s.isSolved() Then Begin
+      Showmessage('Ready');
+    End
+    Else Begin
+      showmessage('Unable to solve');
+    End;
+    s.free;
     PaintBox1.Invalidate;
   End;
 End;
