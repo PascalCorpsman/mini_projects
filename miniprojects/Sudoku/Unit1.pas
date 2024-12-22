@@ -306,9 +306,9 @@ Begin
         getlinepencil(data); // Ermitteln der Korreckten Line pencil's
         fs.LoadFrom(data);
         fs.ClearAllNumberPencils; // Ermitteln der Pencil's in den Feldern
-        fs.StoreTo(data);
         ssolve := false; // Aber nicht zu oft wiederhohlen
-        If form1.byhiddensubset1.checked Then Hiddensubset(Data);
+        If form1.byhiddensubset1.checked Then fs.ApplyHiddenSubsetAlgorithm();
+        fs.StoreTo(data);
         // Nachdem wir nun gute Vorraussetzungen Geschaffen haben, können wir mit unseren Tricks loslegen
         If form1.bynakedsubset1.checked Then Begin
           // Wir suchen alle Pencil's raus die Gleich sind, finden wir welche dann können diese dann bei den anderen gelöscht werden

@@ -93,6 +93,7 @@ Type
     Procedure RenderTo(Const Canvas: TCanvas; Info: TRenderInfo);
 
     Procedure ClearAllNumberPencils;
+    Procedure ApplyHiddenSubsetAlgorithm();
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
@@ -432,7 +433,7 @@ Begin
   End;
 End;
 
-Function TSudoku.IsSolveable(): Boolean;
+Function TSudoku.IsSolveable: Boolean;
 Var
   sm: Boolean;
   c, x, y, x1, y1, z: integer;
@@ -749,6 +750,109 @@ Begin
       If fField[i, j].value <> 0 Then
         Submark(i, j, fField[i, j].value);
     End;
+End;
+
+Procedure TSudoku.ApplyHiddenSubsetAlgorithm();
+Var
+  pc, x, y, x1, y1, z: integer;
+  zah, penc: T3pencil;
+Begin
+  // Wir schauen alle Rehein , alle spalten und alle 9er Blocks an
+  // Zuerst die 9er block's
+  For x := 0 To fDim - 1 Do
+    For y := 0 To fDim - 1 Do Begin
+      // Durchlaufen aller Pencil count werte von 1 bis 8 lohnt es sich
+      For pc := 1 To fsqrDim - 1 Do Begin
+        // Rücksetzen der bisherigen Variable
+        For z := 0 To fsqrDim - 1 Do Begin
+          penc[z] := false;
+          zah[z] := false;
+        End;
+        // Betrachten des 9 er Blocks und raussuchen aller Penzil's kleiner gleich pc
+        For x1 := 0 To fDim - 1 Do
+          For y1 := 0 To fDim - 1 Do
+            If (GetSetPencilscount(fField[x * fDim + x1, y * fDim + y1].pencil) <= pc) And (fField[x * fDim + x1, y * fDim + y1].Value = 0) Then Begin
+              // Merken von welchem Feld nachher nicht gelöscht werden darf
+              zah[x1 + y1 * fDim] := true;
+              For z := 0 To fsqrDim - 1 Do
+                If fField[x * fDim + x1, y * fDim + y1].pencil[z] Then
+                  penc[z] := true;
+            End;
+        // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
+        If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
+          // dann können wir diese n Zahlen aus allen anderen Feldern löschen
+          For x1 := 0 To fDim - 1 Do
+            For y1 := 0 To fDim - 1 Do
+              // wenn unser feld nicht zu denen gehört welche die Pencil's erstellt haben
+              If Not (zah[x1 + y1 * fDim]) Then Begin
+                For z := 0 To fsqrDim - 1 Do
+                  // Ist der pencil wert drin dann mus er nun gelöscht werden
+                  If penc[z] Then
+                    fField[x * fDim + x1, y * fDim + y1].pencil[z] := false;
+              End;
+        End;
+      End;
+    End;
+  // Durchscheuen aller Spalten
+  For x := 0 To fsqrDim - 1 Do Begin
+    // Durchlaufen aller Pencil count werte von 1 bis 8 lohnt es sich
+    For pc := 1 To fsqrDim - 1 Do Begin
+      // Rücksetzen der bisherigen Variable
+      For z := 0 To fsqrDim - 1 Do Begin
+        penc[z] := false;
+        zah[z] := false;
+      End;
+      For y := 0 To fsqrDim - 1 Do
+        If (GetSetPencilscount(fField[x, y].pencil) <= pc) And (fField[x, y].Value = 0) Then Begin
+          // Merken von welchem Feld nachher nicht gelöscht werden darf
+          zah[y] := true;
+          For z := 0 To fsqrDim - 1 Do
+            If fField[x, y].pencil[z] Then
+              penc[z] := true;
+        End;
+      // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
+      If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
+        For y1 := 0 To fsqrDim - 1 Do
+          // wenn unser feld nicht zu denen gehört welche die Pencil's erstellt haben
+          If Not (zah[y1]) Then Begin
+            For z := 0 To fsqrDim - 1 Do
+              // Ist der pencil wert drin dann mus er nun gelöscht werden
+              If penc[z] Then
+                fField[x, y1].pencil[z] := false;
+          End;
+      End;
+    End;
+  End;
+  // Durchsuchen aller Reihen
+  For y := 0 To fsqrDim - 1 Do Begin
+    // Durchlaufen aller Pencil count werte von 1 bis 8 lohnt es sich
+    For pc := 1 To fsqrDim - 1 Do Begin
+      // Rücksetzen der bisherigen Variable
+      For z := 0 To fsqrDim - 1 Do Begin
+        penc[z] := false;
+        zah[z] := false;
+      End;
+      For x := 0 To fsqrDim - 1 Do
+        If (GetSetPencilscount(fField[x, y].pencil) <= pc) And (fField[x, y].Value = 0) Then Begin
+          // Merken von welchem Feld nachher nicht gelöscht werden darf
+          zah[x] := true;
+          For z := 0 To fsqrDim - 1 Do
+            If fField[x, y].pencil[z] Then
+              penc[z] := true;
+        End;
+      // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
+      If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
+        For y1 := 0 To fsqrDim - 1 Do
+          // wenn unser feld nicht zu denen gehört welche die Pencil's erstellt haben
+          If Not (zah[y1]) Then Begin
+            For z := 0 To fsqrDim - 1 Do
+              // Ist der pencil wert drin dann mus er nun gelöscht werden
+              If penc[z] Then
+                fField[y1, y].pencil[z] := false;
+          End;
+      End;
+    End;
+  End;
 End;
 
 Procedure TSudoku.LoadFrom(Const f: T3Field);

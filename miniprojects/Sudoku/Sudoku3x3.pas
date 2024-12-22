@@ -21,7 +21,6 @@ Uses
 
 Procedure GetKomplettSudoku(Var Data: T3Field);
 Procedure Solvebyxywing(Var Data: T3field);
-Procedure Hiddensubset(Var data: T3field);
 
 Implementation
 
@@ -60,110 +59,6 @@ Begin
       For z := 0 To 8 Do
         Data[x, y].Pencil[z] := true;
     End;
-End;
-
-Procedure Hiddensubset(Var data: T3field);
-Var
-  pc, x, y, x1, y1, z: integer;
-  zah, penc: T3pencil;
-Begin
-  // Wir schauen alle Rehein , alle spalten und alle 9er Blocks an
-  // Zuerst die 9er block's
-  For x := 0 To 2 Do
-    For y := 0 To 2 Do Begin
-      // Durchlaufen aller Pencil count werte von 1 bis 8 lohnt es sich
-      For pc := 1 To 8 Do Begin
-        // Rücksetzen der bisherigen Variable
-        For z := 0 To 8 Do Begin
-          penc[z] := false;
-          zah[z] := false;
-        End;
-        // Betrachten des 9 er Blocks und raussuchen aller Penzil's kleiner gleich pc
-        For x1 := 0 To 2 Do
-          For y1 := 0 To 2 Do
-            If (GetSetPencilscount(data[x * 3 + x1, y * 3 + y1].pencil) <= pc) And (data[x * 3 + x1, y * 3 + y1].Value = 0) Then Begin
-              // Merken von welchem Feld nachher nicht gelöscht werden darf
-              zah[x1 + y1 * 3] := true;
-              For z := 0 To 8 Do
-                If data[x * 3 + x1, y * 3 + y1].pencil[z] Then
-                  penc[z] := true;
-            End;
-        // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
-        If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
-          // dann können wir diese n Zahlen aus allen anderen Feldern löschen
-          For x1 := 0 To 2 Do
-            For y1 := 0 To 2 Do
-              // wenn unser feld nicht zu denen gehört welche die Pencil's erstellt haben
-              If Not (zah[x1 + y1 * 3]) Then Begin
-                For z := 0 To 8 Do
-                  // Ist der pencil wert drin dann mus er nun gelöscht werden
-                  If penc[z] Then
-                    Data[x * 3 + x1, y * 3 + y1].pencil[z] := false;
-              End;
-
-        End;
-      End;
-    End;
-  // Durchscheuen aller Spalten
-  For x := 0 To 8 Do Begin
-    // Durchlaufen aller Pencil count werte von 1 bis 8 lohnt es sich
-    For pc := 1 To 8 Do Begin
-      // Rücksetzen der bisherigen Variable
-      For z := 0 To 8 Do Begin
-        penc[z] := false;
-        zah[z] := false;
-      End;
-      For y := 0 To 8 Do
-        If (GetSetPencilscount(data[x, y].pencil) <= pc) And (data[x, y].Value = 0) Then Begin
-          // Merken von welchem Feld nachher nicht gelöscht werden darf
-          zah[y] := true;
-          For z := 0 To 8 Do
-            If data[x, y].pencil[z] Then
-              penc[z] := true;
-        End;
-      // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
-      If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
-        For y1 := 0 To 8 Do
-          // wenn unser feld nicht zu denen gehört welche die Pencil's erstellt haben
-          If Not (zah[y1]) Then Begin
-            For z := 0 To 8 Do
-              // Ist der pencil wert drin dann mus er nun gelöscht werden
-              If penc[z] Then
-                Data[x, y1].pencil[z] := false;
-          End;
-      End;
-    End;
-  End;
-  // Durchsuchen aller Reihen
-  For y := 0 To 8 Do Begin
-    // Durchlaufen aller Pencil count werte von 1 bis 8 lohnt es sich
-    For pc := 1 To 8 Do Begin
-      // Rücksetzen der bisherigen Variable
-      For z := 0 To 8 Do Begin
-        penc[z] := false;
-        zah[z] := false;
-      End;
-      For x := 0 To 8 Do
-        If (GetSetPencilscount(data[x, y].pencil) <= pc) And (data[x, y].Value = 0) Then Begin
-          // Merken von welchem Feld nachher nicht gelöscht werden darf
-          zah[x] := true;
-          For z := 0 To 8 Do
-            If data[x, y].pencil[z] Then
-              penc[z] := true;
-        End;
-      // haben wir n Felder Gefunden und auf diese sind n Variablen Verteilt dann sieht man das nun
-      If GetSetPencilscount(zah) = GetSetPencilscount(penc) Then Begin
-        For y1 := 0 To 8 Do
-          // wenn unser feld nicht zu denen gehört welche die Pencil's erstellt haben
-          If Not (zah[y1]) Then Begin
-            For z := 0 To 8 Do
-              // Ist der pencil wert drin dann mus er nun gelöscht werden
-              If penc[z] Then
-                Data[y1, y].pencil[z] := false;
-          End;
-      End;
-    End;
-  End;
 End;
 
 // Braucht ein Field dessen pencil MArker bereits richtig Gesetzt sind, dann führt es die XY-Wing Methode durch und gibt das Ergebnins zurück.
@@ -445,4 +340,5 @@ Begin
 End;
 
 End.
+
 
