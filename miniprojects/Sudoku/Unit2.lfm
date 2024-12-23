@@ -1,221 +1,207 @@
 object Form2: TForm2
-  Left = 238
+  Left = 323
   Height = 284
-  Top = 124
-  Width = 394
+  Top = 106
+  Width = 420
   ActiveControl = Button1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Form2'
   ClientHeight = 284
-  ClientWidth = 394
+  ClientWidth = 420
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
-  OnPaint = FormPaint
   OnShow = FormShow
-  object Image1: TImage
-    Left = 192
-    Height = 193
-    Top = 24
-    Width = 193
-  end
   object Label1: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 32
-    Width = 91
+    Width = 104
     Caption = 'Field background 1'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 48
-    Width = 91
+    Width = 104
     Caption = 'Field background 2'
     ParentColor = False
   end
   object Label3: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 160
-    Width = 58
+    Width = 68
     Caption = 'Maybe color'
     ParentColor = False
   end
   object Label4: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 96
-    Width = 71
+    Width = 82
     Caption = 'Marked color 1'
     ParentColor = False
   end
   object Label5: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 112
-    Width = 71
+    Width = 82
     Caption = 'Marked color 2'
     ParentColor = False
   end
   object Label6: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 80
-    Width = 56
+    Width = 69
     Caption = 'Cursor color'
     ParentColor = False
   end
   object Label7: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 144
-    Width = 51
+    Width = 60
     Caption = 'Fixed color'
     ParentColor = False
   end
   object Label8: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 64
-    Width = 45
+    Width = 55
     Caption = 'Grid color'
     ParentColor = False
   end
   object Label9: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 128
-    Width = 47
+    Width = 55
     Caption = 'Font color'
     ParentColor = False
   end
   object Label10: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 192
-    Width = 55
+    Width = 63
     Caption = 'Pencil color'
     ParentColor = False
   end
   object Label11: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 208
-    Width = 93
+    Width = 109
     Caption = 'Pencil color marked'
     ParentColor = False
   end
   object Label12: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 176
-    Width = 61
+    Width = 72
     Caption = 'Lighten color'
     ParentColor = False
   end
-  object Image2: TImage
-    Left = 152
+  object Shape2: TShape
+    Left = 176
     Height = 13
     Top = 32
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image3: TImage
-    Left = 152
+  object Shape3: TShape
+    Left = 176
     Height = 13
     Top = 48
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image4: TImage
-    Left = 152
+  object Shape4: TShape
+    Left = 176
     Height = 13
     Top = 160
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image5: TImage
-    Left = 152
+  object Shape5: TShape
+    Left = 176
     Height = 13
     Top = 96
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image6: TImage
-    Left = 152
+  object Shape6: TShape
+    Left = 176
     Height = 13
     Top = 112
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image7: TImage
-    Left = 152
+  object Shape7: TShape
+    Left = 176
     Height = 13
     Top = 80
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image8: TImage
-    Left = 152
+  object Shape8: TShape
+    Left = 176
     Height = 13
     Top = 144
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image9: TImage
-    Left = 152
+  object Shape9: TShape
+    Left = 176
     Height = 13
     Top = 64
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image10: TImage
-    Left = 152
+  object Shape10: TShape
+    Left = 176
     Height = 13
     Top = 128
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image11: TImage
-    Left = 152
+  object Shape11: TShape
+    Left = 176
     Height = 13
     Top = 192
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image12: TImage
-    Left = 152
+  object Shape12: TShape
+    Left = 176
     Height = 13
     Top = 208
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
-  object Image13: TImage
-    Left = 152
+  object Shape13: TShape
+    Left = 176
     Height = 13
     Top = 176
     Width = 30
-    OnClick = Image2Click
+    OnClick = Shape2Click
   end
   object Label13: TLabel
     Left = 16
-    Height = 13
+    Height = 14
     Top = 16
-    Width = 126
+    Width = 149
     Caption = 'Formular background color'
     ParentColor = False
-  end
-  object Image14: TImage
-    Left = 152
-    Height = 13
-    Top = 16
-    Width = 30
-    OnClick = Image2Click
   end
   object Button1: TButton
     Left = 8
@@ -223,26 +209,40 @@ object Form2: TForm2
     Top = 232
     Width = 121
     Caption = 'OK'
+    ModalResult = 1
     TabOrder = 0
-    OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 264
+    Left = 288
     Height = 41
     Top = 232
     Width = 121
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 2
-    OnClick = Button2Click
   end
   object Button3: TButton
-    Left = 136
+    Left = 144
     Height = 41
     Top = 232
-    Width = 121
+    Width = 129
     Caption = 'Standard'
     TabOrder = 1
     OnClick = Button3Click
+  end
+  object PaintBox1: TPaintBox
+    Left = 216
+    Height = 193
+    Top = 24
+    Width = 193
+    OnPaint = PaintBox1Paint
+  end
+  object Shape14: TShape
+    Left = 176
+    Height = 13
+    Top = 16
+    Width = 30
+    OnClick = Shape2Click
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
@@ -268,7 +268,7 @@ object Form2: TForm2
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    Left = 208
+    Left = 232
     Top = 40
   end
 end

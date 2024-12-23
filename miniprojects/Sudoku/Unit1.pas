@@ -3,7 +3,7 @@
 (*                                                                            *)
 (* Version     : see usudoku.pas                                              *)
 (*                                                                            *)
-(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(* Author      : Uwe SchÃ¤chterle (Corpsman)                                   *)
 (*                                                                            *)
 (* Support     : www.Corpsman.de                                              *)
 (*                                                                            *)
@@ -175,7 +175,7 @@ Type
   public
     { Public-Deklarationen }
     mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
-    Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden
+    Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden -> und dann Raus fliegen !
 
     Procedure Solve(Step, invisible: boolean; Var Data: T3field);
   End;
@@ -185,13 +185,8 @@ Var
   bm: Tbitmap; // gegen das Flimmern
   Field: T3field; // Das Spielfeld
 
-
 Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
-// die nachfolgenden Proceduren sind nur damit Ki nicht nach unten Kopiert werden mus hier oben
 Procedure Resetopt;
-//Procedure Marknumbers(Value: integer; Var Data: T3field);
-//Procedure GetrealPencilnumbers(Var data: T3field);
-Procedure getLinePencil(Var Data: T3Field);
 
 Implementation
 
@@ -216,7 +211,53 @@ Uses
 
 {$R *.lfm}
 
-// Ist Step = True dann wird nur ein Step gemacht bei step = False, wird das Rätsel Komplett gelöst.
+// Ermittelt die Line Pencils
+
+Procedure getLinePencil(Var Data: T3Field);
+Var
+  x, y: integer;
+  zahlen: Array Of Integer;
+
+  // FÃ¼gt dem Array Zahlen den Wert Value ein wenn dieser noch nicht vorhanden ist.
+  Procedure add(Value: integer);
+  Var
+    b: Boolean;
+    w: integer;
+  Begin
+    b := true;
+    For w := 0 To high(Zahlen) Do
+      If Value = Zahlen[w] Then Begin
+        b := false;
+        break;
+      End;
+    If b Then Begin
+      setlength(zahlen, high(zahlen) + 2);
+      Zahlen[high(zahlen)] := value;
+    End;
+  End;
+
+Begin
+  setlength(zahlen, 0);
+  // Zuerst die Senkrechten Linien
+  For x := 0 To 8 Do Begin
+    setlength(zahlen, 0);
+    For y := 0 To 8 Do
+      If Data[x, y].value <> 0 Then add(Data[x, y].value);
+    For y := 0 To high(Zahlen) Do
+      Linepencil[x][Zahlen[y] - 1] := false;
+  End;
+  // Dann die Waagrechten Linien
+  For y := 0 To 8 Do Begin
+    setlength(zahlen, 0);
+    For x := 0 To 8 Do
+      If Data[x, y].value <> 0 Then add(Data[x, y].value);
+    For x := 0 To high(Zahlen) Do
+      Linepencil[y + 9][Zahlen[x] - 1] := false;
+  End;
+  setlength(zahlen, 0);
+End;
+
+// Ist Step = True dann wird nur ein Step gemacht bei step = False, wird das RÃ¤tsel Komplett gelÃ¶st.
 
 Procedure TForm1.Solve(Step, invisible: boolean; Var Data: T3field);
 
@@ -228,7 +269,7 @@ Procedure TForm1.Solve(Step, invisible: boolean; Var Data: T3field);
     End;
   End;
 
-  // Fügt eine zahl in ein Feld ein und löscht alle Pencil werte
+  // FÃ¼gt eine zahl in ein Feld ein und lÃ¶scht alle Pencil werte
   Procedure WriteNumber(x, y, number: integer);
   Var
     z: integer;
@@ -248,7 +289,7 @@ Var
   fs: TSudoku;
   aFormclose: boolean;
 Begin
-  // Erst mal das Feld von altlasten säubern
+  // Erst mal das Feld von altlasten sÃ¤ubern
   For x := 0 To 8 Do
     For y := 0 To 8 Do
       If Data[x, y].value <> 0 Then
@@ -260,11 +301,11 @@ Begin
   fs := TSudoku.Create(3);
   b := true; // start der Endlosschleife
   While b Do Begin
-    weiter := false; // Wird von jedem Allgorithmus der was verändert auf True gesetzt damit es weiter gehen kann, und gleichzeitig immer nur einer am Werk ist
+    weiter := false; // Wird von jedem Allgorithmus der was verÃ¤ndert auf True gesetzt damit es weiter gehen kann, und gleichzeitig immer nur einer am Werk ist
     // Ermitteln der weiteren Nummern via Markierend er Nummern
     If form1.byhiddensingle1.checked { And Not weiter } Then Begin
       For z := 1 To 9 Do Begin // Probieren von allen Zahlen
-        // zuerst löschen aller markierungen
+        // zuerst lÃ¶schen aller markierungen
         For x := 0 To 8 Do
           For y := 0 To 8 Do
             Data[x, y].marked := false;
@@ -278,7 +319,7 @@ Begin
             w := 0;
             For x1 := 0 To 2 Do
               For y1 := 0 To 2 Do
-                // Wenn wir ein Leeres Feld gefunden haben, zählen wir in w das wievielte es ist, und speichern dessen koordinaten
+                // Wenn wir ein Leeres Feld gefunden haben, zÃ¤hlen wir in w das wievielte es ist, und speichern dessen koordinaten
                 If Not (Data[x * 3 + x1, y * 3 + y1].marked) Then Begin
                   inc(w);
                   wp.x := x * 3 + x1;
@@ -289,14 +330,14 @@ Begin
               weiter := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
               WriteNumber(wp.x, wp.y, z);
               setfocus(wp.x, wp.y); // mitziehen des Cursors damit der User weis was wir gemacht haben
-              // Neustart des Lösen's
+              // Neustart des LÃ¶sen's
               Goto schlus;
             End;
           End;
       End;
     End;
     If form1.bynakedsingle1.checked Or form1.bynakedsubset1.checked Or form1.byhiddensubset1.checked Or Form1.byXYWing1.checked Or false Then Begin
-      // Ab jetzt geht's an's eingemachte, zur Vorbereitung braucehn wir aber Korreckte Pencil's
+      // Ab jetzt geht's an's eingemachte, zur Vorbereitung brauchen wir aber Korreckte Pencil's
       For x := 0 To 8 Do
         For y := 0 To 8 Do Begin
           data[x, y].marked := false; // Demarkieren aller Felder
@@ -306,7 +347,7 @@ Begin
       For x := 0 To 17 Do
         For y := 0 To 8 Do
           Linepencil[x][y] := true; // Demarkieren der Linepencil's
-      ssolve := true; // Da unser System recht Kompliziert ist müssen wir es auch oft woederholen
+      ssolve := true; // Da unser System recht Kompliziert ist mÃ¼ssen wir es auch oft woederholen
       While ssolve Do Begin
         getlinepencil(data); // Ermitteln der Korreckten Line pencil's
         fs.LoadFrom(data);
@@ -314,9 +355,9 @@ Begin
         ssolve := false; // Aber nicht zu oft wiederhohlen
         If form1.byhiddensubset1.checked Then fs.ApplyHiddenSubsetAlgorithm();
         fs.StoreTo(data);
-        // Nachdem wir nun gute Vorraussetzungen Geschaffen haben, können wir mit unseren Tricks loslegen
+        // Nachdem wir nun gute Vorraussetzungen Geschaffen haben, kÃ¶nnen wir mit unseren Tricks loslegen
         If form1.bynakedsubset1.checked Then Begin
-          // Wir suchen alle Pencil's raus die Gleich sind, finden wir welche dann können diese dann bei den anderen gelöscht werden
+          // Wir suchen alle Pencil's raus die Gleich sind, finden wir welche dann kÃ¶nnen diese dann bei den anderen gelÃ¶scht werden
           nochmal := true;
           While nochmal Do Begin
             nochmal := false; // Abbruch
@@ -327,7 +368,7 @@ Begin
                 // Keines der Felder ist bis jetzt betrachtet worden
                 For y := 1 To 9 Do
                   zah[y] := 0;
-                // Prüfen des Actuellen Feldes mit allen anderen
+                // PrÃ¼fen des Actuellen Feldes mit allen anderen
                 For y := 0 To 8 Do
                   If X <> y Then // nicht mit sich selbst vergleichen
                     If PencilEqual(data[z, x].Pencil, data[z, y].pencil) And (data[z, x].value = 0) And (data[z, y].value = 0) Then Begin // Sind die Pencil's gleich
@@ -339,21 +380,21 @@ Begin
                 w := 0;
                 For y3 := 1 To 9 Do
                   If Zah[y3] = 1 Then inc(w);
-                // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
+                // Wir haben tatsÃ¤chlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir kÃ¶nnen deren Werte nun lÃ¶schen
                 If (W = Wp.x) And (w > 1) Then Begin
-                  For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
+                  For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den zu lÃ¶schenden Pencils
                     If Zah[y3] = 1 Then Begin
                       w := y3 - 1;
                       break;
                     End;
-                  // Löschen der Pencil werte der anderen Felder
+                  // LÃ¶schen der Pencil werte der anderen Felder
                   For y3 := 0 To 8 Do
                     If Zah[y3 + 1] <> 1 Then
                       For y := 0 To 8 Do
                         If data[z, w].pencil[y] And data[z, y3].pencil[y] Then Begin
-                          data[z, y3].pencil[y] := false; // Es gab tatsächlich was zu löschen
+                          data[z, y3].pencil[y] := false; // Es gab tatsÃ¤chlich was zu lÃ¶schen
                           nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
-                          ssolve := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
+                          ssolve := true; // Wir haben die Pencil's verÃ¤ndert mal schauen ob nachher ein anderes System das gebrauchen kann
                         End;
                 End;
               End;
@@ -367,7 +408,7 @@ Begin
                     // Keines der Felder ist bis jetzt betrachtet worden
                     For z := 1 To 9 Do
                       zah[z] := 0;
-                    // Prüfen des Actuellen Feldes mit allen anderen
+                    // PrÃ¼fen des Actuellen Feldes mit allen anderen
                     For x2 := 0 To 2 Do
                       For y2 := 0 To 2 Do
                         //nicht mit sich selbst vergleichen
@@ -375,15 +416,15 @@ Begin
                           If PencilEqual(data[x1 * 3 + x, y1 * 3 + y].pencil, data[x1 * 3 + x2, y1 * 3 + y2].pencil) And (data[x1 * 3 + x, y1 * 3 + y].value = 0) And (data[x1 * 3 + x2, y1 * 3 + y2].value = 0) Then Begin
                             //                            inc(w);
                             wp.x := GetSetPencilscount(data[x1 * 3 + x, y1 * 3 + y].pencil);
-                            zah[(x2 + y2 * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelöscht werden dürfen
-                            zah[(x + y * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelöscht werden dürfen
+                            zah[(x2 + y2 * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelÃ¶scht werden dÃ¼rfen
+                            zah[(x + y * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelÃ¶scht werden dÃ¼rfen
                           End;
                     w := 0;
                     For y2 := 1 To 9 Do
                       If Zah[y2] = 1 Then inc(w);
-                    // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
+                    // Wir haben tatsÃ¤chlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir kÃ¶nnen deren Werte nun lÃ¶schen
                     If (W = Wp.x) And (w > 1) Then Begin
-                      For x2 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
+                      For x2 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU lÃ¶schenden Pencils
                         If Zah[x2] = 1 Then Begin
                           w := x2 - 1;
                           wp.x := w Mod 3;
@@ -393,12 +434,12 @@ Begin
                       For x2 := 0 To 2 Do
                         For y3 := 0 To 2 Do
                           If ZAh[(x2 + y3 * 3) + 1] <> 1 Then
-                            // Löschen der Pencil einträge
+                            // LÃ¶schen der Pencil eintrÃ¤ge
                             For y2 := 0 To 8 Do Begin
                               If Data[x1 * 3 + wp.x, y1 * 3 + wp.y].pencil[y2] And Data[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] Then Begin
-                                Data[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] := false; // Es gab tatsächlich was zu löschen
+                                Data[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] := false; // Es gab tatsÃ¤chlich was zu lÃ¶schen
                                 nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
-                                ssolve := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
+                                ssolve := true; // Wir haben die Pencil's verÃ¤ndert mal schauen ob nachher ein anderes System das gebrauchen kann
                               End;
                             End;
                     End;
@@ -414,7 +455,7 @@ Begin
                 // Keines der Felder ist bis jetzt betrachtet worden
                 For y := 1 To 9 Do
                   zah[y] := 0;
-                // Prüfen des Actuellen Feldes mit allen anderen
+                // PrÃ¼fen des Actuellen Feldes mit allen anderen
                 For y := 0 To 8 Do
                   If X <> y Then // nicht mit sich selbst vergleichen
                     If PencilEqual(data[x, z].Pencil, data[y, z].pencil) And (Data[x, z].value = 0) And (Data[y, z].value = 0) Then Begin // Sind die Pencil's gleich
@@ -426,28 +467,28 @@ Begin
                 w := 0;
                 For y3 := 1 To 9 Do
                   If Zah[y3] = 1 Then inc(w);
-                // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
+                // Wir haben tatsÃ¤chlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir kÃ¶nnen deren Werte nun lÃ¶schen
                 If (W = Wp.x) And (w > 1) Then Begin
-                  For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
+                  For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU lÃ¶schenden Pencils
                     If Zah[y3] = 1 Then Begin
                       w := y3 - 1;
                       break;
                     End;
-                  // Löschen der Pencil werte der anderen Felder
+                  // LÃ¶schen der Pencil werte der anderen Felder
                   For y3 := 0 To 8 Do
                     If Zah[y3 + 1] <> 1 Then
                       For y := 0 To 8 Do
                         If Data[w, z].pencil[y] And Data[y3, z].pencil[y] Then Begin
-                          Data[y3, z].pencil[y] := false; // Es gab tatsächlich was zu löschen
+                          Data[y3, z].pencil[y] := false; // Es gab tatsÃ¤chlich was zu lÃ¶schen
                           nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
-                          ssolve := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
+                          ssolve := true; // Wir haben die Pencil's verÃ¤ndert mal schauen ob nachher ein anderes System das gebrauchen kann
                         End;
                 End;
               End;
             End;
           End;
         End;
-        // das Lösen via Hidden Subset
+        // das LÃ¶sen via Hidden Subset
         If form1.byhiddensubset1.checked Then Begin
 
         End;
@@ -465,10 +506,10 @@ Begin
 
         }
         // Alle Tricks haben eingewirkt nun  schauen wir ob wir nicht doch ne Zahl gefunden haben die gesetzt werden kann ;)
-        // Haben wir eine allein stehende Zahl gefunden dann können wir sie in allen entsprechenden anderen Feldern austragen
+        // Haben wir eine allein stehende Zahl gefunden dann kÃ¶nnen wir sie in allen entsprechenden anderen Feldern austragen
         If Form1.bynakedsingle1.checked Then Begin
           wieder := True;
-          While wieder Do Begin // Wir löschen so lange zahlen aus den Pencils's bis es nicht mehr geht
+          While wieder Do Begin // Wir lÃ¶schen so lange zahlen aus den Pencils's bis es nicht mehr geht
             wieder := false;
             For x := 0 To 8 Do
               For y := 0 To 8 Do Begin
@@ -480,7 +521,7 @@ Begin
                       inc(w);
                       wp.x := z;
                     End;
-                  // Wir haben eine einzelne Zahl gefunden nun gilt es sie aus allen anderen ZAhlen aus zu tragen
+                  // Wir haben eine einzelne Zahl gefunden nun gilt es sie aus allen anderen Zahlen aus zu tragen
                   If w = 1 Then Begin
                     weiter := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
                     // Waagrecht Senkrecht
@@ -524,7 +565,7 @@ Begin
                 If Wp.x = 1 Then Begin
                   weiter := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
                   WriteNumber(x, y, w + 1);
-                  // Löschen dieser Zahl aus den Pencil daten der anderen
+                  // LÃ¶schen dieser Zahl aus den Pencil daten der anderen
                   // Waagrecht Senkrecht
                   wp.x := w;
                   For z := 0 To 8 Do Begin
@@ -549,7 +590,7 @@ Begin
     End;
     // Hilft alles nichts so mus der Zufall Helfen
     If form1.bytryanderror1.checked Then Begin
-      // Ist ausgelagert , da es eine ganz eigene Art von lösen ist
+      // Ist ausgelagert , da es eine ganz eigene Art von lÃ¶sen ist
       fs.LoadFrom(data);
       aFormclose := false;
       zwangsabbruch := false;
@@ -568,15 +609,13 @@ Begin
     End;
     Schlus:
     fs.LoadFrom(Data);
-    If Step Or (Not weiter) Or fs.IsFullyFilled  Then b := false;
+    If Step Or (Not weiter) Or fs.IsFullyFilled Then b := false;
   End;
   If Not invisible Then Begin
     // Demarkieren aller Felder
     For x := 0 To 8 Do
       For y := 0 To 8 Do Begin
         Data[x, y].marked := false;
-        //        For z := 0 To 8 Do
-        //          Data[x, y].Pencil[z] := True;
       End;
     // Schauen ob irgendwelche Zahlen schon komplett sind
     For x1 := 1 To 9 Do
@@ -686,7 +725,7 @@ Begin
     For x := 1 To 9 Do
       substitution[x] := inttostr(x);
     form1.bytryanderror1.checked := false;
-    // Vorsicht eine änderung hier mus auch in Form2 geändert werden !!!
+    // Vorsicht eine Ã„nderung hier mus auch in Form2 geÃ¤ndert werden !!!
     Bretthintergrundfarbe1 := clbtnface;
     Bretthintergrundfarbe2 := clgray;
     Maybeedcolor := clyellow;
@@ -748,7 +787,7 @@ Begin
   closefile(f);
 End;
 
-// Fügt wieder einen Penzil wert ein
+// FÃ¼gt wieder einen Penzil wert ein
 
 Procedure UnPencil(x, y, value: integer; Var Data: T3field);
 Var
@@ -756,7 +795,7 @@ Var
 Begin
   If Not unpencilallow Then exit;
   If Value = 0 Then exit;
-  // Unpenzil für die Felder !!
+  // Unpenzil fÃ¼r die Felder !!
   For z := 0 To 8 Do Begin
     Data[x, z].Pencil[value - 1] := true;
     Data[z, y].Pencil[value - 1] := true;
@@ -767,61 +806,11 @@ Begin
   For c := 0 To 2 Do
     For d := 0 To 2 Do
       Data[a + c, b + d].Pencil[value - 1] := true;
-  // Unpencil für die Lines
+  // Unpencil fÃ¼r die Lines
   Linepencil[x][Value - 1] := true;
   Linepencil[9 + y][Value - 1] := true;
 End;
 
-// Ermittelt die Line Pencils
-
-Procedure getLinePencil(Var Data: T3Field);
-Var
-  x, y: integer;
-  zahlen: Array Of Integer;
-
-  // Fügt dem Array Zahlen den Wert Value ein wenn dieser noch nicht vorhanden ist.
-  Procedure add(Value: integer);
-  Var
-    b: Boolean;
-    w: integer;
-  Begin
-    b := true;
-    For w := 0 To high(Zahlen) Do
-      If Value = Zahlen[w] Then Begin
-        b := false;
-        break;
-      End;
-    If b Then Begin
-      setlength(zahlen, high(zahlen) + 2);
-      Zahlen[high(zahlen)] := value;
-    End;
-  End;
-
-Begin
-  setlength(zahlen, 0);
-  // erst mal alle Zahlen reinbauen
-{  For x := 0 To 17 Do
-    For y := 0 To 8 Do
-      Linepencil[x][y] := true;  }
-  // Zuerst die Senkrechten Linien
-  For x := 0 To 8 Do Begin
-    setlength(zahlen, 0);
-    For y := 0 To 8 Do
-      If Data[x, y].value <> 0 Then add(Data[x, y].value);
-    For y := 0 To high(Zahlen) Do
-      Linepencil[x][Zahlen[y] - 1] := false;
-  End;
-  // Dann die Waagrechten Linien
-  For y := 0 To 8 Do Begin
-    setlength(zahlen, 0);
-    For x := 0 To 8 Do
-      If Data[x, y].value <> 0 Then add(Data[x, y].value);
-    For x := 0 To high(Zahlen) Do
-      Linepencil[y + 9][Zahlen[x] - 1] := false;
-  End;
-  // Freigeben der Variablen
-  setlength(zahlen, 0);
-End;
 
 // Zeichnet das Komplette Spielfeld
 
@@ -833,7 +822,7 @@ Begin
   If bm = Nil Then exit;
   ffield.LoadFrom(Field);
   If Form1.checkbox1.checked And (mx > -1) Then ffield.Mark(field[mx, my].value); // TODO: das muss eigentlich ein Zugriff auf ffield sein !
-  // Markieren der Felder die Permanent Markiert werden müssen
+  // Markieren der Felder die Permanent Markiert werden mÃ¼ssen
   For i := 1 To 9 Do Begin
     If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then Begin
       ffield.Mark(i);
@@ -848,7 +837,7 @@ Begin
   info.Show_Pencils_Numbers := Checkbox4.checked;
   info.Show_Line_Pencil_numbers := Checkbox5.checked;
   info.Edit_Line_Pencil_Numbers := Checkbox6.checked;
-  // Löschen des Bildschirms
+  // LÃ¶schen des Bildschirms
   bm.canvas.brush.style := bssolid;
   bm.canvas.brush.color := FormBackground;
   bm.canvas.rectangle(-1, -1, bm.width + 1, bm.height + 1);
@@ -863,7 +852,7 @@ Var
 Begin
   With form1 Do Begin
     Button2.onclick(Nil);
-    // Rücksetzen der ganzen Graphischen Zusatzsachen
+    // RÃ¼cksetzen der ganzen Graphischen Zusatzsachen
     checkbox1.checked := false;
     checkbox2.checked := false;
     checkbox3.checked := false;
@@ -880,8 +869,8 @@ Begin
   End;
 End;
 
-// Diese Procedur benötigt ein Vollständiges Sudoku in der variable Field
-// Dieses wir dann mit Hilfe von Solve umgewandelt in ein noch zu lösendes Sudoku
+// Diese Procedur benÃ¶tigt ein VollstÃ¤ndiges Sudoku in der variable Field
+// Dieses wir dann mit Hilfe von Solve umgewandelt in ein noch zu lÃ¶sendes Sudoku
 
 Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
 Const
@@ -896,46 +885,46 @@ Var
 Begin
   s := TSudoku.Create(3);
   s.LoadFrom(data);
-  If s.IsFullyFilled() Then Begin // zuerst mus geschaut werden ob das Rätsel überhaupt Komplett ist, sonst haben wir eine Endlosschleife
+  If s.IsFullyFilled() Then Begin // zuerst mus geschaut werden ob das RÃ¤tsel Ã¼berhaupt Komplett ist, sonst haben wir eine Endlosschleife
     form1.bytryanderror1.checked := false; // Ausschalten des Try and error teile's der Ki, da es sonst sinnlos wird
     zwangsabbruch := false;
     weiter := true; // Endlosschleife
-    Versuche := 0; // Zähler für die Fehlversuche
-    // Wegspeichern der Lösung
+    Versuche := 0; // ZÃ¤hler fÃ¼r die Fehlversuche
+    // Wegspeichern der LÃ¶sung
     For x := 0 To 8 Do
       For y := 0 To 8 Do
         f[x, y].value := Data[x, y].value;
-    // Starten mit dem Löschen der Zahlen
+    // Starten mit dem LÃ¶schen der Zahlen
     While weiter Do Begin
       Application.ProcessMessages;
-      // Rücksetzen des Fieldes auf den zu letzt gefunden Stand
+      // RÃ¼cksetzen des Fieldes auf den zu letzt gefunden Stand
       For x := 0 To 8 Do
         For y := 0 To 8 Do
           Data[x, y].value := F[x, y].value;
-      // Suchen des als nächstes zu löschenden Feldes
+      // Suchen des als nÃ¤chstes zu lÃ¶schenden Feldes
       x := random(9);
       y := random(9);
       While F[x, y].value = 0 Do Begin
         x := random(9);
         y := random(9);
       End;
-      // Löschen des Feldes
+      // LÃ¶schen des Feldes
       Data[x, y].value := 0;
 
-      // Den Gespiegelten Punkt berechnen und Löschen
+      // Den Gespiegelten Punkt berechnen und LÃ¶schen
       p := Mirrow(x, y, 9, Direction);
       If (p.x < 0) Or (p.y < 0) Or (p.x > 8) Or (p.y > 8) Then Begin
         Raise exception.Create('Fehler in Mirrow: X=' + inttostr(x) + ' Y=' + Inttostr(y) + ' P.X=' + inttostr(p.x) + ' P.Y=' + inttostr(p.y) + ' Direction=' + inttostr(direction));
       End;
       Data[p.x, p.y].value := 0;
 
-      // Lösen des Rätsels
+      // LÃ¶sen des RÃ¤tsels
       form1.Solve(false, true, data);
-      // Schaun ob es lösbar war
+      // Schaun ob es lÃ¶sbar war
       s.LoadFrom(data);
       If Not s.IsFullyFilled Then
         inc(Versuche) // Wenn nicht dann ist das ein Fehlversuch mehr
-      Else Begin // Wenn es lösbar war wird der Wert auch in der Sicherung gelöscht.
+      Else Begin // Wenn es lÃ¶sbar war wird der Wert auch in der Sicherung gelÃ¶scht.
         f[x, y].value := 0;
         f[p.x, p.y].value := 0;
         Versuche := 0;
@@ -963,7 +952,7 @@ Begin
       End;
     End;
   End;
-  // Prüfen ob alles geklappt hat und das Data immer noch lösbar ist
+  // PrÃ¼fen ob alles geklappt hat und das Data immer noch lÃ¶sbar ist
   For x := 0 To 8 Do Begin
     For y := 0 To 8 Do Begin
       tmp[x, y].value := data[x, y].value;
@@ -998,16 +987,16 @@ Begin
   {
   To Do Liste:
 
-  Evtl bringt es was wenn man die Sudoku's alle 200000 schritte um 90 Grad dreht für 5x5, bzw 4x4
+  Evtl bringt es was wenn man die Sudoku's alle 200000 schritte um 90 Grad dreht fÃ¼r 5x5, bzw 4x4
 
-  Ki fertig Schreiben die die Dinger Löst;
+  Ki fertig Schreiben die die Dinger LÃ¶st;
 
-  Insbesondere Fehlen Noch: (Wenn sie eingebaut sind müssen sie im Objektinspektor auf Visible = True gesetzt werden, ebenso bei Form7)
+  Insbesondere Fehlen Noch: (Wenn sie eingebaut sind mÃ¼ssen sie im Objektinspektor auf Visible = True gesetzt werden, ebenso bei Form7)
 
-  byBlockandColumninteractions1 + Hilfe für diese KI;
-  byblockandblockinteractions1 + Hilfe für diese KI;
-  byXWingSwordfish1 + Hilfe für diese KI;
-  ForcingChains1 + Hilfe für diese KI;
+  byBlockandColumninteractions1 + Hilfe fÃ¼r diese KI;
+  byblockandblockinteractions1 + Hilfe fÃ¼r diese KI;
+  byXWingSwordfish1 + Hilfe fÃ¼r diese KI;
+  ForcingChains1 + Hilfe fÃ¼r diese KI;
   //}
   Constraints.MinHeight := 480;
   Randomize;
@@ -1049,14 +1038,14 @@ Begin
 End;
 
 Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
-// Fügt unter beachtung aller Bedingugnen eine Zahl in das Feld ein
+// FÃ¼gt unter beachtung aller Bedingugnen eine Zahl in das Feld ein
   Procedure AddZahl(Value, X, y: integer);
   Var
     c, d, a, b, z: integer;
     e: Boolean;
     s: TSudoku;
   Begin
-    // Fixed Zahlen können nicht überschrieben werden !!
+    // Fixed Zahlen kÃ¶nnen nicht Ã¼berschrieben werden !!
     If Field[x, y].Fixed And Not checkbox2.checked Then Begin
       showmessage('Field is fixed, you cannot override it!');
       exit;
@@ -1065,24 +1054,24 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
     If checkbox3.checked Then Begin
       If Value = 0 Then exit;
       Field[x, y].Pencil[value - 1] := Not Field[x, y].Pencil[value - 1];
-      // überprüfen ob der Pencil überhaupt sinn macht
+      // Ã¼berprÃ¼fen ob der Pencil Ã¼berhaupt sinn macht
       If Field[x, y].Pencil[value - 1] Then Begin
-        // Prüfen ob die Zahl Waagrecht / Senkrecht rein darf
+        // PrÃ¼fen ob die Zahl Waagrecht / Senkrecht rein darf
         e := true;
         For z := 0 To 8 Do Begin
           If (Field[z, y].value = Value) And Not (z = x) Then e := false;
           If (Field[x, z].value = Value) And Not (z = y) Then e := false;
         End;
-        // Prüfen ob die Zahl in das entsprechende 9er Feld Darf
+        // PrÃ¼fen ob die Zahl in das entsprechende 9er Feld Darf
         a := x - (x Mod 3);
         b := y - (y Mod 3);
         For c := 0 To 2 Do
           For d := 0 To 2 Do
-            // Prüfen der Zahl im 9er Feld auser dem gewählten Feld
+            // PrÃ¼fen der Zahl im 9er Feld auser dem gewÃ¤hlten Feld
             If ((a + c) <> x) Or ((b + d) <> y) Then Begin
               If Field[a + c, b + d].value = Value Then e := false;
             End;
-        If invalidnallow Then e := true; // Wenn auch ungültige Zahlen eingegeben werden können.
+        If invalidnallow Then e := true; // Wenn auch ungÃ¼ltige Zahlen eingegeben werden kÃ¶nnen.
         If Not E Then Begin
           Field[x, y].Pencil[value - 1] := false;
           showmessage('Character for this field impossible.');
@@ -1091,49 +1080,49 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
     End
       // Die eingabe eines normalen wertes
     Else Begin
-      // Löschen eines Wertes
+      // LÃ¶schen eines Wertes
       If Value = 0 Then Begin
         For c := 0 To 8 Do
           For d := 0 To 8 Do
             Field[c, d].marked := false;
-        // nur in speziell des Falles das eine Zahl gelöscht wird darf sie bei den Pencils hinzugefügt werden.
+        // nur in speziell des Falles das eine Zahl gelÃ¶scht wird darf sie bei den Pencils hinzugefÃ¼gt werden.
         UnPencil(x, y, Field[x, Y].value, field);
       End;
-      // Prüfen ob die Zahl Waagrecht / Senkrecht rein darf
+      // PrÃ¼fen ob die Zahl Waagrecht / Senkrecht rein darf
       e := true;
       For z := 0 To 8 Do Begin
         If (Field[z, y].value = Value) And Not (z = x) Then e := false;
         If (Field[x, z].value = Value) And Not (z = y) Then e := false;
       End;
-      // Prüfen ob die Zahl in das entsprechende 9er Feld Darf
+      // PrÃ¼fen ob die Zahl in das entsprechende 9er Feld Darf
       a := x - (x Mod 3);
       b := y - (y Mod 3);
       For c := 0 To 2 Do
         For d := 0 To 2 Do
-          // Prüfen der Zahl im 9er Feld auser dem gewählten Feld
+          // PrÃ¼fen der Zahl im 9er Feld auser dem gewÃ¤hlten Feld
           If ((a + c) <> x) Or ((b + d) <> y) Then Begin
             If Field[a + c, b + d].value = Value Then
               e := false;
           End;
-      // Wenn die Zahl gelöscht wird
+      // Wenn die Zahl gelÃ¶scht wird
       If Value = 0 Then e := true;
-      If invalidnallow Then e := true; // Wenn auch ungültige Zahlen eingegeben werden können.
+      If invalidnallow Then e := true; // Wenn auch ungÃ¼ltige Zahlen eingegeben werden kÃ¶nnen.
       // das Feld Aktualisieren
       If e Then Begin
         // Zuweisen des neuen Feldwertes
         If Field[x, y].value = value Then Begin
           If Not (Not Field[x, y].Fixed And checkbox2.checked) Then Begin
-            // nur in speziell des Falles das eine Zahl gelöscht wird darf sie bei den Pencils hinzugefügt werden.
+            // nur in speziell des Falles das eine Zahl gelÃ¶scht wird darf sie bei den Pencils hinzugefÃ¼gt werden.
             For c := 0 To 8 Do
               For d := 0 To 8 Do
                 Field[c, d].marked := false;
             UnPencil(x, y, Field[x, Y].value, field);
-            Field[x, y].value := 0; // Rücksetzen des Feldwertes
+            Field[x, y].value := 0; // RÃ¼cksetzen des Feldwertes
           End;
         End
         Else Begin
           If Field[x, y].value <> 0 Then Begin
-            // nur in speziell des Falles das eine Zahl gelöscht wird darf sie bei den Pencils hinzugefügt werden.
+            // nur in speziell des Falles das eine Zahl gelÃ¶scht wird darf sie bei den Pencils hinzugefÃ¼gt werden.
             For c := 0 To 8 Do
               For d := 0 To 8 Do
                 Field[c, d].marked := false;
@@ -1194,7 +1183,7 @@ Begin
           For x1 := 0 To 8 Do
             If x2 = Field[x1, lc - 9].value Then a := false;
         End;
-        If invalidnallow Then a := true; // Wenn auch ungültige Zahlen eingegeben werden können.
+        If invalidnallow Then a := true; // Wenn auch ungÃ¼ltige Zahlen eingegeben werden kÃ¶nnen.
         If A Then
           Linepencil[lc][strtoint(key) - 1] := Not Linepencil[lc][strtoint(key) - 1]
         Else
@@ -1214,20 +1203,20 @@ Begin
     If mx > 0 Then dec(mx);
   If (Key = 'd') Or (Key = 'D') Then
     If mx < 8 Then inc(mx);
-  // Einfügen und Löschen von Zahlen
+  // EinfÃ¼gen und LÃ¶schen von Zahlen
   If (Key In ['0'..'9']) And (mx <> -1) Then Begin
     AddZahl(StrToInt(key), mx, my);
     Field[mx, my].Maybeed := false;
   End;
-  // Einfügen der Geschätzten Zahlen
+  // EinfÃ¼gen der GeschÃ¤tzten Zahlen
   If mx <> -1 Then Begin
-    If (Key In ['!', '"', '§', '$', '%', '&', '/', '(', ')']) Then Begin
+    If (Key In ['!', '"', '?' {='Â§'}, '$', '%', '&', '/', '(', ')']) Then Begin
       Field[mx, my].Maybeed := True;
       If Key = '!' Then
         AddZahl(1, mx, my);
       If Key = '"' Then
         AddZahl(2, mx, my);
-      If Key = '§' Then
+      If Key = '?' {='Â§'} Then
         AddZahl(3, mx, my);
       If Key = '$' Then
         AddZahl(4, mx, my);
@@ -1248,7 +1237,7 @@ Begin
   // Hohlen der ganzen Linepencil sachen
   If Checkbox5.checked Then
     getLinePencil(Field);
-  // überprüfen ob vielleicht schon von einer Zahl alle gefunden wurden
+  // Ã¼berprÃ¼fen ob vielleicht schon von einer Zahl alle gefunden wurden
   For x1 := 1 To 9 Do
     zah[x1] := 0;
   For x1 := 0 To 8 Do
@@ -1354,7 +1343,7 @@ Procedure TForm1.PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
 Var
   x1, y1: integer;
 Begin
-  // die Auswahl für die Linepencil's
+  // die Auswahl fÃ¼r die Linepencil's
   If Checkbox6.checked Then Begin
     If (X >= Breite) And (x <= Breite * 10) And (y <= breite) Then Begin
       lc := x Div Breite - 1;
@@ -1364,7 +1353,7 @@ Begin
     End;
   End
   Else Begin
-    // Löschen aller Markierungen
+    // LÃ¶schen aller Markierungen
     mx := -1;
     my := -1;
     For x1 := 0 To 8 Do
@@ -1394,9 +1383,7 @@ End;
 
 Procedure TForm1.Warranty1Click(Sender: TObject);
 Begin
-  Showmessage('This programm is freeware' + LineEnding +
-    'in case of this there is no warranty.' + LineEnding + LineEnding +
-    'The programmer takes no warrenty for damages in soft- or hardware.');
+  Showmessage('See: https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md for detailed informations.');
 End;
 
 Procedure TForm1.Save1Click(Sender: TObject);
@@ -1421,7 +1408,7 @@ Begin
   If opendialog1.execute Then Begin
     SaveDialog1.initialdir := ExtractFilePath(opendialog1.Filename);
     openDialog1.initialdir := ExtractFilePath(opendialog1.Filename);
-    // Zurücksetzen der Graphischen Hilfsmittel
+    // ZurÃ¼cksetzen der Graphischen Hilfsmittel
     ResetOpt;
     f := Tfilestream.create(opendialog1.Filename, fmOpenRead);
     f.Read(Field, sizeof(Field));
@@ -1439,7 +1426,7 @@ Var
   x, y: integer;
 Begin
   Resetopt;
-  // Löschen aller Einträge des Users
+  // LÃ¶schen aller EintrÃ¤ge des Users
   For x := 0 To 8 Do
     For y := 0 To 8 Do Begin
       If Not (Field[x, y].Fixed) Then Field[x, y].value := 0;
@@ -1466,21 +1453,49 @@ Begin
 End;
 
 Procedure TForm1.Colors1Click(Sender: TObject);
+Var
+  x: integer;
 Begin
-  Form2.image2.canvas.brush.color := Bretthintergrundfarbe1;
-  Form2.image3.canvas.brush.color := Bretthintergrundfarbe2;
-  Form2.image4.canvas.brush.color := Maybeedcolor;
-  Form2.image5.canvas.brush.color := MarkedColor1;
-  Form2.image6.canvas.brush.color := MarkedColor2;
-  Form2.image7.canvas.brush.color := CursorMarker;
-  Form2.image8.canvas.brush.color := Fixedcolor;
-  Form2.image9.canvas.brush.color := Gitterfarbe;
-  Form2.image10.canvas.brush.color := FontColor;
-  Form2.image11.canvas.brush.color := Pencilcolor;
-  Form2.image12.canvas.brush.color := PencilcolorMarked;
-  Form2.image13.canvas.brush.color := LightenColor;
-  Form2.image14.canvas.brush.color := FormBackground;
-  Form2.showmodal;
+  Form2.Shape2.brush.color := Bretthintergrundfarbe1;
+  Form2.Shape3.brush.color := Bretthintergrundfarbe2;
+  Form2.Shape4.brush.color := Maybeedcolor;
+  Form2.Shape5.brush.color := MarkedColor1;
+  Form2.Shape6.brush.color := MarkedColor2;
+  Form2.Shape7.brush.color := CursorMarker;
+  Form2.Shape8.brush.color := Fixedcolor;
+  Form2.Shape9.brush.color := Gitterfarbe;
+  Form2.Shape10.brush.color := FontColor;
+  Form2.Shape11.brush.color := Pencilcolor;
+  Form2.Shape12.brush.color := PencilcolorMarked;
+  Form2.Shape13.brush.color := LightenColor;
+  Form2.Shape14.brush.color := FormBackground;
+
+  If Form2.showmodal = mrOK Then Begin
+    // Ãœbernehmen der Farben in die Variablen der Form1
+    Bretthintergrundfarbe1 := Form2.Shape2.brush.color;
+    Bretthintergrundfarbe2 := Form2.Shape3.brush.color;
+    Maybeedcolor := Form2.Shape4.brush.color;
+    MarkedColor1 := Form2.Shape5.brush.color;
+    MarkedColor2 := Form2.Shape6.brush.color;
+    CursorMarker := Form2.Shape7.brush.color;
+    Fixedcolor := Form2.Shape8.brush.color;
+    Gitterfarbe := Form2.Shape9.brush.color;
+    FontColor := Form2.Shape10.brush.color;
+    Pencilcolor := Form2.Shape11.brush.color;
+    PencilcolorMarked := Form2.Shape12.brush.color;
+    LightenColor := Form2.Shape13.brush.color;
+    FormBackground := Form2.Shape14.brush.color;
+    // Sonderfall Hintergrund = Schwarz
+    For x := 1 To 6 Do Begin
+      TCheckbox(findcomponent('Checkbox' + inttostr(x))).color := FormBackground;
+      If FormBackground = clblack Then
+        TCheckbox(findcomponent('Checkbox' + inttostr(x))).font.color := clwhite
+      Else
+        TCheckbox(findcomponent('Checkbox' + inttostr(x))).font.color := clblack;
+    End;
+    // Neuzeichnen
+    PaintBox1.Invalidate;
+  End;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -1516,11 +1531,11 @@ Procedure TForm1.Button2Click(Sender: TObject);
 Var
   x, y, z: integer;
 Begin
-  // Löschen der Linepencil's
+  // LÃ¶schen der Linepencil's
   For x := 0 To 17 Do
     For y := 0 To 8 Do
       Linepencil[x][y] := false;
-  // Löschen der Field pencil's
+  // LÃ¶schen der Field pencil's
   For x := 0 To 8 Do
     For y := 0 To 8 Do
       For z := 0 To 8 Do
@@ -1697,7 +1712,7 @@ End;
 
 Procedure TForm1.Puzzle1Click(Sender: TObject);
 Begin
-  // Übernehmen der Solvin Methoden
+  // Ãœbernehmen der Solvin Methoden
   form7.checkbox1.checked := byhiddensingle1.checked;
   form7.checkbox2.checked := bynakedsingle1.checked;
   form7.checkbox3.checked := byBlockandColumninteractions1.checked;
@@ -1707,7 +1722,7 @@ Begin
   form7.checkbox7.checked := byXWingSwordfish1.checked;
   form7.checkbox8.checked := byXYWing1.checked;
   form7.checkbox9.checked := ForcingChains1.checked;
-  // Deaktivieren für das Drucken
+  // Deaktivieren fÃ¼r das Drucken
   If Sender <> Nil Then Begin
     Form7.showmodal;
     // Nach dem Schliesen sollte das Hauptfenster wieder aktiviert werden
@@ -1753,7 +1768,7 @@ End;
 
 Procedure TForm1.N4x41Click(Sender: TObject);
 Begin
-  showmessage('These Sudoku''s were something Special, partly there Debuggininfo''s aviable.' + LineEnding + LineEnding +
+  showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
     'If you want to so the progress of the creater then' + LineEnding +
     'click on the field while the creating message is shown.' + LineEnding + LineEnding +
     'Normal time for creating a Sudoko with this size 10 - 20 sek.');
@@ -1762,7 +1777,7 @@ End;
 
 Procedure TForm1.N5x51Click(Sender: TObject);
 Begin
-  showmessage('These Sudoku''s were something Special, partly there Debuggininfo''s aviable.' + LineEnding + LineEnding +
+  showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
     'If you want to so the progress of the creater then' + LineEnding +
     'click on the field while the creating message is shown.' + LineEnding + LineEnding +
     'Normal time for creating a Sudoko with this size 30 - 90 sek.');
