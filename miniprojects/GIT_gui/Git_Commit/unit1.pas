@@ -38,10 +38,11 @@ Const
    *                 ADD: Restore manual sorting after Reload
    *          0.06 = ADD: STRG + A in Stringgrid
    *          0.07 = FIX: calculations of selected files when using the filter shortcuts
+   *          0.08 = ADD: "edit .gitignore" Button
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.07';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.08';
   CommitText = 'Commit               | ▼';
   ReCommitText = 'ReCommit           | ▼';
   CommitAndPushText = 'Commit && Push | ▼';
@@ -61,6 +62,7 @@ Type
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
+    Button5: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
@@ -119,6 +121,7 @@ Type
       Shift: TShiftState; X, Y: Integer);
     Procedure Button2Click(Sender: TObject);
     Procedure Button4Click(Sender: TObject);
+    Procedure Button5Click(Sender: TObject);
     Procedure CheckBox1Click(Sender: TObject);
     Procedure CheckBox4Click(Sender: TObject);
     Procedure CheckBox8Click(Sender: TObject);
@@ -945,6 +948,12 @@ Begin
   // Options
   GitOptions.LoadOptions(ProjectRoot);
   GitOptions.Showmodal;
+End;
+
+Procedure TForm1.Button5Click(Sender: TObject);
+Begin
+  // edit .gitignore
+  OpenURL(ProjectRoot + '.gitignore');
 End;
 
 Procedure TForm1.Commit;
