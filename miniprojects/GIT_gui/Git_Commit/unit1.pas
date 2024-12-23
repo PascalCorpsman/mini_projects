@@ -951,9 +951,21 @@ Begin
 End;
 
 Procedure TForm1.Button5Click(Sender: TObject);
+Var
+  fn: String;
+  sl: TStringList;
 Begin
   // edit .gitignore
-  OpenURL(ProjectRoot + '.gitignore');
+  fn := ProjectRoot + '.gitignore';
+  If Not FileExists(fn) Then Begin
+    sl := TStringList.Create;
+    sl.add('');
+    sl.add('# add files to be ignored by git');
+    sl.add('');
+    sl.SaveToFile(fn);
+    sl.free;
+  End;
+  OpenURL(fn);
 End;
 
 Procedure TForm1.Commit;
