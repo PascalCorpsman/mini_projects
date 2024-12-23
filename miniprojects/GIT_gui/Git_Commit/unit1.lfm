@@ -437,6 +437,7 @@ object Form1: TForm1
     Height = 25
     Top = 659
     Width = 107
+    Anchors = [akLeft, akBottom]
     Caption = 'edit .gitignore'
     TabOrder = 9
     OnClick = Button5Click
