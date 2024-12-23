@@ -60,7 +60,7 @@ Var
   Textsize: Integer;
   werbung: String;
 Begin
-  werbung := 'Created with Sudoku ver. : ' + ver + ' by Corpsman | Targetsoft |  Support : http://www.corpsman.de.vu/';
+  werbung := 'Created with Sudoku ver. : ' + ver + ' by Corpsman | Support : http://www.corpsman.de/';
   Breite := Printer.PageWidth Div 33;
   Textsize := 1;
   Printer.canvas.Font.Size := Textsize;

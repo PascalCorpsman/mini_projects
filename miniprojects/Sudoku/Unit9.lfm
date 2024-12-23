@@ -1,7 +1,7 @@
 object Form9: TForm9
-  Left = 238
+  Left = 323
   Height = 211
-  Top = 123
+  Top = 107
   Width = 295
   ActiveControl = CheckBox1
   BorderIcons = [biSystemMenu, biMinimize]
@@ -12,7 +12,9 @@ object Form9: TForm9
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   object Button1: TButton
     Left = 16
     Height = 25
@@ -60,9 +62,9 @@ object Form9: TForm9
   end
   object CheckBox1: TCheckBox
     Left = 88
-    Height = 17
+    Height = 22
     Top = 8
-    Width = 116
+    Width = 139
     Caption = 'Print with pencil data'
     TabOrder = 0
   end

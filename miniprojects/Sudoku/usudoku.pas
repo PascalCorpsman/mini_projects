@@ -54,6 +54,8 @@ Type
   // die Line Pencils welche extra erstellt werden
   TLinepencil = Array[0..17] Of T3Pencil;
 
+  TPencil = Array Of Boolean;
+
   TRenderInfo = Record
     Cursor: TPoint;
     Show_Pencils_Numbers: Boolean;
@@ -61,9 +63,8 @@ Type
     Edit_Line_Pencil_Numbers: Boolean;
     NumberHighLights: Array Of Boolean;
     NumberMarks: Array Of Boolean;
+    LinePencil: Array Of TPencil; // 0.. fsqrDim -1 = Waagrecht drüber, fsqrDim .. 2*fsqrDim -1 = Senkrecht Rechts daneben
   End;
-
-  TPencil = Array Of Boolean;
 
   { TPencilhelper }
 
@@ -87,9 +88,13 @@ Type
     fDim, fsqrDim: integer;
 
     Function Clone: TSudoku;
-    Procedure CloneFieldFrom(Const aSudoku: TSudoku);
+    Function getValue(x, y: integer): integer;
   public
-    Constructor Create(Dimension: integer); virtual;
+
+    Property Dimension: integer read fDim;
+    Property Value[x, y: integer]: integer read getValue;
+
+    Constructor Create(aDimension: integer); virtual;
     Destructor Destroy; override;
 
     Procedure Rotate(Clockwise: Boolean);
@@ -105,23 +110,27 @@ Type
     Function IsSolved(): Boolean; // True, wenn das Sudoku tatsächlich korrekt gelöst ist
     Function IsSolveable(): Boolean; // Schaut ob das Sudoko Blockiert ist, d.h. wenn eine Zahl in einen 9er Block schon gar nicht mehr setzen kann obwohl das so sein sollte
 
-    Procedure SetValue(x, y, Value: integer; Fixed: Boolean);
+    Procedure SetValue(x, y, aValue: integer; Fixed: Boolean);
 
-    Procedure RenderTo(Const Canvas: TCanvas; Info: TRenderInfo);
+    Procedure RenderTo(Const Canvas: TCanvas; Const Info: TRenderInfo);
 
-    Procedure ClearAllNumberPencils;
+    Procedure ResetAllNumberPencils;
+    Procedure ClearAllNumberPencils; // TODO: Der Name ist missverständlich, gemeint ist, dass alle Pencils weg gestrichen werden die via "Values <> 0" irgendwo definiert sind !
     Procedure ApplyHiddenSubsetAlgorithm();
     Procedure ApplyXY_WingAlgorithm();
 
     Function FillWithSolvedValues(Const UpdateEvent: TLCLUpdateEvent): Boolean; // Erzeugt via Bruteforce ein Komplett gefülltes Feld, false wenn das nicht geklappt hat..
 
+    Procedure CloneFieldFrom(Const aSudoku: TSudoku);
+
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
     Procedure StoreTo(Out f: T3Field);
+    Function DebugString: String;
   End;
 
 Var
-  Linepencil: TLinepencil; // Die LinienPencil's
+
   Druckbreite, Breite: Integer; // Globale Variable die die Breite eines Feldes auf dem Spielfeld in Pixeln angibt
   Bretthintergrundfarbe1: Tcolor; // Optische eigenschaften des Spieles
   Bretthintergrundfarbe2: Tcolor; // Optische eigenschaften des Spieles
@@ -303,12 +312,12 @@ End;
 
 { TSudoku }
 
-Constructor TSudoku.Create(Dimension: integer);
+Constructor TSudoku.Create(aDimension: integer);
 Var
   i, j: Integer;
 Begin
   Inherited Create;
-  fDim := Dimension;
+  fDim := aDimension;
   fsqrDim := fDim * fDim;
   setlength(fField, fsqrDim, fsqrDim);
   For i := 0 To fsqrDim - 1 Do Begin
@@ -591,10 +600,10 @@ Begin
   result := true;
 End;
 
-Procedure TSudoku.SetValue(x, y, Value: integer; Fixed: Boolean);
+Procedure TSudoku.SetValue(x, y, aValue: integer; Fixed: Boolean);
 Begin
-  fField[x, y].Value := Value;
-  If value <> 0 Then Begin
+  fField[x, y].Value := aValue;
+  If avalue <> 0 Then Begin
     fField[x, y].Fixed := Fixed;
   End
   Else Begin
@@ -602,7 +611,7 @@ Begin
   End;
 End;
 
-Procedure TSudoku.RenderTo(Const Canvas: TCanvas; Info: TRenderInfo);
+Procedure TSudoku.RenderTo(Const Canvas: TCanvas; Const Info: TRenderInfo);
 Var
   x, y, z, d: integer;
 Begin
@@ -620,12 +629,12 @@ Begin
     canvas.brush.style := bsclear;
   End;
   // Malen der Line Pencil geschichten !!
-  If info.Show_Line_Pencil_numbers Then Begin
+  If info.Show_Line_Pencil_numbers And assigned(info.Linepencil) Then Begin
     // Die Waagrechten beschriftungen.
     canvas.font.size := breite Div 5;
     For x := 0 To fsqrDim - 1 Do
       For z := 0 To fsqrDim - 1 Do
-        If Linepencil[x][z] Then Begin
+        If info.Linepencil[x][z] Then Begin
           If (Lc = x) And (info.Edit_Line_Pencil_Numbers) Then
             canvas.font.color := PencilcolorMarked
           Else
@@ -674,7 +683,7 @@ Begin
     canvas.font.color := Pencilcolor;
     For x := 0 To fsqrDim - 1 Do
       For z := 0 To fsqrDim - 1 Do
-        If Linepencil[x + fsqrDim][z] Then Begin
+        If info.Linepencil[x + fsqrDim][z] Then Begin
           If (Lc = x + fsqrDim) And (info.Edit_Line_Pencil_Numbers) Then
             canvas.font.color := PencilcolorMarked
           Else
@@ -838,6 +847,16 @@ Begin
         canvas.textout(breite * (x + 1) + (Breite - canvas.textwidth(inttostr(fField[x, y].value))) Div 2, Breite * (y + 1) + 1 + (Breite - canvas.textheight(inttostr(fField[x, y].value))) Div 2, substitution[(fField[x, y].value)]);
       End;
     End;
+End;
+
+Procedure TSudoku.ResetAllNumberPencils;
+Var
+  i, j, k: Integer;
+Begin
+  For i := 0 To fsqrDim - 1 Do
+    For j := 0 To fsqrDim - 1 Do
+      For k := 0 To fsqrDim - 1 Do
+        ffield[i, j].Pencil[k] := true;
 End;
 
 Procedure TSudoku.ClearAllNumberPencils;
@@ -1211,6 +1230,15 @@ Begin
   End;
 End;
 
+Function TSudoku.getValue(x, y: integer): integer;
+Begin
+  result := -1;
+  If (x In [0..fsqrDim - 1]) And
+    (y In [0..fsqrDim - 1]) Then Begin
+    result := fField[x, y].Value;
+  End;
+End;
+
 Procedure TSudoku.LoadFrom(Const f: T3Field);
 Var
   i, j, k: Integer;
@@ -1242,6 +1270,19 @@ Begin
       For k := 0 To fsqrDim - 1 Do
         f[i, j].Pencil[k] := fField[i, j].Pencil[k];
     End;
+  End;
+End;
+
+Function TSudoku.DebugString: String;
+Var
+  j, i: Integer;
+Begin
+  result := '';
+  For j := 0 To high(fField[0]) Do Begin
+    For i := 0 To high(fField) Do Begin
+      result := result + ' ' + inttostr(fField[i, j].Value);
+    End;
+    result := result + LineEnding;
   End;
 End;
 

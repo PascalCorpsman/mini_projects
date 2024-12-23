@@ -169,9 +169,16 @@ Type
   private
     { Private-Deklarationen }
     ffield: TSudoku;
+    fLinepencil: TLinepencil; // Die LinienPencil's -> 3x3 Only :/
+    Field: T3field; // Das Spielfeld --> TODO: Das muss noch raus geworfen werden !
+
+    Procedure ApplyFromModifyAndRepaintField(Sender: TObject);
+
     Procedure RefreshField(Sender: TObject);
 
     Function OnLCLUpdateEvent(): Boolean;
+    Procedure getLinePencil(Var Data: T3Field);
+    Procedure UnPencil(x, y, value: integer; Var Data: T3field);
   public
     { Public-Deklarationen }
     mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
@@ -183,7 +190,6 @@ Type
 Var
   Form1: TForm1;
   bm: Tbitmap; // gegen das Flimmern
-  Field: T3field; // Das Spielfeld
 
 Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
 Procedure Resetopt;
@@ -198,7 +204,6 @@ Uses
   , Unit5 // Modify dialog
   , Unit6 // Progressbar during creation
   , Unit7 // New Dialog
-  , Unit8 // Mask Editor
   , Unit9 // Print Dialog
   // Unit10 // Print Setup Dialog
   , Unit11 // 4x4 Fields
@@ -213,7 +218,7 @@ Uses
 
 // Ermittelt die Line Pencils
 
-Procedure getLinePencil(Var Data: T3Field);
+Procedure TForm1.getLinePencil(Var Data: T3Field);
 Var
   x, y: integer;
   zahlen: Array Of Integer;
@@ -244,7 +249,7 @@ Begin
     For y := 0 To 8 Do
       If Data[x, y].value <> 0 Then add(Data[x, y].value);
     For y := 0 To high(Zahlen) Do
-      Linepencil[x][Zahlen[y] - 1] := false;
+      fLinepencil[x][Zahlen[y] - 1] := false;
   End;
   // Dann die Waagrechten Linien
   For y := 0 To 8 Do Begin
@@ -252,7 +257,7 @@ Begin
     For x := 0 To 8 Do
       If Data[x, y].value <> 0 Then add(Data[x, y].value);
     For x := 0 To high(Zahlen) Do
-      Linepencil[y + 9][Zahlen[x] - 1] := false;
+      fLinepencil[y + 9][Zahlen[x] - 1] := false;
   End;
   setlength(zahlen, 0);
 End;
@@ -346,7 +351,7 @@ Begin
         End;
       For x := 0 To 17 Do
         For y := 0 To 8 Do
-          Linepencil[x][y] := true; // Demarkieren der Linepencil's
+          fLinepencil[x][y] := true; // Demarkieren der Linepencil's
       ssolve := true; // Da unser System recht Kompliziert ist müssen wir es auch oft woederholen
       While ssolve Do Begin
         getlinepencil(data); // Ermitteln der Korreckten Line pencil's
@@ -789,7 +794,7 @@ End;
 
 // Fügt wieder einen Penzil wert ein
 
-Procedure UnPencil(x, y, value: integer; Var Data: T3field);
+Procedure TForm1.UnPencil(x, y, value: integer; Var Data: T3field);
 Var
   a, b, c, d, z: integer;
 Begin
@@ -807,10 +812,9 @@ Begin
     For d := 0 To 2 Do
       Data[a + c, b + d].Pencil[value - 1] := true;
   // Unpencil für die Lines
-  Linepencil[x][Value - 1] := true;
-  Linepencil[9 + y][Value - 1] := true;
+  fLinepencil[x][Value - 1] := true;
+  fLinepencil[9 + y][Value - 1] := true;
 End;
-
 
 // Zeichnet das Komplette Spielfeld
 
@@ -821,7 +825,9 @@ Var
 Begin
   If bm = Nil Then exit;
   ffield.LoadFrom(Field);
-  If Form1.checkbox1.checked And (mx > -1) Then ffield.Mark(field[mx, my].value); // TODO: das muss eigentlich ein Zugriff auf ffield sein !
+  If checkbox1.checked And (mx > -1) Then Begin
+    ffield.Mark(ffield.value[mx, my]);
+  End;
   // Markieren der Felder die Permanent Markiert werden müssen
   For i := 1 To 9 Do Begin
     If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then Begin
@@ -837,11 +843,14 @@ Begin
   info.Show_Pencils_Numbers := Checkbox4.checked;
   info.Show_Line_Pencil_numbers := Checkbox5.checked;
   info.Edit_Line_Pencil_Numbers := Checkbox6.checked;
+  setlength(info.LinePencil, 18);
+  For i := 0 To 17 Do Begin
+    info.LinePencil[i] := fLinepencil[i];
+  End;
   // Löschen des Bildschirms
   bm.canvas.brush.style := bssolid;
   bm.canvas.brush.color := FormBackground;
   bm.canvas.rectangle(-1, -1, bm.width + 1, bm.height + 1);
-
   ffield.RenderTo(bm.Canvas, info);
   Form1.PaintBox1.Canvas.Draw(0, 0, bm);
 End;
@@ -1000,6 +1009,7 @@ Begin
   //}
   Constraints.MinHeight := 480;
   Randomize;
+  //  RandSeed := 42; <-- Erzeugt auf den ersten Versuch ein nicht Lösbares 3x3 Sudoku
   ffield := TSudoku.Create(3);
   bm := tbitmap.create;
   bm.width := form1.width;
@@ -1185,7 +1195,7 @@ Begin
         End;
         If invalidnallow Then a := true; // Wenn auch ungültige Zahlen eingegeben werden können.
         If A Then
-          Linepencil[lc][strtoint(key) - 1] := Not Linepencil[lc][strtoint(key) - 1]
+          fLinepencil[lc][strtoint(key) - 1] := Not fLinepencil[lc][strtoint(key) - 1]
         Else
           showmessage('Character for this field impossible.');
       End;
@@ -1395,7 +1405,7 @@ Begin
     openDialog1.initialdir := ExtractFilePath(Savedialog1.Filename);
     f := Tfilestream.create(Savedialog1.Filename, fmCreate Or fmOpenWrite);
     f.write(Field, sizeof(Field));
-    f.write(linepencil, sizeof(linepencil));
+    f.write(flinepencil, sizeof(flinepencil));
     f.Free;
   End;
 End;
@@ -1412,7 +1422,7 @@ Begin
     ResetOpt;
     f := Tfilestream.create(opendialog1.Filename, fmOpenRead);
     f.Read(Field, sizeof(Field));
-    f.Read(linepencil, sizeof(linepencil));
+    f.Read(flinepencil, sizeof(flinepencil));
     f.Free;
     For x := 0 To 8 Do
       For y := 0 To 8 Do
@@ -1513,7 +1523,7 @@ Begin
   // Auto Pencil Numbers
   For x := 0 To 17 Do
     For y := 0 To 8 Do
-      Linepencil[x][y] := true;
+      fLinepencil[x][y] := true;
   getlinepencil(Field);
   For x := 0 To 8 Do
     For y := 0 To 8 Do
@@ -1534,7 +1544,7 @@ Begin
   // Löschen der Linepencil's
   For x := 0 To 17 Do
     For y := 0 To 8 Do
-      Linepencil[x][y] := false;
+      fLinepencil[x][y] := false;
   // Löschen der Field pencil's
   For x := 0 To 8 Do
     For y := 0 To 8 Do
@@ -1706,7 +1716,7 @@ Begin
   For x := 1 To 9 Do Begin
     TCombobox(Form5.findcomponent('Combobox' + inttostr(x))).text := substitution[x];
   End;
-  form5.Init(ffield, @RefreshField);
+  form5.Init(ffield, @ApplyFromModifyAndRepaintField);
   Form5.showmodal;
 End;
 
@@ -1724,7 +1734,10 @@ Begin
   form7.checkbox9.checked := ForcingChains1.checked;
   // Deaktivieren für das Drucken
   If Sender <> Nil Then Begin
+    Form7.init(ffield, @RefreshField);
     Form7.showmodal;
+    ffield.CloneFieldFrom(form7.Sudoku);
+    ffield.StoreTo(Field);
     // Nach dem Schliesen sollte das Hauptfenster wieder aktiviert werden
     Form1.SetFocus;
     PaintBox1.Invalidate;
@@ -1758,11 +1771,12 @@ End;
 Procedure TForm1.SpecialPuzzle1Click(Sender: TObject);
 Begin
   showmessage('Not complete Implemented');
-  form8.showmodal;
+  // Form8.showmodal;
 End;
 
 Procedure TForm1.Print1Click(Sender: TObject);
 Begin
+  form9.init(ffield);
   Form9.showmodal;
 End;
 
@@ -1801,12 +1815,19 @@ Begin
   Form16.showmodal;
 End;
 
+Procedure TForm1.ApplyFromModifyAndRepaintField(Sender: TObject);
+Begin
+  ffield.CloneFieldFrom(form5.Sudoku);
+  ffield.StoreTo(Field);
+  PaintBox1.Invalidate;
+End;
+
 Procedure TForm1.RefreshField(Sender: TObject);
 Begin
   PaintBox1.Invalidate;
 End;
 
-Function TForm1.OnLCLUpdateEvent(): Boolean;
+Function TForm1.OnLCLUpdateEvent: Boolean;
 Begin
   Application.ProcessMessages;
   result := zwangsabbruch;

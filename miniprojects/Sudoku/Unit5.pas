@@ -60,12 +60,14 @@ Type
     Procedure BitBtn7Click(Sender: TObject);
     Procedure ComboBox7KeyPress(Sender: TObject; Var Key: Char);
     Procedure BitBtn8Click(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
   private
     { Private-Deklarationen }
     fField: TSudoku;
     fRepaintEvent: TNotifyEvent;
   public
     { Public-Deklarationen }
+    Property Sudoku: TSudoku read fField;
     Procedure Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent);
   End;
 
@@ -76,14 +78,19 @@ Implementation
 
 {$R *.lfm}
 
-Uses unit1;
-
 Var
   beenden: boolean;
 
 Procedure TForm5.FormCreate(Sender: TObject);
 Begin
   Caption := 'Sudoku ver. : ' + ver + ' Modify';
+  fField := TSudoku.Create(3);
+End;
+
+Procedure TForm5.FormDestroy(Sender: TObject);
+Begin
+  fField.free;
+  fField := Nil;
 End;
 
 Procedure TForm5.BitBtn5Click(Sender: TObject);
@@ -107,33 +114,25 @@ End;
 
 Procedure TForm5.BitBtn3Click(Sender: TObject);
 Begin
-  fField.LoadFrom(Field);
   fField.Rotate(false);
-  fField.storeTo(Field);
   fRepaintEvent(Nil);
 End;
 
 Procedure TForm5.BitBtn2Click(Sender: TObject);
 Begin
-  fField.LoadFrom(Field);
   fField.Mirror(true);
-  fField.storeTo(Field);
   fRepaintEvent(Nil);
 End;
 
 Procedure TForm5.BitBtn1Click(Sender: TObject);
 Begin
-  fField.LoadFrom(Field);
   fField.Mirror(false);
-  fField.storeTo(Field);
   fRepaintEvent(Nil);
 End;
 
 Procedure TForm5.BitBtn4Click(Sender: TObject);
 Begin
-  fField.LoadFrom(Field);
   fField.Rotate(true);
-  fField.storeTo(Field);
   fRepaintEvent(Nil);
 End;
 
@@ -169,16 +168,16 @@ End;
 
 Procedure TForm5.BitBtn8Click(Sender: TObject);
 Var
-  x: Integer;
+  i: Integer;
 Begin
   // Reset der Substitution Felder
-  For x := 1 To 9 Do
-    TCombobox(Form5.findcomponent('Combobox' + inttostr(x))).text := inttostr(x);
+  For i := 1 To 9 Do
+    TCombobox(Form5.findcomponent('Combobox' + inttostr(i))).text := inttostr(i);
 End;
 
 Procedure TForm5.Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent);
 Begin
-  fField := aField;
+  fField.CloneFieldFrom(aField);
   fRepaintEvent := RepaintEvent;
 End;
 

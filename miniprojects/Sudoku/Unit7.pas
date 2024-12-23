@@ -20,7 +20,7 @@ Interface
 
 Uses
   Forms, Classes, Controls, StdCtrls, Dialogs, LResources, SysUtils,
-  LCLType;
+  LCLType, usudoku;
 
 Type
 
@@ -47,11 +47,16 @@ Type
     Procedure FormCreate(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
     Procedure Button4Click(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure FormPaint(Sender: TObject);
   private
     { Private-Deklarationen }
+    fField: TSudoku;
+    fRepaintEvent: TNotifyEvent;
   public
     { Public-Deklarationen }
+    Property Sudoku: TSudoku read fField;
+    Procedure Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent);
   End;
 
 Var
@@ -60,8 +65,7 @@ Var
 Implementation
 
 Uses
-  usudoku
-  , unit1
+  unit1
   , Unit6
   ;
 
@@ -81,7 +85,7 @@ Var
   n, x, y, z: Integer; // diverse Zählvariablen
   Save: Boolean; // wie a nur ebn für Try and Error
   f: TSudoku; // Das Field das erzeugt wird, wird gebraucht damit die Unit1 keine Schritte anzeigen kann
-  tmpf: T3Field;
+  Field, tmpf: T3Field;
   a: Array[1..9] Of Boolean; // Zum Speichern der Solving methoden
   s: String;
   ch: Tcheckbox;
@@ -122,7 +126,7 @@ Begin
       a[9] := ForcingChains1.checked;
     End;
     Rein: // Wenn wir festgestellt haben das die Zufällig kreierten Zahlen das Lösen unmöglich machen würden
-    For x := 0 To 8 Do
+    For x := 0 To 8 Do Begin
       For y := 0 To 8 Do Begin
         Field[x, y].value := 0;
         Field[x, y].Marked := false;
@@ -131,8 +135,9 @@ Begin
         For z := 0 To 8 Do Begin
           field[x, y].Pencil[z] := false;
         End;
-        f.LoadFrom(Field);
       End;
+    End;
+    f.LoadFrom(Field);
     // --- Neu
    // Drawfield; // Löschen der Anzeige auf der Form 1
    // Dafür sorgen das wir auf alle Fälle jedesmal eine andere Startposition haben
@@ -154,7 +159,6 @@ Begin
       F.SetValue(x, y, n, false); // Zuweisen des Feldes
     End;
     // ist das sudoku jetzt schon nicht mehr lösbar dann neustarten
-    f.StoreTo(tmpf);
     If Not (f.IsSolveable) Then Goto rein;
     // Wegspeichern der by Try Error Methode
     Save := form1.bytryanderror1.checked;
@@ -162,15 +166,15 @@ Begin
     form1.bytryanderror1.checked := true;
     // Lösen des Sudoku, mit allem was geht
     With form1 Do Begin
-      byhiddensingle1.checked := False;
-      bynakedsingle1.checked := False;
-      byBlockandColumninteractions1.checked := False;
-      byblockandblockinteractions1.checked := False;
-      bynakedsubset1.checked := False;
-      byhiddensubset1.checked := False;
-      byXWingSwordfish1.checked := False;
-      byXYWing1.checked := False;
-      ForcingChains1.checked := False;
+      byhiddensingle1.checked := true;
+      bynakedsingle1.checked := true;
+      byBlockandColumninteractions1.checked := true;
+      byblockandblockinteractions1.checked := true;
+      bynakedsubset1.checked := true;
+      byhiddensubset1.checked := true;
+      byXWingSwordfish1.checked := true;
+      byXYWing1.checked := true;
+      ForcingChains1.checked := true;
     End;
     f.StoreTo(tmpf);
     form1.Solve(false, True, tmpf);
@@ -247,10 +251,10 @@ Begin
             tmpF[x, y].pencil[z] := false;
         End;
       f.LoadFrom(tmpf);
-      f.StoreTo(Field);
+      fField.CloneFieldFrom(f);
     End;
     // Ausgabe auf den Monitor
-    form1.PaintBox1.Invalidate;
+    If assigned(fRepaintEvent) Then fRepaintEvent(Nil);
     // Beenden
     f.free;
     Close;
@@ -264,6 +268,7 @@ End;
 Procedure TForm7.FormCreate(Sender: TObject);
 Begin
   Caption := 'Sudoku ver. : ' + ver + ' New Game';
+  fField := TSudoku.Create(3);
 End;
 
 Procedure TForm7.Button3Click(Sender: TObject);
@@ -282,9 +287,22 @@ Begin
     Tcheckbox(findcomponent('Checkbox' + inttostr(x))).checked := false;
 End;
 
+Procedure TForm7.FormDestroy(Sender: TObject);
+Begin
+  fField.free;
+  fField := Nil;
+End;
+
 Procedure TForm7.FormPaint(Sender: TObject);
 Begin
   button1.setfocus;
+End;
+
+Procedure TForm7.Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent);
+Begin
+  fField.Free;
+  fField := TSudoku.Create(aField.Dimension);
+  fRepaintEvent := RepaintEvent;
 End;
 
 End.
