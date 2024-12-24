@@ -16,7 +16,7 @@ object Form10: TForm10
   object Label1: TLabel
     Left = 16
     Height = 14
-    Top = 24
+    Top = 16
     Width = 75
     Caption = 'Actual printer'
     ParentColor = False
@@ -47,12 +47,12 @@ object Form10: TForm10
   end
   object ComboBox1: TComboBox
     Left = 128
-    Height = 27
-    Top = 16
+    Height = 30
+    Top = 8
     Width = 145
     ItemHeight = 0
+    Style = csDropDownList
     TabOrder = 0
-    Text = 'ComboBox1'
   end
   object Button1: TButton
     Left = 8
@@ -69,8 +69,8 @@ object Form10: TForm10
     Top = 128
     Width = 121
     Caption = '&Cancel'
+    ModalResult = 2
     TabOrder = 3
-    OnClick = Button2Click
   end
   object Edit1: TEdit
     Left = 128

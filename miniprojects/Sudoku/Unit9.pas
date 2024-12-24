@@ -20,7 +20,7 @@ Interface
 
 Uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Printers, LResources, usudoku;
+  StdCtrls, LResources, usudoku;
 
 Type
 
@@ -55,6 +55,7 @@ Implementation
 
 Uses
   math
+  , Printers
   , Unit1
   , Unit6
   , Unit7
@@ -143,7 +144,6 @@ Var
   f: T3Field;
 Begin
   // Print Actual Field
-  Drucken := false; // Falls der Druckauftrag abgebrochen werden soll
   form10.ScrollBar1.position := Druckbreite;
   Form10.ComboBox1.Items := Printer.Printers;
   Form10.Edit1.text := '1';
@@ -153,10 +153,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[Printer.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     Printer.PrinterIndex := form10.combobox1.ItemIndex;
     // Einstellen Hochformat
     Printer.Orientation := poPortrait;
@@ -174,7 +172,7 @@ Begin
       fField.StoreTo(f);
       Drucke(rect(0, 0, Printer.Pagewidth, Printer.Pageheight), f);
       // Ausdrucken der Werbung
-      DruckeWerbung(Printer);
+      PrintAdvertising();
       // Neue seite bei mehrfach ausdrucken
       If I <> Stop Then
         Printer.NewPage;
@@ -194,7 +192,6 @@ Var
 Begin
   // Print New Field
   // Falls der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   form10.ScrollBar1.position := Druckbreite;
   Form10.ComboBox1.Items := Printer.Printers;
   Form10.Edit1.text := '1';
@@ -204,10 +201,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[Printer.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     // Wegspeichern des Aktuell angezeigten Feldes
     // Einstellen der Erstelloptionen
     s := TSudoku.Create(fField.Dimension);
@@ -235,7 +230,7 @@ Begin
         s.StoreTo(field);
         Drucke(rect(0, 0, Printer.Pagewidth, Printer.Pageheight), field);
         // Ausdrucken der Werbung
-        DruckeWerbung(Printer);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           Printer.NewPage;
@@ -262,7 +257,6 @@ Var
 Begin
   // Print 4 new fields
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   form10.ScrollBar1.position := Druckbreite;
   Form10.ComboBox1.Items := Printer.Printers;
   Form10.Edit1.text := '1';
@@ -272,10 +266,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[Printer.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     s := TSudoku.Create(fField.Dimension);
     For z := 0 To 3 Do Begin
       // Einstellen der Erstelloptionen
@@ -315,7 +307,7 @@ Begin
         // Rechts unten für 4
         Drucke(rect(Printer.Pagewidth Div 2, Printer.Pageheight Div 2, Printer.Pagewidth, Printer.Pageheight), Daten[3]);
         // Ausdrucken der Werbung
-        DruckeWerbung(Printer);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           Printer.NewPage;
@@ -340,7 +332,6 @@ Var
 Begin
   // Print 6 new fields
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   form10.ScrollBar1.position := Druckbreite;
   Form10.ComboBox1.Items := Printer.Printers;
   Form10.Edit1.text := '1';
@@ -350,10 +341,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[Printer.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     s := TSudoku.Create(fField.Dimension);
     For z := 0 To 5 Do Begin
       // Einstellen der Erstelloptionen
@@ -397,7 +386,7 @@ Begin
         // Rechts unten für 6
         Drucke(rect(Printer.Pagewidth Div 2, (Printer.Pageheight Div 3) * 2, Printer.Pagewidth, Printer.Pageheight), Daten[5]);
         // Ausdrucken der Werbung
-        DruckeWerbung(Printer);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           Printer.NewPage;
@@ -421,4 +410,6 @@ Begin
 End;
 
 End.
+
+
 

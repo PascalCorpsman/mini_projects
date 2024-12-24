@@ -110,7 +110,6 @@ Var
   Stop, i: Integer;
 Begin
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   p := Printer; //TPrinter.create;
   p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
@@ -122,10 +121,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[p.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     p := TPrinter.create;
     p.PrinterIndex := form10.combobox1.ItemIndex;
     // Einstellen Hochformat
@@ -141,7 +138,7 @@ Begin
       //      Drucke(rect(0, 0, p.Pagewidth Div 2, p.Pageheight Div 2), twofield);
       //      Drucke(rect(p.Pagewidth Div 2, p.Pageheight Div 2, p.Pagewidth, p.Pageheight), twofield);
             // Ausdrucken der Werbung
-      DruckeWerbung(P);
+      PrintAdvertising();
       // Neue seite bei mehrfach ausdrucken
       If I <> Stop Then
         p.NewPage;
@@ -162,7 +159,6 @@ Begin
   Form15.showmodal;
   If CreaterOptions <= 0 Then exit;
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   p := printer; //TPrinter.create;
   p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
@@ -174,10 +170,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[p.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     New2Field(f, CreaterOptions);
     // Wenn nicht abgebrochen wurde kann gedruckt werden.
     If Not zwangsabbruch Then Begin
@@ -192,7 +186,7 @@ Begin
       For I := 1 To Stop Do Begin
         Drucke(rect(0, 0, p.Pagewidth, p.Pageheight), f);
         // Ausdrucken der Werbung
-        DruckeWerbung(p);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           p.NewPage;
@@ -218,7 +212,6 @@ Begin
   Form15.showmodal;
   If CreaterOptions <= 0 Then exit;
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   p := Printer; //TPrinter.create;
   p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
@@ -230,10 +223,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[p.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     New2Field(f[0], CreaterOptions);
     New2Field(f[1], CreaterOptions);
     // Wenn nicht abgebrochen wurde kann gedruckt werden.
@@ -250,7 +241,7 @@ Begin
         Drucke(rect(0, 0, p.Pagewidth, p.Pageheight Div 2), f[0]);
         Drucke(rect(0, p.Pageheight Div 2, p.Pagewidth, p.Pageheight), f[1]);
         // Ausdrucken der Werbung
-        DruckeWerbung(p);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           p.NewPage;
@@ -275,7 +266,6 @@ Begin
   Form15.showmodal;
   If CreaterOptions <= 0 Then exit;
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   p := Printer; //TPrinter.create;
   p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
@@ -287,10 +277,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[p.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     New2Field(f[0], CreaterOptions);
     New2Field(f[1], CreaterOptions);
     New2Field(f[2], CreaterOptions);
@@ -311,7 +299,7 @@ Begin
         Drucke(rect(0, p.Pageheight Div 2, p.Pagewidth Div 2, p.Pageheight), f[2]);
         Drucke(rect(p.Pagewidth Div 2, p.Pageheight Div 2, p.Pagewidth, p.Pageheight), f[3]);
         // Ausdrucken der Werbung
-        DruckeWerbung(p);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           p.NewPage;
@@ -336,7 +324,6 @@ Begin
   Form15.showmodal;
   If CreaterOptions <= 0 Then exit;
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   p := Printer; //TPrinter.create;
   p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
@@ -348,10 +335,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[p.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     New2Field(f[0], CreaterOptions);
     New2Field(f[1], CreaterOptions);
     New2Field(f[2], CreaterOptions);
@@ -376,7 +361,7 @@ Begin
         Drucke(rect(0, (p.Pageheight Div 3) * 2, p.Pagewidth Div 2, p.Pageheight), f[4]);
         Drucke(rect(p.Pagewidth Div 2, (p.Pageheight Div 3) * 2, p.Pagewidth, p.Pageheight), f[5]);
         // Ausdrucken der Werbung
-        DruckeWerbung(p);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           p.NewPage;
@@ -401,7 +386,6 @@ Begin
   Form15.showmodal;
   If CreaterOptions <= 0 Then exit;
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   p := Printer;
   p.PrinterIndex := -1;
   TPrinter.create;
@@ -414,10 +398,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[p.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     New2Field(f[0], CreaterOptions);
     New2Field(f[1], CreaterOptions);
     New2Field(f[2], CreaterOptions);
@@ -446,7 +428,7 @@ Begin
         Drucke(rect(0, (p.Pageheight Div 4) * 3, p.Pagewidth Div 2, p.Pageheight), f[6]);
         Drucke(rect(p.Pagewidth Div 2, (p.Pageheight Div 4) * 3, p.Pagewidth, p.Pageheight), f[7]);
         // Ausdrucken der Werbung
-        DruckeWerbung(p);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           p.NewPage;

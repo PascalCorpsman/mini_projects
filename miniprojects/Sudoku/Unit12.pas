@@ -108,7 +108,6 @@ Var
   Stop, i: Integer;
 Begin
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   p := Printer; //TPrinter.create;
   p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
@@ -120,10 +119,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[p.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     p := TPrinter.create;
     p.PrinterIndex := form10.combobox1.ItemIndex;
     // Einstellen Hochformat
@@ -137,7 +134,7 @@ Begin
       // Drucken des Feldes
       Drucke(rect(0, 0, p.Pagewidth, p.Pageheight), fourfield);
       // Ausdrucken der Werbung
-      DruckeWerbung(P);
+      PrintAdvertising;
       // Neue seite bei mehrfach ausdrucken
       If I <> Stop Then
         p.NewPage;
@@ -158,7 +155,6 @@ Begin
   Form15.showmodal;
   If CreaterOptions <= 0 Then exit;
   // Fals der Druckauftrag abgebrochen werden soll
-  Drucken := false;
   p := Printer; //TPrinter.create;
   p.PrinterIndex := -1;
   form10.ScrollBar1.position := Druckbreite;
@@ -170,10 +166,8 @@ Begin
   End;
   Form10.ComboBox1.Text := Form10.ComboBox1.items[p.PrinterIndex];
   // Aufruf des Druckdialoges
-  Form10.showmodal;
-  stop := strtointdef(form10.Edit1.text, 1);
-  // Wenn gedruckt werden darf
-  If Drucken Then Begin
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
     New4Field(f, CreaterOptions);
     // Wenn nicht abgebrochen wurde kann gedruckt werden.
     If Not zwangsabbruch Then Begin
@@ -188,7 +182,7 @@ Begin
       For I := 1 To Stop Do Begin
         Drucke(rect(0, 0, p.Pagewidth, p.Pageheight), f);
         // Ausdrucken der Werbung
-        DruckeWerbung(p);
+        PrintAdvertising();
         // Neue seite bei mehrfach ausdrucken
         If I <> Stop Then
           p.NewPage;

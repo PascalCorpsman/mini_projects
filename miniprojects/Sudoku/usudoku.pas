@@ -159,7 +159,11 @@ Function Mirrow(x, y, n, Direction: Integer): TPoint;
 Function PencilEqual(Const a, b: TPencil): Boolean;
 Function GetSetPencilscount(Const Value: Tpencil): integer; // Ermittelt wieviele Einträge <> 0 sind
 
+Procedure PrintAdvertising(); // Druckt auf eine Seite unten den Quellenhinweis
+
 Implementation
+
+Uses Printers;
 
 Type
 
@@ -230,6 +234,25 @@ Begin
   result := 0;
   For i := 0 To high(Value) Do
     If value[i] Then inc(result);
+End;
+
+Procedure PrintAdvertising();
+Var
+  Breite: Integer;
+  Textsize: Integer;
+  werbung: String;
+Begin
+  werbung := 'Created with Sudoku ver. : ' + ver + ' by Corpsman | Support : http://www.corpsman.de/';
+  Breite := Printer.PageWidth Div 33;
+  Textsize := 1;
+  Printer.canvas.Font.Size := Textsize;
+  While Printer.canvas.TextHeight('8') < Breite - (Breite Div 4) Do Begin
+    inc(Textsize);
+    Printer.canvas.Font.Size := Textsize;
+  End;
+  Printer.canvas.font.Color := clblack;
+  Printer.canvas.font.size := Textsize;
+  Printer.canvas.textout((Printer.PageWidth - Printer.canvas.TextWidth(werbung)) Div 2, Printer.PageHeight - breite, werbung);
 End;
 
 { TSudokuStack }
