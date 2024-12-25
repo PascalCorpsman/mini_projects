@@ -177,22 +177,22 @@ Type
     Procedure RefreshField(Sender: TObject);
 
     Function OnLCLUpdateEvent(): Boolean;
+    Function OnStepLCLUpdateEvent(): Boolean;
     Procedure getLinePencil(Var Data: T3Field);
     Procedure UnPencil(x, y, value: integer; Var Data: T3field);
+    Function GetSudokuOptions: TSolveOptions;
   public
     { Public-Deklarationen }
     mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
     Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden -> und dann Raus fliegen !
 
-    Procedure Solve(Step, invisible: boolean; Var Data: T3field);
+    Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
+    Procedure Resetopt;
   End;
 
 Var
   Form1: TForm1;
   bm: Tbitmap; // gegen das Flimmern
-
-Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
-Procedure Resetopt;
 
 Implementation
 
@@ -260,392 +260,6 @@ Begin
       fLinepencil[y + 9][Zahlen[x] - 1] := false;
   End;
   setlength(zahlen, 0);
-End;
-
-// Ist Step = True dann wird nur ein Step gemacht bei step = False, wird das Rätsel Komplett gelöst.
-
-Procedure TForm1.Solve(Step, invisible: boolean; Var Data: T3field);
-
-  Procedure setfocus(x, y: integer);
-  Begin
-    If Step Then Begin
-      form1.mx := x;
-      form1.my := y;
-    End;
-  End;
-
-  // Fügt eine zahl in ein Feld ein und löscht alle Pencil werte
-  Procedure WriteNumber(x, y, number: integer);
-  Var
-    z: integer;
-  Begin
-    data[x, y].value := number;
-    For z := 0 To 8 Do
-      Data[x, y].pencil[z] := false;
-  End;
-
-Label
-  Schlus;
-Var
-  wp: Tpoint;
-  y3, x2, y2, w, x1, y1, x, y, z: Integer;
-  wieder, ssolve, nochmal, weiter, b: Boolean;
-  zah: Array[1..9] Of 0..9; // Kann zu Boolean gemacht werden!
-  fs: TSudoku;
-  aFormclose: boolean;
-Begin
-  // Erst mal das Feld von altlasten säubern
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do
-      If Data[x, y].value <> 0 Then
-        Writenumber(x, y, Data[x, y].value);
-  // aussschalten der edit functionen
-  form1.checkbox6.checked := false;
-  form1.checkbox3.checked := false;
-  If (Not Step) And (Not invisible) Then resetopt;
-  fs := TSudoku.Create(3);
-  b := true; // start der Endlosschleife
-  While b Do Begin
-    weiter := false; // Wird von jedem Allgorithmus der was verändert auf True gesetzt damit es weiter gehen kann, und gleichzeitig immer nur einer am Werk ist
-    // Ermitteln der weiteren Nummern via Markierend er Nummern
-    If form1.byhiddensingle1.checked { And Not weiter } Then Begin
-      For z := 1 To 9 Do Begin // Probieren von allen Zahlen
-        // zuerst löschen aller markierungen
-        For x := 0 To 8 Do
-          For y := 0 To 8 Do
-            Data[x, y].marked := false;
-        // Markieren der Zahl Z
-        fs.LoadFrom(data);
-        fs.Mark(z);
-        fs.StoreTo(data);
-        // absuchen der 9er blocks ob da irgendwo ne Freie Zahl ist
-        For x := 0 To 2 Do
-          For y := 0 To 2 Do Begin
-            w := 0;
-            For x1 := 0 To 2 Do
-              For y1 := 0 To 2 Do
-                // Wenn wir ein Leeres Feld gefunden haben, zählen wir in w das wievielte es ist, und speichern dessen koordinaten
-                If Not (Data[x * 3 + x1, y * 3 + y1].marked) Then Begin
-                  inc(w);
-                  wp.x := x * 3 + x1;
-                  wp.y := y * 3 + y1;
-                End;
-            // Es wurde nur ein Leeres Feld gefunden , damit ist dieser Step erledigt.
-            If w = 1 Then Begin
-              weiter := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
-              WriteNumber(wp.x, wp.y, z);
-              setfocus(wp.x, wp.y); // mitziehen des Cursors damit der User weis was wir gemacht haben
-              // Neustart des Lösen's
-              Goto schlus;
-            End;
-          End;
-      End;
-    End;
-    If form1.bynakedsingle1.checked Or form1.bynakedsubset1.checked Or form1.byhiddensubset1.checked Or Form1.byXYWing1.checked Or false Then Begin
-      // Ab jetzt geht's an's eingemachte, zur Vorbereitung brauchen wir aber Korreckte Pencil's
-      For x := 0 To 8 Do
-        For y := 0 To 8 Do Begin
-          data[x, y].marked := false; // Demarkieren aller Felder
-          For z := 0 To 8 Do
-            data[x, y].Pencil[z] := True; // Demarkieren aller Pencils
-        End;
-      For x := 0 To 17 Do
-        For y := 0 To 8 Do
-          fLinepencil[x][y] := true; // Demarkieren der Linepencil's
-      ssolve := true; // Da unser System recht Kompliziert ist müssen wir es auch oft woederholen
-      While ssolve Do Begin
-        getlinepencil(data); // Ermitteln der Korreckten Line pencil's
-        fs.LoadFrom(data);
-        fs.ClearAllNumberPencils; // Ermitteln der Pencil's in den Feldern
-        ssolve := false; // Aber nicht zu oft wiederhohlen
-        If form1.byhiddensubset1.checked Then fs.ApplyHiddenSubsetAlgorithm();
-        fs.StoreTo(data);
-        // Nachdem wir nun gute Vorraussetzungen Geschaffen haben, können wir mit unseren Tricks loslegen
-        If form1.bynakedsubset1.checked Then Begin
-          // Wir suchen alle Pencil's raus die Gleich sind, finden wir welche dann können diese dann bei den anderen gelöscht werden
-          nochmal := true;
-          While nochmal Do Begin
-            nochmal := false; // Abbruch
-            // Betrachten der 9 Spalten
-            For z := 0 To 8 Do Begin
-              wp.x := -1;
-              For x := 0 To 8 Do Begin
-                // Keines der Felder ist bis jetzt betrachtet worden
-                For y := 1 To 9 Do
-                  zah[y] := 0;
-                // Prüfen des Actuellen Feldes mit allen anderen
-                For y := 0 To 8 Do
-                  If X <> y Then // nicht mit sich selbst vergleichen
-                    If PencilEqual(data[z, x].Pencil, data[z, y].pencil) And (data[z, x].value = 0) And (data[z, y].value = 0) Then Begin // Sind die Pencil's gleich
-                      wp.x := GetSetPencilscount(data[z, x].Pencil); // speichern der Anzahl der Pencil's
-                      zah[x + 1] := 1;
-                      zah[y + 1] := 1;
-                    End;
-                // Ermitteln der Anzahl der gefunden Felder
-                w := 0;
-                For y3 := 1 To 9 Do
-                  If Zah[y3] = 1 Then inc(w);
-                // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
-                If (W = Wp.x) And (w > 1) Then Begin
-                  For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den zu löschenden Pencils
-                    If Zah[y3] = 1 Then Begin
-                      w := y3 - 1;
-                      break;
-                    End;
-                  // Löschen der Pencil werte der anderen Felder
-                  For y3 := 0 To 8 Do
-                    If Zah[y3 + 1] <> 1 Then
-                      For y := 0 To 8 Do
-                        If data[z, w].pencil[y] And data[z, y3].pencil[y] Then Begin
-                          data[z, y3].pencil[y] := false; // Es gab tatsächlich was zu löschen
-                          nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
-                          ssolve := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
-                        End;
-                End;
-              End;
-            End;
-            // betrachten der 9er Bklock's
-            For x1 := 0 To 2 Do
-              For y1 := 0 To 2 Do Begin
-                wp.x := -1;
-                For x := 0 To 2 Do
-                  For y := 0 To 2 Do Begin
-                    // Keines der Felder ist bis jetzt betrachtet worden
-                    For z := 1 To 9 Do
-                      zah[z] := 0;
-                    // Prüfen des Actuellen Feldes mit allen anderen
-                    For x2 := 0 To 2 Do
-                      For y2 := 0 To 2 Do
-                        //nicht mit sich selbst vergleichen
-                        If Not ((x2 = x) And (y = y2)) Then
-                          If PencilEqual(data[x1 * 3 + x, y1 * 3 + y].pencil, data[x1 * 3 + x2, y1 * 3 + y2].pencil) And (data[x1 * 3 + x, y1 * 3 + y].value = 0) And (data[x1 * 3 + x2, y1 * 3 + y2].value = 0) Then Begin
-                            //                            inc(w);
-                            wp.x := GetSetPencilscount(data[x1 * 3 + x, y1 * 3 + y].pencil);
-                            zah[(x2 + y2 * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelöscht werden dürfen
-                            zah[(x + y * 3) + 1] := 1; // MArkieren der Felder deren Werte nachher nicht gelöscht werden dürfen
-                          End;
-                    w := 0;
-                    For y2 := 1 To 9 Do
-                      If Zah[y2] = 1 Then inc(w);
-                    // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
-                    If (W = Wp.x) And (w > 1) Then Begin
-                      For x2 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
-                        If Zah[x2] = 1 Then Begin
-                          w := x2 - 1;
-                          wp.x := w Mod 3;
-                          wp.y := w Div 3;
-                          break;
-                        End;
-                      For x2 := 0 To 2 Do
-                        For y3 := 0 To 2 Do
-                          If ZAh[(x2 + y3 * 3) + 1] <> 1 Then
-                            // Löschen der Pencil einträge
-                            For y2 := 0 To 8 Do Begin
-                              If Data[x1 * 3 + wp.x, y1 * 3 + wp.y].pencil[y2] And Data[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] Then Begin
-                                Data[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] := false; // Es gab tatsächlich was zu löschen
-                                nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
-                                ssolve := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
-                              End;
-                            End;
-                    End;
-                  End;
-              End;
-            // Betrachten der 9 Reihen
-            For z := 0 To 8 Do Begin
-              // Keines der Felder ist bis jetzt betrachtet worden
-              For x := 1 To 9 Do
-                zah[x] := 0;
-              wp.x := -1;
-              For x := 0 To 8 Do Begin
-                // Keines der Felder ist bis jetzt betrachtet worden
-                For y := 1 To 9 Do
-                  zah[y] := 0;
-                // Prüfen des Actuellen Feldes mit allen anderen
-                For y := 0 To 8 Do
-                  If X <> y Then // nicht mit sich selbst vergleichen
-                    If PencilEqual(data[x, z].Pencil, data[y, z].pencil) And (Data[x, z].value = 0) And (Data[y, z].value = 0) Then Begin // Sind die Pencil's gleich
-                      wp.x := GetSetPencilscount(Data[x, z].Pencil); // speichern der Anzahl der Pencil's
-                      zah[x + 1] := 1;
-                      zah[y + 1] := 1;
-                    End;
-                // Ermitteln der Anzahl der Gefundenen Felder
-                w := 0;
-                For y3 := 1 To 9 Do
-                  If Zah[y3] = 1 Then inc(w);
-                // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
-                If (W = Wp.x) And (w > 1) Then Begin
-                  For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
-                    If Zah[y3] = 1 Then Begin
-                      w := y3 - 1;
-                      break;
-                    End;
-                  // Löschen der Pencil werte der anderen Felder
-                  For y3 := 0 To 8 Do
-                    If Zah[y3 + 1] <> 1 Then
-                      For y := 0 To 8 Do
-                        If Data[w, z].pencil[y] And Data[y3, z].pencil[y] Then Begin
-                          Data[y3, z].pencil[y] := false; // Es gab tatsächlich was zu löschen
-                          nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
-                          ssolve := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
-                        End;
-                End;
-              End;
-            End;
-          End;
-        End;
-        // das Lösen via Hidden Subset
-        If form1.byhiddensubset1.checked Then Begin
-
-        End;
-        If Form1.byXYWing1.checked Then Begin
-          fs.LoadFrom(Field);
-          fs.ApplyXY_WingAlgorithm();
-          fs.StoreTo(Field);
-        End;
-        {
-
-          Block and Column / Row Interactions
-          Block / Block Interactions
-          Hidden Subset
-          XY-Wing
-
-        }
-        // Alle Tricks haben eingewirkt nun  schauen wir ob wir nicht doch ne Zahl gefunden haben die gesetzt werden kann ;)
-        // Haben wir eine allein stehende Zahl gefunden dann können wir sie in allen entsprechenden anderen Feldern austragen
-        If Form1.bynakedsingle1.checked Then Begin
-          wieder := True;
-          While wieder Do Begin // Wir löschen so lange zahlen aus den Pencils's bis es nicht mehr geht
-            wieder := false;
-            For x := 0 To 8 Do
-              For y := 0 To 8 Do Begin
-                If (Data[x, y].value = 0) Then Begin
-                  w := 0;
-                  wp.x := -1;
-                  For z := 0 To 8 Do
-                    If Data[x, y].pencil[z] Then Begin
-                      inc(w);
-                      wp.x := z;
-                    End;
-                  // Wir haben eine einzelne Zahl gefunden nun gilt es sie aus allen anderen Zahlen aus zu tragen
-                  If w = 1 Then Begin
-                    weiter := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
-                    // Waagrecht Senkrecht
-                    For z := 0 To 8 Do Begin
-                      If z <> x Then Begin
-                        If Data[z, y].Pencil[wp.x] Then wieder := true;
-                        Data[z, y].Pencil[wp.x] := false;
-                      End;
-                      If z <> y Then Begin
-                        If Data[x, z].Pencil[wp.x] Then wieder := true;
-                        Data[x, z].Pencil[wp.x] := false;
-                      End;
-                    End;
-                    // Die 9 er Block's
-                    z := wp.x;
-                    wp.x := x - x Mod 3;
-                    wp.y := y - y Mod 3;
-                    For x1 := 0 To 2 Do
-                      For y1 := 0 To 2 Do
-                        If ((wp.x + x1) <> x) And ((wp.y + y1) <> y) Then Begin
-                          If data[wp.x + x1, wp.y + y1].pencil[z] Then wieder := true;
-                          data[wp.x + x1, wp.y + y1].pencil[z] := false;
-                        End;
-                  End;
-                End;
-              End;
-          End;
-          //If Weiter Then Goto schlus;}
-          // Alle Tricks haben eingewirkt nun  schauen wir ob wir nicht doch ne Zahl gefunden haben die gesetzt werden kann ;)
-          For x := 0 To 8 Do // Wir suchen einfach ein Feld das nur noch einen einzigen Pencil wert hat.
-            For y := 0 To 8 Do Begin
-              If Data[x, y].value = 0 Then Begin
-                w := 0; // Speichern der Zahl die alleine ist
-                wp.x := 0; // Speichern ob die Zahl wirklich alleine ist ;)
-                For z := 0 To 8 Do // anschauen der Pencil's
-                  // Das Feld selbst darf aber auch nicht schon belegt sein, die Pencil erstell Procedur berechnet das nicht
-                  If Data[x, y].pencil[z] Then Begin
-                    w := z;
-                    inc(wp.x);
-                  End;
-                If Wp.x = 1 Then Begin
-                  weiter := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
-                  WriteNumber(x, y, w + 1);
-                  // Löschen dieser Zahl aus den Pencil daten der anderen
-                  // Waagrecht Senkrecht
-                  wp.x := w;
-                  For z := 0 To 8 Do Begin
-                    Data[z, y].Pencil[wp.x] := false;
-                    Data[x, z].Pencil[wp.x] := false;
-                  End;
-                  // Im  9er Block
-                  z := wp.x;
-                  wp.x := x - x Mod 3;
-                  wp.y := y - y Mod 3;
-                  For x1 := 0 To 2 Do
-                    For y1 := 0 To 2 Do
-                      data[wp.x + x1, wp.y + y1].pencil[z] := false;
-                  setfocus(x, y); // mitziehen des Cursors damit der User weis was wir gemacht haben
-                  // Neustart der Ki
-                  Goto schlus;
-                End;
-              End;
-            End;
-        End;
-      End;
-    End;
-    // Hilft alles nichts so mus der Zufall Helfen
-    If form1.bytryanderror1.checked Then Begin
-      // Ist ausgelagert , da es eine ganz eigene Art von lösen ist
-      fs.LoadFrom(data);
-      aFormclose := false;
-      zwangsabbruch := false;
-      If Not form6.visible Then Begin
-        aFormclose := true;
-        form6.show;
-      End;
-      If Not fs.FillWithSolvedValues(@OnLCLUpdateEvent) Then Begin
-        Zwangsabbruch := true;
-        If aFormclose And form6.visible Then Form6.close;
-        showmessage('This Sudoku is impossible to solve');
-      End;
-      If aFormclose And form6.visible Then Form6.close;
-      fs.StoreTo(data);
-      weiter := false; // Danach braucht nichts mehr Probiert werden
-    End;
-    Schlus:
-    fs.LoadFrom(Data);
-    If Step Or (Not weiter) Or fs.IsFullyFilled Then b := false;
-  End;
-  If Not invisible Then Begin
-    // Demarkieren aller Felder
-    For x := 0 To 8 Do
-      For y := 0 To 8 Do Begin
-        Data[x, y].marked := false;
-      End;
-    // Schauen ob irgendwelche Zahlen schon komplett sind
-    For x1 := 1 To 9 Do
-      zah[x1] := 0;
-    For x1 := 0 To 8 Do
-      For y1 := 0 To 8 Do
-        If Data[x1, y1].value <> 0 Then
-          inc(zah[Data[x1, y1].value]);
-    For x1 := 1 To 9 Do
-      If zah[x1] = 9 Then Begin
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
-        For x := 0 To 8 Do
-          For y := 0 To 8 Do
-            Data[x, y].marked := false;
-      End
-      Else Begin
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
-      End;
-    form1.PaintBox1.Invalidate;
-  End;
-  fs.free;
 End;
 
 // Auslesen der User.ini
@@ -816,6 +430,22 @@ Begin
   fLinepencil[9 + y][Value - 1] := true;
 End;
 
+Function TForm1.GetSudokuOptions: TSolveOptions;
+Begin
+  // Übernehmen der Solvin Methoden
+  Result := [];
+  If byhiddensingle1.checked Then Result := Result + [soHiddenSingle];
+  If bynakedsingle1.checked Then Result := Result + [soNakedSingle];
+  If byBlockandColumninteractions1.checked Then Result := Result + [soBlockAndColumnInteraction];
+  If byblockandblockinteractions1.checked Then Result := Result + [soBlockAndBlockInteraction];
+  If bynakedsubset1.checked Then Result := Result + [soNakedSubset];
+  If byhiddensubset1.checked Then Result := Result + [soHiddenSubset];
+  If byXWingSwordfish1.checked Then Result := Result + [soXWing];
+  If byXYWing1.checked Then Result := Result + [soXYWing];
+  If ForcingChains1.checked Then Result := Result + [soForcingChains];
+  If bytryanderror1.Checked Then Result := Result + [soTryAndError];
+End;
+
 // Zeichnet das Komplette Spielfeld
 
 Procedure TForm1.Drawfield(Sender: TObject);
@@ -855,7 +485,7 @@ Begin
   Form1.PaintBox1.Canvas.Draw(0, 0, bm);
 End;
 
-Procedure Resetopt;
+Procedure TForm1.Resetopt;
 Var
   x: integer;
 Begin
@@ -881,7 +511,7 @@ End;
 // Diese Procedur benötigt ein Vollständiges Sudoku in der variable Field
 // Dieses wir dann mit Hilfe von Solve umgewandelt in ein noch zu lösendes Sudoku
 
-Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
+Procedure TForm1.HackSudoku(Var Data: T3Field; Direction: Integer);
 Const
   MaxFehlercount = 25;
 Var
@@ -928,7 +558,10 @@ Begin
       Data[p.x, p.y].value := 0;
 
       // Lösen des Rätsels
-      form1.Solve(false, true, data);
+      s.LoadFrom(data);
+      s.Solve(false, Form1.GetSudokuOptions - [soTryAndError], @OnLCLUpdateEvent);
+      s.StoreTo(data);
+
       // Schaun ob es lösbar war
       s.LoadFrom(data);
       If Not s.IsFullyFilled Then
@@ -972,12 +605,15 @@ Begin
       End;
     End;
   End;
-  form1.Solve(False, true, tmp);
   s.LoadFrom(tmp);
+  s.Solve(false, Form1.GetSudokuOptions - [soTryAndError], @OnLCLUpdateEvent);
+  //  form1.Solve(False, true, tmp);
+  //  s.LoadFrom(tmp);
   If Not s.IsSolved() Then Begin
     showmessage('Error, something went wrong, sudoku will not be solveable.');
   End;
   s.free;
+  If Form6.Visible Then form6.Close;
 End;
 
 Procedure TForm1.Beenden1Click(Sender: TObject);
@@ -1009,7 +645,8 @@ Begin
   //}
   Constraints.MinHeight := 480;
   Randomize;
-  //  RandSeed := 42; <-- Erzeugt auf den ersten Versuch ein nicht Lösbares 3x3 Sudoku
+  // RandSeed := 42; // -- Enable for testing to get everytime furst the same Sudoku
+  // RandSeed := 128; // -- Enable for testing to get everytime furst the same Sudoku
   ffield := TSudoku.Create(3);
   bm := tbitmap.create;
   bm.width := form1.width;
@@ -1021,7 +658,6 @@ Begin
   mx := 0;
   my := 0;
   Caption := 'Sudoku ver. : ' + ver + ' by Corpsman | www.Corpsman.de |';
-  //PaintBox1.OnKeyPress := OnKeyPress;
 End;
 
 Procedure TForm1.FormResize(Sender: TObject);
@@ -1618,6 +1254,9 @@ End;
 Procedure TForm1.Solveit1Click(Sender: TObject);
 Var
   s: TSudoku;
+  aFormclose: Boolean;
+  zah: Array[1..9] Of integer;
+  x1, y1, x, y: Integer;
 Begin
   s := TSudoku.Create(3);
   s.LoadFrom(field);
@@ -1626,24 +1265,59 @@ Begin
     PaintBox1.Invalidate;
   End
   Else Begin
-    Solve(False, false, field);
-    s.LoadFrom(field);
+    aFormclose := false;
+    zwangsabbruch := false;
+    If Not form6.visible Then Begin
+      aFormclose := true;
+    End;
+    s.Solve(false, GetSudokuOptions(), @OnStepLCLUpdateEvent);
+    s.ResetAllMarker;
+    s.StoreTo(field);
+    getlinepencil(field); // Ermitteln der Korreckten Line pencil's
+
+    // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
+    For x1 := 1 To 9 Do
+      zah[x1] := 0;
+    For x1 := 0 To 8 Do
+      For y1 := 0 To 8 Do
+        If field[x1, y1].value <> 0 Then
+          inc(zah[field[x1, y1].value]);
+    For x1 := 1 To 9 Do
+      If zah[x1] = 9 Then Begin
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
+        For x := 0 To 8 Do
+          For y := 0 To 8 Do
+            field[x, y].marked := false;
+      End
+      Else Begin
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
+      End;
+
+    If aFormclose And form6.visible Then Form6.close;
+
+    PaintBox1.Invalidate;
     If s.isSolved() Then Begin
       Showmessage('Ready');
     End
     Else Begin
       showmessage('Unable to solve');
     End;
-    PaintBox1.Invalidate;
   End;
   s.free;
 End;
 
 Procedure TForm1.Solvestep1Click(Sender: TObject);
 Var
-  a: Boolean;
-  x1: integer;
+  UsedTryError, a, aFormclose: Boolean;
+  x1, x, y, y1: integer;
   s: TSudoku;
+  p: TPoint;
+  zah: Array[1..9] Of integer;
+  options: TSolveOptions;
 Begin
   s := TSudoku.Create(3);
   s.LoadFrom(field);
@@ -1651,27 +1325,64 @@ Begin
     showmessage('Impossible to solve Sudoku');
   End
   Else Begin
-    If form1.bytryanderror1.checked Then Begin
+    Options := GetSudokuOptions();
+    If (soTryAndError In options) Then Begin
       If ID_NO = application.messagebox(pchar('You slected the solving method by try and error.' + LineEnding +
         'If this step is necessary your Sudoku will be completed at all.' + LineEnding + LineEnding +
         'do you want this ?'), 'Question', MB_YESNO + MB_ICONQUESTION) Then Begin
         s.free;
         exit;
       End;
+      aFormclose := false;
+      zwangsabbruch := false;
+      If Not form6.visible Then Begin
+        aFormclose := true;
+      End;
     End;
-    Solve(true, false, field);
-    // Schauen ob Fertig.
+    UsedTryError := s.Solve(true, Options, @OnStepLCLUpdateEvent);
+    s.ResetAllMarker;
+    If (soTryAndError In options) And UsedTryError Then Begin
+      If aFormclose And form6.visible Then Form6.close;
+      If Not s.IsSolved() Then Begin
+        showmessage('This Sudoku is impossible to solve');
+      End;
+    End;
+    s.StoreTo(field);
+    getlinepencil(field); // Ermitteln der Korreckten Line pencil's
+    p := s.StepPos;
+    mx := p.x;
+    my := p.y;
+    // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
+    For x1 := 1 To 9 Do
+      zah[x1] := 0;
+    For x1 := 0 To 8 Do
+      For y1 := 0 To 8 Do
+        If field[x1, y1].value <> 0 Then
+          inc(zah[field[x1, y1].value]);
+    For x1 := 1 To 9 Do
+      If zah[x1] = 9 Then Begin
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
+        For x := 0 To 8 Do
+          For y := 0 To 8 Do
+            field[x, y].marked := false;
+      End
+      Else Begin
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
+      End;
+    // Anzeigen das Fertig
     a := true;
     For x1 := 1 To 9 Do
       If TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled Then a := false;
-    // Zeichnen des Feldes
-    // Anzeigen das Fertig
     If A Then Begin
       mx := -1;
       my := -1;
-      PaintBox1.Invalidate;
       showmessage('You solved the Sudoku.');
     End;
+    PaintBox1.Invalidate;
   End;
   s.free;
 End;
@@ -1722,26 +1433,15 @@ End;
 
 Procedure TForm1.Puzzle1Click(Sender: TObject);
 Begin
-  // Übernehmen der Solvin Methoden
-  form7.checkbox1.checked := byhiddensingle1.checked;
-  form7.checkbox2.checked := bynakedsingle1.checked;
-  form7.checkbox3.checked := byBlockandColumninteractions1.checked;
-  form7.checkbox4.checked := byblockandblockinteractions1.checked;
-  form7.checkbox5.checked := bynakedsubset1.checked;
-  form7.checkbox6.checked := byhiddensubset1.checked;
-  form7.checkbox7.checked := byXWingSwordfish1.checked;
-  form7.checkbox8.checked := byXYWing1.checked;
-  form7.checkbox9.checked := ForcingChains1.checked;
   // Deaktivieren für das Drucken
-  If Sender <> Nil Then Begin
-    Form7.init(ffield, @RefreshField);
-    Form7.showmodal;
-    ffield.CloneFieldFrom(form7.Sudoku);
-    ffield.StoreTo(Field);
-    // Nach dem Schliesen sollte das Hauptfenster wieder aktiviert werden
-    Form1.SetFocus;
-    PaintBox1.Invalidate;
-  End;
+  If Not assigned(Sender) Then exit; // TODO: dass kann raus, wenn der Druck Dialog repariert ist
+  Form7.init(ffield, @RefreshField, GetSudokuOptions());
+  Form7.showmodal;
+  ffield.CloneFieldFrom(form7.Sudoku);
+  ffield.StoreTo(Field);
+  // Nach dem Schliesen sollte das Hauptfenster wieder aktiviert werden
+  Form1.SetFocus;
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.Maybenumbersgoodnumbers1Click(Sender: TObject);
@@ -1776,7 +1476,7 @@ End;
 
 Procedure TForm1.Print1Click(Sender: TObject);
 Begin
-  form9.init(ffield);
+  form9.init(ffield, GetSudokuOptions());
   Form9.showmodal;
 End;
 
@@ -1829,6 +1529,15 @@ End;
 
 Function TForm1.OnLCLUpdateEvent: Boolean;
 Begin
+  Application.ProcessMessages;
+  result := zwangsabbruch;
+End;
+
+Function TForm1.OnStepLCLUpdateEvent: Boolean;
+Begin
+  If Not Form6.Visible Then Begin
+    form6.Show;
+  End;
   Application.ProcessMessages;
   result := zwangsabbruch;
 End;

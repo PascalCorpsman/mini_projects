@@ -53,10 +53,13 @@ Type
     { Private-Deklarationen }
     fField: TSudoku;
     fRepaintEvent: TNotifyEvent;
+    fOptions: TSolveOptions;
+    Function OnLCLUpdateEvent: Boolean;
   public
     { Public-Deklarationen }
     Property Sudoku: TSudoku read fField;
-    Procedure Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent);
+    Procedure Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent;
+      aOptions: TSolveOptions);
   End;
 
 Var
@@ -65,8 +68,8 @@ Var
 Implementation
 
 Uses
-  unit1
-  , Unit6
+  unit1,
+  Unit6
   ;
 
 {$R *.lfm}
@@ -109,7 +112,7 @@ Begin
     End;
     If Visible Then
       Visible := false; // Keiner soll die Unit7 von jetzt ab mehr sehn.
-    Resetopt; // Rücksetzen der Graphischen Objecte
+    form1.Resetopt; // Rücksetzen der Graphischen Objecte
     zwangsabbruch := false; // Es gibt while schleifen die sind nicht Sicher, dann mus Abgebrochen werden können.
     Form6.show; // Anzeige Abbrechen Dialog
     Application.ProcessMessages;
@@ -142,7 +145,7 @@ Begin
    // Drawfield; // Löschen der Anzeige auf der Form 1
    // Dafür sorgen das wir auf alle Fälle jedesmal eine andere Startposition haben
     For z := 1 To Numbercount Do Begin
-      F.ResetAllMarker;
+      F.ResetAllMarkerAndPencils;
       x := random(9); // Die neuen Koordinaten
       y := random(9); // Die neuen Koordinaten
       n := Random(9) + 1; // Die eingefügte Zahl
@@ -176,9 +179,11 @@ Begin
       byXYWing1.checked := true;
       ForcingChains1.checked := true;
     End;
-    f.StoreTo(tmpf);
-    form1.Solve(false, True, tmpf);
-    f.LoadFrom(tmpf);
+    //    f.StoreTo(tmpf);
+    //    form1.Solve(false, True, tmpf);
+    //    f.LoadFrom(tmpf);
+    f.solve(false, AllSolveOptions, @OnLCLUpdateEvent);
+
     If Not f.IsFullyFilled() And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
       Goto rein;
     End;
@@ -199,10 +204,10 @@ Begin
     End;
     f.StoreTo(tmpf);
     If checkbox10.checked Then Begin
-      HackSudoku(tmpf, random(4))
+      form1.HackSudoku(tmpf, random(4))
     End
     Else Begin
-      HackSudoku(tmpf);
+      form1.HackSudoku(tmpf);
     End;
     f.LoadFrom(tmpf);
     // Zurücksetzen der Try Error Methode
@@ -298,11 +303,28 @@ Begin
   button1.setfocus;
 End;
 
-Procedure TForm7.Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent);
+Function TForm7.OnLCLUpdateEvent: Boolean;
+Begin
+  Application.ProcessMessages;
+  result := zwangsabbruch;
+End;
+
+Procedure TForm7.Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent;
+  aOptions: TSolveOptions);
 Begin
   fField.Free;
   fField := TSudoku.Create(aField.Dimension);
   fRepaintEvent := RepaintEvent;
+  fOptions := aOptions;
+  CheckBox1.Checked := soHiddenSingle In aOptions;
+  CheckBox2.Checked := soNakedSingle In aOptions;
+  CheckBox3.Checked := soBlockAndColumnInteraction In aOptions;
+  CheckBox4.Checked := soBlockAndBlockInteraction In aOptions;
+  CheckBox5.Checked := soNakedSubset In aOptions;
+  CheckBox6.Checked := soHiddenSubset In aOptions;
+  CheckBox7.Checked := soXWing In aOptions;
+  CheckBox8.Checked := soXYWing In aOptions;
+  CheckBox9.Checked := soForcingChains In aOptions;
 End;
 
 End.

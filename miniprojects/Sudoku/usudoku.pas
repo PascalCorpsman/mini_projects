@@ -39,9 +39,9 @@ Type
    *)
   TLCLUpdateEvent = Function(): Boolean Of Object;
 
-  T3Pencil = Array[0..8] Of Boolean;
+  T3Pencil = Array[0..8] Of Boolean; // TODO: Entfernen
 
-  T3SubField = Record
+  T3SubField = Record // TODO: Entfernen
     Value: integer;
     Marked: Boolean;
     Maybeed: Boolean;
@@ -49,10 +49,10 @@ Type
     Pencil: T3pencil;
   End;
 
-  T3Field = Array[0..8] Of Array[0..8] Of T3subfield;
+  T3Field = Array[0..8] Of Array[0..8] Of T3subfield; // TODO: Entfernen
 
   // die Line Pencils welche extra erstellt werden
-  TLinepencil = Array[0..17] Of T3Pencil;
+  TLinepencil = Array[0..17] Of T3Pencil; // TODO: Entfernen
 
   TPencil = Array Of Boolean;
 
@@ -65,6 +65,39 @@ Type
     NumberMarks: Array Of Boolean;
     LinePencil: Array Of TPencil; // 0.. fsqrDim -1 = Waagrecht drüber, fsqrDim .. 2*fsqrDim -1 = Senkrecht Rechts daneben
   End;
+
+Type
+  TSolveOption =
+    (
+    soHiddenSingle
+    , soNakedSingle
+    , soBlockAndColumnInteraction
+    , soBlockAndBlockInteraction
+    , soNakedSubset
+    , soHiddenSubset
+    , soXWing
+    , soXYWing
+    , soForcingChains
+    , soTryAndError // Bruteforce
+    );
+
+  TSolveOptions = Set Of TSolveOption;
+
+Const
+  AllSolveOptions: TSolveOptions = [// Eine Konstante, welche immer alle Solve Options hat (incl. Bruteforce !)
+  soHiddenSingle
+    , soNakedSingle
+    , soBlockAndColumnInteraction
+    , soBlockAndBlockInteraction
+    , soNakedSubset
+    , soHiddenSubset
+    , soXWing
+    , soXYWing
+    , soForcingChains
+    , soTryAndError
+    ];
+
+Type
 
   { TPencilhelper }
 
@@ -86,13 +119,22 @@ Type
   private
     fField: Tfield;
     fDim, fsqrDim: integer;
+    fStepPos: TPoint; // Wird Solve mit Step = True aufgerufen, dann wird hier die Position angezeigt, an der die Änderung vorgenommen wurde.
 
     Function Clone: TSudoku;
     Function getValue(x, y: integer): integer;
+    (*
+     * Wenn Step = True, dann setzen die Algorithmen immer nur maximal 1 Feld
+     *)
+    Function ApplyHiddenSingleAlgorithm(Step: Boolean): Boolean; // True, wenn mindestens 1 Feld "gesetzt" wurde, sonst false
+    Function ApplyNakedSubsetAlgorithm(): Boolean;
+    Function ApplyNakedSingleAlgorithm(Step: Boolean): Boolean;
+
   public
 
     Property Dimension: integer read fDim;
     Property Value[x, y: integer]: integer read getValue;
+    Property StepPos: Tpoint read fStepPos; // Nur Gültig, wenn solve vorher aufgerufen wurden !
 
     Constructor Create(aDimension: integer); virtual;
     Destructor Destroy; override;
@@ -104,6 +146,7 @@ Type
 
     Procedure Mark(Number: integer);
     Procedure ResetAllMarker;
+    Procedure ResetAllMarkerAndPencils;
 
     Function IsMarked(x, y: Integer): Boolean;
     Function IsFullyFilled(): Boolean; // True, wenn alle Value's <> 0, ohne Checks ob tatsächlich gültig (nur für Algorithmen geeignet)
@@ -116,12 +159,16 @@ Type
 
     Procedure ResetAllNumberPencils;
     Procedure ClearAllNumberPencils; // TODO: Der Name ist missverständlich, gemeint ist, dass alle Pencils weg gestrichen werden die via "Values <> 0" irgendwo definiert sind !
-    Procedure ApplyHiddenSubsetAlgorithm();
-    Procedure ApplyXY_WingAlgorithm();
+    Procedure ApplyHiddenSubsetAlgorithm(); // TODO: Sollte das nicht Private werden ?
+    Procedure ApplyXY_WingAlgorithm(); // TODO: Sollte das nicht Private werden ?
 
     Function FillWithSolvedValues(Const UpdateEvent: TLCLUpdateEvent): Boolean; // Erzeugt via Bruteforce ein Komplett gefülltes Feld, false wenn das nicht geklappt hat..
 
     Procedure CloneFieldFrom(Const aSudoku: TSudoku);
+
+    // Ist Step = True dann wird nur ein Step gemacht bei step = False, wird das Rätsel Komplett gelöst.
+    // Wenn result = true, dann wurde Try and Error verwendet
+    Function Solve(Step: Boolean; Const aOptions: TSolveOptions; Const UpdateEvent: TLCLUpdateEvent): Boolean;
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
@@ -513,6 +560,17 @@ End;
 
 Procedure TSudoku.ResetAllMarker;
 Var
+  i, j: Integer;
+Begin
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      fField[i, j].Marked := false;
+    End;
+  End;
+End;
+
+Procedure TSudoku.ResetAllMarkerAndPencils;
+Var
   i, j, k: Integer;
 Begin
   For i := 0 To fsqrDim - 1 Do Begin
@@ -624,10 +682,15 @@ Begin
 End;
 
 Procedure TSudoku.SetValue(x, y, aValue: integer; Fixed: Boolean);
+Var
+  i: Integer;
 Begin
   fField[x, y].Value := aValue;
   If avalue <> 0 Then Begin
     fField[x, y].Fixed := Fixed;
+    For i := 0 To fsqrDim - 1 Do Begin
+      fField[x, y].Pencil[i] := false;
+    End;
   End
   Else Begin
     fField[x, y].Fixed := false;
@@ -876,10 +939,13 @@ Procedure TSudoku.ResetAllNumberPencils;
 Var
   i, j, k: Integer;
 Begin
-  For i := 0 To fsqrDim - 1 Do
-    For j := 0 To fsqrDim - 1 Do
-      For k := 0 To fsqrDim - 1 Do
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      For k := 0 To fsqrDim - 1 Do Begin
         ffield[i, j].Pencil[k] := true;
+      End;
+    End;
+  End;
 End;
 
 Procedure TSudoku.ClearAllNumberPencils;
@@ -1162,7 +1228,7 @@ Begin
   If IsSolveable() Then Begin
     starty := random(fsqrDim);
     zwangsabbruch := false;
-    ResetAllMarker(); // Reset Aller Marker
+    ResetAllMarkerAndPencils(); // Reset Aller Marker
     //    stack := Nil; // Initialisieren des Stack's
     stack := TSudokuStack.Create;
     stack.Push(Clone); // Start für die Breitensuche
@@ -1253,6 +1319,81 @@ Begin
   End;
 End;
 
+Function TSudoku.Solve(Step: Boolean; Const aOptions: TSolveOptions;
+  Const UpdateEvent: TLCLUpdateEvent): Boolean;
+Label
+  Schlus;
+Var
+  ssolve, weiter, b: Boolean;
+Begin
+  result := false;
+  fStepPos := Point(-1, -1);
+  b := true; // start der Endlosschleife
+  While b Do Begin
+    weiter := false; // Wird von jedem Allgorithmus der was verändert auf True gesetzt damit es weiter gehen kann, und gleichzeitig immer nur einer am Werk ist
+    // Ermitteln der weiteren Nummern via Markierend er Nummern
+    If soHiddenSingle In aOptions Then Begin
+      If ApplyHiddenSingleAlgorithm(step) Then Begin
+        weiter := true;
+        Goto Schlus;
+      End;
+    End;
+    If (
+      (soNakedSingle In aOptions) Or
+      (soNakedSubset In aOptions) Or
+      (soHiddenSubset In aOptions) Or
+      (soXYWing In aOptions)
+      // Theoretisch gibt es hier noch mehr, aber die sind noch nicht implementiert ?!
+      ) Then Begin
+      // Ab jetzt geht's an's eingemachte, zur Vorbereitung brauchen wir aber Korreckte Pencil's
+      ResetAllMarkerAndPencils;
+      ssolve := true; // Da unser System recht Kompliziert ist müssen wir es auch oft woederholen
+      While ssolve Do Begin
+        ClearAllNumberPencils; // Ermitteln der Pencil's in den Feldern
+        ssolve := false; // Aber nicht zu oft wiederhohlen
+        If (soHiddenSubset In aOptions) Then ApplyHiddenSubsetAlgorithm();
+        // Nachdem wir nun gute Vorraussetzungen Geschaffen haben, können wir mit unseren Tricks loslegen
+        If (soNakedSubset In aOptions) Then Begin
+          If ApplyNakedSubsetAlgorithm() Then Begin
+            ssolve := true;
+          End;
+        End;
+        // das Lösen via Hidden Subset
+        If (soHiddenSubset In aOptions) Then Begin
+
+        End;
+        If (soXYWing In aOptions) Then Begin
+          ApplyXY_WingAlgorithm();
+        End;
+        {
+
+          Block and Column / Row Interactions
+          Block / Block Interactions
+          Hidden Subset
+          XY-Wing
+
+        }
+        // Alle Tricks haben eingewirkt nun  schauen wir ob wir nicht doch ne Zahl gefunden haben die gesetzt werden kann ;)
+        // Haben wir eine allein stehende Zahl gefunden dann können wir sie in allen entsprechenden anderen Feldern austragen
+        If (soNakedSingle In aOptions) Then Begin
+          If ApplyNakedSingleAlgorithm(step) Then Begin
+            weiter := true;
+            Goto Schlus;
+          End;
+        End;
+      End;
+    End;
+    // Hilft alles nichts so mus der Zufall Helfen
+    If (soTryAndError In aOptions) Then Begin
+      result := true;
+      FillWithSolvedValues(UpdateEvent); // Das Ergebnis ist uns egal, da kümmert sich eh der Aufrufer drum..
+      weiter := false; // Danach braucht nichts mehr Probiert werden
+    End;
+    Schlus:
+    If Step Or (Not weiter) Or IsFullyFilled Then b := false;
+  End;
+End;
+
 Function TSudoku.getValue(x, y: integer): integer;
 Begin
   result := -1;
@@ -1260,6 +1401,272 @@ Begin
     (y In [0..fsqrDim - 1]) Then Begin
     result := fField[x, y].Value;
   End;
+End;
+
+Function TSudoku.ApplyHiddenSingleAlgorithm(Step: Boolean): Boolean;
+Var
+  ap: TPoint;
+  number, BlockX, BlockY, occurrence, x, y: Integer;
+Begin
+  result := false;
+  For number := 1 To fsqrDim Do Begin // Probieren von allen Zahlen
+    // zuerst löschen aller markierungen
+    ResetAllMarker;
+    // Markieren der Zahl number
+    Mark(number);
+    // Absuchen der 9er blocks ob da irgendwo ne Freie Zahl ist
+    For BlockX := 0 To fDim - 1 Do Begin
+      For BlockY := 0 To fDim - 1 Do Begin
+        occurrence := 0;
+        For x := 0 To fDim - 1 Do Begin
+          For y := 0 To fDim - 1 Do Begin
+            // Wenn wir ein Leeres Feld gefunden haben, zählen wir in occurrence das wievielte es ist, und speichern dessen koordinaten
+            If Not (fField[BlockX * fDim + x, BlockY * fDim + y].marked) Then Begin
+              inc(occurrence);
+              ap := point(BlockX * fDim + x, BlockY * fDim + y);
+            End;
+          End;
+        End;
+        // Es wurde nur ein Leeres Feld gefunden , damit ist dieser Step erledigt.
+        If occurrence = 1 Then Begin
+          result := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
+          SetValue(ap.x, ap.y, number, false);
+          fStepPos := ap; // mitziehen des Cursors damit der User weis was wir gemacht haben
+          If step Then exit;
+        End;
+      End;
+    End;
+  End;
+End;
+
+Function TSudoku.ApplyNakedSubsetAlgorithm: Boolean;
+Var
+  ap: TPoint;
+  nochmal: Boolean;
+  z, x, y, w, y3, x1, y1, x2, y2: Integer;
+  zah: Array[1..9] Of integer;
+Begin
+  result := false;
+  // Wir suchen alle Pencil's raus die Gleich sind, finden wir welche dann können diese dann bei den anderen gelöscht werden
+  nochmal := true;
+  While nochmal Do Begin
+    nochmal := false; // Abbruch
+    // Betrachten der 9 Spalten
+    For z := 0 To 8 Do Begin
+      ap.x := -1;
+      For x := 0 To 8 Do Begin
+        // Keines der Felder ist bis jetzt betrachtet worden
+        For y := 1 To 9 Do
+          zah[y] := 0;
+        // Prüfen des Aktuellen Feldes mit allen anderen
+        For y := 0 To 8 Do
+          If X <> y Then // nicht mit sich selbst vergleichen
+            If PencilEqual(fField[z, x].Pencil, fField[z, y].pencil) And (fField[z, x].value = 0) And (fField[z, y].value = 0) Then Begin // Sind die Pencil's gleich
+              ap.x := GetSetPencilscount(fField[z, x].Pencil); // speichern der Anzahl der Pencil's
+              zah[x + 1] := 1;
+              zah[y + 1] := 1;
+            End;
+        // Ermitteln der Anzahl der gefunden Felder
+        w := 0;
+        For y3 := 1 To 9 Do
+          If Zah[y3] = 1 Then inc(w);
+        // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefunden , d.h. wir können deren Werte nun löschen
+        If (W = ap.x) And (w > 1) Then Begin
+          For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den zu löschenden Pencils
+            If Zah[y3] = 1 Then Begin
+              w := y3 - 1;
+              break;
+            End;
+          // Löschen der Pencil werte der anderen Felder
+          For y3 := 0 To 8 Do
+            If Zah[y3 + 1] <> 1 Then
+              For y := 0 To 8 Do
+                If fField[z, w].pencil[y] And fField[z, y3].pencil[y] Then Begin
+                  fField[z, y3].pencil[y] := false; // Es gab tatsächlich was zu löschen
+                  nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
+                  result := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
+                End;
+        End;
+      End;
+    End;
+    // betrachten der 9er Bklock's
+    For x1 := 0 To 2 Do
+      For y1 := 0 To 2 Do Begin
+        ap.x := -1;
+        For x := 0 To 2 Do
+          For y := 0 To 2 Do Begin
+            // Keines der Felder ist bis jetzt betrachtet worden
+            For z := 1 To 9 Do
+              zah[z] := 0;
+            // Prüfen des Actuellen Feldes mit allen anderen
+            For x2 := 0 To 2 Do
+              For y2 := 0 To 2 Do
+                //nicht mit sich selbst vergleichen
+                If Not ((x2 = x) And (y = y2)) Then
+                  If PencilEqual(fField[x1 * 3 + x, y1 * 3 + y].pencil, fField[x1 * 3 + x2, y1 * 3 + y2].pencil) And (fField[x1 * 3 + x, y1 * 3 + y].value = 0) And (fField[x1 * 3 + x2, y1 * 3 + y2].value = 0) Then Begin
+                    //                            inc(w);
+                    ap.x := GetSetPencilscount(fField[x1 * 3 + x, y1 * 3 + y].pencil);
+                    zah[(x2 + y2 * 3) + 1] := 1; // Markieren der Felder deren Werte nachher nicht gelöscht werden dürfen
+                    zah[(x + y * 3) + 1] := 1; // Markieren der Felder deren Werte nachher nicht gelöscht werden dürfen
+                  End;
+            w := 0;
+            For y2 := 1 To 9 Do
+              If Zah[y2] = 1 Then inc(w);
+            // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
+            If (W = ap.x) And (w > 1) Then Begin
+              For x2 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
+                If Zah[x2] = 1 Then Begin
+                  w := x2 - 1;
+                  ap.x := w Mod 3;
+                  ap.y := w Div 3;
+                  break;
+                End;
+              For x2 := 0 To 2 Do
+                For y3 := 0 To 2 Do
+                  If Zah[(x2 + y3 * 3) + 1] <> 1 Then
+                    // Löschen der Pencil einträge
+                    For y2 := 0 To 8 Do Begin
+                      If fField[x1 * 3 + ap.x, y1 * 3 + ap.y].pencil[y2] And fField[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] Then Begin
+                        fField[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] := false; // Es gab tatsächlich was zu löschen
+                        nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
+                        result := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
+                      End;
+                    End;
+            End;
+          End;
+      End;
+    // Betrachten der 9 Reihen
+    For z := 0 To 8 Do Begin
+      // Keines der Felder ist bis jetzt betrachtet worden
+      For x := 1 To 9 Do
+        zah[x] := 0;
+      ap.x := -1;
+      For x := 0 To 8 Do Begin
+        // Keines der Felder ist bis jetzt betrachtet worden
+        For y := 1 To 9 Do
+          zah[y] := 0;
+        // Prüfen des Actuellen Feldes mit allen anderen
+        For y := 0 To 8 Do
+          If X <> y Then // nicht mit sich selbst vergleichen
+            If PencilEqual(fField[x, z].Pencil, fField[y, z].pencil) And (fField[x, z].value = 0) And (fField[y, z].value = 0) Then Begin // Sind die Pencil's gleich
+              ap.x := GetSetPencilscount(fField[x, z].Pencil); // speichern der Anzahl der Pencil's
+              zah[x + 1] := 1;
+              zah[y + 1] := 1;
+            End;
+        // Ermitteln der Anzahl der Gefundenen Felder
+        w := 0;
+        For y3 := 1 To 9 Do
+          If Zah[y3] = 1 Then inc(w);
+        // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
+        If (W = ap.x) And (w > 1) Then Begin
+          For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
+            If Zah[y3] = 1 Then Begin
+              w := y3 - 1;
+              break;
+            End;
+          // Löschen der Pencil werte der anderen Felder
+          For y3 := 0 To 8 Do
+            If Zah[y3 + 1] <> 1 Then
+              For y := 0 To 8 Do
+                If fField[w, z].pencil[y] And fField[y3, z].pencil[y] Then Begin
+                  fField[y3, z].pencil[y] := false; // Es gab tatsächlich was zu löschen
+                  nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
+                  result := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
+                End;
+        End;
+      End;
+    End;
+  End;
+End;
+
+Function TSudoku.ApplyNakedSingleAlgorithm(Step: Boolean): Boolean;
+Var
+  ap: TPoint;
+  wieder: Boolean;
+  x, y, z, w, x1, y1: Integer;
+Begin
+  result := false;
+  wieder := True;
+  While wieder Do Begin // Wir löschen so lange zahlen aus den Pencils's bis es nicht mehr geht
+    wieder := false;
+    For x := 0 To 8 Do
+      For y := 0 To 8 Do Begin
+        If (fField[x, y].value = 0) Then Begin
+          w := 0;
+          ap.x := -1;
+          For z := 0 To 8 Do
+            If fField[x, y].pencil[z] Then Begin
+              inc(w);
+              ap.x := z;
+            End;
+          // Wir haben eine einzelne Zahl gefunden nun gilt es sie aus allen anderen Zahlen aus zu tragen
+          If w = 1 Then Begin
+            result := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
+            // Waagrecht Senkrecht
+            For z := 0 To 8 Do Begin
+              If z <> x Then Begin
+                If fField[z, y].Pencil[ap.x] Then wieder := true;
+                fField[z, y].Pencil[ap.x] := false;
+              End;
+              If z <> y Then Begin
+                If fField[x, z].Pencil[ap.x] Then wieder := true;
+                fField[x, z].Pencil[ap.x] := false;
+              End;
+            End;
+            // Die 9 er Block's
+            z := ap.x;
+            ap.x := x - x Mod 3;
+            ap.y := y - y Mod 3;
+            For x1 := 0 To 2 Do
+              For y1 := 0 To 2 Do
+                If ((ap.x + x1) <> x) And ((ap.y + y1) <> y) Then Begin
+                  If fField[ap.x + x1, ap.y + y1].pencil[z] Then wieder := true;
+                  fField[ap.x + x1, ap.y + y1].pencil[z] := false;
+                End;
+          End;
+        End;
+      End;
+  End;
+  //If Weiter Then Goto schlus;}
+  // Alle Tricks haben eingewirkt nun  schauen wir ob wir nicht doch ne Zahl gefunden haben die gesetzt werden kann ;)
+  For x := 0 To 8 Do // Wir suchen einfach ein Feld das nur noch einen einzigen Pencil wert hat.
+    For y := 0 To 8 Do Begin
+      If fField[x, y].value = 0 Then Begin
+        w := 0; // Speichern der Zahl die alleine ist
+        ap.x := 0; // Speichern ob die Zahl wirklich alleine ist ;)
+        For z := 0 To 8 Do // anschauen der Pencil's
+          // Das Feld selbst darf aber auch nicht schon belegt sein, die Pencil erstell Procedur berechnet das nicht
+          If fField[x, y].pencil[z] Then Begin
+            w := z;
+            inc(ap.x);
+          End;
+        If ap.x = 1 Then Begin
+          //                  weiter := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
+          //                  WriteNumber(x, y, w + 1);
+          SetValue(x, y, w + 1, false);
+          // Löschen dieser Zahl aus den Pencil daten der anderen
+          // Waagrecht Senkrecht
+          ap.x := w;
+          For z := 0 To 8 Do Begin
+            fField[z, y].Pencil[ap.x] := false;
+            fField[x, z].Pencil[ap.x] := false;
+          End;
+          // Im  9er Block
+          z := ap.x;
+          ap.x := x - x Mod 3;
+          ap.y := y - y Mod 3;
+          For x1 := 0 To 2 Do
+            For y1 := 0 To 2 Do
+              fField[ap.x + x1, ap.y + y1].pencil[z] := false;
+          //          setfocus(x, y);
+          fStepPos := point(x, y); // mitziehen des Cursors damit der User weis was wir gemacht haben
+          // Neustart der Ki
+//                  Goto schlus;
+          result := true;
+          If step Then exit;
+        End;
+      End;
+    End;
 End;
 
 Procedure TSudoku.LoadFrom(Const f: T3Field);

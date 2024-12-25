@@ -43,9 +43,10 @@ Type
   private
     { Private-Deklarationen }
     fField: TSudoku;
+    fOptions: TSolveOptions;
   public
     { Public-Deklarationen }
-    Procedure Init(Const aField: TSudoku);
+    Procedure Init(Const aField: TSudoku; aOptions: TSolveOptions);
   End;
 
 Var
@@ -207,7 +208,7 @@ Begin
     // Einstellen der Erstelloptionen
     s := TSudoku.Create(fField.Dimension);
     form1.Puzzle1Click(Nil);
-    form7.Init(s, Nil); // Das muss nach form1.Puzzle1Click(Nil); kommen !
+    form7.Init(s, Nil, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
     // Erstellen eines neuen Feldes
     form7.Button1Click(Nil);
     s.CloneFieldFrom(form7.Sudoku);
@@ -272,16 +273,16 @@ Begin
     For z := 0 To 3 Do Begin
       // Einstellen der Erstelloptionen
       form1.Puzzle1Click(Nil);
-      form7.Init(s, Nil); // Das muss nach form1.Puzzle1Click(Nil); kommen !
+      form7.Init(s, Nil, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
       // Erstellen eines neuen Feldes
       form7.Button1Click(Nil);
       // Speichern der Sudoku's
       s.CloneFieldFrom(form7.Sudoku);
       // Falls die Pencil's auch gewünscht sind
-       If checkbox1.checked Then Begin
-         s.ResetAllNumberPencils;
-         s.ClearAllNumberPencils;
-       End;
+      If checkbox1.checked Then Begin
+        s.ResetAllNumberPencils;
+        s.ClearAllNumberPencils;
+      End;
       s.StoreTo(daten[z]);
       // Falls Abgebrochen wird
       If Zwangsabbruch Then break;
@@ -347,7 +348,7 @@ Begin
     For z := 0 To 5 Do Begin
       // Einstellen der Erstelloptionen
       form1.Puzzle1Click(Nil);
-      form7.Init(s, Nil); // Das muss nach form1.Puzzle1Click(Nil); kommen !
+      form7.Init(s, Nil, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
       // Erstellen eines neuen Feldes
       form7.Button1Click(Nil);
       // Speichern der Sudoku's
@@ -402,14 +403,13 @@ Begin
   End;
 End;
 
-Procedure TForm9.Init(Const aField: TSudoku);
+Procedure TForm9.Init(Const aField: TSudoku; aOptions: TSolveOptions);
 Begin
   fField.Free;
   fField := TSudoku.Create(aField.Dimension);
   fField.CloneFieldFrom(aField);
+  fOptions := aOptions;
 End;
 
 End.
-
-
 
