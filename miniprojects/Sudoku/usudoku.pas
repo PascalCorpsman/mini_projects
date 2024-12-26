@@ -1118,7 +1118,7 @@ Begin
                     // es hat tatsächlich geklappt
                     If PencilEqual(penc1, penc2) And (GetSetPencilscount(penc1) = 1) Then Begin
                       // Das ist klar das das immer geht
-                      For z3 := 0 To 8 Do
+                      For z3 := 0 To fsqrDim - 1 Do
                         If Penc1[z3] Then Begin
                           fField[z, z1].pencil[z3] := false;
                         End;
@@ -1444,22 +1444,24 @@ Var
   ap: TPoint;
   nochmal: Boolean;
   z, x, y, w, y3, x1, y1, x2, y2: Integer;
-  zah: Array[1..9] Of integer;
+  zah: Array Of integer;
 Begin
+  zah := Nil;
+  setlength(zah, fsqrDim + 1); // Stelle 0 wird ignoriert und direkt mit 1 .. fsqrDim gearbeitet
   result := false;
   // Wir suchen alle Pencil's raus die Gleich sind, finden wir welche dann können diese dann bei den anderen gelöscht werden
   nochmal := true;
   While nochmal Do Begin
     nochmal := false; // Abbruch
     // Betrachten der 9 Spalten
-    For z := 0 To 8 Do Begin
+    For z := 0 To fsqrDim - 1 Do Begin
       ap.x := -1;
-      For x := 0 To 8 Do Begin
+      For x := 0 To fsqrDim - 1 Do Begin
         // Keines der Felder ist bis jetzt betrachtet worden
-        For y := 1 To 9 Do
+        For y := 1 To fsqrDim Do
           zah[y] := 0;
         // Prüfen des Aktuellen Feldes mit allen anderen
-        For y := 0 To 8 Do
+        For y := 0 To fsqrDim - 1 Do
           If X <> y Then // nicht mit sich selbst vergleichen
             If PencilEqual(fField[z, x].Pencil, fField[z, y].pencil) And (fField[z, x].value = 0) And (fField[z, y].value = 0) Then Begin // Sind die Pencil's gleich
               ap.x := GetSetPencilscount(fField[z, x].Pencil); // speichern der Anzahl der Pencil's
@@ -1468,19 +1470,19 @@ Begin
             End;
         // Ermitteln der Anzahl der gefunden Felder
         w := 0;
-        For y3 := 1 To 9 Do
+        For y3 := 1 To fsqrDim Do
           If Zah[y3] = 1 Then inc(w);
         // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefunden , d.h. wir können deren Werte nun löschen
         If (W = ap.x) And (w > 1) Then Begin
-          For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den zu löschenden Pencils
+          For y3 := 1 To fsqrDim Do // Hohlen des Ersten Feldes mit den zu löschenden Pencils
             If Zah[y3] = 1 Then Begin
               w := y3 - 1;
               break;
             End;
           // Löschen der Pencil werte der anderen Felder
-          For y3 := 0 To 8 Do
+          For y3 := 0 To fsqrDim - 1 Do
             If Zah[y3 + 1] <> 1 Then
-              For y := 0 To 8 Do
+              For y := 0 To fsqrDim - 1 Do
                 If fField[z, w].pencil[y] And fField[z, y3].pencil[y] Then Begin
                   fField[z, y3].pencil[y] := false; // Es gab tatsächlich was zu löschen
                   nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
@@ -1490,44 +1492,46 @@ Begin
       End;
     End;
     // betrachten der 9er Bklock's
-    For x1 := 0 To 2 Do
-      For y1 := 0 To 2 Do Begin
+    For x1 := 0 To fDim - 1 Do
+      For y1 := 0 To fDim - 1 Do Begin
         ap.x := -1;
-        For x := 0 To 2 Do
-          For y := 0 To 2 Do Begin
+        For x := 0 To fDim - 1 Do
+          For y := 0 To fDim - 1 Do Begin
             // Keines der Felder ist bis jetzt betrachtet worden
-            For z := 1 To 9 Do
+            For z := 1 To fsqrDim Do
               zah[z] := 0;
             // Prüfen des Actuellen Feldes mit allen anderen
-            For x2 := 0 To 2 Do
-              For y2 := 0 To 2 Do
+            For x2 := 0 To fDim - 1 Do
+              For y2 := 0 To fDim - 1 Do
                 //nicht mit sich selbst vergleichen
                 If Not ((x2 = x) And (y = y2)) Then
-                  If PencilEqual(fField[x1 * 3 + x, y1 * 3 + y].pencil, fField[x1 * 3 + x2, y1 * 3 + y2].pencil) And (fField[x1 * 3 + x, y1 * 3 + y].value = 0) And (fField[x1 * 3 + x2, y1 * 3 + y2].value = 0) Then Begin
-                    //                            inc(w);
-                    ap.x := GetSetPencilscount(fField[x1 * 3 + x, y1 * 3 + y].pencil);
-                    zah[(x2 + y2 * 3) + 1] := 1; // Markieren der Felder deren Werte nachher nicht gelöscht werden dürfen
-                    zah[(x + y * 3) + 1] := 1; // Markieren der Felder deren Werte nachher nicht gelöscht werden dürfen
+                  If PencilEqual(fField[x1 * fDim + x, y1 * fDim + y].pencil, fField[x1 * fDim + x2, y1 * fDim + y2].pencil) And
+                    (fField[x1 * fDim + x, y1 * fDim + y].value = 0) And
+                    (fField[x1 * fDim + x2, y1 * fDim + y2].value = 0) Then Begin
+                    ap.x := GetSetPencilscount(fField[x1 * fDim + x, y1 * fDim + y].pencil);
+                    zah[(x2 + y2 * fDim) + 1] := 1; // Markieren der Felder deren Werte nachher nicht gelöscht werden dürfen
+                    zah[(x + y * fDim) + 1] := 1; // Markieren der Felder deren Werte nachher nicht gelöscht werden dürfen
                   End;
             w := 0;
-            For y2 := 1 To 9 Do
+            For y2 := 1 To fsqrDim Do
               If Zah[y2] = 1 Then inc(w);
             // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
             If (W = ap.x) And (w > 1) Then Begin
-              For x2 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
+              For x2 := 1 To fsqrDim Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
                 If Zah[x2] = 1 Then Begin
                   w := x2 - 1;
-                  ap.x := w Mod 3;
-                  ap.y := w Div 3;
+                  ap.x := w Mod fDim;
+                  ap.y := w Div fDim;
                   break;
                 End;
-              For x2 := 0 To 2 Do
-                For y3 := 0 To 2 Do
-                  If Zah[(x2 + y3 * 3) + 1] <> 1 Then
+              For x2 := 0 To fDim - 1 Do
+                For y3 := 0 To fDim - 1 Do
+                  If Zah[(x2 + y3 * fDim) + 1] <> 1 Then
                     // Löschen der Pencil einträge
-                    For y2 := 0 To 8 Do Begin
-                      If fField[x1 * 3 + ap.x, y1 * 3 + ap.y].pencil[y2] And fField[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] Then Begin
-                        fField[x1 * 3 + x2, y1 * 3 + y3].pencil[y2] := false; // Es gab tatsächlich was zu löschen
+                    For y2 := 0 To fsqrDim - 1 Do Begin
+                      If fField[x1 * fDim + ap.x, y1 * fDim + ap.y].pencil[y2] And
+                        fField[x1 * fDim + x2, y1 * fDim + y3].pencil[y2] Then Begin
+                        fField[x1 * fDim + x2, y1 * fDim + y3].pencil[y2] := false; // Es gab tatsächlich was zu löschen
                         nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
                         result := true; // Wir haben die Pencil's verändert mal schauen ob nachher ein anderes System das gebrauchen kann
                       End;
@@ -1536,17 +1540,17 @@ Begin
           End;
       End;
     // Betrachten der 9 Reihen
-    For z := 0 To 8 Do Begin
+    For z := 0 To fsqrDim - 1 Do Begin
       // Keines der Felder ist bis jetzt betrachtet worden
-      For x := 1 To 9 Do
+      For x := 1 To fsqrDim Do
         zah[x] := 0;
       ap.x := -1;
-      For x := 0 To 8 Do Begin
+      For x := 0 To fsqrDim - 1 Do Begin
         // Keines der Felder ist bis jetzt betrachtet worden
-        For y := 1 To 9 Do
+        For y := 1 To fsqrDim Do
           zah[y] := 0;
         // Prüfen des Actuellen Feldes mit allen anderen
-        For y := 0 To 8 Do
+        For y := 0 To fsqrDim - 1 Do
           If X <> y Then // nicht mit sich selbst vergleichen
             If PencilEqual(fField[x, z].Pencil, fField[y, z].pencil) And (fField[x, z].value = 0) And (fField[y, z].value = 0) Then Begin // Sind die Pencil's gleich
               ap.x := GetSetPencilscount(fField[x, z].Pencil); // speichern der Anzahl der Pencil's
@@ -1555,19 +1559,19 @@ Begin
             End;
         // Ermitteln der Anzahl der Gefundenen Felder
         w := 0;
-        For y3 := 1 To 9 Do
+        For y3 := 1 To fsqrDim Do
           If Zah[y3] = 1 Then inc(w);
         // Wir haben tatsächlich mehrere Felder mit gleichen Pencil's gefudnen , d.h. wir können deren Werte nun löschen
         If (W = ap.x) And (w > 1) Then Begin
-          For y3 := 1 To 9 Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
+          For y3 := 1 To fsqrDim Do // Hohlen des Ersten Feldes mit den ZU löschenden Pencils
             If Zah[y3] = 1 Then Begin
               w := y3 - 1;
               break;
             End;
           // Löschen der Pencil werte der anderen Felder
-          For y3 := 0 To 8 Do
+          For y3 := 0 To fsqrDim - 1 Do
             If Zah[y3 + 1] <> 1 Then
-              For y := 0 To 8 Do
+              For y := 0 To fsqrDim - 1 Do
                 If fField[w, z].pencil[y] And fField[y3, z].pencil[y] Then Begin
                   fField[y3, z].pencil[y] := false; // Es gab tatsächlich was zu löschen
                   nochmal := true; // wenn es einmal geklappt hat , dann Vielleicht auch ein zweites mal
@@ -1589,12 +1593,12 @@ Begin
   wieder := True;
   While wieder Do Begin // Wir löschen so lange zahlen aus den Pencils's bis es nicht mehr geht
     wieder := false;
-    For x := 0 To 8 Do
-      For y := 0 To 8 Do Begin
+    For x := 0 To fsqrDim - 1 Do
+      For y := 0 To fsqrDim - 1 Do Begin
         If (fField[x, y].value = 0) Then Begin
           w := 0;
           ap.x := -1;
-          For z := 0 To 8 Do
+          For z := 0 To fsqrDim - 1 Do
             If fField[x, y].pencil[z] Then Begin
               inc(w);
               ap.x := z;
@@ -1603,7 +1607,7 @@ Begin
           If w = 1 Then Begin
             result := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
             // Waagrecht Senkrecht
-            For z := 0 To 8 Do Begin
+            For z := 0 To fsqrDim - 1 Do Begin
               If z <> x Then Begin
                 If fField[z, y].Pencil[ap.x] Then wieder := true;
                 fField[z, y].Pencil[ap.x] := false;
@@ -1615,10 +1619,10 @@ Begin
             End;
             // Die 9 er Block's
             z := ap.x;
-            ap.x := x - x Mod 3;
-            ap.y := y - y Mod 3;
-            For x1 := 0 To 2 Do
-              For y1 := 0 To 2 Do
+            ap.x := x - x Mod fDim;
+            ap.y := y - y Mod fDim;
+            For x1 := 0 To fDim - 1 Do
+              For y1 := 0 To fDim - 1 Do
                 If ((ap.x + x1) <> x) And ((ap.y + y1) <> y) Then Begin
                   If fField[ap.x + x1, ap.y + y1].pencil[z] Then wieder := true;
                   fField[ap.x + x1, ap.y + y1].pencil[z] := false;
@@ -1629,39 +1633,34 @@ Begin
   End;
   //If Weiter Then Goto schlus;}
   // Alle Tricks haben eingewirkt nun  schauen wir ob wir nicht doch ne Zahl gefunden haben die gesetzt werden kann ;)
-  For x := 0 To 8 Do // Wir suchen einfach ein Feld das nur noch einen einzigen Pencil wert hat.
-    For y := 0 To 8 Do Begin
+  For x := 0 To fsqrDim - 1 Do // Wir suchen einfach ein Feld das nur noch einen einzigen Pencil wert hat.
+    For y := 0 To fsqrDim - 1 Do Begin
       If fField[x, y].value = 0 Then Begin
         w := 0; // Speichern der Zahl die alleine ist
         ap.x := 0; // Speichern ob die Zahl wirklich alleine ist ;)
-        For z := 0 To 8 Do // anschauen der Pencil's
+        For z := 0 To fsqrDim - 1 Do // anschauen der Pencil's
           // Das Feld selbst darf aber auch nicht schon belegt sein, die Pencil erstell Procedur berechnet das nicht
           If fField[x, y].pencil[z] Then Begin
             w := z;
             inc(ap.x);
           End;
         If ap.x = 1 Then Begin
-          //                  weiter := true; // Da wir noch was machen konnten , ist noch nicht sicher ob wir Fertig sind.
-          //                  WriteNumber(x, y, w + 1);
           SetValue(x, y, w + 1, false);
           // Löschen dieser Zahl aus den Pencil daten der anderen
           // Waagrecht Senkrecht
           ap.x := w;
-          For z := 0 To 8 Do Begin
+          For z := 0 To fsqrDim - 1 Do Begin
             fField[z, y].Pencil[ap.x] := false;
             fField[x, z].Pencil[ap.x] := false;
           End;
           // Im  9er Block
           z := ap.x;
-          ap.x := x - x Mod 3;
-          ap.y := y - y Mod 3;
-          For x1 := 0 To 2 Do
-            For y1 := 0 To 2 Do
+          ap.x := x - x Mod fdim;
+          ap.y := y - y Mod fdim;
+          For x1 := 0 To fdim - 1 Do
+            For y1 := 0 To fdim - 1 Do
               fField[ap.x + x1, ap.y + y1].pencil[z] := false;
-          //          setfocus(x, y);
           fStepPos := point(x, y); // mitziehen des Cursors damit der User weis was wir gemacht haben
-          // Neustart der Ki
-//                  Goto schlus;
           result := true;
           If step Then exit;
         End;
