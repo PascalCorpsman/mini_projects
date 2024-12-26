@@ -171,6 +171,7 @@ Type
     ffield: TSudoku;
     fLinepencil: TLinepencil; // Die LinienPencil's -> 3x3 Only :/
     Field: T3field; // Das Spielfeld --> TODO: Das muss noch raus geworfen werden !
+    mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
 
     Procedure ApplyFromModifyAndRepaintField(Sender: TObject);
 
@@ -181,13 +182,11 @@ Type
     Procedure getLinePencil(Var Data: T3Field);
     Procedure UnPencil(x, y, value: integer; Var Data: T3field);
     Function GetSudokuOptions: TSolveOptions;
+    Procedure Resetopt;
   public
     { Public-Deklarationen }
-    mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
     Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden -> und dann Raus fliegen !
-
     Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
-    Procedure Resetopt;
   End;
 
 Var

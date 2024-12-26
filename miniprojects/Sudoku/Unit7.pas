@@ -68,7 +68,7 @@ Var
 Implementation
 
 Uses
-  unit1,
+  unit1, // Es muss nur noch das HackSudoku raus, dann kann die Abhängigkeit zu unit1 auch gelöscht werden ;)
   Unit6
   ;
 
@@ -86,10 +86,8 @@ Const
   Numbercount = 9; // Die Anzahl der Nummern die zu anfang in das Feld eingefügt werden, es müssen genug sein damit es jedesmal ein anderes Feld gibt und wenig genug damit der Rechner es auch ja hinbekommt
 Var
   n, x, y, z: Integer; // diverse Zählvariablen
-  Save: Boolean; // wie a nur ebn für Try and Error
   f: TSudoku; // Das Field das erzeugt wird, wird gebraucht damit die Unit1 keine Schritte anzeigen kann
   Field, tmpf: T3Field;
-  a: Array[1..9] Of Boolean; // Zum Speichern der Solving methoden
   s: String;
   ch: Tcheckbox;
 Begin
@@ -112,22 +110,9 @@ Begin
     End;
     If Visible Then
       Visible := false; // Keiner soll die Unit7 von jetzt ab mehr sehn.
-    form1.Resetopt; // Rücksetzen der Graphischen Objecte
     zwangsabbruch := false; // Es gibt while schleifen die sind nicht Sicher, dann mus Abgebrochen werden können.
     Form6.show; // Anzeige Abbrechen Dialog
     Application.ProcessMessages;
-    // Erst Wegspeichern aller angekreuzten Solve Technicken aus der Form1
-    With form1 Do Begin
-      a[1] := byhiddensingle1.checked;
-      a[2] := bynakedsingle1.checked;
-      a[3] := byBlockandColumninteractions1.checked;
-      a[4] := byblockandblockinteractions1.checked;
-      a[5] := bynakedsubset1.checked;
-      a[6] := byhiddensubset1.checked;
-      a[7] := byXWingSwordfish1.checked;
-      a[8] := byXYWing1.checked;
-      a[9] := ForcingChains1.checked;
-    End;
     Rein: // Wenn wir festgestellt haben das die Zufällig kreierten Zahlen das Lösen unmöglich machen würden
     For x := 0 To 8 Do Begin
       For y := 0 To 8 Do Begin
@@ -141,9 +126,7 @@ Begin
       End;
     End;
     f.LoadFrom(Field);
-    // --- Neu
-   // Drawfield; // Löschen der Anzeige auf der Form 1
-   // Dafür sorgen das wir auf alle Fälle jedesmal eine andere Startposition haben
+    // Dafür sorgen das wir auf alle Fälle jedesmal eine andere Startposition haben
     For z := 1 To Numbercount Do Begin
       F.ResetAllMarkerAndPencils;
       x := random(9); // Die neuen Koordinaten
@@ -163,44 +146,9 @@ Begin
     End;
     // ist das sudoku jetzt schon nicht mehr lösbar dann neustarten
     If Not (f.IsSolveable) Then Goto rein;
-    // Wegspeichern der by Try Error Methode
-    Save := form1.bytryanderror1.checked;
-    // Zum erstellen eines Functionierenden Sudoku brauchen wir die Try and Error methode
-    form1.bytryanderror1.checked := true;
-    // Lösen des Sudoku, mit allem was geht
-    With form1 Do Begin
-      byhiddensingle1.checked := true;
-      bynakedsingle1.checked := true;
-      byBlockandColumninteractions1.checked := true;
-      byblockandblockinteractions1.checked := true;
-      bynakedsubset1.checked := true;
-      byhiddensubset1.checked := true;
-      byXWingSwordfish1.checked := true;
-      byXYWing1.checked := true;
-      ForcingChains1.checked := true;
-    End;
-    //    f.StoreTo(tmpf);
-    //    form1.Solve(false, True, tmpf);
-    //    f.LoadFrom(tmpf);
     f.solve(false, AllSolveOptions, @OnLCLUpdateEvent);
-
     If Not f.IsFullyFilled() And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
       Goto rein;
-    End;
-    // Zum basteln eines Puzzles mus sie allerdings wieder Raus
-    form1.bytryanderror1.checked := False;
-    // Basteln des Rätsel's
-    With form1 Do Begin
-      // Dann Einstellen der Solve Options die benutzt werden dürfen
-      byhiddensingle1.checked := form7.Checkbox1.checked;
-      bynakedsingle1.checked := form7.Checkbox2.checked;
-      byBlockandColumninteractions1.checked := form7.Checkbox3.checked;
-      byblockandblockinteractions1.checked := form7.Checkbox4.checked;
-      bynakedsubset1.checked := form7.Checkbox5.checked;
-      byhiddensubset1.checked := form7.Checkbox6.checked;
-      byXWingSwordfish1.checked := form7.Checkbox7.checked;
-      byXYWing1.checked := form7.Checkbox8.checked;
-      ForcingChains1.checked := form7.Checkbox9.checked;
     End;
     f.StoreTo(tmpf);
     If checkbox10.checked Then Begin
@@ -210,20 +158,6 @@ Begin
       form1.HackSudoku(tmpf);
     End;
     f.LoadFrom(tmpf);
-    // Zurücksetzen der Try Error Methode
-    form1.bytryanderror1.checked := Save;
-    //  Wieder Setzen der Alten Solve Values
-    With form1 Do Begin
-      byhiddensingle1.checked := a[1];
-      bynakedsingle1.checked := a[2];
-      byBlockandColumninteractions1.checked := a[3];
-      byblockandblockinteractions1.checked := a[4];
-      bynakedsubset1.checked := a[5];
-      byhiddensubset1.checked := a[6];
-      byXWingSwordfish1.checked := a[7];
-      byXYWing1.checked := a[8];
-      ForcingChains1.checked := a[9];
-    End;
     // Umladen Der Variablen und schaun ob abgebrochen wurde
     Raus:
     If Form6.visible Then Form6.close;
@@ -259,13 +193,13 @@ Begin
       fField.CloneFieldFrom(f);
     End;
     // Ausgabe auf den Monitor
-    If assigned(fRepaintEvent) Then fRepaintEvent(Nil);
+    If assigned(fRepaintEvent) Then fRepaintEvent(Nil); // TODO: das hier sollte eigentlich dauerhaft raus können ..
     // Beenden
     f.free;
     Close;
   End
   Else Begin
-    showmessage('You have at min to select "by hidden single" or "by naked single".');
+    showmessage('You have to at min select "by hidden single" or "by naked single".');
     zwangsabbruch := true;
   End;
 End;
