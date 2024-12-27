@@ -22,6 +22,9 @@ Uses
   Graphics, Forms, Classes, Controls, StdCtrls, ComCtrls, ExtCtrls, LResources;
 
 Type
+
+  { TForm6 }
+
   TForm6 = Class(TForm)
     Button1: TButton;
     Label1: TLabel;
@@ -29,8 +32,8 @@ Type
     Timer1: TTimer;
     Procedure Button1Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
-    Procedure FormPaint(Sender: TObject);
-    Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
+    Procedure FormHide(Sender: TObject);
+    Procedure FormShow(Sender: TObject);
     Procedure Timer1Timer(Sender: TObject);
   private
     { Private-Deklarationen }
@@ -40,22 +43,15 @@ Type
 
 Var
   Form6: TForm6;
-  zwangsabbruch: Boolean;
+  Zwangsabbruch: Boolean; // TODO: Ins Englische übertragen, macht aber erst sinn, wenn die ganzen Codedopplungen raus sind..
 
 Implementation
-
-Uses
-  Unit1
-  , Unit11
-  , Unit12
-  , Unit13
-  ;
 
 {$R *.lfm}
 
 Procedure TForm6.Button1Click(Sender: TObject);
 Begin
-  // Graphischer Schnickschnack hat nichts zu bedeuten sied aber net aus  ;)
+  // Abbruch durch Nutzer
   Timer1.enabled := false;
   zwangsabbruch := true;
   close;
@@ -63,36 +59,33 @@ End;
 
 Procedure TForm6.FormCreate(Sender: TObject);
 Begin
-  Label1.caption := 'Sometimes it could be possible that the Computer' + LineEnding + 'hang''s.' + LineEnding + 'Maybe the Computer is trying to solve a not' + LineEnding + 'solvable Sudoku.' + LineEnding + 'In this Case push the Cancel Button';
+  Label1.caption :=
+    'Sometimes it could be possible that the Computer' + LineEnding +
+    'hang''s.' + LineEnding +
+    'Maybe the Computer is trying to solve a not' + LineEnding +
+    'solvable Sudoku.' + LineEnding +
+    'In this Case push the Cancel Button';
 End;
 
-Procedure TForm6.FormPaint(Sender: TObject);
+Procedure TForm6.FormHide(Sender: TObject);
+Begin
+  Timer1.Enabled := false;
+End;
+
+Procedure TForm6.FormShow(Sender: TObject);
 Begin
   If Not Timer1.enabled Then Begin
     Timer1.enabled := true;
     ProgressBar1.Position := 0;
-    canvas.pen.color := clblack;
-    canvas.Brush.color := clbtnface;
-    canvas.brush.style := bssolid;
-    canvas.rectangle(0, 0, form6.width, form6.height);
-    label1.Repaint;
-    Button1.Repaint;
   End;
-End;
-
-Procedure TForm6.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
-Begin
-  If Not Form11.visible Then
-    form1.SetFocus;
 End;
 
 Procedure TForm6.Timer1Timer(Sender: TObject);
 Begin
-  // Graphischer Schnickschnack hat nichts zu bedeuten sied aber net aus  ;)
+  // Graphischer Schnickschnack hat nichts zu bedeuten sieht aber net aus  ;)
   ProgressBar1.Position := ProgressBar1.Position + 1;
-  If ProgressBar1.Position = 100 Then ProgressBar1.Position := 0;
-  If (Form11.visible Or form12.visible Or form13.visible) And Form6.visible Then
-    Form6.BringToFront;
+  If ProgressBar1.Position >= 100 Then ProgressBar1.Position := 0;
+  If visible Then Form6.BringToFront;
 End;
 
 End.

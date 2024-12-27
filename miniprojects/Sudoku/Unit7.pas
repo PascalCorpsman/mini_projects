@@ -136,12 +136,13 @@ Begin
     If Not fField.IsFullyFilled() And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
       Goto rein;
     End;
-    zwangsabbruch := false;
-    If checkbox10.checked Then Begin
-      fField.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent, random(4));
-    End
-    Else Begin
-      fField.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent);
+    If Not Zwangsabbruch Then Begin
+      If checkbox10.checked Then Begin
+        fField.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent, random(4));
+      End
+      Else Begin
+        fField.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent);
+      End;
     End;
     // Umladen Der Variablen und schaun ob abgebrochen wurde
     Raus:
@@ -154,6 +155,7 @@ Begin
   End
   Else Begin
     showmessage('You have to at min select "by hidden single" or "by naked single".');
+    fField.ClearField;
     zwangsabbruch := true;
   End;
 End;
