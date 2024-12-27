@@ -208,7 +208,7 @@ Begin
     // Einstellen der Erstelloptionen
     s := TSudoku.Create(fField.Dimension);
     form1.Puzzle1Click(Nil);
-    form7.Init(s, Nil, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
+    form7.Init(s, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
     // Erstellen eines neuen Feldes
     form7.Button1Click(Nil);
     s.CloneFieldFrom(form7.Sudoku);
@@ -273,7 +273,7 @@ Begin
     For z := 0 To 3 Do Begin
       // Einstellen der Erstelloptionen
       form1.Puzzle1Click(Nil);
-      form7.Init(s, Nil, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
+      form7.Init(s, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
       // Erstellen eines neuen Feldes
       form7.Button1Click(Nil);
       // Speichern der Sudoku's
@@ -348,7 +348,7 @@ Begin
     For z := 0 To 5 Do Begin
       // Einstellen der Erstelloptionen
       form1.Puzzle1Click(Nil);
-      form7.Init(s, Nil, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
+      form7.Init(s, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
       // Erstellen eines neuen Feldes
       form7.Button1Click(Nil);
       // Speichern der Sudoku's

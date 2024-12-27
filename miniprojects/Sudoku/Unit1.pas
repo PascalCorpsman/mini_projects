@@ -1326,7 +1326,7 @@ Procedure TForm1.Puzzle1Click(Sender: TObject);
 Begin
   // Deaktivieren für das Drucken
   If Not assigned(Sender) Then exit; // TODO: dass kann raus, wenn der Druck Dialog repariert ist
-  Form7.init(ffield, @RefreshField, GetSudokuOptions());
+  Form7.init(ffield, GetSudokuOptions());
   Form7.showmodal;
   ffield.CloneFieldFrom(form7.Sudoku);
   ffield.StoreTo(Field);

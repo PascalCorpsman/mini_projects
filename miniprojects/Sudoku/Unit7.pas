@@ -48,18 +48,16 @@ Type
     Procedure Button3Click(Sender: TObject);
     Procedure Button4Click(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
-    Procedure FormPaint(Sender: TObject);
+    Procedure FormShow(Sender: TObject);
   private
     { Private-Deklarationen }
     fField: TSudoku;
-    fRepaintEvent: TNotifyEvent;
     fOptions: TSolveOptions;
     Function OnLCLUpdateEvent: Boolean;
   public
     { Public-Deklarationen }
     Property Sudoku: TSudoku read fField;
-    Procedure Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent;
-      aOptions: TSolveOptions);
+    Procedure Init(Const aField: TSudoku; aOptions: TSolveOptions);
   End;
 
 Var
@@ -81,19 +79,15 @@ End;
 Procedure TForm7.Button1Click(Sender: TObject);
 Label
   Raus, Rein; // Diverse Sprungmarken, es würde auch ohne gehen aber das ist hier zu aufwendig
-Const
-  Numbercount = 9; // Die Anzahl der Nummern die zu anfang in das Feld eingefügt werden, es müssen genug sein damit es jedesmal ein anderes Feld gibt und wenig genug damit der Rechner es auch ja hinbekommt
 Var
   n, x, y, z: Integer; // diverse Zählvariablen
-  f: TSudoku; // Das Field das erzeugt wird, wird gebraucht damit die Unit1 keine Schritte anzeigen kann
-  Field, tmpf: T3Field;
   s: String;
   ch: Tcheckbox;
+  NumberCount: integer;
 Begin
   // Create New Field
   // es mus mindestens hidden single , oder naked singele activiert sein die anderen methoden fügen keine Zahlen ein.
   If Checkbox2.checked Or Checkbox1.checked Then Begin
-    f := TSudoku.Create(3);
     If Not checkbox2.checked And (checkbox3.checked Or checkbox4.checked Or checkbox5.checked Or checkbox6.checked Or checkbox7.checked Or checkbox8.checked Or checkbox9.checked) Then Begin
       s := '';
       For x := 3 To 9 Do Begin
@@ -102,102 +96,60 @@ Begin
           s := s + LineEnding + ch.Caption;
       End;
       If Length(s) <> 0 Then
-        If ID_NO = Application.messagebox(pchar('You did not select "by naked single", this will automaticaly disable ' + LineEnding + s + LineEnding + LineEnding + ' would you like to go on anyway ?'), 'question', MB_ICONQUESTION + MB_YESNO) Then Begin
-          f.free;
+        If ID_NO = Application.messagebox(pchar(
+          'You did not select "by naked single", this will automaticaly disable ' + LineEnding +
+          s + LineEnding + LineEnding +
+          ' would you like to go on anyway ?'), 'question', MB_ICONQUESTION + MB_YESNO) Then Begin
           exit;
         End;
     End;
     If Visible Then
       Visible := false; // Keiner soll die Unit7 von jetzt ab mehr sehn.
+    // Das Feld soll tatsächlich erzeugt werden..
+    NumberCount := fField.Dimension * fField.Dimension;
     zwangsabbruch := false; // Es gibt while schleifen die sind nicht Sicher, dann mus Abgebrochen werden können.
     Form6.show; // Anzeige Abbrechen Dialog
     Application.ProcessMessages;
     Rein: // Wenn wir festgestellt haben das die Zufällig kreierten Zahlen das Lösen unmöglich machen würden
-    For x := 0 To 8 Do Begin
-      For y := 0 To 8 Do Begin
-        Field[x, y].value := 0;
-        Field[x, y].Marked := false;
-        Field[x, y].Maybeed := false;
-        Field[x, y].Fixed := false;
-        For z := 0 To 8 Do Begin
-          field[x, y].Pencil[z] := false;
-        End;
-      End;
-    End;
-    f.LoadFrom(Field);
+    fField.ClearField;
     // Dafür sorgen das wir auf alle Fälle jedesmal eine andere Startposition haben
-    For z := 1 To Numbercount Do Begin
-      F.ResetAllMarkerAndPencils;
-      x := random(9); // Die neuen Koordinaten
-      y := random(9); // Die neuen Koordinaten
-      n := Random(9) + 1; // Die eingefügte Zahl
-      f.Mark(n); // Markieren der Zahlen
+    For z := 1 To NumberCount Do Begin
+      fField.ResetAllMarkerAndPencils;
+      x := random(NumberCount); // Die neuen Koordinaten
+      y := random(NumberCount); // Die neuen Koordinaten
+      n := Random(NumberCount) + 1; // Die eingefügte Zahl
+      fField.Mark(n); // Markieren der Zahlen
       // Suchen eines Freien Feldes
-      While (F.IsMarked(x, y)) Do Begin
+      While (fField.IsMarked(x, y)) Do Begin
         Application.ProcessMessages;
-        x := random(9);
-        y := random(9);
+        x := random(NumberCount);
+        y := random(NumberCount);
         If Zwangsabbruch Then Begin
           Goto Raus; // Es ist Versuch jede While Schleife mit dieser Abbruch möglichkeit zu versehen, man weis ja nie !
         End;
       End;
-      F.SetValue(x, y, n, false); // Zuweisen des Feldes
+      fField.SetValue(x, y, n, false); // Zuweisen des Feldes
     End;
     // ist das sudoku jetzt schon nicht mehr lösbar dann neustarten
-    If Not (f.IsSolveable) Then Goto rein;
-    f.solve(false, AllSolveOptions, @OnLCLUpdateEvent);
-    If Not f.IsFullyFilled() And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
+    If Not (fField.IsSolveable) Then Goto rein;
+    fField.solve(false, AllSolveOptions, @OnLCLUpdateEvent);
+    If Not fField.IsFullyFilled() And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
       Goto rein;
     End;
-    //    f.StoreTo(tmpf);
     zwangsabbruch := false;
     If checkbox10.checked Then Begin
-      //      form1.HackSudoku(tmpf, random(4))
-      f.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent, random(4));
+      fField.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent, random(4));
     End
     Else Begin
-      f.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent);
-      //      form1.HackSudoku(tmpf);
+      fField.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent);
     End;
-    //    f.LoadFrom(tmpf);
-        // Umladen Der Variablen und schaun ob abgebrochen wurde
+    // Umladen Der Variablen und schaun ob abgebrochen wurde
     Raus:
     If Form6.visible Then Form6.close;
     // Wenn ein Zwangsabbruch war
     If zwangsabbruch Then Begin
-      For x := 0 To 8 Do
-        For y := 0 To 8 Do Begin
-          Field[x, y].value := 0;
-          Field[x, y].Marked := false;
-          Field[x, y].Maybeed := false;
-          Field[x, y].Fixed := false;
-          For z := 0 To 8 Do
-            Field[x, y].pencil[z] := false;
-        End;
-    End
-    Else Begin // Bei Erfolgreicher suche
-      f.StoreTo(tmpf);
-      For x := 0 To 8 Do
-        For y := 0 To 8 Do Begin
-          tmpF[x, y].Marked := false;
-          tmpF[x, y].Maybeed := false;
-          // Field[x, y].Fixed := F[x, y].value <> 0; -- WTF: Warum geht diese Zuweisung nicht und es muss das If implementiert werden ?
-          If tmpF[x, y].value = 0 Then Begin
-            tmpF[x, y].Fixed := false;
-          End
-          Else Begin
-            tmpF[x, y].Fixed := true;
-          End;
-          For z := 0 To 8 Do
-            tmpF[x, y].pencil[z] := false;
-        End;
-      f.LoadFrom(tmpf);
-      fField.CloneFieldFrom(f);
+      fField.ClearField;
     End;
-    // Ausgabe auf den Monitor
-    If assigned(fRepaintEvent) Then fRepaintEvent(Nil); // TODO: das hier sollte eigentlich dauerhaft raus können ..
-    // Beenden
-    f.free;
     Close;
   End
   Else Begin
@@ -209,7 +161,7 @@ End;
 Procedure TForm7.FormCreate(Sender: TObject);
 Begin
   Caption := 'Sudoku ver. : ' + ver + ' New Game';
-  fField := TSudoku.Create(3);
+  fField := TSudoku.Create(3); // Egal welche Dimension, wird im Init eh wieder überschrieben
 End;
 
 Procedure TForm7.Button3Click(Sender: TObject);
@@ -234,7 +186,7 @@ Begin
   fField := Nil;
 End;
 
-Procedure TForm7.FormPaint(Sender: TObject);
+Procedure TForm7.FormShow(Sender: TObject);
 Begin
   button1.setfocus;
 End;
@@ -245,12 +197,10 @@ Begin
   result := zwangsabbruch;
 End;
 
-Procedure TForm7.Init(Const aField: TSudoku; RepaintEvent: TNotifyEvent;
-  aOptions: TSolveOptions);
+Procedure TForm7.Init(Const aField: TSudoku; aOptions: TSolveOptions);
 Begin
   fField.Free;
   fField := TSudoku.Create(aField.Dimension);
-  fRepaintEvent := RepaintEvent;
   fOptions := aOptions;
   CheckBox1.Checked := soHiddenSingle In aOptions;
   CheckBox2.Checked := soNakedSingle In aOptions;
