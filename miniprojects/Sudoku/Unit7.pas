@@ -68,7 +68,6 @@ Var
 Implementation
 
 Uses
-  unit1, // Es muss nur noch das HackSudoku raus, dann kann die Abhängigkeit zu unit1 auch gelöscht werden ;)
   Unit6
   ;
 
@@ -150,15 +149,18 @@ Begin
     If Not f.IsFullyFilled() And Not Zwangsabbruch Then Begin // Falls unsere try and error methode nichts gefunden hat versuchen wir es nochmal
       Goto rein;
     End;
-    f.StoreTo(tmpf);
+    //    f.StoreTo(tmpf);
+    zwangsabbruch := false;
     If checkbox10.checked Then Begin
-      form1.HackSudoku(tmpf, random(4))
+      //      form1.HackSudoku(tmpf, random(4))
+      f.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent, random(4));
     End
     Else Begin
-      form1.HackSudoku(tmpf);
+      f.CreateSolvableFieldFromFullyFilledField(fOptions, @OnLCLUpdateEvent);
+      //      form1.HackSudoku(tmpf);
     End;
-    f.LoadFrom(tmpf);
-    // Umladen Der Variablen und schaun ob abgebrochen wurde
+    //    f.LoadFrom(tmpf);
+        // Umladen Der Variablen und schaun ob abgebrochen wurde
     Raus:
     If Form6.visible Then Form6.close;
     // Wenn ein Zwangsabbruch war

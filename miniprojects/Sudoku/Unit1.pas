@@ -186,7 +186,6 @@ Type
   public
     { Public-Deklarationen }
     Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden -> und dann Raus fliegen !
-    Procedure HackSudoku(Var Data: T3Field; Direction: Integer = -1);
   End;
 
 Var
@@ -507,114 +506,6 @@ Begin
   End;
 End;
 
-// Diese Procedur benötigt ein Vollständiges Sudoku in der variable Field
-// Dieses wir dann mit Hilfe von Solve umgewandelt in ein noch zu lösendes Sudoku
-
-Procedure TForm1.HackSudoku(Var Data: T3Field; Direction: Integer);
-Const
-  MaxFehlercount = 25;
-Var
-  x, y, z: Integer;
-  weiter: Boolean;
-  Versuche: Integer;
-  tmp, f: T3field;
-  p: TPoint;
-  s: TSudoku;
-Begin
-  s := TSudoku.Create(3);
-  s.LoadFrom(data);
-  If s.IsFullyFilled() Then Begin // zuerst mus geschaut werden ob das Rätsel überhaupt Komplett ist, sonst haben wir eine Endlosschleife
-    form1.bytryanderror1.checked := false; // Ausschalten des Try and error teile's der Ki, da es sonst sinnlos wird
-    zwangsabbruch := false;
-    weiter := true; // Endlosschleife
-    Versuche := 0; // Zähler für die Fehlversuche
-    // Wegspeichern der Lösung
-    For x := 0 To 8 Do
-      For y := 0 To 8 Do
-        f[x, y].value := Data[x, y].value;
-    // Starten mit dem Löschen der Zahlen
-    While weiter Do Begin
-      Application.ProcessMessages;
-      // Rücksetzen des Fieldes auf den zu letzt gefunden Stand
-      For x := 0 To 8 Do
-        For y := 0 To 8 Do
-          Data[x, y].value := F[x, y].value;
-      // Suchen des als nächstes zu löschenden Feldes
-      x := random(9);
-      y := random(9);
-      While F[x, y].value = 0 Do Begin
-        x := random(9);
-        y := random(9);
-      End;
-      // Löschen des Feldes
-      Data[x, y].value := 0;
-
-      // Den Gespiegelten Punkt berechnen und Löschen
-      p := Mirrow(x, y, 9, Direction);
-      If (p.x < 0) Or (p.y < 0) Or (p.x > 8) Or (p.y > 8) Then Begin
-        Raise exception.Create('Fehler in Mirrow: X=' + inttostr(x) + ' Y=' + Inttostr(y) + ' P.X=' + inttostr(p.x) + ' P.Y=' + inttostr(p.y) + ' Direction=' + inttostr(direction));
-      End;
-      Data[p.x, p.y].value := 0;
-
-      // Lösen des Rätsels
-      s.LoadFrom(data);
-      s.Solve(false, Form1.GetSudokuOptions - [soTryAndError], @OnLCLUpdateEvent);
-      s.StoreTo(data);
-
-      // Schaun ob es lösbar war
-      s.LoadFrom(data);
-      If Not s.IsFullyFilled Then
-        inc(Versuche) // Wenn nicht dann ist das ein Fehlversuch mehr
-      Else Begin // Wenn es lösbar war wird der Wert auch in der Sicherung gelöscht.
-        f[x, y].value := 0;
-        f[p.x, p.y].value := 0;
-        Versuche := 0;
-      End;
-      // Abbruch der Endlosschleife
-      If (Versuche > MaxFehlercount) Or zwangsabbruch Then Begin
-        Weiter := false;
-      End;
-    End;
-    // Umschreiben der Sicherungskopie in das Ausgabe Field und dann setzen der entsprechenden Value's
-    For x := 0 To 8 Do Begin
-      For y := 0 To 8 Do Begin
-        Data[x, y].value := f[x, y].value;
-        // Data[x, y].Fixed := Not (Data[x, y].value = 0); -- WTF: warum geht diese Zuweisung nicht ?
-        If data[x, y].Value = 0 Then Begin
-          Data[x, y].Fixed := false;
-        End
-        Else Begin
-          Data[x, y].Fixed := true;
-        End;
-        Data[x, y].marked := false;
-        For z := 0 To 8 Do Begin
-          Data[x, y].Pencil[z] := false;
-        End;
-      End;
-    End;
-  End;
-  // Prüfen ob alles geklappt hat und das Data immer noch lösbar ist
-  For x := 0 To 8 Do Begin
-    For y := 0 To 8 Do Begin
-      tmp[x, y].value := data[x, y].value;
-      tmp[x, y].Fixed := data[x, y].Fixed;
-      tmp[x, y].marked := false;
-      For z := 0 To 8 Do Begin
-        tmp[x, y].Pencil[z] := false;
-      End;
-    End;
-  End;
-  s.LoadFrom(tmp);
-  s.Solve(false, Form1.GetSudokuOptions - [soTryAndError], @OnLCLUpdateEvent);
-  //  form1.Solve(False, true, tmp);
-  //  s.LoadFrom(tmp);
-  If Not s.IsSolved() Then Begin
-    showmessage('Error, something went wrong, sudoku will not be solveable.');
-  End;
-  s.free;
-  If Form6.Visible Then form6.Close;
-End;
-
 Procedure TForm1.Beenden1Click(Sender: TObject);
 Begin
   Close;
@@ -663,6 +554,7 @@ Procedure TForm1.FormResize(Sender: TObject);
 Var
   x: Integer;
 Begin
+  // TODO: Diese Zeile sorgt beim Verschieben dafür dass das Fenster Strange sachen macht
   If form1.Width < form1.height + Scale96ToForm(130) Then form1.Width := form1.height + Scale96ToForm(130);
   //  Breite := min(Form1.height - 32, Form1.width - 120) Div 11;
   Breite := min(PaintBox1.Height, PaintBox1.Width) Div 11;

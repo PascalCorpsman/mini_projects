@@ -170,6 +170,11 @@ Type
     // Wenn result = true, dann wurde Try and Error verwendet
     Function Solve(Step: Boolean; Const aOptions: TSolveOptions; Const UpdateEvent: TLCLUpdateEvent): Boolean;
 
+    // Erstellt aus einem Bereits vollständig gelösten Feld, durch Wegstreichen und immer wieder Lösen
+    // Ein Feld, welches mit den aOptions gelöst werden kann.
+    // Ist direction in [0 .. 3] werden die zu streichenden Zahlen entsprechend der Achsen gespiegelt -> rein "Optisches" gimmick.
+    Procedure CreateSolvableFieldFromFullyFilledField(Const aOptions: TSolveOptions; Const UpdateEvent: TLCLUpdateEvent; Direction: integer = -1);
+
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
     Procedure StoreTo(Out f: T3Field);
@@ -1392,6 +1397,95 @@ Begin
     Schlus:
     If Step Or (Not weiter) Or IsFullyFilled Then b := false;
   End;
+End;
+
+Procedure TSudoku.CreateSolvableFieldFromFullyFilledField(
+  Const aOptions: TSolveOptions; Const UpdateEvent: TLCLUpdateEvent;
+  Direction: integer);
+Const
+  MaxFehlercount = 25;
+Var
+  x, y, z: Integer;
+  weiter, zwangsabbruch: Boolean;
+  Versuche: Integer;
+  p: TPoint;
+  bakup: TSudoku;
+  lOptions: TSolveOptions;
+Begin
+  bakup := TSudoku.Create(self.Dimension);
+  If Not IsFullyFilled() Then exit; // zuerst mus geschaut werden ob das Rätsel überhaupt Komplett ist, sonst haben wir eine Endlosschleife
+  lOptions := aOptions - [soTryAndError]; // Ausschalten des Try and error teile's der Ki, da es sonst sinnlos wird
+  zwangsabbruch := false;
+  weiter := true; // Endlosschleife
+  Versuche := 0; // Zähler für die Fehlversuche
+  // Wegspeichern der Lösung
+  bakup.CloneFieldFrom(self);
+  // Starten mit dem Löschen der Zahlen
+  While weiter Do Begin
+    CloneFieldFrom(bakup);
+    // Suchen des als nächstes zu löschenden Feldes
+    x := random(9);
+    y := random(9);
+    While fField[x, y].value = 0 Do Begin
+      x := random(9);
+      y := random(9);
+    End;
+    // Löschen des Feldes
+    fField[x, y].value := 0;
+
+    // Den Gespiegelten Punkt berechnen und Löschen
+    p := Mirrow(x, y, fsqrDim, Direction);
+    If (p.x < 0) Or (p.y < 0) Or (p.x > fsqrDim - 1) Or (p.y > fsqrDim - 1) Then Begin
+      Raise exception.Create('Fehler in Mirrow: X=' + inttostr(x) + ' Y=' + Inttostr(y) + ' P.X=' + inttostr(p.x) + ' P.Y=' + inttostr(p.y) + ' Direction=' + inttostr(direction));
+    End;
+    fField[p.x, p.y].value := 0;
+    // Lösen des Rätsels
+    Solve(false, lOptions, UpdateEvent);
+
+    // Schaun ob es noch lösbar ist
+    If Not IsFullyFilled Then Begin
+      inc(Versuche) // Wenn nicht dann ist das ein Fehlversuch mehr
+    End
+    Else Begin // Wenn es lösbar war wird der Wert auch in der Sicherung gelöscht.
+      bakup.fField[x, y].value := 0;
+      bakup.fField[p.x, p.y].value := 0;
+      Versuche := 0;
+    End;
+    // Abbruch der Endlosschleife
+    zwangsabbruch := UpdateEvent();
+    If (Versuche > MaxFehlercount) Or zwangsabbruch Then Begin
+      Weiter := false;
+    End;
+  End;
+  // Umschreiben der Sicherungskopie in das Ausgabe Field und dann setzen der entsprechenden Value's
+  For x := 0 To fsqrDim - 1 Do Begin
+    For y := 0 To fsqrDim - 1 Do Begin
+      fField[x, y].Value := bakup.fField[x, y].Value;
+      // fField[x, y].Fixed := Not (Data[x, y].value = 0); -- WTF: warum geht diese Zuweisung nicht ?
+      If fField[x, y].Value = 0 Then Begin
+        fField[x, y].Fixed := false;
+      End
+      Else Begin
+        fField[x, y].Fixed := true;
+      End;
+      fField[x, y].marked := false;
+      For z := 0 To fsqrDim - 1 Do Begin
+        fField[x, y].Pencil[z] := false;
+      End;
+    End;
+  End;
+  // Prüfen ob alles geklappt hat und das Sudoku wirklich immer noch lösbar ist
+  bakup.CloneFieldFrom(self);
+  (*
+   * Hier ist ohne Try and Error, also brauchen wir auch die LCL nicht
+   * -> Damit kann das auch nicht abgebrochen werden, was in diesem Fall ebenfalls
+   *    gut ist.
+   *)
+  bakup.Solve(false, lOptions, Nil);
+  If Not bakup.IsSolved() Then Begin
+    Raise exception.Create('Error, something went wrong, sudoku will not be solveable.');
+  End;
+  bakup.Free;
 End;
 
 Function TSudoku.getValue(x, y: integer): integer;
