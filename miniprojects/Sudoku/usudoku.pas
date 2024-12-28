@@ -30,6 +30,11 @@ Const
    *)
   Ver = '1.13';
 
+  (*
+   * History: 1 = Initialversion
+   *)
+  FileVersion: integer = 1;
+
 Type
 
   (*
@@ -144,10 +149,16 @@ Type
 
     Procedure ClearField;
 
+    Procedure SetMaybeed(x, y: integer; aValue: Boolean);
+    Function GetMaybeed(x, y: integer): boolean;
+
     Procedure Mark(Number: integer);
     Procedure ResetAllMarker;
     Procedure ResetAllMarkerAndPencils;
+    Procedure SetMarked(x, y: Integer; aValue: Boolean);
 
+
+    Function IsFixed(x, y: Integer): Boolean;
     Function IsMarked(x, y: Integer): Boolean;
     Function IsFullyFilled(): Boolean; // True, wenn alle Value's <> 0, ohne Checks ob tatsächlich gültig (nur für Algorithmen geeignet)
     Function IsSolved(): Boolean; // True, wenn das Sudoku tatsächlich korrekt gelöst ist
@@ -155,9 +166,15 @@ Type
 
     Procedure SetValue(x, y, aValue: integer; Fixed: Boolean);
 
+    Function IsPencilSet(x, y, aValue: integer): Boolean; // x,y in [0.. fsqrDim -1], value in [1..fsqrDim]
+    Procedure TogglePencil(x, y, avalue: integer); // x,y in [0.. fsqrDim -1], value in [1..fsqrDim]
+    Procedure ClearPencil(x, y, avalue: integer); // x,y in [0.. fsqrDim -1], value in [1..fsqrDim]
+    Procedure Unpencil(x, y, aValue: integer); // x,y in [0.. fsqrDim -1], value in [1..fsqrDim]
+    Procedure ResetAllNumberPencils;
+    Procedure EraseAllNumberPencils;
+
     Procedure RenderTo(Const Canvas: TCanvas; Const Info: TRenderInfo);
 
-    Procedure ResetAllNumberPencils;
     Procedure ClearAllNumberPencils; // TODO: Der Name ist missverständlich, gemeint ist, dass alle Pencils weg gestrichen werden die via "Values <> 0" irgendwo definiert sind !
     Procedure ApplyHiddenSubsetAlgorithm(); // TODO: Sollte das nicht Private werden ?
     Procedure ApplyXY_WingAlgorithm(); // TODO: Sollte das nicht Private werden ?
@@ -174,6 +191,9 @@ Type
     // Ein Feld, welches mit den aOptions gelöst werden kann.
     // Ist direction in [0 .. 3] werden die zu streichenden Zahlen entsprechend der Achsen gespiegelt -> rein "Optisches" gimmick.
     Procedure CreateSolvableFieldFromFullyFilledField(Const aOptions: TSolveOptions; Const UpdateEvent: TLCLUpdateEvent; Direction: integer = -1);
+
+    Procedure SaveToStream(Const aStream: TStream);
+    Procedure LoadFromStream(Const aStream: TStream);
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
     Procedure LoadFrom(Const f: T3Field);
@@ -532,6 +552,16 @@ Begin
   End;
 End;
 
+Procedure TSudoku.SetMaybeed(x, y: integer; aValue: Boolean);
+Begin
+  fField[x, y].Maybeed := aValue;
+End;
+
+Function TSudoku.GetMaybeed(x, y: integer): boolean;
+Begin
+  result := fField[x, y].Maybeed;
+End;
+
 Procedure TSudoku.Mark(Number: integer);
   Procedure Submark(x, y: Integer);
   Var
@@ -586,6 +616,16 @@ Begin
       End;
     End;
   End;
+End;
+
+Procedure TSudoku.SetMarked(x, y: Integer; aValue: Boolean);
+Begin
+  fField[x, y].Marked := aValue;
+End;
+
+Function TSudoku.IsFixed(x, y: Integer): Boolean;
+Begin
+  result := {(fField[x, y].Value <> 0) And}(fField[x, y].Fixed);
 End;
 
 Function TSudoku.IsMarked(x, y: Integer): Boolean;
@@ -686,6 +726,11 @@ Begin
   result := true;
 End;
 
+Function TSudoku.IsPencilSet(x, y, aValue: integer): Boolean;
+Begin
+  result := fField[x, y].Pencil[avalue - 1];
+End;
+
 Procedure TSudoku.SetValue(x, y, aValue: integer; Fixed: Boolean);
 Var
   i: Integer;
@@ -700,6 +745,34 @@ Begin
   Else Begin
     fField[x, y].Fixed := false;
   End;
+End;
+
+Procedure TSudoku.TogglePencil(x, y, avalue: integer);
+Begin
+  fField[x, y].Pencil[avalue - 1] := Not fField[x, y].Pencil[avalue - 1];
+End;
+
+Procedure TSudoku.ClearPencil(x, y, avalue: integer);
+Begin
+  fField[x, y].Pencil[avalue - 1] := false;
+End;
+
+Procedure TSudoku.Unpencil(x, y, aValue: integer);
+Var
+  a, b, c, d, z: integer;
+Begin
+  If aValue = 0 Then exit;
+  // Unpenzil für die Felder !!
+  For z := 0 To fsqrDim - 1 Do Begin
+    fField[x, z].Pencil[avalue - 1] := true;
+    fField[z, y].Pencil[avalue - 1] := true;
+  End;
+  // MArkieren des 9 er Blockes der Zahl
+  a := x - (x Mod fDim);
+  b := y - (y Mod fDim);
+  For c := 0 To fDim - 1 Do
+    For d := 0 To fDim - 1 Do
+      fField[a + c, b + d].Pencil[avalue - 1] := true;
 End;
 
 Procedure TSudoku.RenderTo(Const Canvas: TCanvas; Const Info: TRenderInfo);
@@ -948,6 +1021,19 @@ Begin
     For j := 0 To fsqrDim - 1 Do Begin
       For k := 0 To fsqrDim - 1 Do Begin
         ffield[i, j].Pencil[k] := true;
+      End;
+    End;
+  End;
+End;
+
+Procedure TSudoku.EraseAllNumberPencils;
+Var
+  i, j, k: Integer;
+Begin
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      For k := 0 To fsqrDim - 1 Do Begin
+        ffield[i, j].Pencil[k] := false;
       End;
     End;
   End;
@@ -1806,6 +1892,53 @@ Begin
       result := result + ' ' + inttostr(fField[i, j].Value);
     End;
     result := result + LineEnding;
+  End;
+End;
+
+Procedure TSudoku.SaveToStream(Const aStream: TStream);
+Var
+  i, j, k: Integer;
+Begin
+  aStream.Write(FileVersion, SizeOf(FileVersion));
+  aStream.Write(fDim, SizeOf(fDim));
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      aStream.Write(fField[i, j].Value, sizeof(fField[i, j].Value));
+      aStream.Write(fField[i, j].Marked, sizeof(fField[i, j].Marked));
+      aStream.Write(fField[i, j].Maybeed, sizeof(fField[i, j].Maybeed));
+      aStream.Write(fField[i, j].Fixed, sizeof(fField[i, j].Fixed));
+      For k := 0 To fsqrDim - 1 Do Begin
+        aStream.Write(fField[i, j].Pencil[k], sizeof(fField[i, j].Pencil[k]));
+      End;
+    End;
+  End;
+End;
+
+Procedure TSudoku.LoadFromStream(Const aStream: TStream);
+Var
+  aFileVersion, aDim, i, j, k: Integer;
+Begin
+  aFileVersion := -1;
+  aStream.Read(aFileVersion, SizeOf(aFileVersion));
+  If aFileVersion > FileVersion Then Begin
+    Raise exception.Create('TSudoku.LoadFromStream: invalid file version.');
+  End;
+  aDim := -1;
+  aStream.Read(aDim, SizeOf(aDim));
+  If fDim <> aDim Then Begin
+    Raise exception.Create('TSudoku.LoadFromStream: stream dim is ' + IntToStr(aDim) + ' expected ' + inttostr(fDim));
+  End;
+
+  For i := 0 To fsqrDim - 1 Do Begin
+    For j := 0 To fsqrDim - 1 Do Begin
+      aStream.Read(fField[i, j].Value, sizeof(fField[i, j].Value));
+      aStream.Read(fField[i, j].Marked, sizeof(fField[i, j].Marked));
+      aStream.Read(fField[i, j].Maybeed, sizeof(fField[i, j].Maybeed));
+      aStream.Read(fField[i, j].Fixed, sizeof(fField[i, j].Fixed));
+      For k := 0 To fsqrDim - 1 Do Begin
+        aStream.Read(fField[i, j].Pencil[k], sizeof(fField[i, j].Pencil[k]));
+      End;
+    End;
   End;
 End;
 

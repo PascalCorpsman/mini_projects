@@ -170,8 +170,8 @@ Type
     { Private-Deklarationen }
     ffield: TSudoku;
     fLinepencil: TLinepencil; // Die LinienPencil's -> 3x3 Only :/
-    Field: T3field; // Das Spielfeld --> TODO: Das muss noch raus geworfen werden !
     mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
+    bm: Tbitmap; // Quasi noch ein Double buffered
 
     Procedure ApplyFromModifyAndRepaintField(Sender: TObject);
 
@@ -179,8 +179,8 @@ Type
 
     Function OnLCLUpdateEvent(): Boolean;
     Function OnStepLCLUpdateEvent(): Boolean;
-    Procedure getLinePencil(Var Data: T3Field);
-    Procedure UnPencil(x, y, value: integer; Var Data: T3field);
+    Procedure getLinePencil();
+    Procedure UnPencil(x, y, value: integer);
     Function GetSudokuOptions: TSolveOptions;
     Procedure Resetopt;
   public
@@ -190,7 +190,6 @@ Type
 
 Var
   Form1: TForm1;
-  bm: Tbitmap; // gegen das Flimmern
 
 Implementation
 
@@ -216,7 +215,7 @@ Uses
 
 // Ermittelt die Line Pencils
 
-Procedure TForm1.getLinePencil(Var Data: T3Field);
+Procedure TForm1.getLinePencil;
 Var
   x, y: integer;
   zahlen: Array Of Integer;
@@ -238,8 +237,10 @@ Var
       Zahlen[high(zahlen)] := value;
     End;
   End;
-
+Var
+  Data: T3Field;
 Begin
+  ffield.StoreTo(data);
   setlength(zahlen, 0);
   // Zuerst die Senkrechten Linien
   For x := 0 To 8 Do Begin
@@ -406,23 +407,11 @@ End;
 
 // Fügt wieder einen Penzil wert ein
 
-Procedure TForm1.UnPencil(x, y, value: integer; Var Data: T3field);
-Var
-  a, b, c, d, z: integer;
+Procedure TForm1.UnPencil(x, y, value: integer);
+
 Begin
   If Not unpencilallow Then exit;
-  If Value = 0 Then exit;
-  // Unpenzil für die Felder !!
-  For z := 0 To 8 Do Begin
-    Data[x, z].Pencil[value - 1] := true;
-    Data[z, y].Pencil[value - 1] := true;
-  End;
-  // MArkieren des 9 er Blockes der Zahl
-  a := x - (x Mod 3);
-  b := y - (y Mod 3);
-  For c := 0 To 2 Do
-    For d := 0 To 2 Do
-      Data[a + c, b + d].Pencil[value - 1] := true;
+  ffield.Unpencil(x, y, value);
   // Unpencil für die Lines
   fLinepencil[x][Value - 1] := true;
   fLinepencil[9 + y][Value - 1] := true;
@@ -430,7 +419,7 @@ End;
 
 Function TForm1.GetSudokuOptions: TSolveOptions;
 Begin
-  // Übernehmen der Solvin Methoden
+  // Übernehmen der Solve Methoden
   Result := [];
   If byhiddensingle1.checked Then Result := Result + [soHiddenSingle];
   If bynakedsingle1.checked Then Result := Result + [soNakedSingle];
@@ -452,8 +441,8 @@ Var
   i: Integer;
 Begin
   If bm = Nil Then exit;
-  ffield.LoadFrom(Field);
   If checkbox1.checked And (mx > -1) Then Begin
+    ffield.ResetAllMarker;
     ffield.Mark(ffield.value[mx, my]);
   End;
   // Markieren der Felder die Permanent Markiert werden müssen
@@ -575,29 +564,28 @@ Begin
 End;
 
 Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
-// Fügt unter beachtung aller Bedingugnen eine Zahl in das Feld ein
+// Fügt unter Beachtung aller Bedingungen eine Zahl in das Feld ein
   Procedure AddZahl(Value, X, y: integer);
   Var
     c, d, a, b, z: integer;
     e: Boolean;
-    s: TSudoku;
   Begin
     // Fixed Zahlen können nicht überschrieben werden !!
-    If Field[x, y].Fixed And Not checkbox2.checked Then Begin
+    If fField.IsFixed(x, y) And Not checkbox2.checked Then Begin
       showmessage('Field is fixed, you cannot override it!');
       exit;
     End;
     // Die eingabe eines Pencil Wertes
     If checkbox3.checked Then Begin
       If Value = 0 Then exit;
-      Field[x, y].Pencil[value - 1] := Not Field[x, y].Pencil[value - 1];
+      fField.TogglePencil(x, y, value); // TODO: auf Lange sicht sollte das Toggle wieder raus, es gibt Set und get !
       // überprüfen ob der Pencil überhaupt sinn macht
-      If Field[x, y].Pencil[value - 1] Then Begin
+      If ffield.IsPencilSet(x, y, value) Then Begin
         // Prüfen ob die Zahl Waagrecht / Senkrecht rein darf
         e := true;
         For z := 0 To 8 Do Begin
-          If (Field[z, y].value = Value) And Not (z = x) Then e := false;
-          If (Field[x, z].value = Value) And Not (z = y) Then e := false;
+          If (fField.value[z, y] = Value) And Not (z = x) Then e := false;
+          If (fField.value[x, z] = Value) And Not (z = y) Then e := false;
         End;
         // Prüfen ob die Zahl in das entsprechende 9er Feld Darf
         a := x - (x Mod 3);
@@ -606,11 +594,11 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
           For d := 0 To 2 Do
             // Prüfen der Zahl im 9er Feld auser dem gewählten Feld
             If ((a + c) <> x) Or ((b + d) <> y) Then Begin
-              If Field[a + c, b + d].value = Value Then e := false;
+              If fField.value[a + c, b + d] = Value Then e := false;
             End;
         If invalidnallow Then e := true; // Wenn auch ungültige Zahlen eingegeben werden können.
         If Not E Then Begin
-          Field[x, y].Pencil[value - 1] := false;
+          fField.ClearPencil(x, y, value);
           showmessage('Character for this field impossible.');
         End;
       End;
@@ -619,17 +607,15 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
     Else Begin
       // Löschen eines Wertes
       If Value = 0 Then Begin
-        For c := 0 To 8 Do
-          For d := 0 To 8 Do
-            Field[c, d].marked := false;
+        ffield.ResetAllMarker;
         // nur in speziell des Falles das eine Zahl gelöscht wird darf sie bei den Pencils hinzugefügt werden.
-        UnPencil(x, y, Field[x, Y].value, field);
+        UnPencil(x, y, fField.value[x, Y]);
       End;
       // Prüfen ob die Zahl Waagrecht / Senkrecht rein darf
       e := true;
       For z := 0 To 8 Do Begin
-        If (Field[z, y].value = Value) And Not (z = x) Then e := false;
-        If (Field[x, z].value = Value) And Not (z = y) Then e := false;
+        If (fField.value[z, y] = Value) And Not (z = x) Then e := false;
+        If (fField.value[x, z] = Value) And Not (z = y) Then e := false;
       End;
       // Prüfen ob die Zahl in das entsprechende 9er Feld Darf
       a := x - (x Mod 3);
@@ -638,7 +624,7 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
         For d := 0 To 2 Do
           // Prüfen der Zahl im 9er Feld auser dem gewählten Feld
           If ((a + c) <> x) Or ((b + d) <> y) Then Begin
-            If Field[a + c, b + d].value = Value Then
+            If fField.value[a + c, b + d] = Value Then
               e := false;
           End;
       // Wenn die Zahl gelöscht wird
@@ -647,38 +633,29 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
       // das Feld Aktualisieren
       If e Then Begin
         // Zuweisen des neuen Feldwertes
-        If Field[x, y].value = value Then Begin
-          If Not (Not Field[x, y].Fixed And checkbox2.checked) Then Begin
+        If fField.value[x, y] = value Then Begin
+          If Not (Not fField.IsFixed(x, y) And checkbox2.checked) Then Begin
             // nur in speziell des Falles das eine Zahl gelöscht wird darf sie bei den Pencils hinzugefügt werden.
-            For c := 0 To 8 Do
-              For d := 0 To 8 Do
-                Field[c, d].marked := false;
-            UnPencil(x, y, Field[x, Y].value, field);
-            Field[x, y].value := 0; // Rücksetzen des Feldwertes
+            ffield.ResetAllMarker;
+            UnPencil(x, y, fField.value[x, Y]);
+            ffield.SetValue(x, y, 0, false); // Rücksetzen des Feldwertes
           End;
         End
         Else Begin
-          If Field[x, y].value <> 0 Then Begin
+          If fField.value[x, y] <> 0 Then Begin
             // nur in speziell des Falles das eine Zahl gelöscht wird darf sie bei den Pencils hinzugefügt werden.
-            For c := 0 To 8 Do
-              For d := 0 To 8 Do
-                Field[c, d].marked := false;
-            UnPencil(x, y, Field[x, Y].value, field);
+            ffield.ResetAllMarker;
+            UnPencil(x, y, fField.value[x, Y]);
           End;
-          Field[x, y].value := value; // Setzen des Feldes mit dem Wert
+          ffield.SetValue(x, y, Value, false); // Setzen des Feldes mit dem Wert
         End;
         // zuweisen ob Fixed wert, oder nur normale Zahl
-        If Field[x, y].value <> 0 Then
-          Field[x, y].Fixed := form1.checkbox2.checked
-        Else
-          Field[x, y].fixed := false;
+        If fField.value[x, y] <> 0 Then Begin
+          ffield.SetValue(x, y, fField.value[x, Y], form1.checkbox2.checked);
+        End;
         // Ermitteln der Pencil Werte
         If checkbox4.checked Then Begin
-          s := TSudoku.Create(3);
-          s.LoadFrom(field);
-          s.ClearAllNumberPencils;
-          s.StoreTo(field);
-          s.free;
+          ffield.ClearAllNumberPencils;
         End;
       End
       Else
@@ -686,18 +663,13 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
     End;
   End;
 Var
-  x1, x2, y1, y2: integer;
+  x1, x2, y1: integer;
   zah: Array[1..9] Of 0..9;
   a: Boolean;
-  s: TSudoku;
 Begin
-  s := TSudoku.Create(3);
-  s.LoadFrom(field);
-  If s.IsSolved() And Not (key In ['a', 'A', '0', 's', 'S', 'd', 'D', 'w', 'W']) Then Begin
-    s.free;
+  If ffield.IsSolved() And Not (key In ['a', 'A', '0', 's', 'S', 'd', 'D', 'w', 'W']) Then Begin
     exit;
   End;
-  s.free;
   // Wenn wir uns im edit Line Pencil Modus befinden
   If Checkbox6.checked Then Begin
     // Bewegen des Cursors
@@ -714,11 +686,11 @@ Begin
         x2 := strtoint(key);
         If lc < 9 Then Begin
           For x1 := 0 To 8 Do
-            If x2 = Field[lc, x1].value Then a := false;
+            If x2 = fField.value[lc, x1] Then a := false;
         End
         Else Begin
           For x1 := 0 To 8 Do
-            If x2 = Field[x1, lc - 9].value Then a := false;
+            If x2 = fField.value[x1, lc - 9] Then a := false;
         End;
         If invalidnallow Then a := true; // Wenn auch ungültige Zahlen eingegeben werden können.
         If A Then
@@ -743,12 +715,12 @@ Begin
   // Einfügen und Löschen von Zahlen
   If (Key In ['0'..'9']) And (mx <> -1) Then Begin
     AddZahl(StrToInt(key), mx, my);
-    Field[mx, my].Maybeed := false;
+    fField.SetMayBeed(mx, my, false);
   End;
   // Einfügen der Geschätzten Zahlen
   If mx <> -1 Then Begin
     If (Key In ['!', '"', '?' {='§'}, '$', '%', '&', '/', '(', ')']) Then Begin
-      Field[mx, my].Maybeed := True;
+      fField.SetMaybeed(mx, my, True);
       If Key = '!' Then
         AddZahl(1, mx, my);
       If Key = '"' Then
@@ -768,19 +740,19 @@ Begin
       If Key = ')' Then
         AddZahl(9, mx, my);
       If Checkbox5.checked Then
-        getLinePencil(Field);
+        getLinePencil();
     End;
   End;
   // Hohlen der ganzen Linepencil sachen
   If Checkbox5.checked Then
-    getLinePencil(Field);
+    getLinePencil();
   // überprüfen ob vielleicht schon von einer Zahl alle gefunden wurden
   For x1 := 1 To 9 Do
     zah[x1] := 0;
   For x1 := 0 To 8 Do
     For y1 := 0 To 8 Do
-      If Field[x1, y1].value <> 0 Then
-        inc(zah[Field[x1, y1].value]);
+      If fField.value[x1, y1] <> 0 Then
+        inc(zah[fField.value[x1, y1]]);
   {  If Key = '0' Then Begin
 
     End;}
@@ -790,39 +762,30 @@ Begin
       TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
       TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
       TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).Down := False;
-      For x2 := 0 To 8 Do
-        For y2 := 0 To 8 Do
-          Field[x2, y2].marked := false;
+      ffield.ResetAllMarker;
     End
     Else Begin
       TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
       TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
     End;
   // Schauen ob Fertig.
-  s := TSudoku.Create(3);
-  s.LoadFrom(field);
-  If s.IsFullyFilled() And (Not (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W', '0'])) Then Begin
-    If s.IsSolved() Then Begin
+  If ffield.IsFullyFilled() And (Not (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W', '0'])) Then Begin
+    If ffield.IsSolved() Then Begin
       showmessage('You solved the Sudoku.');
     End
     Else Begin
       showmessage('You filled out the Sudoku, but not correct.');
     End;
   End;
-  s.free;
   PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.CheckBox1Click(Sender: TObject);
-Var
-  x, y: Integer;
 Begin
   If Not Checkbox1.checked Then Begin
-    For x := 0 To 8 Do
-      For y := 0 To 8 Do
-        Field[x, y].marked := false;
+    ffield.ResetAllMarker;
     If (mx In [0..8]) And (my In [0..8]) Then
-      Field[mx, my].Marked := true;
+      ffield.SetMarked(mx, my, true);
   End;
   PaintBox1.Invalidate;
 End;
@@ -845,15 +808,9 @@ Begin
 End;
 
 Procedure TForm1.CheckBox4Click(Sender: TObject);
-Var
-  s: TSudoku;
 Begin
   If Checkbox4.checked Then Begin
-    s := TSudoku.Create(3);
-    s.LoadFrom(field);
-    s.ClearAllNumberPencils;
-    s.StoreTo(Field);
-    s.free;
+    ffield.ClearAllNumberPencils;
   End;
   If checkbox3.checked And Not Checkbox4.checked Then checkbox3.checked := false;
   PaintBox1.Invalidate;
@@ -864,9 +821,7 @@ Begin
   Resetopt;
   mx := 0;
   my := 0;
-  ffield.LoadFrom(Field);
   ffield.ClearField;
-  ffield.StoreTo(Field);
   PaintBox1.Invalidate;
 End;
 
@@ -893,9 +848,7 @@ Begin
     // Löschen aller Markierungen
     mx := -1;
     my := -1;
-    For x1 := 0 To 8 Do
-      For y1 := 0 To 8 Do
-        Field[x1, y1].marked := false;
+    ffield.ResetAllMarker;
     If (X >= Breite) And (x <= Breite * 10) And
       (y >= Breite) And (y <= Breite * 10) Then Begin
       // Ausrechnen der Koordinaten des neu Markierten Feldes
@@ -931,7 +884,7 @@ Begin
     SaveDialog1.initialdir := ExtractFilePath(Savedialog1.Filename);
     openDialog1.initialdir := ExtractFilePath(Savedialog1.Filename);
     f := Tfilestream.create(Savedialog1.Filename, fmCreate Or fmOpenWrite);
-    f.write(Field, sizeof(Field));
+    ffield.SaveToStream(f);
     f.write(flinepencil, sizeof(flinepencil));
     f.Free;
   End;
@@ -939,7 +892,6 @@ End;
 
 Procedure TForm1.Load1Click(Sender: TObject);
 Var
-  x, y: integer;
   F: TFilestream;
 Begin
   If opendialog1.execute Then Begin
@@ -948,12 +900,12 @@ Begin
     // Zurücksetzen der Graphischen Hilfsmittel
     ResetOpt;
     f := Tfilestream.create(opendialog1.Filename, fmOpenRead);
-    f.Read(Field, sizeof(Field));
+    ffield.LoadFromStream(f);
     f.Read(flinepencil, sizeof(flinepencil));
     f.Free;
-    For x := 0 To 8 Do
-      For y := 0 To 8 Do
-        Field[x, y].marked := false;
+    ffield.ResetAllMarker;
+    mx := 0;
+    my := 0;
     PaintBox1.Invalidate;
   End;
 End;
@@ -966,20 +918,16 @@ Begin
   // Löschen aller Einträge des Users
   For x := 0 To 8 Do
     For y := 0 To 8 Do Begin
-      If Not (Field[x, y].Fixed) Then Field[x, y].value := 0;
-      Field[x, y].MArked := false;
+      If Not (fField.IsFixed(x, y)) Then ffield.SetValue(x, y, 0, false); //Field[x, y].value := 0;
+      fField.SetMarked(x, y, false);
     End;
   PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.ToolButton1Click(Sender: TObject);
-Var
-  x, y: integer;
 Begin
   If TToolbutton(Sender).Down = false Then Begin
-    For x := 0 To 8 Do
-      For y := 0 To 8 Do
-        Field[x, y].marked := false;
+    ffield.ResetAllMarker;
   End;
   PaintBox1.Invalidate;
 End;
@@ -1044,46 +992,34 @@ End;
 
 Procedure TForm1.Button1Click(Sender: TObject);
 Var
-  x, y, z: integer;
-  s: TSudoku;
+  x, y: integer;
 Begin
   // Auto Pencil Numbers
   For x := 0 To 17 Do
     For y := 0 To 8 Do
       fLinepencil[x][y] := true;
-  getlinepencil(Field);
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do
-      For z := 0 To 8 Do
-        field[x, y].Pencil[z] := true;
-  s := TSudoku.Create(3);
-  s.LoadFrom(field);
-  s.ClearAllNumberPencils;
-  s.StoreTo(Field);
-  s.free;
+  getlinepencil();
+  ffield.ResetAllNumberPencils;
+  ffield.ClearAllNumberPencils;
   PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
 Var
-  x, y, z: integer;
+  x, y: integer;
 Begin
   // Löschen der Linepencil's
   For x := 0 To 17 Do
     For y := 0 To 8 Do
       fLinepencil[x][y] := false;
   // Löschen der Field pencil's
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do
-      For z := 0 To 8 Do
-        field[x, y].Pencil[z] := false;
-  //  checkbox3.checked := true;
+  ffield.EraseAllNumberPencils;
   PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.CheckBox5Click(Sender: TObject);
 Begin
-  If Checkbox5.checked Then getLinePencil(Field);
+  If Checkbox5.checked Then getLinePencil();
   If Not Checkbox5.checked Then Begin
     checkbox6.checked := false;
   End;
@@ -1103,12 +1039,10 @@ End;
 Procedure TForm1.ToolButton1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Var
-  x1, y1: integer;
+  x1: integer;
 Begin
   If SSright In shift Then Begin
-    For x1 := 0 To 8 Do
-      For y1 := 0 To 8 Do
-        Field[x1, y1].marked := false;
+    ffield.ResetAllMarker;
     For x1 := 1 To 9 Do
       TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(x1))).down := false;
     TTOolbutton(sender).Down := true;
@@ -1144,14 +1078,11 @@ End;
 
 Procedure TForm1.Solveit1Click(Sender: TObject);
 Var
-  s: TSudoku;
   aFormclose: Boolean;
   zah: Array[1..9] Of integer;
-  x1, y1, x, y: Integer;
+  x1, y1: Integer;
 Begin
-  s := TSudoku.Create(3);
-  s.LoadFrom(field);
-  If Not (s.IsSolveable) Then Begin
+  If Not (ffield.IsSolveable) Then Begin
     showmessage('Impossible to solve Sudoku');
     PaintBox1.Invalidate;
   End
@@ -1161,27 +1092,23 @@ Begin
     If Not form6.visible Then Begin
       aFormclose := true;
     End;
-    s.Solve(false, GetSudokuOptions(), @OnStepLCLUpdateEvent);
-    s.ResetAllMarker;
-    s.StoreTo(field);
-    getlinepencil(field); // Ermitteln der Korreckten Line pencil's
-
+    ffield.Solve(false, GetSudokuOptions(), @OnStepLCLUpdateEvent);
+    ffield.ResetAllMarker;
+    getlinepencil(); // Ermitteln der Korreckten Line pencil's
     // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
     For x1 := 1 To 9 Do
       zah[x1] := 0;
     For x1 := 0 To 8 Do
       For y1 := 0 To 8 Do
-        If field[x1, y1].value <> 0 Then
-          inc(zah[field[x1, y1].value]);
+        If ffield.value[x1, y1] <> 0 Then
+          inc(zah[ffield.value[x1, y1]]);
     For x1 := 1 To 9 Do
       If zah[x1] = 9 Then Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
-        For x := 0 To 8 Do
-          For y := 0 To 8 Do
-            field[x, y].marked := false;
+        ffield.ResetAllMarker;
       End
       Else Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
@@ -1191,28 +1118,24 @@ Begin
     If aFormclose And form6.visible Then Form6.close;
 
     PaintBox1.Invalidate;
-    If s.isSolved() Then Begin
+    If ffield.isSolved() Then Begin
       Showmessage('Ready');
     End
     Else Begin
       showmessage('Unable to solve');
     End;
   End;
-  s.free;
 End;
 
 Procedure TForm1.Solvestep1Click(Sender: TObject);
 Var
   UsedTryError, a, aFormclose: Boolean;
-  x1, x, y, y1: integer;
-  s: TSudoku;
+  x1, y1: integer;
   p: TPoint;
   zah: Array[1..9] Of integer;
   options: TSolveOptions;
 Begin
-  s := TSudoku.Create(3);
-  s.LoadFrom(field);
-  If Not (s.IsSolveable) Then Begin
+  If Not (ffield.IsSolveable) Then Begin
     showmessage('Impossible to solve Sudoku');
   End
   Else Begin
@@ -1221,7 +1144,6 @@ Begin
       If ID_NO = application.messagebox(pchar('You slected the solving method by try and error.' + LineEnding +
         'If this step is necessary your Sudoku will be completed at all.' + LineEnding + LineEnding +
         'do you want this ?'), 'Question', MB_YESNO + MB_ICONQUESTION) Then Begin
-        s.free;
         exit;
       End;
       aFormclose := false;
@@ -1230,17 +1152,16 @@ Begin
         aFormclose := true;
       End;
     End;
-    UsedTryError := s.Solve(true, Options, @OnStepLCLUpdateEvent);
-    s.ResetAllMarker;
+    UsedTryError := ffield.Solve(true, Options, @OnStepLCLUpdateEvent);
+    ffield.ResetAllMarker;
     If (soTryAndError In options) And UsedTryError Then Begin
       If aFormclose And form6.visible Then Form6.close;
-      If Not s.IsSolved() Then Begin
+      If Not ffield.IsSolved() Then Begin
         showmessage('This Sudoku is impossible to solve');
       End;
     End;
-    s.StoreTo(field);
-    getlinepencil(field); // Ermitteln der Korreckten Line pencil's
-    p := s.StepPos;
+    getlinepencil(); // Ermitteln der Korreckten Line pencil's
+    p := ffield.StepPos;
     mx := p.x;
     my := p.y;
     // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
@@ -1248,17 +1169,15 @@ Begin
       zah[x1] := 0;
     For x1 := 0 To 8 Do
       For y1 := 0 To 8 Do
-        If field[x1, y1].value <> 0 Then
-          inc(zah[field[x1, y1].value]);
+        If ffield.value[x1, y1] <> 0 Then
+          inc(zah[ffield.value[x1, y1]]);
     For x1 := 1 To 9 Do
       If zah[x1] = 9 Then Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
-        For x := 0 To 8 Do
-          For y := 0 To 8 Do
-            field[x, y].marked := false;
+        ffield.ResetAllMarker;
       End
       Else Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
@@ -1275,7 +1194,6 @@ Begin
     End;
     PaintBox1.Invalidate;
   End;
-  s.free;
 End;
 
 Procedure TForm1.Allowall1Click(Sender: TObject);
@@ -1329,9 +1247,7 @@ Begin
   Form7.init(ffield, GetSudokuOptions());
   Form7.showmodal;
   ffield.CloneFieldFrom(form7.Sudoku);
-  ffield.StoreTo(Field);
-  // Nach dem Schliesen sollte das Hauptfenster wieder aktiviert werden
-  Form1.SetFocus;
+  Button2Click(Nil); // Erst mal alle Pencils löschen
   PaintBox1.Invalidate;
 End;
 
@@ -1341,7 +1257,7 @@ Var
 Begin
   For x := 0 To 8 Do
     For y := 0 To 8 Do
-      If Field[x, y].Maybeed Then Field[x, y].Maybeed := false;
+      ffield.SetMaybeed(x, y, false);
   PaintBox1.Invalidate;
 End;
 
@@ -1351,10 +1267,10 @@ Var
 Begin
   For x := 0 To 8 Do
     For y := 0 To 8 Do
-      If Field[x, y].Maybeed Then Begin
-        Field[x, y].Maybeed := false;
-        UnPencil(x, y, Field[x, y].Value, Field);
-        Field[x, y].Value := 0;
+      If fField.GetMaybeed(x, y) Then Begin
+        ffield.SetMaybeed(x, y, false);
+        UnPencil(x, y, fField.value[x, y]);
+        ffield.SetValue(x, y, 0, false);
       End;
   PaintBox1.Invalidate;
 End;
@@ -1396,7 +1312,7 @@ Begin
   z := 0;
   For x := 0 To 8 Do
     For y := 0 To 8 Do
-      If Field[x, y].value <> 0 Then inc(z);
+      If fField.value[x, y] <> 0 Then inc(z);
   Showmessage('This Sudoku needs ' + inttostr(9 * 9) + ' numbers to be complete.' + LineEnding + LineEnding +
     'At the moment there were ' + inttostr(z) + ' numbers inserted.');
 End;
@@ -1409,7 +1325,6 @@ End;
 Procedure TForm1.ApplyFromModifyAndRepaintField(Sender: TObject);
 Begin
   ffield.CloneFieldFrom(form5.Sudoku);
-  ffield.StoreTo(Field);
   PaintBox1.Invalidate;
 End;
 
@@ -1434,5 +1349,4 @@ Begin
 End;
 
 End.
-
 
