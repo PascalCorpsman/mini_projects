@@ -27,8 +27,9 @@ Const
                1.12 = Fix LCL Crash in unit1.lfm
                1.13 = publish code -> start with refactoring
                       FIX: editing numbers after Puzzle create was not possible anymore
+               1.14 = change fileformat for .sd3 files (not compatible to fileformat o vers. 1.13 or previos !
    *)
-  Ver = '1.13';
+  Ver = '1.14';
 
   (*
    * History: 1 = Initialversion
