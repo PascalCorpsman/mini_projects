@@ -530,14 +530,14 @@ object Form1: TForm1
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.sd3'
-    Filter = 'Sudoka|*.sd3|All|*.*'
+    Filter = 'Sudoku|*.sd3|All|*.*'
     Options = [ofReadOnly, ofHideReadOnly, ofPathMustExist, ofFileMustExist]
     Left = 488
     Top = 312
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.sd3'
-    Filter = 'Sudoka|*.sd3|All|*.*'
+    Filter = 'Sudoku|*.sd3|All|*.*'
     Options = [ofHideReadOnly]
     Left = 520
     Top = 312

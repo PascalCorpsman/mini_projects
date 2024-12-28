@@ -196,7 +196,6 @@ Type
     Procedure LoadFromStream(Const aStream: TStream);
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
-    Procedure LoadFrom(Const f: T3Field);
     Procedure StoreTo(Out f: T3Field);
     Function DebugString: String;
   End;
@@ -1846,23 +1845,6 @@ Begin
         End;
       End;
     End;
-End;
-
-Procedure TSudoku.LoadFrom(Const f: T3Field);
-Var
-  i, j, k: Integer;
-Begin
-  If fdim <> 3 Then Raise Exception.Create('TSudoku.LoadFrom: error dim <> 3');
-  For i := 0 To fsqrDim - 1 Do Begin
-    For j := 0 To fsqrDim - 1 Do Begin
-      fField[i, j].Value := f[i, j].Value;
-      fField[i, j].marked := f[i, j].Marked;
-      fField[i, j].Maybeed := f[i, j].Maybeed;
-      fField[i, j].Fixed := f[i, j].Fixed;
-      For k := 0 To fsqrDim - 1 Do
-        fField[i, j].Pencil[k] := f[i, j].Pencil[k];
-    End;
-  End;
 End;
 
 Procedure TSudoku.StoreTo(Out f: T3Field);
