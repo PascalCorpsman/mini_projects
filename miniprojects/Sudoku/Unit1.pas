@@ -38,6 +38,8 @@ Uses
 
 Type
 
+  TLinepencil = Array[0..17] Of TPencil;
+
   { TForm1 }
 
   TForm1 = Class(TForm)
@@ -237,16 +239,13 @@ Var
       Zahlen[high(zahlen)] := value;
     End;
   End;
-Var
-  Data: T3Field;
 Begin
-  ffield.StoreTo(data);
   setlength(zahlen, 0);
   // Zuerst die Senkrechten Linien
   For x := 0 To 8 Do Begin
     setlength(zahlen, 0);
     For y := 0 To 8 Do
-      If Data[x, y].value <> 0 Then add(Data[x, y].value);
+      If ffield.value[x, y] <> 0 Then add(ffield.value[x, y]);
     For y := 0 To high(Zahlen) Do
       fLinepencil[x][Zahlen[y] - 1] := false;
   End;
@@ -254,7 +253,7 @@ Begin
   For y := 0 To 8 Do Begin
     setlength(zahlen, 0);
     For x := 0 To 8 Do
-      If Data[x, y].value <> 0 Then add(Data[x, y].value);
+      If ffield.value[x, y] <> 0 Then add(ffield.value[x, y]);
     For x := 0 To high(Zahlen) Do
       fLinepencil[y + 9][Zahlen[x] - 1] := false;
   End;
@@ -500,13 +499,9 @@ Begin
   Close;
 End;
 
-Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
-Begin
-  ffield.Free;
-  ffield := Nil;
-End;
-
 Procedure TForm1.FormCreate(Sender: TObject);
+Var
+  i: Integer;
 Begin
   {
   To Do Liste:
@@ -527,6 +522,9 @@ Begin
   // RandSeed := 42; // -- Enable for testing to get everytime furst the same Sudoku
   // RandSeed := 128; // -- Enable for testing to get everytime furst the same Sudoku
   ffield := TSudoku.Create(3);
+  For i := 0 To high(fLinepencil) Do Begin
+    setlength(fLinepencil[i], 9);
+  End;
   bm := tbitmap.create;
   bm.width := form1.width;
   bm.height := form1.height;
@@ -537,6 +535,17 @@ Begin
   mx := 0;
   my := 0;
   Caption := 'Sudoku ver. : ' + ver + ' by Corpsman | www.Corpsman.de |';
+End;
+
+Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
+Var
+  i: Integer;
+Begin
+  For i := 0 To high(fLinepencil) Do Begin
+    setlength(fLinepencil[i], 0);
+  End;
+  ffield.Free;
+  ffield := Nil;
 End;
 
 Procedure TForm1.FormResize(Sender: TObject);

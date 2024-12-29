@@ -47,19 +47,6 @@ Type
 
   T3Pencil = Array[0..8] Of Boolean; // TODO: Entfernen
 
-  T3SubField = Record // TODO: Entfernen
-    Value: integer;
-    Marked: Boolean;
-    Maybeed: Boolean;
-    Fixed: Boolean;
-    Pencil: T3pencil;
-  End;
-
-  T3Field = Array[0..8] Of Array[0..8] Of T3subfield; // TODO: Entfernen
-
-  // die Line Pencils welche extra erstellt werden
-  TLinepencil = Array[0..17] Of T3Pencil; // TODO: Entfernen
-
   TPencil = Array Of Boolean;
 
   TRenderInfo = Record
@@ -198,7 +185,6 @@ Type
     Procedure LoadFromStream(Const aStream: TStream);
 
     (* All following functions are needed during refactoring -> Shall be deleted in future *)
-    Procedure StoreTo(Out f: T3Field);
     Function DebugString: String;
   End;
 
@@ -1905,23 +1891,6 @@ Begin
         End;
       End;
     End;
-End;
-
-Procedure TSudoku.StoreTo(Out f: T3Field);
-Var
-  i, j, k: Integer;
-Begin
-  If fdim <> 3 Then Raise Exception.Create('TSudoku.LoadFrom: error dim <> 3');
-  For i := 0 To fsqrDim - 1 Do Begin
-    For j := 0 To fsqrDim - 1 Do Begin
-      f[i, j].Value := fField[i, j].Value;
-      f[i, j].Marked := fField[i, j].marked;
-      f[i, j].Maybeed := fField[i, j].Maybeed;
-      f[i, j].Fixed := fField[i, j].Fixed;
-      For k := 0 To fsqrDim - 1 Do
-        f[i, j].Pencil[k] := fField[i, j].Pencil[k];
-    End;
-  End;
 End;
 
 Function TSudoku.DebugString: String;
