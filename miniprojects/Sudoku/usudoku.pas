@@ -45,8 +45,6 @@ Type
    *)
   TLCLUpdateEvent = Function(): Boolean Of Object;
 
-  T3Pencil = Array[0..8] Of Boolean; // TODO: Entfernen
-
   TPencil = Array Of Boolean;
 
   TRenderInfo = Record
@@ -1113,8 +1111,12 @@ End;
 Procedure TSudoku.ApplyHiddenSubsetAlgorithm;
 Var
   pc, x, y, x1, y1, z: integer;
-  zah, penc: T3pencil;
+  zah, penc: Tpencil;
 Begin
+  zah := Nil;
+  penc := Nil;
+  setlength(zah, fsqrDim);
+  setlength(penc, fsqrDim);
   // Wir schauen alle Rehein , alle spalten und alle 9er Blocks an
   // Zuerst die 9er block's
   For x := 0 To fDim - 1 Do
