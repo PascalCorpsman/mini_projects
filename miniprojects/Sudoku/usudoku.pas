@@ -175,6 +175,7 @@ Type
     Procedure EraseAllNumberPencils;
 
     Procedure RenderTo(Const Canvas: TCanvas; Const Info: TRenderInfo);
+    Procedure PrintToRectangle(aRect: TRect; aLineWidth: Integer; aShowPencilData: Boolean);
 
     Procedure ClearAllNumberPencils; // TODO: Der Name ist missverständlich, gemeint ist, dass alle Pencils weg gestrichen werden die via "Values <> 0" irgendwo definiert sind !
     Procedure ApplyHiddenSubsetAlgorithm(); // TODO: Sollte das nicht Private werden ?
@@ -231,11 +232,11 @@ Function Mirrow(x, y, n, Direction: Integer): TPoint;
 Function PencilEqual(Const a, b: TPencil): Boolean;
 Function GetSetPencilscount(Const Value: Tpencil): integer; // Ermittelt wieviele Einträge <> 0 sind
 
-Procedure PrintAdvertising(); // Druckt auf eine Seite unten den Quellenhinweis
+Procedure PrintAdvertising(); // Druckt auf eine Seite unten den Quellenhinweis, hat nichts mit dem Eigentlichen Sudoku zu tun, sollte später wieder in Unit 9 wandern..
 
 Implementation
 
-Uses Printers;
+Uses Printers, Math;
 
 Type
 
@@ -1011,6 +1012,64 @@ Begin
         canvas.textout(breite * (x + 1) + (Breite - canvas.textwidth(inttostr(fField[x, y].value))) Div 2, Breite * (y + 1) + 1 + (Breite - canvas.textheight(inttostr(fField[x, y].value))) Div 2, substitution[(fField[x, y].value)]);
       End;
     End;
+End;
+
+Procedure TSudoku.PrintToRectangle(aRect: TRect; aLineWidth: Integer;
+  aShowPencilData: Boolean);
+Var
+  PencilBreite, breite: integer;
+  yo, Textsize, xo, xx, yy, x, y, z: integer;
+Begin
+  // Dafür sorgen das unser Rect imemr Optimal ist
+  If aRect.top > aRect.bottom Then Begin
+    z := aRect.top;
+    aRect.top := aRect.bottom;
+    arect.bottom := z;
+  End;
+  If aRect.left > aRect.right Then Begin
+    z := aRect.left;
+    aRect.left := aRect.right;
+    arect.right := z;
+  End;
+  // Ermitteln der FeldBreite
+  breite := min(abs(arect.Left - arect.Right) Div 11, abs(arect.top - arect.Bottom) Div 11);
+  PencilBreite := Breite Div 4;
+  // Ermitteln des Offset für die Höhe und Breite
+  xo := -breite Div 4 + arect.left;
+  yo := round((abs(arect.top - arect.Bottom) - (Breite * 9.5)) / 2) + arect.top;
+  Textsize := 1;
+  Printer.canvas.Font.Size := Textsize;
+  While Printer.canvas.TextHeight('8') < Breite - (Breite Div 4) Do Begin
+    inc(Textsize);
+    Printer.canvas.Font.Size := Textsize;
+  End;
+  // malen des Gitters und der ganzen sachen
+  Printer.canvas.pen.color := clblack;
+  Printer.canvas.pen.width := aLineWidth; //Form10.ScrollBar1.position;
+  Printer.canvas.Brush.Style := bsclear;
+  For xx := 0 To 2 Do
+    For yy := 0 To 2 Do
+      For x := 0 To 2 Do
+        For y := 0 To 2 Do Begin
+          // Malen des Rahmens für das Feld [xx*3+x,yy*3+y]
+          Printer.canvas.rectangle(xo + breite + x * breite + round(XX * breite * 3.25), yo + y * breite + round(yy * (breite * 3.25)), xo + Breite + (x + 1) * breite + round(XX * breite * 3.25), yo + (y + 1) * breite + round(yy * breite * 3.25));
+          // Malen einer Zahl
+          If ffield[xx * 3 + x, yy * 3 + y].Value <> 0 Then Begin
+            Printer.canvas.Font.Size := Textsize;
+            Printer.canvas.textout((breite - Printer.canvas.TextWidth(inttostr(ffield[xx * 3 + x, yy * 3 + y].Value))) Div 2 + xo + breite + x * breite + round(XX * breite * 3.25), yo + (breite - Printer.canvas.Textheight(inttostr(ffield[xx * 3 + x, yy * 3 + y].Value))) Div 2 + y * breite + round(yy * (breite * 3.25)), substitution[ffield[xx * 3 + x, yy * 3 + y].value]);
+          End
+          Else Begin
+            // Wenn die Einzelpencil's auch egdruckt werden sollen
+//            If form9.checkbox1.checked Then Begin
+            If aShowPencilData Then Begin
+              Printer.canvas.Font.Size := Textsize Div 3;
+              For z := 0 To 8 Do Begin
+                If ffield[xx * 3 + x, yy * 3 + y].Pencil[z] Then
+                  Printer.canvas.textout(-Printer.canvas.textwidth(substitution[z + 1]) Div 2 + Pencilbreite * ((z Mod 3) + 1) + xo + breite + x * breite + round(XX * breite * 3.25), yo - Printer.canvas.textheight(substitution[z + 1]) Div 2 + Pencilbreite * ((z Div 3) + 1) + y * breite + round(yy * (breite * 3.25)), substitution[z + 1])
+              End;
+            End;
+          End;
+        End;
 End;
 
 Procedure TSudoku.ResetAllNumberPencils;
