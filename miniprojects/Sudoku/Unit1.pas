@@ -536,6 +536,7 @@ Begin
   ForcingChains1 + Hilfe für diese KI;
   //}
   Constraints.MinHeight := 480;
+  Constraints.MinWidth := 640;
   Randomize;
   // RandSeed := 42; // -- Enable for testing to get everytime first the same Sudoku
   // RandSeed := 128; // -- Enable for testing to get everytime first the same Sudoku
@@ -572,9 +573,6 @@ Procedure TForm1.FormResize(Sender: TObject);
 Var
   x: Integer;
 Begin
-  // TODO: Diese Zeile sorgt beim Verschieben dafür dass das Fenster Strange sachen macht
-  If form1.Width < form1.height + Scale96ToForm(130) Then form1.Width := form1.height + Scale96ToForm(130);
-  //  Breite := min(Form1.height - 32, Form1.width - 120) Div 11;
   Breite := min(PaintBox1.Height, PaintBox1.Width) Div 11;
   For x := 1 To 6 Do
     TCheckbox(findcomponent('Checkbox' + inttostr(x))).left := Form1.width - Scale96ToForm(195);
