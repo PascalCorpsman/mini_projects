@@ -38,7 +38,7 @@ Uses
 
 Type
 
-  TLinepencil = Array[0..17] Of TPencil;
+  TLinepencil = Array Of TPencil;
 
   { TForm1 }
 
@@ -175,6 +175,9 @@ Type
     mx, my: integer; // globalen x,y Koordinaten der Maus im Feld
     bm: Tbitmap; // Quasi noch ein Double buffered
 
+    lc: integer; // Für das Line Edit brauchen wir ne Extra Variable
+    Breite: integer;
+
     Procedure ApplyFromModifyAndRepaintField(Sender: TObject);
 
     Procedure RefreshField(Sender: TObject);
@@ -185,6 +188,7 @@ Type
     Procedure UnPencil(x, y, value: integer);
     Function GetSudokuOptions: TSolveOptions;
     Procedure Resetopt;
+    Procedure InitFieldDim(NewDim: Integer);
   public
     { Public-Deklarationen }
     Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden -> und dann Raus fliegen !
@@ -211,6 +215,7 @@ Uses
   // Unit14 // Print Detail dialog 5x5 ?
   // Unit15 // New Dialog for 2x2, 4x4, 5x5
   , Unit16 // 2x2 Fields
+  // Unit17 // Print Detail dialog 2x2 ?
   ;
 
 {$R *.lfm}
@@ -332,7 +337,7 @@ Begin
       readln(f, s);
       ForcingChains1.checked := odd(strtoint(s));
       readln(f, s);
-      Druckbreite := strtoint(s);
+      DefaultDruckbreite := strtoint(s);
     End;
     readln(f, s);
     invalidnallow := odd(strtoint(s));
@@ -358,7 +363,7 @@ Begin
     FormBackground := clbtnface;
     unpencilallow := true;
     invalidnallow := true;
-    Druckbreite := 1;
+    DefaultDruckbreite := 1;
   End;
 End;
 
@@ -399,7 +404,7 @@ Begin
     writeln(f, inttostr(ord(byXYWing1.checked)));
     writeln(f, inttostr(ord(ForcingChains1.checked)));
   End;
-  writeln(f, inttostr(Druckbreite));
+  writeln(f, inttostr(DefaultDruckbreite));
   writeln(f, inttostr(ord(invalidnallow)));
   closefile(f);
 End;
@@ -445,22 +450,25 @@ Begin
     ffield.Mark(ffield.value[mx, my]);
   End;
   // Markieren der Felder die Permanent Markiert werden müssen
+  // TODO: Das hier geht nicht bei Dimension > 3 !
   For i := 1 To 9 Do Begin
     If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then Begin
       ffield.Mark(i);
     End;
   End;
   info.Cursor := point(mx, my);
+  info.LinePencilIndex := lc;
+  info.Rect := PaintBox1.ClientRect;
+  // TODO: Das hier geht nicht bei Dimension > 3 !
   setlength(info.NumberHighLights, 9);
-  setlength(info.NumberMarks, 9);
   For i := 0 To 8 Do Begin
     info.NumberHighLights[i] := TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + i))).Down
   End;
   info.Show_Pencils_Numbers := Checkbox4.checked;
   info.Show_Line_Pencil_numbers := Checkbox5.checked;
   info.Edit_Line_Pencil_Numbers := Checkbox6.checked;
-  setlength(info.LinePencil, 18);
-  For i := 0 To 17 Do Begin
+  setlength(info.LinePencil, ffield.Dimension * ffield.Dimension * 2);
+  For i := 0 To high(info.LinePencil) Do Begin
     info.LinePencil[i] := fLinepencil[i];
   End;
   // Löschen des Bildschirms
@@ -475,22 +483,35 @@ Procedure TForm1.Resetopt;
 Var
   x: integer;
 Begin
-  With form1 Do Begin
-    Button2.onclick(Nil);
-    // Rücksetzen der ganzen Graphischen Zusatzsachen
-    checkbox1.checked := false;
-    checkbox2.checked := false;
-    checkbox3.checked := false;
-    checkbox4.checked := false;
-    checkbox5.checked := false;
-    checkbox6.checked := false;
-    lc := 0;
-    mx := 0;
-    my := 0;
-    For x := 1 To 19 Do Begin
-      ttoolbutton(findcomponent('Toolbutton' + inttostr(x))).enabled := true;
-      ttoolbutton(findcomponent('Toolbutton' + inttostr(x))).Down := false;
+  Button2.onclick(Nil); // Clear Pencil Numbers
+  // Rücksetzen der ganzen Graphischen Zusatzsachen
+  checkbox1.checked := false;
+  checkbox2.checked := false;
+  checkbox3.checked := false;
+  checkbox4.checked := false;
+  checkbox5.checked := false;
+  checkbox6.checked := false;
+  lc := 0;
+  mx := 0;
+  my := 0;
+  For x := 1 To 19 Do Begin
+    ttoolbutton(findcomponent('Toolbutton' + inttostr(x))).enabled := true;
+    ttoolbutton(findcomponent('Toolbutton' + inttostr(x))).Down := false;
+  End;
+End;
+
+Procedure TForm1.InitFieldDim(NewDim: Integer);
+Var
+  i: Integer;
+Begin
+  If NewDim <> ffield.Dimension Then Begin
+    ffield.free;
+    ffield := TSudoku.Create(NewDim);
+    setlength(fLinepencil, 2 * sqr(NewDim));
+    For i := 0 To high(fLinepencil) Do Begin
+      setlength(fLinepencil[i], sqr(NewDim));
     End;
+    // TODO: Hier muss dann auch noch das Steuern der LCL-Komponenten mit rein ..
   End;
 End;
 
@@ -500,8 +521,6 @@ Begin
 End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
-Var
-  i: Integer;
 Begin
   {
   To Do Liste:
@@ -519,12 +538,14 @@ Begin
   //}
   Constraints.MinHeight := 480;
   Randomize;
-  // RandSeed := 42; // -- Enable for testing to get everytime furst the same Sudoku
-  // RandSeed := 128; // -- Enable for testing to get everytime furst the same Sudoku
-  ffield := TSudoku.Create(3);
-  For i := 0 To high(fLinepencil) Do Begin
-    setlength(fLinepencil[i], 9);
-  End;
+  // RandSeed := 42; // -- Enable for testing to get everytime first the same Sudoku
+  // RandSeed := 128; // -- Enable for testing to get everytime first the same Sudoku
+  ffield := TSudoku.Create(2); //-- Absichtlich Falsch, damit InitField alles Sauber initialisieren kann
+  InitFieldDim(3);
+
+  //  ffield := TSudoku.Create(3);
+  //  InitFieldDim(2);
+
   bm := tbitmap.create;
   bm.width := form1.width;
   bm.height := form1.height;
@@ -1018,8 +1039,8 @@ Var
   x, y: integer;
 Begin
   // Löschen der Linepencil's
-  For x := 0 To 17 Do
-    For y := 0 To 8 Do
+  For x := 0 To 2 * ffield.Dimension * ffield.Dimension - 1 Do
+    For y := 0 To ffield.Dimension * ffield.Dimension - 1 Do
       fLinepencil[x][y] := false;
   // Löschen der Field pencil's
   ffield.EraseAllNumberPencils;
@@ -1242,6 +1263,10 @@ Procedure TForm1.Modify1Click(Sender: TObject);
 Var
   x: Integer;
 Begin
+  If ffield.Dimension <> 3 Then Begin
+    Showmessage('This feature is only available for 3x3 Fields');
+    exit;
+  End;
   For x := 1 To 9 Do Begin
     TCombobox(Form5.findcomponent('Combobox' + inttostr(x))).text := substitution[x];
   End;
@@ -1251,8 +1276,19 @@ End;
 
 Procedure TForm1.Puzzle1Click(Sender: TObject);
 Begin
-  // Deaktivieren für das Drucken
-  If Not assigned(Sender) Then exit; // TODO: dass kann raus, wenn der Druck Dialog repariert ist
+  // New Puzzle 3x3
+  InitFieldDim(3);
+  Form7.init(ffield, GetSudokuOptions());
+  Form7.showmodal;
+  ffield.CloneFieldFrom(form7.Sudoku);
+  Button2Click(Nil); // Erst mal alle Pencils löschen
+  PaintBox1.Invalidate;
+End;
+
+Procedure TForm1.N2x21Click(Sender: TObject);
+Begin
+  // New Puzzle 2x2
+  InitFieldDim(2);
   Form7.init(ffield, GetSudokuOptions());
   Form7.showmodal;
   ffield.CloneFieldFrom(form7.Sudoku);
@@ -1264,8 +1300,8 @@ Procedure TForm1.Maybenumbersgoodnumbers1Click(Sender: TObject);
 Var
   x, y: Integer;
 Begin
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do
+  For x := 0 To ffield.Dimension - 1 Do
+    For y := 0 To ffield.Dimension - 1 Do
       ffield.SetMaybeed(x, y, false);
   PaintBox1.Invalidate;
 End;
@@ -1274,8 +1310,8 @@ Procedure TForm1.MaybanumberclearField1Click(Sender: TObject);
 Var
   x, y: Integer;
 Begin
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do
+  For x := 0 To ffield.Dimension - 1 Do
+    For y := 0 To ffield.Dimension - 1 Do
       If fField.GetMaybeed(x, y) Then Begin
         ffield.SetMaybeed(x, y, false);
         UnPencil(x, y, fField.value[x, y]);
@@ -1319,16 +1355,11 @@ Var
   x, y, z: integer;
 Begin
   z := 0;
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do
+  For x := 0 To ffield.Dimension - 1 Do
+    For y := 0 To ffield.Dimension - 1 Do
       If fField.value[x, y] <> 0 Then inc(z);
-  Showmessage('This Sudoku needs ' + inttostr(9 * 9) + ' numbers to be complete.' + LineEnding + LineEnding +
+  Showmessage('This Sudoku needs ' + inttostr(ffield.Dimension * ffield.Dimension) + ' numbers to be complete.' + LineEnding + LineEnding +
     'At the moment there were ' + inttostr(z) + ' numbers inserted.');
-End;
-
-Procedure TForm1.N2x21Click(Sender: TObject);
-Begin
-  Form16.showmodal;
 End;
 
 Procedure TForm1.ApplyFromModifyAndRepaintField(Sender: TObject);

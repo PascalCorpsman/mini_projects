@@ -48,13 +48,14 @@ Type
   TPencil = Array Of Boolean;
 
   TRenderInfo = Record
+    Rect: TRect; // Das Rechteck in das das Feld gezeichnet werden soll (ACHTUNG, nicht richtig implementiert)
     Cursor: TPoint;
     Show_Pencils_Numbers: Boolean;
     Show_Line_Pencil_numbers: Boolean;
     Edit_Line_Pencil_Numbers: Boolean;
     NumberHighLights: Array Of Boolean;
-    NumberMarks: Array Of Boolean;
     LinePencil: Array Of TPencil; // 0.. fsqrDim -1 = Waagrecht drüber, fsqrDim .. 2*fsqrDim -1 = Senkrecht Rechts daneben
+    LinePencilIndex: Integer; // Der index, welcher LinePencil "angewählt" ist ..
   End;
 
 Type
@@ -188,7 +189,7 @@ Type
 
 Var
 
-  Druckbreite, Breite: Integer; // Globale Variable die die Breite eines Feldes auf dem Spielfeld in Pixeln angibt
+  DefaultDruckbreite: Integer; // Linienbreite beim Drucken, sollte eigentlich immer 1 sein
   Bretthintergrundfarbe1: Tcolor; // Optische eigenschaften des Spieles
   Bretthintergrundfarbe2: Tcolor; // Optische eigenschaften des Spieles
   Maybeedcolor: Tcolor; // Optische eigenschaften des Spieles
@@ -204,8 +205,7 @@ Var
   FormBackground: Tcolor; // Optische eigenschaften des Spieles
   unpencilallow: boolean;
   invalidnallow: boolean;
-  substitution: Array[1..9] Of String[1];
-  lc: integer; // Für das Line Edit brauchen wir ne Extra Variable
+  Substitution: Array[1..9] Of String[1]; // Nur für Dimension 3 Sudokus
 
   (*
   Berechnet den Korrespondierenden Punkt zu (x,y) im Feld (0..N-1) x (0..N-1) gespiegelt an
@@ -295,21 +295,20 @@ End;
 
 Procedure PrintAdvertising();
 Var
-  Breite: Integer;
-  Textsize: Integer;
-  werbung: String;
+  aWidth, aTextsize: Integer;
+  Advertising: String;
 Begin
-  werbung := 'Created with Sudoku ver. : ' + ver + ' by Corpsman | Support : http://www.corpsman.de/';
-  Breite := Printer.PageWidth Div 33;
-  Textsize := 1;
-  Printer.canvas.Font.Size := Textsize;
-  While Printer.canvas.TextHeight('8') < Breite - (Breite Div 4) Do Begin
-    inc(Textsize);
-    Printer.canvas.Font.Size := Textsize;
+  Advertising := 'Created with Sudoku ver. : ' + ver + ' by Corpsman | Support : http://www.corpsman.de/';
+  aWidth := Printer.PageWidth Div 33;
+  aTextsize := 1;
+  Printer.canvas.Font.Size := aTextsize;
+  While Printer.canvas.TextHeight('8') < aWidth - (aWidth Div 4) Do Begin
+    inc(aTextsize);
+    Printer.canvas.Font.Size := aTextsize;
   End;
   Printer.canvas.font.Color := clblack;
-  Printer.canvas.font.size := Textsize;
-  Printer.canvas.textout((Printer.PageWidth - Printer.canvas.TextWidth(werbung)) Div 2, Printer.PageHeight - breite, werbung);
+  Printer.canvas.font.size := aTextsize;
+  Printer.canvas.textout((Printer.PageWidth - Printer.canvas.TextWidth(Advertising)) Div 2, Printer.PageHeight - aWidth, Advertising);
 End;
 
 { TSudokuStack }
@@ -762,18 +761,19 @@ End;
 
 Procedure TSudoku.RenderTo(Const Canvas: TCanvas; Const Info: TRenderInfo);
 Var
-  x, y, z, d: integer;
+  Breite, x, y, z, d: integer;
 Begin
+  Breite := Min(abs(Info.Rect.Left - Info.Rect.Right), abs(Info.Rect.Top - Info.Rect.Bottom)) Div (fsqrDim + 2);
   // Die LinePencil's
   If info.Edit_Line_Pencil_Numbers Then Begin
     canvas.brush.style := bssolid;
     canvas.brush.color := CursorMarker;
     canvas.Pen.color := CursorMarker;
-    If lc < 9 Then Begin
-      canvas.rectangle(breite * (lc + 1), 1, breite * (lc + 2), Breite);
+    If info.LinePencilIndex < fsqrDim Then Begin
+      canvas.rectangle(breite * (info.LinePencilIndex + 1), 1, breite * (info.LinePencilIndex + 2), Breite);
     End
     Else Begin
-      canvas.rectangle(breite * 10, breite * (lc - 8), Breite * 11, breite * (lc - 7));
+      canvas.rectangle(breite * (fsqrDim + 1), breite * (info.LinePencilIndex - (fsqrDim - 1)), Breite * (fsqrDim + 2), breite * (info.LinePencilIndex - (fsqrDim - 2)));
     End;
     canvas.brush.style := bsclear;
   End;
@@ -784,7 +784,7 @@ Begin
     For x := 0 To fsqrDim - 1 Do
       For z := 0 To fsqrDim - 1 Do
         If info.Linepencil[x][z] Then Begin
-          If (Lc = x) And (info.Edit_Line_Pencil_Numbers) Then
+          If (info.LinePencilIndex = x) And (info.Edit_Line_Pencil_Numbers) Then
             canvas.font.color := PencilcolorMarked
           Else
             canvas.font.color := Pencilcolor;
@@ -833,7 +833,7 @@ Begin
     For x := 0 To fsqrDim - 1 Do
       For z := 0 To fsqrDim - 1 Do
         If info.Linepencil[x + fsqrDim][z] Then Begin
-          If (Lc = x + fsqrDim) And (info.Edit_Line_Pencil_Numbers) Then
+          If (info.LinePencilIndex = x + fsqrDim) And (info.Edit_Line_Pencil_Numbers) Then
             canvas.font.color := PencilcolorMarked
           Else
             canvas.font.color := Pencilcolor;
@@ -1027,9 +1027,9 @@ Begin
   Printer.canvas.Brush.Style := bsclear;
 
   For BlockX := 0 To fDim - 1 Do Begin
-    BlockOffsetX := round(BlockX * fDim * FieldWidth + BlockX * FieldWidth / (fDim - 1));
+    BlockOffsetX := round(BlockX * fDim * FieldWidth + BlockX * FieldWidth / max(2, (fDim - 1))); // Die 2x2 Felder sehen sonst komisch aus
     For BlockY := 0 To fDim - 1 Do Begin
-      BlockOffsetY := round(BlockY * fDim * FieldWidth + BlockY * FieldWidth / (fDim - 1));
+      BlockOffsetY := round(BlockY * fDim * FieldWidth + BlockY * FieldWidth / max(2, (fDim - 1))); // Die 2x2 Felder sehen sonst komisch aus
       For x := 0 To fDim - 1 Do Begin
         For y := 0 To fDim - 1 Do Begin
           // Der "Kasten" eines jeden Feldes

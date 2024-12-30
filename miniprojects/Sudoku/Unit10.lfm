@@ -47,7 +47,7 @@ object Form10: TForm10
   end
   object ComboBox1: TComboBox
     Left = 128
-    Height = 30
+    Height = 28
     Top = 8
     Width = 145
     ItemHeight = 0
@@ -60,8 +60,8 @@ object Form10: TForm10
     Top = 128
     Width = 121
     Caption = '&OK'
+    ModalResult = 1
     TabOrder = 2
-    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 160

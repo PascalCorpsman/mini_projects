@@ -109,7 +109,7 @@ Begin
   // Fals der Druckauftrag abgebrochen werden soll
   p := Printer; //TPrinter.create;
   p.PrinterIndex := -1;
-  form10.ScrollBar1.position := Druckbreite;
+  form10.ScrollBar1.position := 1;
   Form10.ComboBox1.Items := p.Printers;
   Form10.Edit1.text := '1';
   If Form10.ComboBox1.Items.count = 0 Then Begin
@@ -155,7 +155,7 @@ Begin
   // Fals der Druckauftrag abgebrochen werden soll
   p := Printer; //TPrinter.create;
   p.PrinterIndex := -1;
-  form10.ScrollBar1.position := Druckbreite;
+  form10.ScrollBar1.position := 1;
   Form10.ComboBox1.Items := p.Printers;
   Form10.Edit1.text := '1';
   If Form10.ComboBox1.Items.count = 0 Then Begin

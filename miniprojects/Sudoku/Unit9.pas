@@ -84,7 +84,7 @@ Var
   Stop, i: Integer;
 Begin
   // Print Actual Field
-  form10.ScrollBar1.position := Druckbreite;
+  form10.ScrollBar1.position := DefaultDruckbreite;
   Form10.ComboBox1.Items := Printer.Printers;
   Form10.Edit1.text := '1';
   If Form10.ComboBox1.Items.count = 0 Then Begin
@@ -130,7 +130,7 @@ Var
 Begin
   // Print New Field
   // Falls der Druckauftrag abgebrochen werden soll
-  form10.ScrollBar1.position := Druckbreite;
+  form10.ScrollBar1.position := DefaultDruckbreite;
   Form10.ComboBox1.Items := Printer.Printers;
   Form10.Edit1.text := '1';
   If Form10.ComboBox1.Items.count = 0 Then Begin
@@ -193,7 +193,7 @@ Var
 Begin
   // Print 4 new fields
   // Fals der Druckauftrag abgebrochen werden soll
-  form10.ScrollBar1.position := Druckbreite;
+  form10.ScrollBar1.position := DefaultDruckbreite;
   Form10.ComboBox1.Items := Printer.Printers;
   Form10.Edit1.text := '1';
   If Form10.ComboBox1.Items.count = 0 Then Begin
@@ -277,7 +277,7 @@ Var
 Begin
   // Print 6 new fields
   // Fals der Druckauftrag abgebrochen werden soll
-  form10.ScrollBar1.position := Druckbreite;
+  form10.ScrollBar1.position := DefaultDruckbreite;
   Form10.ComboBox1.Items := Printer.Printers;
   Form10.Edit1.text := '1';
   If Form10.ComboBox1.Items.count = 0 Then Begin

@@ -33,7 +33,6 @@ Type
     Label3: TLabel;
     ScrollBar1: TScrollBar;
     Label4: TLabel;
-    Procedure Button1Click(Sender: TObject);
     Procedure Edit1KeyPress(Sender: TObject; Var Key: Char);
   private
     { Private-Deklarationen }
@@ -48,18 +47,11 @@ Implementation
 
 {$R *.lfm}
 
-Uses usudoku;
-
-Procedure TForm10.Button1Click(Sender: TObject);
-Begin
-  Druckbreite := scrollbar1.Position;
-  ModalResult := mrOK;
-End;
-
 Procedure TForm10.Edit1KeyPress(Sender: TObject; Var Key: Char);
 Begin
   If Not (key In ['0'..'9', #8]) Then key := #0;
 End;
 
 End.
+
 
