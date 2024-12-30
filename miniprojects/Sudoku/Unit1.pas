@@ -1291,6 +1291,9 @@ End;
 Procedure TForm1.N2x21Click(Sender: TObject);
 Begin
   // New Puzzle 2x2
+  form16.ShowModal; // TODO: Alt -> Raus
+  exit; // TODO: Alt -> Raus
+  // Ab hier das "Neue", wenn es denn mal tut
   InitFieldDim(2);
   Form7.init(ffield, GetSudokuOptions());
   Form7.showmodal;
