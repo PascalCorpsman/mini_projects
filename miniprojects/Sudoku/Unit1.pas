@@ -247,20 +247,20 @@ Var
 Begin
   setlength(zahlen, 0);
   // Zuerst die Senkrechten Linien
-  For x := 0 To 8 Do Begin
+  For x := 0 To sqr(ffield.Dimension) - 1 Do Begin
     setlength(zahlen, 0);
-    For y := 0 To 8 Do
+    For y := 0 To sqr(ffield.Dimension) - 1 Do
       If ffield.value[x, y] <> 0 Then add(ffield.value[x, y]);
     For y := 0 To high(Zahlen) Do
       fLinepencil[x][Zahlen[y] - 1] := false;
   End;
   // Dann die Waagrechten Linien
-  For y := 0 To 8 Do Begin
+  For y := 0 To sqr(ffield.Dimension) - 1 Do Begin
     setlength(zahlen, 0);
-    For x := 0 To 8 Do
+    For x := 0 To sqr(ffield.Dimension) - 1 Do
       If ffield.value[x, y] <> 0 Then add(ffield.value[x, y]);
     For x := 0 To high(Zahlen) Do
-      fLinepencil[y + 9][Zahlen[x] - 1] := false;
+      fLinepencil[y + sqr(ffield.Dimension)][Zahlen[x] - 1] := false;
   End;
   setlength(zahlen, 0);
 End;
@@ -600,6 +600,7 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
     c, d, a, b, z: integer;
     e: Boolean;
   Begin
+    If value > sqr(ffield.Dimension) Then exit; // TODO: Das muss noch komplett anders gelöst werden, wenn Felder Größer 3x3 kommen ..
     // Fixed Zahlen können nicht überschrieben werden !!
     If fField.IsFixed(x, y) And Not checkbox2.checked Then Begin
       showmessage('Field is fixed, you cannot override it!');
@@ -694,9 +695,11 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
   End;
 Var
   x1, x2, y1: integer;
-  zah: Array[1..9] Of 0..9;
+  zah: Array Of integer;
   a: Boolean;
 Begin
+  zah := Nil;
+  setlength(zah, sqr(ffield.Dimension) + 1);
   If ffield.IsSolved() And Not (key In ['a', 'A', '0', 's', 'S', 'd', 'D', 'w', 'W']) Then Begin
     exit;
   End;
@@ -714,13 +717,13 @@ Begin
       If Key In ['1'..'9'] Then Begin
         a := true;
         x2 := strtoint(key);
-        If lc < 9 Then Begin
-          For x1 := 0 To 8 Do
+        If lc < sqr(ffield.Dimension) Then Begin
+          For x1 := 0 To sqr(ffield.Dimension) - 1 Do
             If x2 = fField.value[lc, x1] Then a := false;
         End
         Else Begin
-          For x1 := 0 To 8 Do
-            If x2 = fField.value[x1, lc - 9] Then a := false;
+          For x1 := 0 To sqr(ffield.Dimension) - 1 Do
+            If x2 = fField.value[x1, lc - sqr(ffield.Dimension)] Then a := false;
         End;
         If invalidnallow Then a := true; // Wenn auch ungültige Zahlen eingegeben werden können.
         If A Then
@@ -735,13 +738,13 @@ Begin
   // Eingaben im Feld
   // Steuerung des Cursors
   If (Key = 's') Or (Key = 'S') Then
-    If my < 8 Then inc(my);
+    If my < sqr(ffield.Dimension) - 1 Then inc(my);
   If (Key = 'w') Or (Key = 'W') Then
     If my > 0 Then dec(my);
   If (Key = 'a') Or (Key = 'A') {Or (key = #37)} Then
     If mx > 0 Then dec(mx);
   If (Key = 'd') Or (Key = 'D') Then
-    If mx < 8 Then inc(mx);
+    If mx < sqr(ffield.Dimension) - 1 Then inc(mx);
   // Einfügen und Löschen von Zahlen
   If (Key In ['0'..'9']) And (mx <> -1) Then Begin
     AddZahl(StrToInt(key), mx, my);
@@ -777,17 +780,17 @@ Begin
   If Checkbox5.checked Then
     getLinePencil();
   // überprüfen ob vielleicht schon von einer Zahl alle gefunden wurden
-  For x1 := 1 To 9 Do
+  For x1 := 1 To sqr(ffield.Dimension) Do
     zah[x1] := 0;
-  For x1 := 0 To 8 Do
-    For y1 := 0 To 8 Do
+  For x1 := 0 To sqr(ffield.Dimension) - 1 Do
+    For y1 := 0 To sqr(ffield.Dimension) - 1 Do
       If fField.value[x1, y1] <> 0 Then
         inc(zah[fField.value[x1, y1]]);
   {  If Key = '0' Then Begin
 
     End;}
   For x1 := 1 To 9 Do
-    If zah[x1] = 9 Then Begin
+    If (x1 > high(zah)) Or (zah[x1] = sqr(ffield.Dimension)) Then Begin
       TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
       TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
       TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
@@ -1025,8 +1028,8 @@ Var
   x, y: integer;
 Begin
   // Auto Pencil Numbers
-  For x := 0 To 17 Do
-    For y := 0 To 8 Do
+  For x := 0 To sqr(ffield.Dimension) * 2 - 1 Do
+    For y := 0 To sqr(ffield.Dimension) - 1 Do
       fLinepencil[x][y] := true;
   getlinepencil();
   ffield.ResetAllNumberPencils;

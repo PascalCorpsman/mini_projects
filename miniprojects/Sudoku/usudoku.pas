@@ -122,6 +122,7 @@ Type
     Function ApplyNakedSubsetAlgorithm(): Boolean;
     Function ApplyNakedSingleAlgorithm(Step: Boolean): Boolean;
 
+    Function SubstituteValue(aValue: integer): String;
   public
 
     Property Dimension: integer read fDim;
@@ -761,7 +762,9 @@ End;
 
 Procedure TSudoku.RenderTo(Const Canvas: TCanvas; Const Info: TRenderInfo);
 Var
-  Breite, x, y, z, d: integer;
+  BlockX, Blocky,
+    Breite, x, y, z, d: integer;
+  s: String;
 Begin
   Breite := Min(abs(Info.Rect.Left - Info.Rect.Right), abs(Info.Rect.Top - Info.Rect.Bottom)) Div (fsqrDim + 2);
   // Die LinePencil's
@@ -896,28 +899,16 @@ Begin
   // Malen des Gitters
   For y := 0 To fsqrDim - 1 Do
     For x := 0 To fsqrDim - 1 Do Begin
-      Case x Of // TODO: das ist noch nicht abhängig von DIM !
-        0..2, 6..8: Begin
-            If y In [0..2, 6..8] Then Begin
-              canvas.brush.color := Bretthintergrundfarbe1;
-              If fField[x, y].marked Then canvas.brush.color := markedColor1;
-            End
-            Else Begin
-              canvas.brush.color := Bretthintergrundfarbe2;
-              If fField[x, y].marked Then canvas.brush.color := markedColor2;
-            End;
-          End;
-        3..5: Begin
-            If y In [3..5] Then Begin
-              canvas.brush.color := Bretthintergrundfarbe1;
-              If fField[x, y].marked Then canvas.brush.color := markedColor1;
-            End
-            Else Begin
-              canvas.brush.color := Bretthintergrundfarbe2;
-              If fField[x, y].marked Then canvas.brush.color := markedColor2;
-            End;
-          End;
+      // Hintergrundfarbe für die Blöcke / Selected
+      blockX := x Div fDim;
+      blockY := y Div fDim;
+      If (blockX + blockY) Mod 2 = 0 Then Begin
+        canvas.brush.color := Bretthintergrundfarbe1;
+      End
+      Else Begin
+        canvas.brush.color := Bretthintergrundfarbe2;
       End;
+      If fField[x, y].marked Then canvas.brush.color := markedColor1;
       // Farbe zum Markieren des Aktuellen Feldes
       If (x = info.Cursor.x) And (y = info.Cursor.y) And Not info.Edit_Line_Pencil_Numbers Then canvas.brush.color := CursorMarker;
       // Malen des Feldes
@@ -939,47 +930,31 @@ Begin
           canvas.font.color := PencilcolorMarked
         Else
           canvas.font.color := Pencilcolor;
-        For z := 0 To fsqrDim - 1 Do
+        For z := 0 To fsqrDim - 1 Do Begin
           If fField[x, y].Pencil[z] Then Begin
-            Case z Of // TODO: das ist noch nicht abhängig von DIM !
-              0..2: Begin
-                  If info.NumberHighLights[z] Then Begin
-                    canvas.brush.color := LightenColor;
-                    canvas.pen.color := LightenColor;
-                    canvas.brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    canvas.ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), Breite * (y + 1) + 2 + 0, breite * (x + 1) - 2 + (Breite Div 3) * d, Breite * (y + 1) - 2 + Breite Div 3);
-                    canvas.Brush.style := bsclear;
-                  End;
-                  canvas.textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, Breite * (y + 1) + 1 + 0, substitution[(z + 1)]);
-                End;
-              3..5: Begin
-                  If info.NumberHighLights[z] Then Begin
-                    canvas.brush.color := LightenColor;
-                    canvas.pen.color := LightenColor;
-                    canvas.brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    canvas.ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), Breite * (y + 1) + 2 + breite Div 3, breite * (x + 1) - 2 + (Breite Div 3) * d, Breite * (y + 1) - 2 + (Breite Div 3) * 2);
-                    canvas.Brush.style := bsclear;
-                  End;
-                  canvas.textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, Breite * (y + 1) + 1 + Breite Div 3, substitution[(z + 1)]);
-                End;
-              6..8: Begin
-                  If info.NumberHighLights[z] Then Begin
-                    canvas.brush.color := LightenColor;
-                    canvas.pen.color := LightenColor;
-                    canvas.brush.style := bssolid;
-                    d := (z + 1) Mod 3;
-                    If D = 0 Then d := 3;
-                    canvas.ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), Breite * (y + 1) + 2 + (breite Div 3) * 2, breite * (x + 1) - 2 + (Breite Div 3) * d, Breite * (y + 1) - 2 + Breite);
-                    canvas.Brush.style := bsclear;
-                  End;
-                  canvas.textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, Breite * (y + 1) + 1 + (Breite Div 3) * 2, substitution[(z + 1)]);
-                End;
+            If info.NumberHighLights[z] Then Begin
+              canvas.brush.color := LightenColor;
+              canvas.pen.color := LightenColor;
+              canvas.brush.style := bssolid;
+              d := (z + 1) Mod fdim;
+              If D = 0 Then d := fdim;
+              canvas.ellipse(
+                breite * (x + 1) + 2 + (Breite Div fdim) * (z Mod fdim),
+                Breite * (y + 1) + 2 + (breite Div fdim) * (z Div fdim),
+                breite * (x + 1) - 2 + (Breite Div fdim) * d,
+                Breite * (y + 1) - 2 + (Breite Div fdim) * ((z Div fdim) + 1)
+                );
+              canvas.Brush.style := bsclear;
             End;
+            s := SubstituteValue(z + 1);
+            // TODO: hier fehlt ein "Center" in der Höhe und dann muss es auch oben bei den "Kreisen" hinter den Zahlen berücksichtigt werden ;)
+            canvas.textout(
+              breite * (x + 1) + (Breite Div fdim) * (z Mod fdim) + ((Breite Div fdim) - canvas.Textwidth(s)) Div 2,
+              Breite * (y + 1) + 1 + (Breite Div fdim) * (z Div fdim),
+              s
+              );
           End;
+        End;
       End;
       // Malen des Textes des Feldes
       If fField[x, y].Value <> 0 Then Begin
@@ -993,7 +968,11 @@ Begin
         // Farbe für geratene Felder
         If (fField[x, y].Maybeed) Then canvas.Font.color := Maybeedcolor;
         // Malen des Feldinhaltes
-        canvas.textout(breite * (x + 1) + (Breite - canvas.textwidth(inttostr(fField[x, y].value))) Div 2, Breite * (y + 1) + 1 + (Breite - canvas.textheight(inttostr(fField[x, y].value))) Div 2, substitution[(fField[x, y].value)]);
+        s := SubstituteValue(fField[x, y].value);
+        canvas.textout(
+          breite * (x + 1) + (Breite - canvas.textwidth(s)) Div 2,
+          Breite * (y + 1) + 1 + (Breite - canvas.textheight(s)) Div 2,
+          s);
       End;
     End;
 End;
@@ -1042,12 +1021,7 @@ Begin
           // Malen einer Zahl
           If ffield[xi, yi].Value <> 0 Then Begin
             Printer.canvas.Font.Size := Textsize;
-            If fDim = 3 Then Begin // TODO: Die Lösung mit der Substitution ist noch nicht optimal ..
-              s := substitution[ffield[xi, yi].Value];
-            End
-            Else Begin
-              s := inttostr(ffield[xi, yi].Value);
-            End;
+            s := SubstituteValue(ffield[xi, yi].Value);
             Printer.canvas.textout(
               fx + (FieldWidthi - Printer.canvas.TextWidth(s)) Div 2,
               fy + (FieldWidthi - Printer.canvas.TextHeight(s)) Div 2, s);
@@ -1058,12 +1032,7 @@ Begin
               Printer.canvas.Font.Size := Textsize Div fDim;
               For p := 0 To fsqrDim - 1 Do Begin
                 If ffield[xi, yi].Pencil[p] Then Begin
-                  If fDim = 3 Then Begin // TODO: Die Lösung mit der Substitution ist noch nicht optimal ..
-                    s := substitution[p + 1];
-                  End
-                  Else Begin
-                    s := inttostr(p + 1);
-                  End;
+                  s := SubstituteValue(p + 1);
                   px := p Mod fDim;
                   py := p Div fDim;
                   // TODO: Warum sind die Summanden unterschiedlich ?
@@ -1918,6 +1887,20 @@ Begin
         End;
       End;
     End;
+End;
+
+Function TSudoku.SubstituteValue(aValue: integer): String;
+Begin
+  result := '';
+  If (avalue > 0) And (aValue <= fsqrDim) Then Begin
+    // TODO: Das muss irgendwie noch besser werden ?
+    If fDim = 3 Then Begin
+      result := substitution[aValue];
+    End
+    Else Begin
+      result := inttostr(aValue);
+    End;
+  End;
 End;
 
 Function TSudoku.DebugString: String;
