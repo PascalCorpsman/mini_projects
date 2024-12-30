@@ -412,13 +412,12 @@ End;
 // Fügt wieder einen Penzil wert ein
 
 Procedure TForm1.UnPencil(x, y, value: integer);
-
 Begin
   If Not unpencilallow Then exit;
   ffield.Unpencil(x, y, value);
   // Unpencil für die Lines
   fLinepencil[x][Value - 1] := true;
-  fLinepencil[9 + y][Value - 1] := true;
+  fLinepencil[sqr(ffield.Dimension) + y][Value - 1] := true;
 End;
 
 Function TForm1.GetSudokuOptions: TSolveOptions;
@@ -1302,6 +1301,42 @@ Begin
   PaintBox1.Invalidate;
 End;
 
+Procedure TForm1.N4x41Click(Sender: TObject);
+Begin
+  // New Puzzle 4x4
+  showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
+    'If you want to so the progress of the creater then' + LineEnding +
+    'click on the field while the creating message is shown.' + LineEnding + LineEnding +
+    'Normal time for creating a Sudoko with this size 10 - 20 sek.');
+  Form11.showmodal; // TODO: Alt -> Raus
+  exit; // TODO: Alt -> Raus
+  // Ab hier das "Neue", wenn es denn mal tut
+  InitFieldDim(4);
+  Form7.init(ffield, GetSudokuOptions());
+  Form7.showmodal;
+  ffield.CloneFieldFrom(form7.Sudoku);
+  Button2Click(Nil); // Erst mal alle Pencils löschen
+  PaintBox1.Invalidate;
+End;
+
+Procedure TForm1.N5x51Click(Sender: TObject);
+Begin
+  // New Puzzle 5x5
+  showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
+    'If you want to so the progress of the creater then' + LineEnding +
+    'click on the field while the creating message is shown.' + LineEnding + LineEnding +
+    'Normal time for creating a Sudoko with this size 30 - 90 sek.');
+  Form13.showmodal; // TODO: Alt -> Raus
+  exit; // TODO: Alt -> Raus
+  // Ab hier das "Neue", wenn es denn mal tut
+  InitFieldDim(5);
+  Form7.init(ffield, GetSudokuOptions());
+  Form7.showmodal;
+  ffield.CloneFieldFrom(form7.Sudoku);
+  Button2Click(Nil); // Erst mal alle Pencils löschen
+  PaintBox1.Invalidate;
+End;
+
 Procedure TForm1.Maybenumbersgoodnumbers1Click(Sender: TObject);
 Var
   x, y: Integer;
@@ -1336,24 +1371,6 @@ Procedure TForm1.Print1Click(Sender: TObject);
 Begin
   form9.init(ffield, GetSudokuOptions());
   Form9.showmodal;
-End;
-
-Procedure TForm1.N4x41Click(Sender: TObject);
-Begin
-  showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
-    'If you want to so the progress of the creater then' + LineEnding +
-    'click on the field while the creating message is shown.' + LineEnding + LineEnding +
-    'Normal time for creating a Sudoko with this size 10 - 20 sek.');
-  Form11.showmodal;
-End;
-
-Procedure TForm1.N5x51Click(Sender: TObject);
-Begin
-  showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
-    'If you want to so the progress of the creater then' + LineEnding +
-    'click on the field while the creating message is shown.' + LineEnding + LineEnding +
-    'Normal time for creating a Sudoko with this size 30 - 90 sek.');
-  Form13.showmodal;
 End;
 
 Procedure TForm1.Info1Click(Sender: TObject);
