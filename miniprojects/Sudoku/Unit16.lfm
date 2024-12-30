@@ -1,6 +1,6 @@
 object Form16: TForm16
   Left = 238
-  Height = 480
+  Height = 568
   Top = 123
   Width = 640
   Caption = 'Form16'
@@ -8,7 +8,7 @@ object Form16: TForm16
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyPress = FormKeyPress

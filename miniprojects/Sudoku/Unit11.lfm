@@ -1,6 +1,6 @@
 object Form11: TForm11
   Left = 238
-  Height = 480
+  Height = 524
   Top = 122
   Width = 640
   Caption = 'Form11'
@@ -8,7 +8,7 @@ object Form11: TForm11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyPress = FormKeyPress

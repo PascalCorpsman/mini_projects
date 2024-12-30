@@ -10,15 +10,15 @@ object Form17: TForm17
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '4.99.0.0'
   object Button1: TButton
     Left = 8
     Height = 25
     Top = 16
     Width = 273
     Caption = 'Print &Actual field'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 8
@@ -26,8 +26,8 @@ object Form17: TForm17
     Top = 48
     Width = 273
     Caption = 'Print &new field '
-    OnClick = Button2Click
     TabOrder = 1
+    OnClick = Button2Click
   end
   object Button3: TButton
     Left = 8
@@ -35,8 +35,8 @@ object Form17: TForm17
     Top = 208
     Width = 273
     Caption = 'Cancel'
-    OnClick = Button3Click
     TabOrder = 6
+    OnClick = Button3Click
   end
   object Button4: TButton
     Left = 8
@@ -44,8 +44,8 @@ object Form17: TForm17
     Top = 112
     Width = 273
     Caption = 'Print &4 new fields'
-    OnClick = Button4Click
     TabOrder = 3
+    OnClick = Button4Click
   end
   object Button5: TButton
     Left = 8
@@ -53,8 +53,8 @@ object Form17: TForm17
     Top = 144
     Width = 273
     Caption = 'Print &6 new fields'
-    OnClick = Button5Click
     TabOrder = 4
+    OnClick = Button5Click
   end
   object Button6: TButton
     Left = 8
@@ -62,8 +62,8 @@ object Form17: TForm17
     Top = 176
     Width = 273
     Caption = 'Print &8 new fields'
-    OnClick = Button6Click
     TabOrder = 5
+    OnClick = Button6Click
   end
   object Button7: TButton
     Left = 8
@@ -71,7 +71,7 @@ object Form17: TForm17
     Top = 80
     Width = 273
     Caption = 'Print &2 new fields'
-    OnClick = Button7Click
     TabOrder = 2
+    OnClick = Button7Click
   end
-end
+end

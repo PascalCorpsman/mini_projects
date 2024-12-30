@@ -10,7 +10,7 @@ object Form14: TForm14
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   object Button1: TButton
     Left = 8
     Height = 25

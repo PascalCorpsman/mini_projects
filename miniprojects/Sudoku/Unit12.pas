@@ -121,7 +121,6 @@ Begin
   // Aufruf des Druckdialoges
   If Form10.showmodal = mrOK Then Begin
     stop := strtointdef(form10.Edit1.text, 1);
-    p := TPrinter.create;
     p.PrinterIndex := form10.combobox1.ItemIndex;
     // Einstellen Hochformat
     p.Orientation := poPortrait;

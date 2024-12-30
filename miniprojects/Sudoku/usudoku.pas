@@ -1001,59 +1001,84 @@ End;
 Procedure TSudoku.PrintToRectangle(aRect: TRect; aLineWidth: Integer;
   aShowPencilData: Boolean);
 Var
-  PencilBreite, breite: integer;
-  yo, Textsize, xo, xx, yy, x, y, z: integer;
+  PencilWidth, FieldWidth: Single;
+  TL, RectCenter: TPoint;
+  fx, fy, Textsize, xi, yi, FieldWidthi, BlockOffsetY, BlockOffsetX, BlockX,
+    BlockY, x, y, p, px, py: Integer;
+  s: String;
 Begin
-  // Dafür sorgen das unser Rect imemr Optimal ist
-  If aRect.top > aRect.bottom Then Begin
-    z := aRect.top;
-    aRect.top := aRect.bottom;
-    arect.bottom := z;
-  End;
-  If aRect.left > aRect.right Then Begin
-    z := aRect.left;
-    aRect.left := aRect.right;
-    arect.right := z;
-  End;
-  // Ermitteln der FeldBreite
-  breite := min(abs(arect.Left - arect.Right) Div 11, abs(arect.top - arect.Bottom) Div 11);
-  PencilBreite := Breite Div 4;
-  // Ermitteln des Offset für die Höhe und Breite
-  xo := -breite Div 4 + arect.left;
-  yo := round((abs(arect.top - arect.Bottom) - (Breite * 9.5)) / 2) + arect.top;
+  RectCenter := (aRect.TopLeft + aRect.BottomRight);
+  RectCenter.x := RectCenter.x Div 2;
+  RectCenter.Y := RectCenter.Y Div 2;
+  FieldWidth := min(abs(arect.Left - arect.Right), abs(arect.top - arect.Bottom)) / (fsqrDim + 2); // 1 Feld Seitlicher Rand, das 2. Feld wird als Abstand zwischen den Blöcken aufgeteilt
+  FieldWidthi := round(FieldWidth);
+  PencilWidth := FieldWidthi / (fdim + 1);
+  TL := point(round(RectCenter.x - FieldWidth * (fsqrDim + 1) / 2), round(RectCenter.Y - FieldWidth * (fsqrDim + 1) / 2));
+
   Textsize := 1;
   Printer.canvas.Font.Size := Textsize;
-  While Printer.canvas.TextHeight('8') < Breite - (Breite Div 4) Do Begin
+  While Printer.canvas.TextHeight('8') < FieldWidth - (FieldWidth / 4) Do Begin // TODO: woher kommt diese 4 ?
     inc(Textsize);
     Printer.canvas.Font.Size := Textsize;
   End;
-  // malen des Gitters und der ganzen sachen
+
   Printer.canvas.pen.color := clblack;
-  Printer.canvas.pen.width := aLineWidth; //Form10.ScrollBar1.position;
+  Printer.canvas.pen.width := aLineWidth;
   Printer.canvas.Brush.Style := bsclear;
-  For xx := 0 To 2 Do
-    For yy := 0 To 2 Do
-      For x := 0 To 2 Do
-        For y := 0 To 2 Do Begin
-          // Malen des Rahmens für das Feld [xx*3+x,yy*3+y]
-          Printer.canvas.rectangle(xo + breite + x * breite + round(XX * breite * 3.25), yo + y * breite + round(yy * (breite * 3.25)), xo + Breite + (x + 1) * breite + round(XX * breite * 3.25), yo + (y + 1) * breite + round(yy * breite * 3.25));
+
+  For BlockX := 0 To fDim - 1 Do Begin
+    BlockOffsetX := round(BlockX * fDim * FieldWidth + BlockX * FieldWidth / (fDim - 1));
+    For BlockY := 0 To fDim - 1 Do Begin
+      BlockOffsetY := round(BlockY * fDim * FieldWidth + BlockY * FieldWidth / (fDim - 1));
+      For x := 0 To fDim - 1 Do Begin
+        For y := 0 To fDim - 1 Do Begin
+          // Der "Kasten" eines jeden Feldes
+          fx := tl.x + BlockOffsetX + x * FieldWidthi;
+          fy := tl.Y + BlockOffsetY + Y * FieldWidthi;
+          Printer.canvas.rectangle(fx, fy, fx + FieldWidthi, fy + FieldWidthi);
+          // Das zu Rendernde Feld liegt in [xi,yi]
+          xi := BlockX * fDim + x;
+          Yi := BlockY * fDim + Y;
           // Malen einer Zahl
-          If ffield[xx * 3 + x, yy * 3 + y].Value <> 0 Then Begin
+          If ffield[xi, yi].Value <> 0 Then Begin
             Printer.canvas.Font.Size := Textsize;
-            Printer.canvas.textout((breite - Printer.canvas.TextWidth(inttostr(ffield[xx * 3 + x, yy * 3 + y].Value))) Div 2 + xo + breite + x * breite + round(XX * breite * 3.25), yo + (breite - Printer.canvas.Textheight(inttostr(ffield[xx * 3 + x, yy * 3 + y].Value))) Div 2 + y * breite + round(yy * (breite * 3.25)), substitution[ffield[xx * 3 + x, yy * 3 + y].value]);
+            If fDim = 3 Then Begin // TODO: Die Lösung mit der Substitution ist noch nicht optimal ..
+              s := substitution[ffield[xi, yi].Value];
+            End
+            Else Begin
+              s := inttostr(ffield[xi, yi].Value);
+            End;
+            Printer.canvas.textout(
+              fx + (FieldWidthi - Printer.canvas.TextWidth(s)) Div 2,
+              fy + (FieldWidthi - Printer.canvas.TextHeight(s)) Div 2, s);
           End
           Else Begin
             // Wenn die Einzelpencil's auch egdruckt werden sollen
-//            If form9.checkbox1.checked Then Begin
             If aShowPencilData Then Begin
-              Printer.canvas.Font.Size := Textsize Div 3;
-              For z := 0 To 8 Do Begin
-                If ffield[xx * 3 + x, yy * 3 + y].Pencil[z] Then
-                  Printer.canvas.textout(-Printer.canvas.textwidth(substitution[z + 1]) Div 2 + Pencilbreite * ((z Mod 3) + 1) + xo + breite + x * breite + round(XX * breite * 3.25), yo - Printer.canvas.textheight(substitution[z + 1]) Div 2 + Pencilbreite * ((z Div 3) + 1) + y * breite + round(yy * (breite * 3.25)), substitution[z + 1])
+              Printer.canvas.Font.Size := Textsize Div fDim;
+              For p := 0 To fsqrDim - 1 Do Begin
+                If ffield[xi, yi].Pencil[p] Then Begin
+                  If fDim = 3 Then Begin // TODO: Die Lösung mit der Substitution ist noch nicht optimal ..
+                    s := substitution[p + 1];
+                  End
+                  Else Begin
+                    s := inttostr(p + 1);
+                  End;
+                  px := p Mod fDim;
+                  py := p Div fDim;
+                  // TODO: Warum sind die Summanden unterschiedlich ?
+                  Printer.canvas.textout(
+                    fx + round(PencilWidth * (px + 1.25)) - Printer.canvas.textwidth(s),
+                    fy + round(PencilWidth * (py + 1.5)) - Printer.canvas.TextHeight(s),
+                    s);
+                End;
               End;
             End;
           End;
         End;
+      End;
+    End;
+  End;
 End;
 
 Procedure TSudoku.ResetAllNumberPencils;
@@ -1557,11 +1582,11 @@ Begin
   While weiter Do Begin
     CloneFieldFrom(bakup);
     // Suchen des als nächstes zu löschenden Feldes
-    x := random(9);
-    y := random(9);
+    x := random(fsqrDim);
+    y := random(fsqrDim);
     While fField[x, y].value = 0 Do Begin
-      x := random(9);
-      y := random(9);
+      x := random(fsqrDim);
+      y := random(fsqrDim);
     End;
     // Löschen des Feldes
     fField[x, y].value := 0;
