@@ -573,7 +573,7 @@ Procedure TForm1.FormResize(Sender: TObject);
 Var
   x: Integer;
 Begin
-  Breite := min(PaintBox1.Height, PaintBox1.Width) Div 11;
+  Breite := min(PaintBox1.Height, PaintBox1.Width) Div 11; // Eigentlich müsste da doch auch ein 10 Reichen und dann wäre es sqr(dim)+1 ?
   For x := 1 To 6 Do
     TCheckbox(findcomponent('Checkbox' + inttostr(x))).left := Form1.width - Scale96ToForm(195);
   button1.left := Form1.width - Scale96ToForm(160);
@@ -705,7 +705,7 @@ Begin
     // Bewegen des Cursors
     If (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W']) Then Begin
       If ((Key = 'a') Or (Key = 'A') Or (Key = 'w') Or (Key = 'W')) And (lc > 0) Then dec(lc);
-      If ((Key = 's') Or (Key = 'S') Or (Key = 'd') Or (Key = 'D')) And (lc < 17) Then inc(lc);
+      If ((Key = 's') Or (Key = 'S') Or (Key = 'd') Or (Key = 'D')) And (lc < sqr(ffield.Dimension) * 2 - 1) Then inc(lc);
       PaintBox1.Invalidate;
       exit;
     End

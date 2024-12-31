@@ -787,112 +787,67 @@ Begin
     For x := 0 To fsqrDim - 1 Do
       For z := 0 To fsqrDim - 1 Do
         If info.Linepencil[x][z] Then Begin
-          If (info.LinePencilIndex = x) And (info.Edit_Line_Pencil_Numbers) Then
-            canvas.font.color := PencilcolorMarked
-          Else
+          If (info.LinePencilIndex = x) And (info.Edit_Line_Pencil_Numbers) Then Begin
+            canvas.font.color := PencilcolorMarked;
+          End
+          Else Begin
             canvas.font.color := Pencilcolor;
-          Case z Of // TODO: das ist noch nicht abhängig von DIM !
-            0..2: Begin
-                If info.NumberHighLights[z] Then Begin
-                  canvas.brush.color := LightenColor;
-                  canvas.pen.color := LightenColor;
-                  canvas.brush.style := bssolid;
-                  d := (z + 1) Mod 3;
-                  If D = 0 Then d := 3;
-                  canvas.ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), {Breite * (y + 1) + } 2 + 0, breite * (x + 1) - 2 + (Breite Div 3) * d, {Breite * (y + 1) } -2 + Breite Div 3);
-                  canvas.Brush.style := bsclear;
-                End;
-                canvas.textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, {Breite * (y + 1) } 1 + 0, substitution[(z + 1)]);
-              End;
-            3..5: Begin
-                If info.NumberHighLights[z] Then Begin
-                  canvas.brush.color := LightenColor;
-                  canvas.pen.color := LightenColor;
-                  canvas.brush.style := bssolid;
-                  d := (z + 1) Mod 3;
-                  If D = 0 Then d := 3;
-                  canvas.ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), { Breite * (y + 1) + } 2 + breite Div 3, breite * (x + 1) - 2 + (Breite Div 3) * d, { Breite * (y + 1) } -2 + (Breite Div 3) * 2);
-                  canvas.Brush.style := bsclear;
-                End;
-                canvas.textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, { Breite * (y + 1) +} 1 + Breite Div 3, substitution[(z + 1)]);
-              End;
-            6..8: Begin
-                If info.NumberHighLights[z] Then Begin
-                  canvas.brush.color := LightenColor;
-                  canvas.pen.color := LightenColor;
-                  canvas.brush.style := bssolid;
-                  d := (z + 1) Mod 3;
-                  If D = 0 Then d := 3;
-                  canvas.ellipse(breite * (x + 1) + 2 + (Breite Div 3) * (z Mod 3), { Breite * (y + 1) + } 2 + (breite Div 3) * 2, breite * (x + 1) - 2 + (Breite Div 3) * d, { Breite * (y + 1) } -2 + Breite);
-                  canvas.Brush.style := bsclear;
-                End;
-                canvas.textout(breite * (x + 1) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, {Breite * (y + 1) +} 1 + (Breite Div 3) * 2, substitution[(z + 1)]);
-              End;
           End;
+          If info.NumberHighLights[z] Then Begin
+            canvas.brush.color := LightenColor;
+            canvas.pen.color := LightenColor;
+            canvas.brush.style := bssolid;
+            d := (z + 1) Mod fDim;
+            If D = 0 Then d := fDim;
+            canvas.ellipse(breite * (x + 1) + 2 + (Breite Div fDim) * (z Mod fDim), 2 + (breite Div fDim) * (z Div fDim), breite * (x + 1) - 2 + (Breite Div fDim) * d, -2 + (Breite Div fDim) * ((z Div fDim) + 1));
+            canvas.Brush.style := bsclear;
+          End;
+          s := SubstituteValue(z + 1);
+          // TODO: hier fehlt ein "Center" in der Höhe und dann muss es auch oben bei den "Kreisen" hinter den Zahlen berücksichtigt werden ;)
+
+          canvas.textout(breite * (x + 1) + (Breite Div fDim) * (z Mod fDim) + ((Breite Div fDim) - canvas.Textwidth(s)) Div 2, 1 + (Breite Div fDim) * (z Div fDim), s);
         End;
     // Die senkrechten Beschriftungen.
     canvas.font.size := breite Div 5;
     canvas.font.color := Pencilcolor;
-    For x := 0 To fsqrDim - 1 Do
-      For z := 0 To fsqrDim - 1 Do
+    For x := 0 To fsqrDim - 1 Do Begin
+      For z := 0 To fsqrDim - 1 Do Begin
         If info.Linepencil[x + fsqrDim][z] Then Begin
-          If (info.LinePencilIndex = x + fsqrDim) And (info.Edit_Line_Pencil_Numbers) Then
-            canvas.font.color := PencilcolorMarked
-          Else
+          If (info.LinePencilIndex = x + fsqrDim) And (info.Edit_Line_Pencil_Numbers) Then Begin
+            canvas.font.color := PencilcolorMarked;
+          End
+          Else Begin
             canvas.font.color := Pencilcolor;
-          Case z Of // TODO: das ist noch nicht abhängig von DIM !
-            0..2: Begin
-                If info.NumberHighLights[z] Then Begin
-                  canvas.brush.color := LightenColor;
-                  canvas.pen.color := LightenColor;
-                  canvas.brush.style := bssolid;
-                  d := (z + 1) Mod 3;
-                  If D = 0 Then d := 3;
-                  canvas.ellipse(breite * (10) + 2 + (Breite Div 3) * (z Mod 3), Breite * (x + 1) + 2 + 0, breite * (10) - 2 + (Breite Div 3) * d, Breite * (x + 1) - 2 + Breite Div 3);
-                  canvas.Brush.style := bsclear;
-                End;
-                canvas.textout(breite * (10) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, Breite * (x + 1) + 1 + 0, substitution[(z + 1)]);
-              End;
-            3..5: Begin
-                If info.NumberHighLights[z] Then Begin
-                  canvas.brush.color := LightenColor;
-                  canvas.pen.color := LightenColor;
-                  canvas.brush.style := bssolid;
-                  d := (z + 1) Mod 3;
-                  If D = 0 Then d := 3;
-                  canvas.ellipse(breite * (10) + 2 + (Breite Div 3) * (z Mod 3), Breite * (x + 1) + 2 + breite Div 3, breite * (10) - 2 + (Breite Div 3) * d, Breite * (x + 1) - 2 + (Breite Div 3) * 2);
-                  canvas.Brush.style := bsclear;
-                End;
-                canvas.textout(breite * (10) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, Breite * (x + 1) + 1 + Breite Div 3, substitution[(z + 1)]);
-              End;
-            6..8: Begin
-                If info.NumberHighLights[z] Then Begin
-                  canvas.brush.color := LightenColor;
-                  canvas.pen.color := LightenColor;
-                  canvas.brush.style := bssolid;
-                  d := (z + 1) Mod 3;
-                  If D = 0 Then d := 3;
-                  canvas.ellipse(breite * (10) + 2 + (Breite Div 3) * (z Mod 3), Breite * (x + 1) + 2 + (breite Div 3) * 2, breite * (10) - 2 + (Breite Div 3) * d, Breite * (x + 1) - 2 + Breite);
-                  canvas.Brush.style := bsclear;
-                End;
-                canvas.textout(breite * (10) + (Breite Div 3) * (z Mod 3) + ((Breite Div 3) - canvas.Textwidth(inttostr(z + 1))) Div 2, Breite * (x + 1) + 1 + (Breite Div 3) * 2, substitution[(z + 1)]);
-              End;
           End;
+          If info.NumberHighLights[z] Then Begin
+            canvas.brush.color := LightenColor;
+            canvas.pen.color := LightenColor;
+            canvas.brush.style := bssolid;
+            d := (z + 1) Mod fDim;
+            If D = 0 Then d := fDim;
+            canvas.ellipse(breite * (fsqrDim + 1) + 2 + (Breite Div fDim) * (z Mod fDim), Breite * (x + 1) + 2 + (breite Div fDim) * (z Div fDim), breite * (fsqrDim + 1) - 2 + (Breite Div fDim) * d, Breite * (x + 1) - 2 + (Breite Div fDim) * ((z Div fDim) + 1));
+            canvas.Brush.style := bsclear;
+          End;
+          s := SubstituteValue(z + 1);
+          // TODO: hier fehlt ein "Center" in der Höhe und dann muss es auch oben bei den "Kreisen" hinter den Zahlen berücksichtigt werden ;)
+          canvas.textout(breite * (fsqrDim + 1) + (Breite Div fDim) * (z Mod fDim) + ((Breite Div fDim) - canvas.Textwidth(s)) Div 2, Breite * (x + 1) + 1 + (Breite Div fDim) * (z Div fDim), s);
         End;
+      End;
+    End;
     // Die linien zwischen den Zahlen
     canvas.pen.color := Gitterfarbe;
     For z := 1 To fsqrDim + 1 Do Begin
       If Z <> fsqrDim + 1 Then Begin
         canvas.moveto(Breite * z, 1);
         canvas.lineto(Breite * z, Breite);
-        canvas.moveto(Breite * 10, Breite * z);
-        canvas.lineto(Breite * 11, Breite * z);
+        canvas.moveto(Breite * (fsqrDim + 1), Breite * z);
+        canvas.lineto(Breite * (fsqrDim + 2), Breite * z);
       End;
       If Z <> 1 Then Begin
         canvas.moveto(Breite * z - 1, 1);
         canvas.lineto(Breite * z - 1, Breite);
-        canvas.moveto(Breite * 10, Breite * z - 1);
-        canvas.lineto(Breite * 11, Breite * z - 1);
+        canvas.moveto(Breite * (fsqrDim + 1), Breite * z - 1);
+        canvas.lineto(Breite * (fsqrDim + 2), Breite * z - 1);
       End;
     End;
   End;
