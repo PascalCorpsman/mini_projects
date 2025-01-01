@@ -176,7 +176,6 @@ Type
     bm: Tbitmap; // Quasi noch ein Double buffered
 
     lc: integer; // Für das Line Edit brauchen wir ne Extra Variable
-    Breite: integer;
 
     Procedure ApplyFromModifyAndRepaintField(Sender: TObject);
 
@@ -573,7 +572,7 @@ Procedure TForm1.FormResize(Sender: TObject);
 Var
   x: Integer;
 Begin
-  Breite := min(PaintBox1.Height, PaintBox1.Width) Div 11; // Eigentlich müsste da doch auch ein 10 Reichen und dann wäre es sqr(dim)+1 ?
+
   For x := 1 To 6 Do
     TCheckbox(findcomponent('Checkbox' + inttostr(x))).left := Form1.width - Scale96ToForm(195);
   button1.left := Form1.width - Scale96ToForm(160);
@@ -864,14 +863,16 @@ Procedure TForm1.PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Var
   x1, y1: integer;
+  Breite: integer;
 Begin
+  Breite := min(PaintBox1.Height, PaintBox1.Width) Div (sqr(ffield.Dimension) + 2); // Eigentlich müsste da doch auch ein 10 Reichen und dann wäre es sqr(dim)+1 ?
   // die Auswahl für die Linepencil's
   If Checkbox6.checked Then Begin
-    If (X >= Breite) And (x <= Breite * 10) And (y <= breite) Then Begin
+    If (X >= Breite) And (x <= Breite * (sqr(ffield.Dimension) + 1)) And (y <= breite) Then Begin
       lc := x Div Breite - 1;
     End;
-    If (X > Breite * 10) And (x <= Breite * 11) And (y >= Breite) And (y <= Breite * 10) Then Begin
-      lc := y Div Breite + 8;
+    If (X > Breite * (sqr(ffield.Dimension) + 1)) And (x <= Breite * (sqr(ffield.Dimension) + 2)) And (y >= Breite) And (y <= Breite * (sqr(ffield.Dimension) + 1)) Then Begin
+      lc := y Div Breite + (sqr(ffield.Dimension) - 1);
     End;
   End
   Else Begin
@@ -879,8 +880,8 @@ Begin
     mx := -1;
     my := -1;
     ffield.ResetAllMarker;
-    If (X >= Breite) And (x <= Breite * 10) And
-      (y >= Breite) And (y <= Breite * 10) Then Begin
+    If (X >= Breite) And (x <= Breite * (sqr(ffield.Dimension) + 1)) And
+      (y >= Breite) And (y <= Breite * (sqr(ffield.Dimension) + 1)) Then Begin
       // Ausrechnen der Koordinaten des neu Markierten Feldes
       x1 := x Div Breite - 1;
       y1 := y Div Breite - 1;
