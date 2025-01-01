@@ -122,8 +122,6 @@ Type
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure FormResize(Sender: TObject);
-    Procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     Procedure FormKeyPress(Sender: TObject; Var Key: Char);
     Procedure CheckBox1Click(Sender: TObject);
     Procedure CheckBox3Click(Sender: TObject);
@@ -188,6 +186,8 @@ Type
     Function GetSudokuOptions: TSolveOptions;
     Procedure Resetopt;
     Procedure InitFieldDim(NewDim: Integer);
+    Procedure Readini;
+    Procedure Writeini;
   public
     { Public-Deklarationen }
     Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden -> und dann Raus fliegen !
@@ -266,7 +266,7 @@ End;
 
 // Auslesen der User.ini
 
-Procedure Readini;
+Procedure TForm1.Readini;
 Var
   f: Textfile;
   s: String;
@@ -314,37 +314,36 @@ Begin
       readln(f, s);
       substitution[x] := s;
     End;
-    With form1 Do Begin
-      readln(f, s);
-      byhiddensingle1.checked := odd(strtoint(s));
-      readln(f, s);
-      bynakedsingle1.checked := odd(strtoint(s));
-      readln(f, s);
-      bytryanderror1.checked := odd(strtoint(s));
-      readln(f, s);
-      bynakedsubset1.checked := odd(strtoint(s));
-      readln(f, s);
-      byhiddensubset1.checked := odd(strtoint(s));
-      readln(f, s);
-      byBlockandColumninteractions1.checked := odd(strtoint(s));
-      readln(f, s);
-      byblockandblockinteractions1.checked := odd(strtoint(s));
-      readln(f, s);
-      byXWingSwordfish1.checked := odd(strtoint(s));
-      readln(f, s);
-      byXYWing1.checked := odd(strtoint(s));
-      readln(f, s);
-      ForcingChains1.checked := odd(strtoint(s));
-      readln(f, s);
-      DefaultDruckbreite := strtoint(s);
-    End;
+    readln(f, s);
+    byhiddensingle1.checked := odd(strtoint(s));
+    readln(f, s);
+    bynakedsingle1.checked := odd(strtoint(s));
+    readln(f, s);
+    bytryanderror1.checked := odd(strtoint(s));
+    readln(f, s);
+    bynakedsubset1.checked := odd(strtoint(s));
+    readln(f, s);
+    byhiddensubset1.checked := odd(strtoint(s));
+    readln(f, s);
+    byBlockandColumninteractions1.checked := odd(strtoint(s));
+    readln(f, s);
+    byblockandblockinteractions1.checked := odd(strtoint(s));
+    readln(f, s);
+    byXWingSwordfish1.checked := odd(strtoint(s));
+    readln(f, s);
+    byXYWing1.checked := odd(strtoint(s));
+    readln(f, s);
+    ForcingChains1.checked := odd(strtoint(s));
+    readln(f, s);
+    DefaultDruckbreite := strtoint(s);
     readln(f, s);
     invalidnallow := odd(strtoint(s));
     closefile(f);
   End
   Else Begin
-    For x := 1 To 9 Do
+    For x := 1 To 9 Do Begin // Das Gibt es nur für 3x3 Felder, also quasi OK
       substitution[x] := inttostr(x);
+    End;
     form1.bytryanderror1.checked := false;
     // Vorsicht eine Änderung hier mus auch in Form2 geändert werden !!!
     Bretthintergrundfarbe1 := clbtnface;
@@ -368,7 +367,7 @@ End;
 
 // Schreiben der User.ini
 
-Procedure Writeini;
+Procedure TForm1.Writeini;
 Var
   f: Textfile;
   x: integer;
@@ -389,20 +388,19 @@ Begin
   writeln(f, colortostring(LightenColor));
   writeln(f, colortostring(FormBackground));
   writeln(f, inttostr(ord(unpencilallow)));
-  For x := 1 To 9 Do
+  For x := 1 To 9 Do Begin // Das Gibt es nur für 3x3 Felder, also quasi OK
     writeln(f, substitution[x]);
-  With form1 Do Begin
-    writeln(f, inttostr(ord(byhiddensingle1.checked)));
-    writeln(f, inttostr(ord(bynakedsingle1.checked)));
-    writeln(f, inttostr(ord(bytryanderror1.checked)));
-    writeln(f, inttostr(ord(bynakedsubset1.checked)));
-    writeln(f, inttostr(ord(byhiddensubset1.checked)));
-    writeln(f, inttostr(ord(byBlockandColumninteractions1.checked)));
-    writeln(f, inttostr(ord(byblockandblockinteractions1.checked)));
-    writeln(f, inttostr(ord(byXWingSwordfish1.checked)));
-    writeln(f, inttostr(ord(byXYWing1.checked)));
-    writeln(f, inttostr(ord(ForcingChains1.checked)));
   End;
+  writeln(f, inttostr(ord(byhiddensingle1.checked)));
+  writeln(f, inttostr(ord(bynakedsingle1.checked)));
+  writeln(f, inttostr(ord(bytryanderror1.checked)));
+  writeln(f, inttostr(ord(bynakedsubset1.checked)));
+  writeln(f, inttostr(ord(byhiddensubset1.checked)));
+  writeln(f, inttostr(ord(byBlockandColumninteractions1.checked)));
+  writeln(f, inttostr(ord(byblockandblockinteractions1.checked)));
+  writeln(f, inttostr(ord(byXWingSwordfish1.checked)));
+  writeln(f, inttostr(ord(byXYWing1.checked)));
+  writeln(f, inttostr(ord(ForcingChains1.checked)));
   writeln(f, inttostr(DefaultDruckbreite));
   writeln(f, inttostr(ord(invalidnallow)));
   closefile(f);
@@ -564,6 +562,7 @@ Begin
   For i := 0 To high(fLinepencil) Do Begin
     setlength(fLinepencil[i], 0);
   End;
+  setlength(fLinepencil, 0);
   ffield.Free;
   ffield := Nil;
 End;
@@ -572,9 +571,9 @@ Procedure TForm1.FormResize(Sender: TObject);
 Var
   x: Integer;
 Begin
-
-  For x := 1 To 6 Do
+  For x := 1 To 6 Do Begin // Warum ist das nicht mit Anchors gemacht ?
     TCheckbox(findcomponent('Checkbox' + inttostr(x))).left := Form1.width - Scale96ToForm(195);
+  End;
   button1.left := Form1.width - Scale96ToForm(160);
   button2.left := Form1.width - Scale96ToForm(160);
   If Assigned(bm) Then Begin
@@ -582,11 +581,6 @@ Begin
     bm.height := PaintBox1.Height;
     PaintBox1.Invalidate;
   End;
-End;
-
-Procedure TForm1.FormMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-Begin
 End;
 
 Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
@@ -610,15 +604,15 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
       If ffield.IsPencilSet(x, y, value) Then Begin
         // Prüfen ob die Zahl Waagrecht / Senkrecht rein darf
         e := true;
-        For z := 0 To 8 Do Begin
+        For z := 0 To sqr(ffield.Dimension) - 1 Do Begin
           If (fField.value[z, y] = Value) And Not (z = x) Then e := false;
           If (fField.value[x, z] = Value) And Not (z = y) Then e := false;
         End;
         // Prüfen ob die Zahl in das entsprechende 9er Feld Darf
-        a := x - (x Mod 3);
-        b := y - (y Mod 3);
-        For c := 0 To 2 Do
-          For d := 0 To 2 Do
+        a := x - (x Mod ffield.Dimension);
+        b := y - (y Mod ffield.Dimension);
+        For c := 0 To ffield.Dimension - 1 Do
+          For d := 0 To ffield.Dimension - 1 Do
             // Prüfen der Zahl im 9er Feld auser dem gewählten Feld
             If ((a + c) <> x) Or ((b + d) <> y) Then Begin
               If fField.value[a + c, b + d] = Value Then e := false;
@@ -640,15 +634,15 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
       End;
       // Prüfen ob die Zahl Waagrecht / Senkrecht rein darf
       e := true;
-      For z := 0 To 8 Do Begin
+      For z := 0 To sqr(ffield.Dimension) - 1 Do Begin
         If (fField.value[z, y] = Value) And Not (z = x) Then e := false;
         If (fField.value[x, z] = Value) And Not (z = y) Then e := false;
       End;
       // Prüfen ob die Zahl in das entsprechende 9er Feld Darf
-      a := x - (x Mod 3);
-      b := y - (y Mod 3);
-      For c := 0 To 2 Do
-        For d := 0 To 2 Do
+      a := x - (x Mod ffield.Dimension);
+      b := y - (y Mod ffield.Dimension);
+      For c := 0 To ffield.Dimension - 1 Do
+        For d := 0 To ffield.Dimension - 1 Do
           // Prüfen der Zahl im 9er Feld auser dem gewählten Feld
           If ((a + c) <> x) Or ((b + d) <> y) Then Begin
             If fField.value[a + c, b + d] = Value Then
@@ -710,7 +704,7 @@ Begin
     End
     Else Begin
       // Eingabe der Pencil werte
-      If Key In ['1'..'9'] Then Begin
+      If Key In ['1'..'9'] Then Begin // TODO: Das wird bei > 3x3 problematisch
         a := true;
         x2 := strtoint(key);
         If lc < sqr(ffield.Dimension) Then Begin
@@ -813,7 +807,7 @@ Procedure TForm1.CheckBox1Click(Sender: TObject);
 Begin
   If Not Checkbox1.checked Then Begin
     ffield.ResetAllMarker;
-    If (mx In [0..8]) And (my In [0..8]) Then
+    If (mx In [0..sqr(ffield.Dimension) - 1]) And (my In [0..sqr(ffield.Dimension) - 1]) Then
       ffield.SetMarked(mx, my, true);
   End;
   PaintBox1.Invalidate;
@@ -947,9 +941,9 @@ Var
 Begin
   Resetopt;
   // Löschen aller Einträge des Users
-  For x := 0 To 8 Do
-    For y := 0 To 8 Do Begin
-      If Not (fField.IsFixed(x, y)) Then ffield.SetValue(x, y, 0, false); //Field[x, y].value := 0;
+  For x := 0 To sqr(ffield.Dimension) - 1 Do
+    For y := 0 To sqr(ffield.Dimension) - 1 Do Begin
+      If Not (fField.IsFixed(x, y)) Then ffield.SetValue(x, y, 0, false);
       fField.SetMarked(x, y, false);
     End;
   PaintBox1.Invalidate;
@@ -1110,7 +1104,7 @@ End;
 Procedure TForm1.Solveit1Click(Sender: TObject);
 Var
   aFormclose: Boolean;
-  zah: Array[1..9] Of integer;
+  zah: Array Of integer;
   x1, y1: Integer;
 Begin
   If Not (ffield.IsSolveable) Then Begin
@@ -1127,14 +1121,15 @@ Begin
     ffield.ResetAllMarker;
     getlinepencil(); // Ermitteln der Korreckten Line pencil's
     // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
-    For x1 := 1 To 9 Do
+    setlength(zah, sqr(ffield.Dimension) + 1);
+    For x1 := 1 To sqr(ffield.Dimension) Do
       zah[x1] := 0;
-    For x1 := 0 To 8 Do
-      For y1 := 0 To 8 Do
+    For x1 := 0 To sqr(ffield.Dimension) - 1 Do
+      For y1 := 0 To sqr(ffield.Dimension) - 1 Do
         If ffield.value[x1, y1] <> 0 Then
           inc(zah[ffield.value[x1, y1]]);
-    For x1 := 1 To 9 Do
-      If zah[x1] = 9 Then Begin
+    For x1 := 1 To sqr(ffield.Dimension) Do
+      If zah[x1] = sqr(ffield.Dimension) Then Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
@@ -1163,7 +1158,7 @@ Var
   UsedTryError, a, aFormclose: Boolean;
   x1, y1: integer;
   p: TPoint;
-  zah: Array[1..9] Of integer;
+  zah: Array Of integer;
   options: TSolveOptions;
 Begin
   If Not (ffield.IsSolveable) Then Begin
@@ -1195,15 +1190,17 @@ Begin
     p := ffield.StepPos;
     mx := p.x;
     my := p.y;
+    // TODO: Das hier ist doppelt mit SolveIt -> raus ziehen
     // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
-    For x1 := 1 To 9 Do
+    setlength(zah, Sqr(ffield.Dimension) + 1);
+    For x1 := 1 To Sqr(ffield.Dimension) Do
       zah[x1] := 0;
-    For x1 := 0 To 8 Do
-      For y1 := 0 To 8 Do
+    For x1 := 0 To Sqr(ffield.Dimension) - 1 Do
+      For y1 := 0 To Sqr(ffield.Dimension) - 1 Do
         If ffield.value[x1, y1] <> 0 Then
           inc(zah[ffield.value[x1, y1]]);
-    For x1 := 1 To 9 Do
-      If zah[x1] = 9 Then Begin
+    For x1 := 1 To Sqr(ffield.Dimension) Do
+      If zah[x1] = Sqr(ffield.Dimension) Then Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;

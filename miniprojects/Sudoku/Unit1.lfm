@@ -16,7 +16,6 @@ object Form1: TForm1
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
-  OnMouseDown = FormMouseDown
   OnResize = FormResize
   OnShow = FormShow
   object CheckBox1: TCheckBox
