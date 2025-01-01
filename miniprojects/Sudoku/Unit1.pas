@@ -190,7 +190,6 @@ Type
     Procedure Writeini;
   public
     { Public-Deklarationen }
-    Procedure Drawfield(Sender: TObject); // TODO: Muss Private werden -> und dann Raus fliegen !
   End;
 
 Var
@@ -212,9 +211,7 @@ Uses
   // Unit12 // Print Detail dialog 4x4 ?
   , Unit13 // 5x5 Fields
   // Unit14 // Print Detail dialog 5x5 ?
-  // Unit15 // New Dialog for 2x2, 4x4, 5x5
-  , Unit16 // 2x2 Fields
-  // Unit17 // Print Detail dialog 2x2 ?
+  // Unit15 // New Dialog for 4x4, 5x5
   ;
 
 {$R *.lfm}
@@ -433,48 +430,6 @@ Begin
   If bytryanderror1.Checked Then Result := Result + [soTryAndError];
 End;
 
-// Zeichnet das Komplette Spielfeld
-
-Procedure TForm1.Drawfield(Sender: TObject);
-Var
-  Info: TRenderInfo;
-  i: Integer;
-Begin
-  If bm = Nil Then exit;
-  If checkbox1.checked And (mx > -1) Then Begin
-    ffield.ResetAllMarker;
-    ffield.Mark(ffield.value[mx, my]);
-  End;
-  // Markieren der Felder die Permanent Markiert werden müssen
-  // TODO: Das hier geht nicht bei Dimension > 3 !
-  For i := 1 To 9 Do Begin
-    If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then Begin
-      ffield.Mark(i);
-    End;
-  End;
-  info.Cursor := point(mx, my);
-  info.LinePencilIndex := lc;
-  info.Rect := PaintBox1.ClientRect;
-  // TODO: Das hier geht nicht bei Dimension > 3 !
-  setlength(info.NumberHighLights, 9);
-  For i := 0 To 8 Do Begin
-    info.NumberHighLights[i] := TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + i))).Down
-  End;
-  info.Show_Pencils_Numbers := Checkbox4.checked;
-  info.Show_Line_Pencil_numbers := Checkbox5.checked;
-  info.Edit_Line_Pencil_Numbers := Checkbox6.checked;
-  setlength(info.LinePencil, ffield.Dimension * ffield.Dimension * 2);
-  For i := 0 To high(info.LinePencil) Do Begin
-    info.LinePencil[i] := fLinepencil[i];
-  End;
-  // Löschen des Bildschirms
-  bm.canvas.brush.style := bssolid;
-  bm.canvas.brush.color := FormBackground;
-  bm.canvas.rectangle(-1, -1, bm.width + 1, bm.height + 1);
-  ffield.RenderTo(bm.Canvas, info);
-  Form1.PaintBox1.Canvas.Draw(0, 0, bm);
-End;
-
 Procedure TForm1.Resetopt;
 Var
   x: integer;
@@ -508,6 +463,10 @@ Begin
       setlength(fLinepencil[i], sqr(NewDim));
     End;
     // TODO: Hier muss dann auch noch das Steuern der LCL-Komponenten mit rein ..
+    For i := 1 To 9 Do Begin
+      ttoolbutton(findcomponent('Toolbutton' + inttostr(i))).Visible := i <= Sqr(NewDim);
+      ttoolbutton(findcomponent('Toolbutton' + inttostr(i + 10))).Visible := i <= Sqr(NewDim);
+    End;
   End;
 End;
 
@@ -887,8 +846,43 @@ Begin
 End;
 
 Procedure TForm1.Panel1Paint(Sender: TObject);
+Var
+  Info: TRenderInfo;
+  i: Integer;
 Begin
-  Drawfield(Nil);
+  If bm = Nil Then exit;
+  If checkbox1.checked And (mx > -1) Then Begin
+    ffield.ResetAllMarker;
+    ffield.Mark(ffield.value[mx, my]);
+  End;
+  // Markieren der Felder die Permanent Markiert werden müssen
+  // TODO: Das hier geht nicht bei Dimension > 3 !
+  For i := 1 To 9 Do Begin
+    If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then Begin
+      ffield.Mark(i);
+    End;
+  End;
+  info.Cursor := point(mx, my);
+  info.LinePencilIndex := lc;
+  info.Rect := PaintBox1.ClientRect;
+  // TODO: Das hier geht nicht bei Dimension > 3 !
+  setlength(info.NumberHighLights, 9);
+  For i := 0 To 8 Do Begin
+    info.NumberHighLights[i] := TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + i))).Down
+  End;
+  info.Show_Pencils_Numbers := Checkbox4.checked;
+  info.Show_Line_Pencil_numbers := Checkbox5.checked;
+  info.Edit_Line_Pencil_Numbers := Checkbox6.checked;
+  setlength(info.LinePencil, ffield.Dimension * ffield.Dimension * 2);
+  For i := 0 To high(info.LinePencil) Do Begin
+    info.LinePencil[i] := fLinepencil[i];
+  End;
+  // Löschen des Bildschirms
+  bm.canvas.brush.style := bssolid;
+  bm.canvas.brush.color := FormBackground;
+  bm.canvas.rectangle(-1, -1, bm.width + 1, bm.height + 1);
+  ffield.RenderTo(bm.Canvas, info);
+  Form1.PaintBox1.Canvas.Draw(0, 0, bm);
 End;
 
 Procedure TForm1.Support1Click(Sender: TObject);
@@ -1121,6 +1115,7 @@ Begin
     ffield.ResetAllMarker;
     getlinepencil(); // Ermitteln der Korreckten Line pencil's
     // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
+    zah := Nil;
     setlength(zah, sqr(ffield.Dimension) + 1);
     For x1 := 1 To sqr(ffield.Dimension) Do
       zah[x1] := 0;
@@ -1192,6 +1187,7 @@ Begin
     my := p.y;
     // TODO: Das hier ist doppelt mit SolveIt -> raus ziehen
     // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
+    zah := Nil;
     setlength(zah, Sqr(ffield.Dimension) + 1);
     For x1 := 1 To Sqr(ffield.Dimension) Do
       zah[x1] := 0;
@@ -1286,8 +1282,6 @@ End;
 Procedure TForm1.N2x21Click(Sender: TObject);
 Begin
   // New Puzzle 2x2
-  form16.ShowModal; // TODO: Alt -> Raus
-  exit; // TODO: Alt -> Raus
   // Ab hier das "Neue", wenn es denn mal tut
   InitFieldDim(2);
   Form7.init(ffield, GetSudokuOptions());

@@ -20,7 +20,7 @@ Uses
   Forms, printer4lazarus,
   Interfaces,
   Unit1, Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit9, Unit10, Unit11,
-  Unit12, Unit13, Unit14, Unit15, Unit16, Unit17, usudoku;
+  Unit12, Unit13, Unit14, Unit15, usudoku;
 
 Begin
   Application.Initialize;
@@ -39,8 +39,6 @@ Begin
   Application.CreateForm(TForm13, Form13);
   Application.CreateForm(TForm14, Form14);
   Application.CreateForm(TForm15, Form15);
-  Application.CreateForm(TForm16, Form16);
-  Application.CreateForm(TForm17, Form17);
   Application.Run;
 End.
 

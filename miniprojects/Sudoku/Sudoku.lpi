@@ -45,7 +45,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="18">
       <Unit0>
         <Filename Value="Sudoku.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -154,31 +154,13 @@
         <ResourceBaseClass Value="Form"/>
       </Unit15>
       <Unit16>
-        <Filename Value="Unit16.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form16"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit16>
-      <Unit17>
-        <Filename Value="Sudoku2x2.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit17>
-      <Unit18>
-        <Filename Value="Unit17.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form17"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit18>
-      <Unit19>
         <Filename Value="Sudoku5x5.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit19>
-      <Unit20>
+      </Unit16>
+      <Unit17>
         <Filename Value="usudoku.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit20>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

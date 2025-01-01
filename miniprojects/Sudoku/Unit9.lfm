@@ -1,13 +1,13 @@
 object Form9: TForm9
   Left = 323
-  Height = 211
+  Height = 244
   Top = 107
   Width = 295
   ActiveControl = CheckBox1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Print Options'
-  ClientHeight = 211
+  ClientHeight = 244
   ClientWidth = 295
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -45,7 +45,7 @@ object Form9: TForm9
   object Button4: TButton
     Left = 16
     Height = 25
-    Top = 168
+    Top = 208
     Width = 265
     Caption = '&Cancel'
     TabOrder = 5
@@ -67,5 +67,14 @@ object Form9: TForm9
     Width = 139
     Caption = 'Print with pencil data'
     TabOrder = 0
+  end
+  object Button6: TButton
+    Left = 16
+    Height = 25
+    Top = 168
+    Width = 265
+    Caption = 'Print &8 new fields with current action options'
+    TabOrder = 6
+    OnClick = Button6Click
   end
 end

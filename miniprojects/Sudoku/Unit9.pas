@@ -32,12 +32,14 @@ Type
     Button3: TButton;
     Button4: TButton;
     Button5: TButton;
+    Button6: TButton;
     CheckBox1: TCheckBox;
     Procedure Button4Click(Sender: TObject);
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
     Procedure Button5Click(Sender: TObject);
+    Procedure Button6Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
   private
@@ -356,8 +358,93 @@ Begin
   End;
 End;
 
+Procedure TForm9.Button6Click(Sender: TObject);
+Var
+  daten: Array[0..7] Of TSudoku;
+  z: integer;
+  Stop, i: Integer;
+  s: TSudoku;
+Begin
+  // Print 6 new fields
+  // Fals der Druckauftrag abgebrochen werden soll
+  form10.ScrollBar1.position := DefaultDruckbreite;
+  Form10.ComboBox1.Items := Printer.Printers;
+  Form10.Edit1.text := '1';
+  If Form10.ComboBox1.Items.count = 0 Then Begin
+    showmessage('No printer found');
+    exit;
+  End;
+  Form10.ComboBox1.Text := Form10.ComboBox1.items[Printer.PrinterIndex];
+  // Aufruf des Druckdialoges
+  If Form10.showmodal = mrOK Then Begin
+    stop := strtointdef(form10.Edit1.text, 1);
+    For z := 0 To high(daten) Do Begin
+      daten[z] := Nil;
+    End;
+    For z := 0 To high(daten) Do Begin
+      s := TSudoku.Create(fField.Dimension);
+      // Einstellen der Erstelloptionen
+      form7.Init(s, fOptions); // Das muss nach form1.Puzzle1Click(Nil); kommen !
+      // Erstellen eines neuen Feldes
+      form7.Button1Click(Nil);
+      // Speichern der Sudoku's
+      s.CloneFieldFrom(form7.Sudoku);
+      // Falls die Pencil's auch gewünscht sind
+      If checkbox1.checked Then Begin
+        s.ResetAllNumberPencils;
+        s.ClearAllNumberPencils;
+      End;
+      daten[z] := s;
+      // Falls Abgebrochen wird
+      If Zwangsabbruch Then break;
+    End;
+    // Wenn nicht abgebrochen wurde kann gedruckt werden.
+    If Not zwangsabbruch Then Begin
+      Printer.PrinterIndex := form10.combobox1.ItemIndex;
+      // Einstellen Hochformat
+      Printer.Orientation := poPortrait;
+      // Name des Druckauftrages
+      Printer.Title := 'Sudoku ver. : ' + ver + ' by Corpsman | www.Corpsman.de';
+      // Start Druckauftrag
+      Printer.BeginDoc;
+      // Ermöglichen von Mehrfach ausdrucken
+      For I := 1 To Stop Do Begin
+        daten[0].PrintToRectangle(rect(0, 0, Printer.Pagewidth Div 2, Printer.Pageheight Div 4), Form10.ScrollBar1.Position, CheckBox1.Checked);
+        daten[1].PrintToRectangle(rect(Printer.Pagewidth Div 2, 0, Printer.Pagewidth, Printer.Pageheight Div 4), Form10.ScrollBar1.Position, CheckBox1.Checked);
+        daten[2].PrintToRectangle(rect(0, Printer.Pageheight Div 4, Printer.Pagewidth Div 2, Printer.Pageheight Div 2), Form10.ScrollBar1.Position, CheckBox1.Checked);
+        daten[3].PrintToRectangle(rect(Printer.Pagewidth Div 2, Printer.Pageheight Div 4, Printer.Pagewidth, Printer.Pageheight Div 2), Form10.ScrollBar1.Position, CheckBox1.Checked);
+        daten[4].PrintToRectangle(rect(0, Printer.Pageheight Div 2, Printer.Pagewidth Div 2, (Printer.Pageheight Div 4) * 3), Form10.ScrollBar1.Position, CheckBox1.Checked);
+        daten[5].PrintToRectangle(rect(Printer.Pagewidth Div 2, Printer.Pageheight Div 2, Printer.Pagewidth, (Printer.Pageheight Div 4) * 3), Form10.ScrollBar1.Position, CheckBox1.Checked);
+        daten[6].PrintToRectangle(rect(0, (Printer.Pageheight Div 4) * 3, Printer.Pagewidth Div 2, Printer.Pageheight), Form10.ScrollBar1.Position, CheckBox1.Checked);
+        daten[7].PrintToRectangle(rect(Printer.Pagewidth Div 2, (Printer.Pageheight Div 4) * 3, Printer.Pagewidth, Printer.Pageheight), Form10.ScrollBar1.Position, CheckBox1.Checked);
+        // Ausdrucken der Werbung
+        PrintAdvertising();
+        // Neue seite bei mehrfach ausdrucken
+        If I <> Stop Then
+          Printer.NewPage;
+      End;
+      // Druckauftrag beenden
+      Printer.EndDoc;
+      // Schliesen des Fenster's
+      For i := 0 To high(daten) Do Begin
+        If assigned(daten[i]) Then daten[i].free;
+        daten[i] := Nil;
+      End;
+      Close;
+    End
+    Else Begin
+      Showmessage('You Canceled this will Cancel the Print job too.');
+    End;
+    For i := 0 To high(daten) Do Begin
+      If assigned(daten[i]) Then daten[i].free;
+      daten[i] := Nil;
+    End;
+  End;
+End;
+
 Procedure TForm9.Init(Const aField: TSudoku; aOptions: TSolveOptions);
 Begin
+  Button6.Visible := aField.Dimension = 2;
   fField.Free;
   fField := TSudoku.Create(aField.Dimension);
   fField.CloneFieldFrom(aField);
