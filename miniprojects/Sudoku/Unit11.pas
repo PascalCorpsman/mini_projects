@@ -178,8 +178,6 @@ End;
 
 Procedure TForm11.FormResize(Sender: TObject);
 Begin
-  If Form11.height < 480 Then Form11.height := 480;
-  If Form11.Width < Form11.height + 130 Then Form11.Width := Form11.height + 130;
   Breite4 := min(Form11.height - 32, Form11.width) Div 18;
   If assigned(bm4) And Not form6.visible Then Begin
     bm4.width := form11.width;

@@ -1,7 +1,7 @@
 object Form11: TForm11
-  Left = 238
-  Height = 524
-  Top = 122
+  Left = 323
+  Height = 546
+  Top = 107
   Width = 640
   Caption = 'Form11'
   Font.Height = -11

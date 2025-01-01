@@ -186,113 +186,113 @@ object Form1: TForm1
       Caption = 'ToolButton10'
       Style = tbsSeparator
     end
-    object ToolButton11: TToolButton
+    object ToolButton101: TToolButton
       Left = 218
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton11'
+      Caption = 'ToolButton101'
       ImageIndex = 9
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
-    object ToolButton12: TToolButton
+    object ToolButton102: TToolButton
       Left = 241
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton12'
+      Caption = 'ToolButton102'
       ImageIndex = 10
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
-    object ToolButton13: TToolButton
+    object ToolButton103: TToolButton
       Left = 264
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton13'
+      Caption = 'ToolButton103'
       ImageIndex = 11
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
-    object ToolButton14: TToolButton
+    object ToolButton104: TToolButton
       Left = 287
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton14'
+      Caption = 'ToolButton104'
       ImageIndex = 12
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
-    object ToolButton15: TToolButton
+    object ToolButton105: TToolButton
       Left = 310
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton15'
+      Caption = 'ToolButton105'
       ImageIndex = 13
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
-    object ToolButton16: TToolButton
+    object ToolButton106: TToolButton
       Left = 333
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton16'
+      Caption = 'ToolButton106'
       ImageIndex = 14
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
-    object ToolButton17: TToolButton
+    object ToolButton107: TToolButton
       Left = 356
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton17'
+      Caption = 'ToolButton107'
       ImageIndex = 15
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
-    object ToolButton18: TToolButton
+    object ToolButton108: TToolButton
       Left = 379
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton18'
+      Caption = 'ToolButton108'
       ImageIndex = 16
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
-    object ToolButton19: TToolButton
+    object ToolButton109: TToolButton
       Left = 402
       Hint = 'show positions of number''s'
       Top = 2
-      Caption = 'ToolButton19'
+      Caption = 'ToolButton109'
       ImageIndex = 17
       ParentShowHint = False
       ShowHint = True
       Style = tbsCheck
-      OnClick = ToolButton11Click
-      OnMouseDown = ToolButton11MouseDown
+      OnClick = ToolButton101Click
+      OnMouseDown = ToolButton101MouseDown
     end
   end
   object CheckBox5: TCheckBox

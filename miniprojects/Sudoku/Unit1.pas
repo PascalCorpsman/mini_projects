@@ -36,6 +36,9 @@ Uses
   SysUtils, Graphics, Forms, Classes, Controls, Dialogs, Menus,
   StdCtrls, ComCtrls, usudoku, ExtCtrls, lcltype;
 
+Const
+  HighestToolNumber = 9; // In Future should be 25
+
 Type
 
   TLinepencil = Array Of TPencil;
@@ -81,15 +84,15 @@ Type
     ToolButton8: TToolButton;
     ToolButton9: TToolButton;
     ToolButton10: TToolButton;
-    ToolButton11: TToolButton;
-    ToolButton12: TToolButton;
-    ToolButton13: TToolButton;
-    ToolButton14: TToolButton;
-    ToolButton15: TToolButton;
-    ToolButton16: TToolButton;
-    ToolButton17: TToolButton;
-    ToolButton18: TToolButton;
-    ToolButton19: TToolButton;
+    ToolButton101: TToolButton;
+    ToolButton102: TToolButton;
+    ToolButton103: TToolButton;
+    ToolButton104: TToolButton;
+    ToolButton105: TToolButton;
+    ToolButton106: TToolButton;
+    ToolButton107: TToolButton;
+    ToolButton108: TToolButton;
+    ToolButton109: TToolButton;
     ImageList1: TImageList;
     CheckBox5: TCheckBox;
     Button1: TButton;
@@ -138,7 +141,7 @@ Type
     Procedure Load1Click(Sender: TObject);
     Procedure Resetfield1Click(Sender: TObject);
     Procedure ToolButton1Click(Sender: TObject);
-    Procedure ToolButton11Click(Sender: TObject);
+    Procedure ToolButton101Click(Sender: TObject);
     Procedure Colors1Click(Sender: TObject);
     Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
     Procedure Button1Click(Sender: TObject);
@@ -148,7 +151,7 @@ Type
     Procedure ToolButton1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     Procedure General2Click(Sender: TObject);
-    Procedure ToolButton11MouseDown(Sender: TObject; Button: TMouseButton;
+    Procedure ToolButton101MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     Procedure General1Click(Sender: TObject);
     Procedure Solveit1Click(Sender: TObject);
@@ -445,9 +448,11 @@ Begin
   lc := 0;
   mx := 0;
   my := 0;
-  For x := 1 To 19 Do Begin
+  For x := 1 To HighestToolNumber Do Begin
     ttoolbutton(findcomponent('Toolbutton' + inttostr(x))).enabled := true;
     ttoolbutton(findcomponent('Toolbutton' + inttostr(x))).Down := false;
+    ttoolbutton(findcomponent('Toolbutton' + inttostr(100 + x))).enabled := true;
+    ttoolbutton(findcomponent('Toolbutton' + inttostr(100 + x))).Down := false;
   End;
 End;
 
@@ -463,9 +468,9 @@ Begin
       setlength(fLinepencil[i], sqr(NewDim));
     End;
     // TODO: Hier muss dann auch noch das Steuern der LCL-Komponenten mit rein ..
-    For i := 1 To 9 Do Begin
+    For i := 1 To min(sqr(newDim), HighestToolNumber) Do Begin
       ttoolbutton(findcomponent('Toolbutton' + inttostr(i))).Visible := i <= Sqr(NewDim);
-      ttoolbutton(findcomponent('Toolbutton' + inttostr(i + 10))).Visible := i <= Sqr(NewDim);
+      ttoolbutton(findcomponent('Toolbutton' + inttostr(i + 100))).Visible := i <= Sqr(NewDim);
     End;
   End;
 End;
@@ -738,17 +743,17 @@ Begin
   {  If Key = '0' Then Begin
 
     End;}
-  For x1 := 1 To 9 Do
+  For x1 := 1 To min(HighestToolNumber, sqr(ffield.Dimension)) Do
     If (x1 > high(zah)) Or (zah[x1] = sqr(ffield.Dimension)) Then Begin
       TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
-      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
-      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := false;
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).Down := false;
       TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).Down := False;
       ffield.ResetAllMarker;
     End
     Else Begin
       TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
-      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := true;
     End;
   // Schauen ob Fertig.
   If ffield.IsFullyFilled() And (Not (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W', '0'])) Then Begin
@@ -857,7 +862,7 @@ Begin
   End;
   // Markieren der Felder die Permanent Markiert werden müssen
   // TODO: Das hier geht nicht bei Dimension > 3 !
-  For i := 1 To 9 Do Begin
+  For i := 1 To min(sqr(ffield.Dimension), HighestToolNumber) Do Begin
     If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then Begin
       ffield.Mark(i);
     End;
@@ -866,9 +871,9 @@ Begin
   info.LinePencilIndex := lc;
   info.Rect := PaintBox1.ClientRect;
   // TODO: Das hier geht nicht bei Dimension > 3 !
-  setlength(info.NumberHighLights, 9);
-  For i := 0 To 8 Do Begin
-    info.NumberHighLights[i] := TToolButton(form1.findcomponent('Toolbutton' + inttostr(11 + i))).Down
+  setlength(info.NumberHighLights, sqr(ffield.Dimension));
+  For i := 0 To min(sqr(ffield.Dimension), HighestToolNumber) - 1 Do Begin
+    info.NumberHighLights[i] := TToolButton(form1.findcomponent('Toolbutton' + inttostr(101 + i))).Down
   End;
   info.Show_Pencils_Numbers := Checkbox4.checked;
   info.Show_Line_Pencil_numbers := Checkbox5.checked;
@@ -951,7 +956,7 @@ Begin
   PaintBox1.Invalidate;
 End;
 
-Procedure TForm1.ToolButton11Click(Sender: TObject);
+Procedure TForm1.ToolButton101Click(Sender: TObject);
 Begin
   PaintBox1.Invalidate;
 End;
@@ -1058,12 +1063,12 @@ End;
 Procedure TForm1.ToolButton1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Var
-  x1: integer;
+  i: integer;
 Begin
   If SSright In shift Then Begin
     ffield.ResetAllMarker;
-    For x1 := 1 To 9 Do
-      TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(x1))).down := false;
+    For i := 1 To HighestToolNumber Do
+      TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(i))).down := false;
     TTOolbutton(sender).Down := true;
     PaintBox1.Invalidate;
   End;
@@ -1076,14 +1081,14 @@ Begin
   form3.showmodal;
 End;
 
-Procedure TForm1.ToolButton11MouseDown(Sender: TObject; Button: TMouseButton;
+Procedure TForm1.ToolButton101MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Var
-  x1: integer;
+  i: integer;
 Begin
   If SSright In shift Then Begin
-    For x1 := 11 To 19 Do
-      TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(x1))).down := false;
+    For i := 101 To 100 + HighestToolNumber Do
+      TTOolbutton(form1.findcomponent('Toolbutton' + inttostr(i))).down := false;
     TTOolbutton(sender).Down := true;
     PaintBox1.Invalidate;
   End;
@@ -1123,17 +1128,17 @@ Begin
       For y1 := 0 To sqr(ffield.Dimension) - 1 Do
         If ffield.value[x1, y1] <> 0 Then
           inc(zah[ffield.value[x1, y1]]);
-    For x1 := 1 To sqr(ffield.Dimension) Do
+    For x1 := 1 To min(HighestToolNumber, sqr(ffield.Dimension)) Do
       If zah[x1] = sqr(ffield.Dimension) Then Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).Down := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
         ffield.ResetAllMarker;
       End
       Else Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := true;
       End;
 
     If aFormclose And form6.visible Then Form6.close;
@@ -1195,21 +1200,21 @@ Begin
       For y1 := 0 To Sqr(ffield.Dimension) - 1 Do
         If ffield.value[x1, y1] <> 0 Then
           inc(zah[ffield.value[x1, y1]]);
-    For x1 := 1 To Sqr(ffield.Dimension) Do
+    For x1 := 1 To min(HighestToolNumber, Sqr(ffield.Dimension)) Do
       If zah[x1] = Sqr(ffield.Dimension) Then Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).Down := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := false;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).Down := false;
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
         ffield.ResetAllMarker;
       End
       Else Begin
         TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 10))).enabled := true;
+        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := true;
       End;
     // Anzeigen das Fertig
     a := true;
-    For x1 := 1 To 9 Do
+    For x1 := 1 To HighestToolNumber Do
       If TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled Then a := false;
     If A Then Begin
       mx := -1;
