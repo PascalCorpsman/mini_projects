@@ -191,6 +191,7 @@ Type
     Procedure InitFieldDim(NewDim: Integer);
     Procedure Readini;
     Procedure Writeini;
+    Function UpdateToolButtons: Boolean; // True, wenn gelöst
   public
     { Public-Deklarationen }
   End;
@@ -404,6 +405,49 @@ Begin
   writeln(f, inttostr(DefaultDruckbreite));
   writeln(f, inttostr(ord(invalidnallow)));
   closefile(f);
+End;
+
+Function TForm1.UpdateToolButtons: Boolean;
+Var
+  i, j: Integer;
+  zah: Array Of integer;
+Begin
+  result := false;
+  ffield.ResetAllMarker;
+  getlinepencil(); // Ermitteln der Korreckten Line pencil's
+  // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
+  zah := Nil;
+  setlength(zah, Sqr(ffield.Dimension) + 1);
+  For i := 1 To Sqr(ffield.Dimension) Do
+    zah[i] := 0;
+  For i := 0 To Sqr(ffield.Dimension) - 1 Do Begin
+    For j := 0 To Sqr(ffield.Dimension) - 1 Do Begin
+      If ffield.value[i, j] <> 0 Then Begin
+        inc(zah[ffield.value[i, j]]);
+      End;
+    End;
+  End;
+  For i := 1 To min(sqr(ffield.Dimension), HighestToolNumber) Do Begin
+    If zah[i] = Sqr(ffield.Dimension) Then Begin
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(i))).enabled := false;
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(i + 100))).enabled := false;
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(i + 100))).Down := false;
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(i))).Down := False;
+      ffield.ResetAllMarker;
+    End
+    Else Begin
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(i))).enabled := true;
+      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(i + 100))).enabled := true;
+    End;
+  End;
+  // Anzeigen das Fertig
+  result := true;
+  For i := 1 To min(sqr(ffield.Dimension), HighestToolNumber) Do Begin
+    If TToolbutton(Findcomponent('ToolButton' + inttostr(i))).enabled Then Begin
+      result := false;
+      break;
+    End;
+  End;
 End;
 
 // Fügt wieder einen Penzil wert ein
@@ -648,12 +692,9 @@ Procedure TForm1.FormKeyPress(Sender: TObject; Var Key: Char);
     End;
   End;
 Var
-  x1, x2, y1: integer;
-  zah: Array Of integer;
+  x1, x2: integer;
   a: Boolean;
 Begin
-  zah := Nil;
-  setlength(zah, sqr(ffield.Dimension) + 1);
   If ffield.IsSolved() And Not (key In ['a', 'A', '0', 's', 'S', 'd', 'D', 'w', 'W']) Then Begin
     exit;
   End;
@@ -733,28 +774,9 @@ Begin
   // Hohlen der ganzen Linepencil sachen
   If Checkbox5.checked Then
     getLinePencil();
-  // überprüfen ob vielleicht schon von einer Zahl alle gefunden wurden
-  For x1 := 1 To sqr(ffield.Dimension) Do
-    zah[x1] := 0;
-  For x1 := 0 To sqr(ffield.Dimension) - 1 Do
-    For y1 := 0 To sqr(ffield.Dimension) - 1 Do
-      If fField.value[x1, y1] <> 0 Then
-        inc(zah[fField.value[x1, y1]]);
-  {  If Key = '0' Then Begin
 
-    End;}
-  For x1 := 1 To min(HighestToolNumber, sqr(ffield.Dimension)) Do
-    If (x1 > high(zah)) Or (zah[x1] = sqr(ffield.Dimension)) Then Begin
-      TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
-      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := false;
-      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).Down := false;
-      TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).Down := False;
-      ffield.ResetAllMarker;
-    End
-    Else Begin
-      TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
-      TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := true;
-    End;
+  UpdateToolButtons();
+
   // Schauen ob Fertig.
   If ffield.IsFullyFilled() And (Not (key In ['a', 'A', 's', 'S', 'd', 'D', 'w', 'W', '0'])) Then Begin
     If ffield.IsSolved() Then Begin
@@ -861,7 +883,6 @@ Begin
     ffield.Mark(ffield.value[mx, my]);
   End;
   // Markieren der Felder die Permanent Markiert werden müssen
-  // TODO: Das hier geht nicht bei Dimension > 3 !
   For i := 1 To min(sqr(ffield.Dimension), HighestToolNumber) Do Begin
     If TToolbutton(form1.findcomponent('ToolButton' + inttostr(i))).down Then Begin
       ffield.Mark(i);
@@ -870,7 +891,6 @@ Begin
   info.Cursor := point(mx, my);
   info.LinePencilIndex := lc;
   info.Rect := PaintBox1.ClientRect;
-  // TODO: Das hier geht nicht bei Dimension > 3 !
   setlength(info.NumberHighLights, sqr(ffield.Dimension));
   For i := 0 To min(sqr(ffield.Dimension), HighestToolNumber) - 1 Do Begin
     info.NumberHighLights[i] := TToolButton(form1.findcomponent('Toolbutton' + inttostr(101 + i))).Down
@@ -1103,8 +1123,6 @@ End;
 Procedure TForm1.Solveit1Click(Sender: TObject);
 Var
   aFormclose: Boolean;
-  zah: Array Of integer;
-  x1, y1: Integer;
 Begin
   If Not (ffield.IsSolveable) Then Begin
     showmessage('Impossible to solve Sudoku');
@@ -1117,32 +1135,8 @@ Begin
       aFormclose := true;
     End;
     ffield.Solve(false, GetSudokuOptions(), @OnStepLCLUpdateEvent);
-    ffield.ResetAllMarker;
-    getlinepencil(); // Ermitteln der Korreckten Line pencil's
-    // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
-    zah := Nil;
-    setlength(zah, sqr(ffield.Dimension) + 1);
-    For x1 := 1 To sqr(ffield.Dimension) Do
-      zah[x1] := 0;
-    For x1 := 0 To sqr(ffield.Dimension) - 1 Do
-      For y1 := 0 To sqr(ffield.Dimension) - 1 Do
-        If ffield.value[x1, y1] <> 0 Then
-          inc(zah[ffield.value[x1, y1]]);
-    For x1 := 1 To min(HighestToolNumber, sqr(ffield.Dimension)) Do
-      If zah[x1] = sqr(ffield.Dimension) Then Begin
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).Down := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
-        ffield.ResetAllMarker;
-      End
-      Else Begin
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := true;
-      End;
-
+    UpdateToolButtons();
     If aFormclose And form6.visible Then Form6.close;
-
     PaintBox1.Invalidate;
     If ffield.isSolved() Then Begin
       Showmessage('Ready');
@@ -1155,10 +1149,8 @@ End;
 
 Procedure TForm1.Solvestep1Click(Sender: TObject);
 Var
-  UsedTryError, a, aFormclose: Boolean;
-  x1, y1: integer;
+  UsedTryError, aFormclose: Boolean;
   p: TPoint;
-  zah: Array Of integer;
   options: TSolveOptions;
 Begin
   If Not (ffield.IsSolveable) Then Begin
@@ -1179,44 +1171,16 @@ Begin
       End;
     End;
     UsedTryError := ffield.Solve(true, Options, @OnStepLCLUpdateEvent);
-    ffield.ResetAllMarker;
+    p := ffield.StepPos;
+    mx := p.x;
+    my := p.y;
     If (soTryAndError In options) And UsedTryError Then Begin
       If aFormclose And form6.visible Then Form6.close;
       If Not ffield.IsSolved() Then Begin
         showmessage('This Sudoku is impossible to solve');
       End;
     End;
-    getlinepencil(); // Ermitteln der Korreckten Line pencil's
-    p := ffield.StepPos;
-    mx := p.x;
-    my := p.y;
-    // TODO: Das hier ist doppelt mit SolveIt -> raus ziehen
-    // Schauen ob irgendwelche Zahlen schon komplett sind und entsprechend setzen der Toolbuttons
-    zah := Nil;
-    setlength(zah, Sqr(ffield.Dimension) + 1);
-    For x1 := 1 To Sqr(ffield.Dimension) Do
-      zah[x1] := 0;
-    For x1 := 0 To Sqr(ffield.Dimension) - 1 Do
-      For y1 := 0 To Sqr(ffield.Dimension) - 1 Do
-        If ffield.value[x1, y1] <> 0 Then
-          inc(zah[ffield.value[x1, y1]]);
-    For x1 := 1 To min(HighestToolNumber, Sqr(ffield.Dimension)) Do
-      If zah[x1] = Sqr(ffield.Dimension) Then Begin
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).Down := false;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).Down := False;
-        ffield.ResetAllMarker;
-      End
-      Else Begin
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1))).enabled := true;
-        TToolbutton(form1.Findcomponent('ToolButton' + inttostr(x1 + 100))).enabled := true;
-      End;
-    // Anzeigen das Fertig
-    a := true;
-    For x1 := 1 To HighestToolNumber Do
-      If TToolbutton(Findcomponent('ToolButton' + inttostr(x1))).enabled Then a := false;
-    If A Then Begin
+    If UpdateToolButtons() Then Begin
       mx := -1;
       my := -1;
       showmessage('You solved the Sudoku.');
