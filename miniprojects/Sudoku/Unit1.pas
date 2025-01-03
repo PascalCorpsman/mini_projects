@@ -37,7 +37,7 @@ Uses
   StdCtrls, ComCtrls, usudoku, ExtCtrls, lcltype;
 
 Const
-  HighestToolNumber = 9; // In Future should be 25
+  HighestToolNumber = 25;
 
 Type
 
@@ -84,6 +84,22 @@ Type
     ToolButton8: TToolButton;
     ToolButton9: TToolButton;
     ToolButton10: TToolButton;
+    ToolButton11: TToolButton;
+    ToolButton12: TToolButton;
+    ToolButton13: TToolButton;
+    ToolButton14: TToolButton;
+    ToolButton15: TToolButton;
+    ToolButton16: TToolButton;
+    ToolButton17: TToolButton;
+    ToolButton18: TToolButton;
+    ToolButton19: TToolButton;
+    ToolButton20: TToolButton;
+    ToolButton21: TToolButton;
+    ToolButton22: TToolButton;
+    ToolButton23: TToolButton;
+    ToolButton24: TToolButton;
+    ToolButton25: TToolButton;
+    ToolButton50: TToolButton;
     ToolButton101: TToolButton;
     ToolButton102: TToolButton;
     ToolButton103: TToolButton;
@@ -93,6 +109,22 @@ Type
     ToolButton107: TToolButton;
     ToolButton108: TToolButton;
     ToolButton109: TToolButton;
+    ToolButton110: TToolButton;
+    ToolButton111: TToolButton;
+    ToolButton112: TToolButton;
+    ToolButton113: TToolButton;
+    ToolButton114: TToolButton;
+    ToolButton115: TToolButton;
+    ToolButton116: TToolButton;
+    ToolButton117: TToolButton;
+    ToolButton118: TToolButton;
+    ToolButton119: TToolButton;
+    ToolButton120: TToolButton;
+    ToolButton121: TToolButton;
+    ToolButton122: TToolButton;
+    ToolButton123: TToolButton;
+    ToolButton124: TToolButton;
+    ToolButton125: TToolButton;
     ImageList1: TImageList;
     CheckBox5: TCheckBox;
     Button1: TButton;
@@ -511,8 +543,7 @@ Begin
     For i := 0 To high(fLinepencil) Do Begin
       setlength(fLinepencil[i], sqr(NewDim));
     End;
-    // TODO: Hier muss dann auch noch das Steuern der LCL-Komponenten mit rein ..
-    For i := 1 To min(sqr(newDim), HighestToolNumber) Do Begin
+    For i := 1 To HighestToolNumber Do Begin
       ttoolbutton(findcomponent('Toolbutton' + inttostr(i))).Visible := i <= Sqr(NewDim);
       ttoolbutton(findcomponent('Toolbutton' + inttostr(i + 100))).Visible := i <= Sqr(NewDim);
     End;
@@ -549,7 +580,7 @@ Begin
   InitFieldDim(3);
 
   //  ffield := TSudoku.Create(3);
-  //  InitFieldDim(2);
+  //  InitFieldDim(4);
 
   bm := tbitmap.create;
   bm.width := form1.width;
