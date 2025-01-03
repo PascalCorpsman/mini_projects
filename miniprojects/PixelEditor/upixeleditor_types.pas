@@ -538,6 +538,7 @@ Begin
     result := (dr + dg + db) / 3 <= Toleranz_in_Percent * 255 / 100;
   End
   Else Begin
+    // Keine Ahnung ob das sinnvoll ist, oder man die Farbe als Komplett unterschiedlich betrachten sollte..
     result := (dr + dg + db + da) / 4 <= Toleranz_in_Percent * 255 / 100;
   End;
 End;

@@ -67,6 +67,7 @@ Const
    *                   FIX: Crash when copy whole image to clipboard
    *            0.09 - FIX: Colormatch hatte Transparenz nicht berücksichtigt
    *                   FIX: Memleak on STRG+C
+   *                   ADD: Cleanup STRG+C / STRG+V Code
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -1848,83 +1849,48 @@ End;
 Procedure TPixelEditor.PasteImageFromClipboard;
 Var
   b: Tbitmap;
-  i, j: Integer;
-  c: TRGBA;
-  TempIntfImg: TLazIntfImage;
   img: TPixelImage;
 Begin
   If Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) Then Begin
-    b := TBitmap.Create;
-    b.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
-    TempIntfImg := TLazIntfImage.Create(0, 0);
-    TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
-    SelectTool(tSelect);
-    fCursor.Select.aSet := true;
-    fCursor.Select.tl.x := max(0, fCursor.Compact.PixelPos.x);
-    fCursor.Select.tl.Y := max(0, fCursor.Compact.PixelPos.Y);
-    fCursor.Select.br := fCursor.Select.tl + point(b.Width - 1, b.Height - 1);
-    img := TPixelImage(fCursor.Select.Data);
-    img.SetSize(b.Width, b.Height);
-    img.BeginUpdate;
-    For i := 0 To b.Width - 1 Do Begin
-      For j := 0 To b.Height - 1 Do Begin
-        c := FPColorToRGBA(TempIntfImg.Colors[i, j]);
-        c.a := 0;
-        If (c.r = fCursor.RightColor.r) And
-          (c.g = fCursor.RightColor.g) And
-          (c.b = fCursor.RightColor.b) And
-          (SelectModeButton.Style = bsRaised) Then Begin
-          c := upixeleditor_types.ColorTransparent;
-        End;
-        img.SetColorAt(i, j, c);
+    form4.caption := 'BMP import settings';
+    If form4.ShowModal = mrOK Then Begin
+      b := TBitmap.Create;
+      b.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
+      SelectTool(tSelect);
+      fCursor.Select.aSet := true;
+      fCursor.Select.tl.x := max(0, fCursor.Compact.PixelPos.x);
+      fCursor.Select.tl.Y := max(0, fCursor.Compact.PixelPos.Y);
+      fCursor.Select.br := fCursor.Select.tl + point(b.Width - 1, b.Height - 1);
+      img := TPixelImage(fCursor.Select.Data);
+      img.ImportFromBMP(b, '', ColorToRGBA(form4.Shape1.Brush.Color));
+      If ((b.Width > fImage.Width) Or (b.Height > fImage.Height)) And fSettings.AutoIncSize Then Begin
+        RescaleImageTo(max(fImage.Width, b.Width), max(fImage.Height, b.Height), smResize);
+        fCursor.Select.tl := point(0, 0);
+        fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
+        // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
+        // fUndo.Clear;
       End;
+      b.free;
     End;
-    img.EndUpdate;
-    If ((b.Width > fImage.Width) Or (b.Height > fImage.Height)) And fSettings.AutoIncSize Then Begin
-      RescaleImageTo(max(fImage.Width, b.Width), max(fImage.Height, b.Height), smResize);
-      fCursor.Select.tl := point(0, 0);
-      fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
-      // Dadurch, das das Bild ja nur Größer geworden ist, muss die Undo Engine nicht gelöscht werden :-)
-      // fUndo.Clear;
-    End;
-    TempIntfImg.free;
-    b.free;
   End;
 End;
 
 Procedure TPixelEditor.CopySelectionToClipboard;
 Var
   b: TBitmap;
-  i, j: Integer;
-  TempIntfImg: TLazIntfImage;
 Begin
-  // Nur wenn es überhaupt was zum Kopieren gibt
-  b := TBitmap.Create;
-  TempIntfImg := TLazIntfImage.Create(0, 0);
-  If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
-    b.Width := fCursor.Select.br.x - fCursor.Select.tl.x + 1;
-    b.Height := fCursor.Select.br.Y - fCursor.Select.tl.Y + 1;
-    TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
-    For i := 0 To b.Width - 1 Do Begin
-      For j := 0 To b.Height - 1 Do Begin
-        TempIntfImg.Colors[i, j] := RGBAToFPColor(TPixelImage(fCursor.Select.Data).GetColorAt(i, j));
-      End;
+  form4.Shape1.Brush.Color := clFuchsia;
+  form4.caption := 'BMP export settings';
+  If form4.ShowModal = mrOK Then Begin
+    If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
+      b := TPixelImage(fCursor.Select.Data).AsBMP(ColorToRGBA(form4.Shape1.Brush.Color));
+    End
+    Else Begin
+      b := fImage.AsBMP(ColorToRGBA(form4.Shape1.Brush.Color));
     End;
-  End
-  Else Begin
-    b.Width := fImage.Width;
-    b.Height := fImage.Height;
-    TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
-    For i := 0 To b.Width - 1 Do Begin
-      For j := 0 To b.Height - 1 Do Begin
-        TempIntfImg.Colors[i, j] := RGBAToFPColor(fImage.GetColorAt(i, j));
-      End;
-    End;
+    Clipboard.Assign(b);
+    b.free;
   End;
-  b.LoadFromIntfImage(TempIntfImg);
-  Clipboard.Assign(b);
-  TempIntfImg.free;
-  b.free;
 End;
 
 Procedure TPixelEditor.SaveImage(Const aFilename: String);

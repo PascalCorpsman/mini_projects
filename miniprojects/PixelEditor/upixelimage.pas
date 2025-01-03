@@ -65,6 +65,7 @@ Type
     Procedure AppendToPEStream(Const Stream: TStream; Const aFilename: String);
     Procedure LoadFromPEStream(Const Stream: TStream; Const aFilename: String);
 
+    Function AsBMP(TransparentColor: TRGBA): TBitmap;
     Procedure ExportAsBMP(aFilename: String; TransparentColor: TRGBA);
     Procedure ImportFromBMP(Const Bitmap: TBitmap; aFilename: String; TransparentColor: TRGBA);
 
@@ -595,19 +596,18 @@ Begin
   Filename := aFilename;
 End;
 
-Procedure TPixelImage.ExportAsBMP(aFilename: String; TransparentColor: TRGBA);
+Function TPixelImage.AsBMP(TransparentColor: TRGBA): TBitmap;
 Var
-  b: Tbitmap;
   TempIntfImg: TLazIntfImage;
   ImgHandle, ImgMaskHandle: HBitmap;
   j, i: Integer;
   c: TRGBA;
 Begin
-  b := TBitmap.Create;
-  b.Width := Width;
-  b.Height := Height;
+  result := TBitmap.Create;
+  result.Width := Width;
+  result.Height := Height;
   TempIntfImg := TLazIntfImage.Create(0, 0);
-  TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
+  TempIntfImg.LoadFromBitmap(result.Handle, result.MaskHandle);
   For j := 0 To height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
       c := GetColorAt(i, j);
@@ -620,9 +620,16 @@ Begin
     End;
   End;
   TempIntfImg.CreateBitmaps(ImgHandle, ImgMaskHandle, false);
-  b.Handle := ImgHandle;
-  b.MaskHandle := ImgMaskHandle;
+  result.Handle := ImgHandle;
+  result.MaskHandle := ImgMaskHandle;
   TempIntfImg.free;
+End;
+
+Procedure TPixelImage.ExportAsBMP(aFilename: String; TransparentColor: TRGBA);
+Var
+  b: Tbitmap;
+Begin
+  b := AsBMP(TransparentColor);
   b.SaveToFile(aFilename);
   b.free;
   fChanged := false;
@@ -632,7 +639,6 @@ End;
 Procedure TPixelImage.ImportFromBMP(Const Bitmap: TBitmap; aFilename: String;
   TransparentColor: TRGBA);
 Var
-  b: TBitmap;
   i, j: Integer;
   TempIntfImg: TLazIntfImage;
   c: TRGBA;
