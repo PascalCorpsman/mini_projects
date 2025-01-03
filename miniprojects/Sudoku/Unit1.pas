@@ -209,6 +209,7 @@ Type
     bm: Tbitmap; // Quasi noch ein Double buffered
 
     lc: integer; // Für das Line Edit brauchen wir ne Extra Variable
+    AktualEnteredNumber: String; // Bei Felddimension > 3 werden die eingegebenen Ziffern hier gepuffert
 
     Procedure ApplyFromModifyAndRepaintField(Sender: TObject);
 
@@ -536,6 +537,7 @@ Procedure TForm1.InitFieldDim(NewDim: Integer);
 Var
   i: Integer;
 Begin
+  AktualEnteredNumber := '';
   If NewDim <> ffield.Dimension Then Begin
     ffield.free;
     ffield := TSudoku.Create(NewDim);
@@ -740,22 +742,33 @@ Begin
     End
     Else Begin
       // Eingabe der Pencil werte
-      If Key In ['1'..'9'] Then Begin // TODO: Das wird bei > 3x3 problematisch
-        a := true;
-        x2 := strtoint(key);
-        If lc < sqr(ffield.Dimension) Then Begin
-          For x1 := 0 To sqr(ffield.Dimension) - 1 Do
-            If x2 = fField.value[lc, x1] Then a := false;
-        End
-        Else Begin
-          For x1 := 0 To sqr(ffield.Dimension) - 1 Do
-            If x2 = fField.value[x1, lc - sqr(ffield.Dimension)] Then a := false;
+      If Key In ['0'..'9'] Then Begin
+        AktualEnteredNumber := AktualEnteredNumber + key;
+        If (ffield.Dimension < 4) Or ((ffield.Dimension >= 4) And (length(AktualEnteredNumber) >= 2)) Then Begin
+          // Falls da noch irgend ein Mist ist fliegt der mal raus
+          While Length(AktualEnteredNumber) > 2 Do Begin
+            delete(AktualEnteredNumber, 1, 1);
+          End;
+          // Nur Übernehmen wenn die letzten beiden Eingegebenen Zahlen Sinn ergeben :)
+          If strtoint(AktualEnteredNumber) In [1..sqr(ffield.Dimension)] Then Begin
+            a := true;
+            x2 := strtoint(AktualEnteredNumber);
+            If lc < sqr(ffield.Dimension) Then Begin
+              For x1 := 0 To sqr(ffield.Dimension) - 1 Do
+                If x2 = fField.value[lc, x1] Then a := false;
+            End
+            Else Begin
+              For x1 := 0 To sqr(ffield.Dimension) - 1 Do
+                If x2 = fField.value[x1, lc - sqr(ffield.Dimension)] Then a := false;
+            End;
+            If invalidnallow Then a := true; // Wenn auch ungültige Zahlen eingegeben werden können.
+            If A Then
+              fLinepencil[lc][strtoint(AktualEnteredNumber) - 1] := Not fLinepencil[lc][strtoint(AktualEnteredNumber) - 1]
+            Else
+              showmessage('Character for this field impossible.');
+            AktualEnteredNumber := '';
+          End;
         End;
-        If invalidnallow Then a := true; // Wenn auch ungültige Zahlen eingegeben werden können.
-        If A Then
-          fLinepencil[lc][strtoint(key) - 1] := Not fLinepencil[lc][strtoint(key) - 1]
-        Else
-          showmessage('Character for this field impossible.');
       End;
       PaintBox1.Invalidate;
     End;
@@ -773,33 +786,47 @@ Begin
     If mx < sqr(ffield.Dimension) - 1 Then inc(mx);
   // Einfügen und Löschen von Zahlen
   If (Key In ['0'..'9']) And (mx <> -1) Then Begin
-    AddZahl(StrToInt(key), mx, my);
-    fField.SetMayBeed(mx, my, false);
+    AktualEnteredNumber := AktualEnteredNumber + key;
+    If (ffield.Dimension < 4) Or ((ffield.Dimension >= 4) And (length(AktualEnteredNumber) >= 2)) Then Begin
+      // Falls da noch irgend ein Mist ist fliegt der mal raus
+      While Length(AktualEnteredNumber) > 2 Do Begin
+        delete(AktualEnteredNumber, 1, 1);
+      End;
+      // Nur Übernehmen wenn die letzten beiden Eingegebenen Zahlen Sinn ergeben :)
+      If strtoint(AktualEnteredNumber) In [0..sqr(ffield.Dimension)] Then Begin
+        AddZahl(strtoint(AktualEnteredNumber), mx, my);
+        AktualEnteredNumber := '';
+        fField.SetMayBeed(mx, my, false);
+      End;
+    End;
   End;
   // Einfügen der Geschätzten Zahlen
   If mx <> -1 Then Begin
     If (Key In ['!', '"', '?' {='§'}, '$', '%', '&', '/', '(', ')']) Then Begin
-      fField.SetMaybeed(mx, my, True);
-      If Key = '!' Then
-        AddZahl(1, mx, my);
-      If Key = '"' Then
-        AddZahl(2, mx, my);
-      If Key = '?' {='§'} Then
-        AddZahl(3, mx, my);
-      If Key = '$' Then
-        AddZahl(4, mx, my);
-      If Key = '%' Then
-        AddZahl(5, mx, my);
-      If Key = '&' Then
-        AddZahl(6, mx, my);
-      If Key = '/' Then
-        AddZahl(7, mx, my);
-      If Key = '(' Then
-        AddZahl(8, mx, my);
-      If Key = ')' Then
-        AddZahl(9, mx, my);
-      If Checkbox5.checked Then
-        getLinePencil();
+      If Key = '!' Then AktualEnteredNumber := AktualEnteredNumber + '1';
+      If Key = '"' Then AktualEnteredNumber := AktualEnteredNumber + '2';
+      If Key = '?' {='§'} Then AktualEnteredNumber := AktualEnteredNumber + '3';
+      If Key = '$' Then AktualEnteredNumber := AktualEnteredNumber + '4';
+      If Key = '%' Then AktualEnteredNumber := AktualEnteredNumber + '5';
+      If Key = '&' Then AktualEnteredNumber := AktualEnteredNumber + '6';
+      If Key = '/' Then AktualEnteredNumber := AktualEnteredNumber + '7';
+      If Key = '(' Then AktualEnteredNumber := AktualEnteredNumber + '8';
+      If Key = ')' Then AktualEnteredNumber := AktualEnteredNumber + '9';
+      If (ffield.Dimension < 4) Or ((ffield.Dimension >= 4) And (length(AktualEnteredNumber) >= 2)) Then Begin
+        // Falls da noch irgend ein Mist ist fliegt der mal raus
+        While Length(AktualEnteredNumber) > 2 Do Begin
+          delete(AktualEnteredNumber, 1, 1);
+        End;
+        // Nur Übernehmen wenn die letzten beiden Eingegebenen Zahlen Sinn ergeben :)
+        If strtoint(AktualEnteredNumber) In [0..sqr(ffield.Dimension)] Then Begin
+          AddZahl(strtoint(AktualEnteredNumber), mx, my);
+          AktualEnteredNumber := '';
+          fField.SetMaybeed(mx, my, True);
+          If Checkbox5.checked Then Begin
+            getLinePencil();
+          End;
+        End;
+      End;
     End;
   End;
   // Hohlen der ganzen Linepencil sachen

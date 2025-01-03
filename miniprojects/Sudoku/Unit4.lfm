@@ -1,24 +1,24 @@
 object Form4: TForm4
-  Left = 238
-  Height = 301
-  Top = 122
-  Width = 482
+  Left = 323
+  Height = 298
+  Top = 107
+  Width = 555
   ActiveControl = TreeView1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Form4'
-  ClientHeight = 301
-  ClientWidth = 482
+  ClientHeight = 298
+  ClientWidth = 555
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   object TreeView1: TTreeView
     Left = 8
     Height = 233
     Top = 8
-    Width = 129
+    Width = 200
     Images = Form1.ImageList1
     Indent = 19
     ReadOnly = True
@@ -62,13 +62,13 @@ object Form4: TForm4
     Left = 8
     Height = 33
     Top = 256
-    Width = 465
+    Width = 528
     Caption = 'OK'
     TabOrder = 1
     OnClick = Button1Click
   end
   object Memo1: TMemo
-    Left = 144
+    Left = 216
     Height = 233
     Top = 8
     Width = 329
