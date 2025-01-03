@@ -1852,6 +1852,7 @@ Var
   img: TPixelImage;
 Begin
   If Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) Then Begin
+    form4.Shape1.Brush.Color := clFuchsia;
     form4.caption := 'BMP import settings';
     If form4.ShowModal = mrOK Then Begin
       b := TBitmap.Create;
