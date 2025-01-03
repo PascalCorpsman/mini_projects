@@ -66,6 +66,7 @@ Const
    *                   FIX: Move Selected Image into "TPixelImage" Datastructure -> Das hilft wenn sehr Große Bildbereiche Selektiert werden !
    *                   FIX: Crash when copy whole image to clipboard
    *            0.09 - FIX: Colormatch hatte Transparenz nicht berücksichtigt
+   *                   FIX: Memleak on STRG+C
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -1911,7 +1912,6 @@ Begin
     End;
   End
   Else Begin
-    b := TBitmap.Create;
     b.Width := fImage.Width;
     b.Height := fImage.Height;
     TempIntfImg.LoadFromBitmap(b.Handle, b.MaskHandle);
