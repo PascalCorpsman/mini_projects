@@ -65,7 +65,7 @@ Const
    * -Released- 0.08 - ADD: Refactor Timage -> TPixelImage
    *                   FIX: Move Selected Image into "TPixelImage" Datastructure -> Das hilft wenn sehr Große Bildbereiche Selektiert werden !
    *                   FIX: Crash when copy whole image to clipboard
-   *            0.09 -
+   *            0.09 - FIX: Colormatch hatte Transparenz nicht berücksichtigt
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt

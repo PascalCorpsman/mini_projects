@@ -527,13 +527,19 @@ End;
 
 Function ColorMatch(Const A, B: TRGBA; Toleranz_in_Percent: Integer): Boolean;
 Var
-  dr, dg, db: integer;
+  dr, dg, db, da: integer;
 Begin
   // Ganz Simple die Toleranz_in_Percent in Prozent im RGB-Würfel ;)
   dr := abs(a.r - b.r);
   dg := abs(a.g - b.g);
   db := abs(a.b - b.b);
-  result := (dr + dg + db) / 3 <= Toleranz_in_Percent * 255 / 100;
+  da := abs(a.a - b.a);
+  If da = 0 Then Begin
+    result := (dr + dg + db) / 3 <= Toleranz_in_Percent * 255 / 100;
+  End
+  Else Begin
+    result := (dr + dg + db + da) / 4 <= Toleranz_in_Percent * 255 / 100;
+  End;
 End;
 
 Procedure Mirror(Cursor: TCompactCursor; Origin: Tpoint; PointCenter,
