@@ -782,8 +782,8 @@ Begin
   End;
   // Malen der Line Pencil geschichten !!
   If info.Show_Line_Pencil_numbers And assigned(info.Linepencil) Then Begin
-    // Die Waagrechten beschriftungen.
-    canvas.font.size := breite Div 5;
+    // Die waagrechten Beschriftungen.
+    canvas.font.size := breite Div (fdim + 2);
     For x := 0 To fsqrDim - 1 Do
       For z := 0 To fsqrDim - 1 Do
         If info.Linepencil[x][z] Then Begin
@@ -804,11 +804,13 @@ Begin
           End;
           s := SubstituteValue(z + 1);
           // TODO: hier fehlt ein "Center" in der Höhe und dann muss es auch oben bei den "Kreisen" hinter den Zahlen berücksichtigt werden ;)
-
-          canvas.textout(breite * (x + 1) + (Breite Div fDim) * (z Mod fDim) + ((Breite Div fDim) - canvas.Textwidth(s)) Div 2, 1 + (Breite Div fDim) * (z Div fDim), s);
+          canvas.textout(
+            breite * (x + 1) + (Breite Div fDim) * (z Mod fDim) + ((Breite Div fDim) - canvas.Textwidth(s)) Div 2,
+            1 + (Breite Div fDim) * (z Div fDim),
+            s);
         End;
     // Die senkrechten Beschriftungen.
-    canvas.font.size := breite Div 5;
+    canvas.font.size := breite Div (fdim + 2);
     canvas.font.color := Pencilcolor;
     For x := 0 To fsqrDim - 1 Do Begin
       For z := 0 To fsqrDim - 1 Do Begin
@@ -830,7 +832,10 @@ Begin
           End;
           s := SubstituteValue(z + 1);
           // TODO: hier fehlt ein "Center" in der Höhe und dann muss es auch oben bei den "Kreisen" hinter den Zahlen berücksichtigt werden ;)
-          canvas.textout(breite * (fsqrDim + 1) + (Breite Div fDim) * (z Mod fDim) + ((Breite Div fDim) - canvas.Textwidth(s)) Div 2, Breite * (x + 1) + 1 + (Breite Div fDim) * (z Div fDim), s);
+          canvas.textout(
+            breite * (fsqrDim + 1) + (Breite Div fDim) * (z Mod fDim) + ((Breite Div fDim) - canvas.Textwidth(s)) Div 2,
+            Breite * (x + 1) + 1 + (Breite Div fDim) * (z Div fDim),
+            s);
         End;
       End;
     End;
@@ -863,7 +868,14 @@ Begin
       Else Begin
         canvas.brush.color := Bretthintergrundfarbe2;
       End;
-      If fField[x, y].marked Then canvas.brush.color := markedColor1;
+      If fField[x, y].marked Then Begin
+        If (blockX + blockY) Mod 2 = 0 Then Begin
+          canvas.brush.color := markedColor1;
+        End
+        Else Begin
+          canvas.brush.color := markedColor2;
+        End;
+      End;
       // Farbe zum Markieren des Aktuellen Feldes
       If (x = info.Cursor.x) And (y = info.Cursor.y) And Not info.Edit_Line_Pencil_Numbers Then canvas.brush.color := CursorMarker;
       // Malen des Feldes
@@ -880,11 +892,13 @@ Begin
       canvas.Brush.style := bsclear;
       // Malen der Pencil Zahlen
       If info.Show_Pencils_Numbers And (fField[x, y].value = 0) Then Begin
-        canvas.font.size := breite Div 5;
-        If ((info.Cursor.x = x) And (info.Cursor.y = y)) Or fField[x, y].marked Then
-          canvas.font.color := PencilcolorMarked
-        Else
+        canvas.font.size := breite Div (fdim + 2);
+        If ((info.Cursor.x = x) And (info.Cursor.y = y)) Or fField[x, y].marked Then Begin
+          canvas.font.color := PencilcolorMarked;
+        End
+        Else Begin
           canvas.font.color := Pencilcolor;
+        End;
         For z := 0 To fsqrDim - 1 Do Begin
           If fField[x, y].Pencil[z] Then Begin
             If info.NumberHighLights[z] Then Begin
@@ -906,8 +920,7 @@ Begin
             canvas.textout(
               breite * (x + 1) + (Breite Div fdim) * (z Mod fdim) + ((Breite Div fdim) - canvas.Textwidth(s)) Div 2,
               Breite * (y + 1) + 1 + (Breite Div fdim) * (z Div fdim),
-              s
-              );
+              s);
           End;
         End;
       End;

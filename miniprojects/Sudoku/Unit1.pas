@@ -210,6 +210,8 @@ Type
 
     lc: integer; // Für das Line Edit brauchen wir ne Extra Variable
     AktualEnteredNumber: String; // Bei Felddimension > 3 werden die eingegebenen Ziffern hier gepuffert
+    Show4x4InfoMessage: Boolean;
+    Show5x5InfoMessage: Boolean;
 
     Procedure ApplyFromModifyAndRepaintField(Sender: TObject);
 
@@ -536,18 +538,47 @@ End;
 Procedure TForm1.InitFieldDim(NewDim: Integer);
 Var
   i: Integer;
+  tb: TToolButton;
 Begin
   AktualEnteredNumber := '';
+
   If NewDim <> ffield.Dimension Then Begin
+    // Die Mindestbreite so anpassen, dass alle Buttons gerade so sichtbar sein können
+    Case NewDim Of
+      2, 3: Constraints.MinWidth := 640;
+      4: Constraints.MinWidth := 751;
+      5: Constraints.MinWidth := 1165;
+    End;
+    // Die müssen erst mal alle Abgeschaltet werden, sonst kann der Code unten die nicht neu setzen
+    For i := 1 To HighestToolNumber Do Begin
+      ttoolbutton(findcomponent('Toolbutton' + inttostr(i))).Visible := false;
+      ttoolbutton(findcomponent('Toolbutton' + inttostr(i + 100))).Visible := false;
+    End;
     ffield.free;
     ffield := TSudoku.Create(NewDim);
     setlength(fLinepencil, 2 * sqr(NewDim));
     For i := 0 To high(fLinepencil) Do Begin
       setlength(fLinepencil[i], sqr(NewDim));
     End;
-    For i := 1 To HighestToolNumber Do Begin
-      ttoolbutton(findcomponent('Toolbutton' + inttostr(i))).Visible := i <= Sqr(NewDim);
-      ttoolbutton(findcomponent('Toolbutton' + inttostr(i + 100))).Visible := i <= Sqr(NewDim);
+    // Visible Schalten und "Neu" sortieren
+    // Die Highlighter
+    For i := HighestToolNumber Downto 1 Do Begin
+      tb := ttoolbutton(findcomponent('Toolbutton' + inttostr(i + 100)));
+      tb.Visible := i <= Sqr(NewDim);
+      If tb.Visible Then Begin
+        tb.left := -1;
+      End;
+    End;
+    // Der Separator
+    tb := ttoolbutton(findcomponent('Toolbutton50'));
+    tb.left := -1;
+    // Die Number Marker
+    For i := HighestToolNumber Downto 1 Do Begin
+      tb := ttoolbutton(findcomponent('Toolbutton' + inttostr(i)));
+      tb.Visible := i <= Sqr(NewDim);
+      If tb.Visible Then Begin
+        tb.left := -1;
+      End;
     End;
   End;
 End;
@@ -594,6 +625,8 @@ Begin
   mx := 0;
   my := 0;
   Caption := 'Sudoku ver. : ' + ver + ' by Corpsman | www.Corpsman.de |';
+  Show4x4InfoMessage := true;
+  Show5x5InfoMessage := true;
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -1321,10 +1354,13 @@ End;
 Procedure TForm1.N4x41Click(Sender: TObject);
 Begin
   // New Puzzle 4x4
-  showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
-    'If you want to so the progress of the creater then' + LineEnding +
-    'click on the field while the creating message is shown.' + LineEnding + LineEnding +
-    'Normal time for creating a Sudoko with this size 10 - 20 sek.');
+  If Show4x4InfoMessage Then Begin
+    Show4x4InfoMessage := false;
+    showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
+      'If you want to so the progress of the creater then' + LineEnding +
+      'click on the field while the creating message is shown.' + LineEnding + LineEnding +
+      'Normal time for creating a Sudoko with this size 10 - 20 sek.');
+  End;
   Form11.showmodal; // TODO: Alt -> Raus
   exit; // TODO: Alt -> Raus
   // Ab hier das "Neue", wenn es denn mal tut
@@ -1339,10 +1375,13 @@ End;
 Procedure TForm1.N5x51Click(Sender: TObject);
 Begin
   // New Puzzle 5x5
-  showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
-    'If you want to so the progress of the creater then' + LineEnding +
-    'click on the field while the creating message is shown.' + LineEnding + LineEnding +
-    'Normal time for creating a Sudoko with this size 30 - 90 sek.');
+  If Show5x5InfoMessage Then Begin
+    Show5x5InfoMessage := false;
+    showmessage('These Sudoku''s were something special, partly there debuggininfo''s aviable.' + LineEnding + LineEnding +
+      'If you want to so the progress of the creater then' + LineEnding +
+      'click on the field while the creating message is shown.' + LineEnding + LineEnding +
+      'Normal time for creating a Sudoko with this size 30 - 90 sek.');
+  End;
   Form13.showmodal; // TODO: Alt -> Raus
   exit; // TODO: Alt -> Raus
   // Ab hier das "Neue", wenn es denn mal tut
