@@ -47,7 +47,7 @@
 (*                      Fix: Label2 was not initialized, on start transmission*)
 (*               0.14 - ADD: Serverinfo                                       *)
 (*               0.15 - Fix: Error message when startet via script            *)
-(*               0.16 - Fix: Bring to front on new message                    *)
+(* - released -  0.16 - Fix: Bring to front on new message                    *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
