@@ -444,7 +444,9 @@ End;
 
 Procedure TForm9.Init(Const aField: TSudoku; aOptions: TSolveOptions);
 Begin
-  Button6.Visible := aField.Dimension = 2;
+  Button3.Visible := aField.Dimension <= 3; // 4 Fields
+  Button5.Visible := aField.Dimension <= 3; // 6 Fields
+  Button6.Visible := aField.Dimension = 2; // 8-Fields
   fField.Free;
   fField := TSudoku.Create(aField.Dimension);
   fField.CloneFieldFrom(aField);

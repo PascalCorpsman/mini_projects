@@ -45,7 +45,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="18">
+    <Units Count="11">
       <Unit0>
         <Filename Value="Sudoku.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -115,52 +115,9 @@
         <ResourceBaseClass Value="Form"/>
       </Unit9>
       <Unit10>
-        <Filename Value="Unit11.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form11"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="Sudoku4x4.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit11>
-      <Unit12>
-        <Filename Value="Unit12.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form12"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit12>
-      <Unit13>
-        <Filename Value="Unit13.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form13"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit13>
-      <Unit14>
-        <Filename Value="Unit14.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form14"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit14>
-      <Unit15>
-        <Filename Value="Unit15.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form15"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit15>
-      <Unit16>
-        <Filename Value="Sudoku5x5.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit16>
-      <Unit17>
         <Filename Value="usudoku.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit17>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

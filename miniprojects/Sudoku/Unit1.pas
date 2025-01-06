@@ -246,11 +246,6 @@ Uses
   , Unit7 // New Dialog
   , Unit9 // Print Dialog
   // Unit10 // Print Setup Dialog
-  , Unit11 // 4x4 Fields
-  // Unit12 // Print Detail dialog 4x4 ?
-  , Unit13 // 5x5 Fields
-  // Unit14 // Print Detail dialog 5x5 ?
-  // Unit15 // New Dialog for 4x4, 5x5
   ;
 
 {$R *.lfm}
@@ -1361,8 +1356,6 @@ Begin
       'click on the field while the creating message is shown.' + LineEnding + LineEnding +
       'Normal time for creating a Sudoko with this size 10 - 20 sek.');
   End;
-  Form11.showmodal; // TODO: Alt -> Raus
-  exit; // TODO: Alt -> Raus
   // Ab hier das "Neue", wenn es denn mal tut
   InitFieldDim(4);
   Form7.init(ffield, GetSudokuOptions());
@@ -1382,8 +1375,6 @@ Begin
       'click on the field while the creating message is shown.' + LineEnding + LineEnding +
       'Normal time for creating a Sudoko with this size 30 - 90 sek.');
   End;
-  Form13.showmodal; // TODO: Alt -> Raus
-  exit; // TODO: Alt -> Raus
   // Ab hier das "Neue", wenn es denn mal tut
   InitFieldDim(5);
   Form7.init(ffield, GetSudokuOptions());
