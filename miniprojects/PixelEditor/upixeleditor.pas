@@ -68,7 +68,7 @@ Const
    * -Released- 0.09 - FIX: Colormatch hatte Transparenz nicht berücksichtigt
    *                   FIX: Memleak on STRG+C
    *                   ADD: Cleanup STRG+C / STRG+V Code
-   *            0.10 -
+   *            0.10 - ADD: Feature Request #7 Add Background Image (via double right click)
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -106,6 +106,9 @@ Type
     fZoom: integer; // Akruelle Zoomstufe in %
     fImage: TPixelImage; // Das Object um das es hier eigentlich geht ;)
     fUndo: TUndoEngine;
+
+    fBackGroundImageFilename: String;
+    fBackGroundImage: TPixelImage;
 
     FElements: Array Of TOpenGL_BaseClass;
 
@@ -263,6 +266,7 @@ Type
     Procedure PasteSubimageFromSelectionToImage;
     Procedure Change;
     Procedure RescaleImageTo(aWidth, aHeight: integer; sm: TScaleMode);
+    Procedure LoadBackgroundImage(aFilename: String);
   public
 
     Property Changed: Boolean read getChanged;
@@ -282,6 +286,8 @@ Type
     Procedure SelectByColor;
     Procedure InvertColors;
     Procedure ConvertToGrayscale;
+    Procedure OnLoadBackgroundImage;
+    Procedure OnClearBackGroundImage;
   End;
 
 Var
@@ -317,6 +323,7 @@ Begin
     NewImage(strtointdef(form3.Edit1.Text, fImage.Width), strtointdef(form3.Edit2.Text, fImage.Height));
   End;
   NewButton.hint := s;
+  OnClearBackGroundImage();
 End;
 
 Function TPixelEditor.getChanged: Boolean;
@@ -712,6 +719,12 @@ Begin
           TPixelImage(fCursor.Select.Data).Clear();
           UpdateInfoLabel;
         End;
+      End
+      Else Begin
+        If ssDouble In Shift Then Begin
+          p := Form1.ControlToScreen(point(x, y));
+          form1.PopupMenu2.PopUp(p.x, p.y);
+        End;
       End;
       If fCursor.Tool = tMirror Then Begin
         fCursor.Origin := fCursor.Compact.PixelPos;
@@ -923,7 +936,7 @@ Begin
   glPopMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0); // Anfahren obere Linke Ecke
   glScalef(ScreenWidth / FOwner.Width, ScreenHeight / FOwner.Height, 1);
-  If fsettings.BackGroundTransparentPattern Then Begin
+  If fsettings.BackGroundTransparentPattern And (fBackGroundImageFilename = '') Then Begin
     glPushMatrix;
     glTranslatef(0, 0, LayerBackGroundColor + 0.01);
     For i := 0 To fImage.Width - 1 Do Begin
@@ -931,6 +944,13 @@ Begin
         RenderTransparentQuad(i * zf, j * zf, zf, zf);
       End;
     End;
+    glPopMatrix;
+  End;
+  If fBackGroundImageFilename <> '' Then Begin
+    glPushMatrix;
+    glTranslatef(0, 0, LayerBackGroundColor + 0.01);
+    glScalef((fImage.Width * zf) / fBackGroundImage.Width, (fImage.Height * zf) / fBackGroundImage.Height, 1);
+    fBackGroundImage.Render();
     glPopMatrix;
   End;
   // Der Rahmen um die Graphik für "niedrige" Zoom stufen
@@ -1459,6 +1479,49 @@ Begin
   setlength(fDarkBrightMask, aWidth, aHeight);
 End;
 
+Procedure TPixelEditor.LoadBackgroundImage(aFilename: String);
+Var
+  gc: TGraphicClass;
+  g: TGraphic;
+  b: Tbitmap;
+Begin
+  OnClearBackGroundImage();
+  If FileExists(aFilename) Then Begin
+    Case LowerCase(ExtractFileExt(aFilename)) Of
+      '.png': Begin
+          fBackGroundImage.ImportFromPNG(aFilename);
+          fBackGroundImageFilename := aFilename;
+        End;
+    Else Begin
+        gc := TPicture.FindGraphicClassWithFileExt(ExtractFileExt(aFilename));
+        g := gc.Create;
+        Try
+          g.LoadFromFile(aFileName);
+          b := Tbitmap.create;
+          b.Assign(g);
+          form4.Shape1.Brush.Color := clFuchsia;
+          form4.caption := 'BMP import settings';
+          If form4.ShowModal = mrOK Then Begin
+            fBackGroundImage.ImportFromBMP(b, aFilename, ColorToRGBA(form4.Shape1.Brush.Color));
+            fBackGroundImageFilename := aFilename;
+          End
+          Else Begin
+            showmessage('Skip, nothing loaded.');
+            b.free;
+            exit;
+          End;
+          b.free;
+        Except
+          On av: exception Do Begin
+            showmessage('Error unable to load: ' + av.Message);
+          End;
+        End;
+        g.free;
+      End;
+    End;
+  End;
+End;
+
 Procedure TPixelEditor.RenderCursor;
 Var
   off: Single;
@@ -1903,8 +1966,8 @@ Begin
   End;
 End;
 
-Function TPixelEditor.SaveTImage(Const Image: TPixelImage; Const aFilename: String
-  ): Boolean;
+Function TPixelEditor.SaveTImage(Const Image: TPixelImage;
+  Const aFilename: String): Boolean;
 Var
   m: TMemoryStream;
 Begin
@@ -2207,6 +2270,22 @@ Begin
   End;
 End;
 
+Procedure TPixelEditor.OnLoadBackgroundImage;
+Begin
+  If fImage.Filename <> '' Then Begin
+    form1.OpenDialog1.InitialDir := ExtractFileDir(fImage.Filename);
+  End;
+  If Form1.OpenDialog1.Execute Then Begin
+    LoadBackgroundImage(form1.OpenDialog1.FileName);
+  End;
+End;
+
+Procedure TPixelEditor.OnClearBackGroundImage;
+Begin
+  fBackGroundImageFilename := '';
+  fBackGroundImage.Clear();
+End;
+
 Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
@@ -2214,6 +2293,8 @@ Begin
   fImage := TPixelImage.Create();
   fUndo := TUndoEngine.Create();
   fCursor.Select.Data := TPixelImage.Create();
+  fBackGroundImage := TPixelImage.Create();
+  fBackGroundImageFilename := '';
 End;
 
 Destructor TPixelEditor.Destroy;
@@ -2222,6 +2303,7 @@ Var
 Begin
   fUndo.free;
   fImage.Free;
+  fBackGroundImage.free;
   fCursor.Select.Data.Free;
   For i := 0 To high(FElements) Do Begin
     FElements[i].Free;

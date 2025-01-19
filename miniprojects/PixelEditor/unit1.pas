@@ -51,6 +51,7 @@ Type
   TForm1 = Class(TForm)
     IniPropStorage1: TIniPropStorage;
     MenuItem1: TMenuItem;
+    MenuItem10: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
@@ -58,10 +59,12 @@ Type
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
+    MenuItem9: TMenuItem;
     OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
     PopupMenu1: TPopupMenu;
+    PopupMenu2: TPopupMenu;
     SaveDialog1: TSaveDialog;
     SaveDialog2: TSaveDialog;
     Separator1: TMenuItem;
@@ -73,6 +76,7 @@ Type
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
     Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
+    Procedure MenuItem10Click(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
@@ -81,6 +85,7 @@ Type
     Procedure MenuItem6Click(Sender: TObject);
     Procedure MenuItem7Click(Sender: TObject);
     Procedure MenuItem8Click(Sender: TObject);
+    Procedure MenuItem9Click(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
@@ -221,6 +226,11 @@ Begin
   Editor.LoadImage(FileNames[0]);
 End;
 
+Procedure TForm1.MenuItem10Click(Sender: TObject);
+Begin
+  Editor.OnClearBackGroundImage;
+End;
+
 Procedure TForm1.MenuItem1Click(Sender: TObject);
 Begin
   Editor.Spritify;
@@ -262,6 +272,11 @@ Var
 Begin
   key := VK_C;
   OpenGLControl1.OnKeyDown(OpenGLControl1, key, [ssCtrl]);
+End;
+
+Procedure TForm1.MenuItem9Click(Sender: TObject);
+Begin
+  Editor.OnLoadBackgroundImage;
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);

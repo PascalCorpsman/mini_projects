@@ -16,6 +16,7 @@ Run the executable and enjoy ;).
 | wheel (up/down)| zoom (in/out)
 | CTRL + Left | Copies selection to image before drag
 | Right | when clicked inside a selected area gives access to additional features (see below)
+| double Right | access to background image dialog 
 
 ## Keyboard actions
 | Action | Description |
@@ -42,12 +43,27 @@ When clicking with the right mouse button into a selected subimage you get acces
 
 | Name | Description |
 | --- | ---
+| Copy selection to clipboard | copies whatever is selected as bitmap into the clipboard
+| Export selection | Exports whatever is selected as image
 | Convert to grayscale | converts all pixels into grayscale values
 | Invert colors | inverts the colors using the RGB-Cube
 | Spritify | surrounds the selected image (using transparent to detect the border) with the selected color
 | Select by color | selects inside the selection all pixels that match the selected color
 | Invert selection | inverts the selection of the pixels inside the actual selection
 | Hide | hides the contextmenu
+
+## Edit background image menu
+
+Menu is activated by double right click on the image area (without any selection)
+
+![backgroundcontextmenu](backgroundmenu.png)
+
+| Name | Description |
+| --- | ---
+| Load background image | Loads a arbiture image as "background" image, replacing the transparent pattern if enabled
+| Clear background image | clears the background image
+
+If set the background image will always be scaled to the image dimensions.
 
 ### The Color match dialog
 

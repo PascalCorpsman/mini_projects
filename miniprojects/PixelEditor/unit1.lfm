@@ -9,7 +9,7 @@ object Form1: TForm1
   ClientHeight = 480
   ClientWidth = 640
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -105,6 +105,18 @@ object Form1: TForm1
     object MenuItem2: TMenuItem
       Caption = 'Hide'
       OnClick = MenuItem2Click
+    end
+  end
+  object PopupMenu2: TPopupMenu
+    Left = 192
+    Top = 162
+    object MenuItem9: TMenuItem
+      Caption = 'Load background image'
+      OnClick = MenuItem9Click
+    end
+    object MenuItem10: TMenuItem
+      Caption = 'Clear background image'
+      OnClick = MenuItem10Click
     end
   end
 end
