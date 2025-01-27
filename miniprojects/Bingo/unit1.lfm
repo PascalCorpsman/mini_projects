@@ -1,0 +1,72 @@
+object Form1: TForm1
+  Left = 323
+  Height = 480
+  Top = 107
+  Width = 640
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 640
+  Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  OnResize = FormResize
+  object Label1: TLabel
+    Left = 0
+    Height = 479
+    Top = 0
+    Width = 512
+    Alignment = taCenter
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoSize = False
+    Caption = 'Label1'
+    Layout = tlCenter
+  end
+  object Button1: TButton
+    Left = 517
+    Height = 25
+    Top = 447
+    Width = 112
+    Anchors = [akRight, akBottom]
+    Caption = 'Next Number'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object ListBox1: TListBox
+    Left = 517
+    Height = 415
+    Top = 24
+    Width = 112
+    Anchors = [akTop, akRight, akBottom]
+    ItemHeight = 0
+    TabOrder = 1
+    TopIndex = -1
+  end
+  object Label2: TLabel
+    Left = 517
+    Height = 16
+    Top = 0
+    Width = 43
+    Anchors = [akTop, akRight]
+    Caption = 'History'
+  end
+  object MainMenu1: TMainMenu
+    Left = 24
+    Top = 16
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem4: TMenuItem
+        Caption = 'Start new round'
+        OnClick = MenuItem4Click
+      end
+      object MenuItem2: TMenuItem
+        Caption = 'Print cards'
+        OnClick = MenuItem2Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItem3Click
+      end
+    end
+  end
+end

@@ -1,0 +1,129 @@
+object Form2: TForm2
+  Left = 323
+  Height = 289
+  Top = 109
+  Width = 252
+  Caption = 'Form2'
+  ClientHeight = 289
+  ClientWidth = 252
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 146
+    Width = 90
+    Caption = 'Cards to create'
+  end
+  object Edit1: TEdit
+    Left = 160
+    Height = 26
+    Top = 136
+    Width = 80
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 16
+    Top = 178
+    Width = 90
+    Caption = 'Cards per page'
+  end
+  object Edit2: TEdit
+    Left = 160
+    Height = 26
+    Top = 168
+    Width = 80
+    TabOrder = 1
+    Text = 'Edit2'
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 16
+    Top = 18
+    Width = 55
+    Caption = 'Card title'
+  end
+  object Edit3: TEdit
+    Left = 80
+    Height = 26
+    Top = 8
+    Width = 160
+    TabOrder = 2
+    Text = 'Edit3'
+  end
+  object Label4: TLabel
+    Left = 8
+    Height = 16
+    Top = 48
+    Width = 97
+    Caption = 'Colums per card'
+  end
+  object Label5: TLabel
+    Left = 8
+    Height = 16
+    Top = 114
+    Width = 84
+    Caption = 'Rows per card'
+  end
+  object Edit4: TEdit
+    Left = 160
+    Height = 26
+    Top = 38
+    Width = 80
+    TabOrder = 3
+    Text = 'Edit4'
+  end
+  object Edit5: TEdit
+    Left = 160
+    Height = 26
+    Top = 104
+    Width = 80
+    TabOrder = 4
+    Text = 'Edit5'
+  end
+  object Label6: TLabel
+    Left = 8
+    Height = 16
+    Top = 80
+    Width = 139
+    Caption = 'Empty fields per colum'
+  end
+  object Edit6: TEdit
+    Left = 160
+    Height = 26
+    Top = 70
+    Width = 80
+    TabOrder = 5
+    Text = 'Edit6'
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 256
+    Width = 232
+    Caption = 'Generate and print'
+    TabOrder = 6
+    OnClick = Button1Click
+  end
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Height = 20
+    Top = 232
+    Width = 232
+    TabOrder = 7
+  end
+  object Label7: TLabel
+    Left = 8
+    Height = 16
+    Top = 216
+    Width = 41
+    Caption = 'Label7'
+  end
+  object PrintDialog1: TPrintDialog
+    Left = 84
+    Top = 204
+  end
+end

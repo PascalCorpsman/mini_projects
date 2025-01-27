@@ -19,6 +19,7 @@ Following is a short description of all listed projects
 | [3D-Puzzle](miniprojects/3d_puzzle) | Example for depth first search, with tree pruning (in 3D) |
 | [Affenpuzzle](miniprojects/Affenpuzzle) | Example for depth first search, with tree pruning |
 | [ALT_F2](miniprojects/ALT_F2) | Application starter app with included calculater |
+| [Bingo](miniprojects/Bingo) | Create and print bingo cards, play the game |
 | [Bitverknuepfungen](miniprojects/Bitverknuepfungen) | Program that evaluates boolean operator formulas |
 | [Button Tool](miniprojects/Button_Tool)| Program to create graphics with textured texts |
 | [Bridge Builder](miniprojects/Bridge_Builder)| Game inspired by the famoues Bridge Builder game ideas |
