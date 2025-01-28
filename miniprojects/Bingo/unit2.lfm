@@ -1,10 +1,10 @@
 object Form2: TForm2
   Left = 323
-  Height = 289
+  Height = 321
   Top = 109
   Width = 252
   Caption = 'Form2'
-  ClientHeight = 289
+  ClientHeight = 321
   ClientWidth = 252
   Position = poScreenCenter
   LCLVersion = '4.99.0.0'
@@ -21,7 +21,7 @@ object Form2: TForm2
     Height = 26
     Top = 136
     Width = 80
-    TabOrder = 0
+    TabOrder = 4
     Text = 'Edit1'
   end
   object Label2: TLabel
@@ -36,7 +36,7 @@ object Form2: TForm2
     Height = 26
     Top = 168
     Width = 80
-    TabOrder = 1
+    TabOrder = 5
     Text = 'Edit2'
   end
   object Label3: TLabel
@@ -51,7 +51,7 @@ object Form2: TForm2
     Height = 26
     Top = 8
     Width = 160
-    TabOrder = 2
+    TabOrder = 0
     Text = 'Edit3'
   end
   object Label4: TLabel
@@ -73,7 +73,7 @@ object Form2: TForm2
     Height = 26
     Top = 38
     Width = 80
-    TabOrder = 3
+    TabOrder = 1
     Text = 'Edit4'
   end
   object Edit5: TEdit
@@ -81,7 +81,7 @@ object Form2: TForm2
     Height = 26
     Top = 104
     Width = 80
-    TabOrder = 4
+    TabOrder = 3
     Text = 'Edit5'
   end
   object Label6: TLabel
@@ -96,7 +96,7 @@ object Form2: TForm2
     Height = 26
     Top = 70
     Width = 80
-    TabOrder = 5
+    TabOrder = 2
     Text = 'Edit6'
   end
   object Button1: TButton
@@ -105,7 +105,7 @@ object Form2: TForm2
     Top = 256
     Width = 232
     Caption = 'Generate and print'
-    TabOrder = 6
+    TabOrder = 7
     OnClick = Button1Click
   end
   object ProgressBar1: TProgressBar
@@ -113,7 +113,7 @@ object Form2: TForm2
     Height = 20
     Top = 232
     Width = 232
-    TabOrder = 7
+    TabOrder = 6
   end
   object Label7: TLabel
     Left = 8
@@ -121,6 +121,15 @@ object Form2: TForm2
     Top = 216
     Width = 41
     Caption = 'Label7'
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 288
+    Width = 232
+    Caption = 'Close'
+    TabOrder = 8
+    OnClick = Button2Click
   end
   object PrintDialog1: TPrintDialog
     Left = 84

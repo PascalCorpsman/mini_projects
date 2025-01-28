@@ -36,6 +36,7 @@ Type
 
   TForm2 = Class(TForm)
     Button1: TButton;
+    Button2: TButton;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -52,6 +53,7 @@ Type
     PrintDialog1: TPrintDialog;
     ProgressBar1: TProgressBar;
     Procedure Button1Click(Sender: TObject);
+    Procedure Button2Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
   private
     fCardTitle: String;
@@ -87,6 +89,58 @@ Begin
       result := false;
       break;
     End;
+  End;
+End;
+
+
+(*
+ * Berechnet die Anzahl an Kombinationen, K Zahlen aus N zu nehmen
+ * z.B.  P(49,6)= 13983816
+ *
+ *   (n)          n!
+ *   (k)  =  -----------
+ *           k! * (n-k)!
+ *)
+
+Function Binomial(N, K: integer): int64;
+Var
+  i: Integer;
+  numerator, denominator: Array Of integer;
+  nbool, denbool, ready: Boolean;
+Begin
+  numerator := Nil;
+  denominator := Nil;
+  result := 1;
+  If (k = n) Or (k > n) Then Begin
+    exit;
+  End;
+  setlength(numerator, n - 1);
+  For i := 2 To n Do
+    numerator[i - 2] := i;
+  setlength(denominator, n - 2);
+  For i := 2 To k Do
+    denominator[i - 2] := i;
+  For i := 2 To (n - k) Do
+    denominator[k - 3 + i] := i;
+  ready := false;
+  While Not ready Do Begin
+    nbool := false;
+    denbool := false;
+    For i := 0 To High(numerator) Do
+      If numerator[i] <> 1 Then Begin
+        result := result * numerator[i];
+        numerator[i] := 1;
+        nbool := True;
+        break;
+      End;
+    For i := 0 To High(denominator) Do
+      If denominator[i] <> 1 Then
+        If result Mod denominator[i] = 0 Then Begin
+          denbool := True;
+          result := result Div denominator[i];
+          denominator[i] := 1;
+        End;
+    ready := (Not nbool) And (Not denbool);
   End;
 End;
 
@@ -203,7 +257,7 @@ Begin
         (fCards[Cardindex].EmptyFieldsPerCol <> 0) And (
         // Nach Wahrscheinlichkeit ein "Leeres" Feld setzen, wenn das gewünscht ist
         (
-        (random(100) >= fCards[Cardindex].EmptyFieldsPerCol * 100 / fCards[Cardindex].ColCount) And
+        (random(100) <= fCards[Cardindex].EmptyFieldsPerCol * 100 / fCards[Cardindex].ColCount) And
         (rowSkipCounters[j] < fCards[Cardindex].EmptyFieldsPerCol))
         // Oder Zwangsleer setzen weil es sonst hinten Raus nicht mehr reicht
         Or (i >= fCards[Cardindex].ColCount - (fCards[Cardindex].EmptyFieldsPerCol - rowSkipCounters[j]))
@@ -247,7 +301,8 @@ End;
 
 Procedure TForm2.Button1Click(Sender: TObject);
 Var
-  index, i, count, j: Integer;
+  NumbersPerCard,
+    index, i, count, j: Integer;
   needNew: Boolean;
 Begin
   // 0. Init and Prechecks
@@ -257,6 +312,16 @@ Begin
   fRowsPerCard := strtoint(edit5.text);
   fCardCount := strtoint(edit1.text);
   fCardsPerPage := strtoint(edit2.text);
+  // Prechecks ob die Kartengenerierung überhaupt möglich ist.
+  NumbersPerCard := fRowsPerCard * (fColumsPerCard - fEmptyFieldPerColum);
+  If NumbersPerCard > 75 Then Begin
+    showmessage('Error, to much fields for cards, please increase "Empty field per colum" or decrease "Columns per card" or "Rows per card"');
+    exit;
+  End;
+  If Binomial(75, NumbersPerCard) < fCardCount Then Begin
+    showmessage('Error, with the given setting it is not possible to create the requested number of cards');
+    exit;
+  End;
 
   // 1. Generieren aller Karten
   label7.caption := 'Generating cards.';
@@ -266,7 +331,6 @@ Begin
   For i := 0 To high(fCards) Do Begin
     needNew := true;
     While needNew Do Begin
-
       // Alles Löschen
       FillChar(fCards[i].Numbers[1], sizeof(fCards[i].Numbers), 0);
       fCards[i].Title := fCardTitle;
@@ -319,6 +383,11 @@ Begin
     End;
     Printer.EndDoc;
   End;
+End;
+
+Procedure TForm2.Button2Click(Sender: TObject);
+Begin
+  close;
 End;
 
 End.
