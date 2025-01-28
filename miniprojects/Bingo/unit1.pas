@@ -82,20 +82,10 @@ Begin
 End;
 
 Procedure TForm1.FormResize(Sender: TObject);
-Var
-  maxwSize: integer;
 Begin
-  label1.Font.Size := 1;
-  While Label1.Canvas.TextWidth('75') < label1.Width Do Begin
-    label1.Font.Size := label1.Font.Size + 1;
-  End;
-  maxwSize := label1.Font.Size - 1;
-  label1.Font.Size := 1;
-  While Label1.Canvas.TextHeight('75') < label1.Height Do Begin
-    label1.Font.Size := label1.Font.Size + 1;
-  End;
-  label1.Font.Size := min(label1.Font.Size - 1, maxwSize);
-  label1.Invalidate;
+  label1.OptimalFill := false;
+  Application.ProcessMessages;
+  label1.OptimalFill := true;
 End;
 
 Procedure TForm1.Button1Click(Sender: TObject);
