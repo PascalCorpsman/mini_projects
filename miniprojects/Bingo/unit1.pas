@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Bingo                                                           27.01.2025 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - customizable max count of numbers                     *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -33,6 +34,9 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, StdCtrls;
+
+Const
+  MaxNumber: integer = 75;
 
 Type
 
@@ -48,12 +52,15 @@ Type
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     Procedure Button1Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure FormResize(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
     Procedure MenuItem4Click(Sender: TObject);
+    Procedure MenuItem6Click(Sender: TObject);
   private
 
   public
@@ -67,7 +74,11 @@ Implementation
 
 {$R *.lfm}
 
-Uses Unit2, math;
+Uses
+  math
+  , Unit2 // Print dialog
+  , Unit3 // Settings
+  ;
 
 { TForm1 }
 
@@ -119,14 +130,14 @@ Var
   found: Boolean;
   i: Integer;
 Begin
-  If ListBox1.Items.Count = 75 Then Begin
+  If ListBox1.Items.Count >= MaxNumber Then Begin
     showmessage('Error, no new numbers possible.');
     exit;
   End;
   // Next Number
   found := true;
   While found Do Begin
-    num := inttostr(Random(75) + 1);
+    num := inttostr(Random(MaxNumber) + 1);
     found := false;
     For i := 0 To ListBox1.Items.Count - 1 Do Begin
       If ListBox1.Items[i] = Num Then Begin
@@ -156,6 +167,14 @@ Begin
   // Start new Round
   ListBox1.Clear;
   label1.Caption := '';
+End;
+
+Procedure TForm1.MenuItem6Click(Sender: TObject);
+Begin
+  form3.edit1.text := inttostr(MaxNumber);
+  If Form3.ShowModal = mrOK Then Begin
+    MaxNumber := strtointdef(Form3.edit1.text, 75);
+  End;
 End;
 
 End.

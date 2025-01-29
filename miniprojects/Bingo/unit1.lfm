@@ -3,7 +3,7 @@ object Form1: TForm1
   Height = 480
   Top = 107
   Width = 640
-  Caption = 'Form1'
+  Caption = 'Edit'
   ClientHeight = 480
   ClientWidth = 640
   Menu = MainMenu1
@@ -69,6 +69,13 @@ object Form1: TForm1
       object MenuItem3: TMenuItem
         Caption = 'Close'
         OnClick = MenuItem3Click
+      end
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Edit'
+      object MenuItem6: TMenuItem
+        Caption = 'Settings'
+        OnClick = MenuItem6Click
       end
     end
   end

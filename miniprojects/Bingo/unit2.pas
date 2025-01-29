@@ -26,7 +26,7 @@ Type
 
   TBingoCard = Record
     Title: String;
-    Numbers: Array[1..75] Of boolean; // True = Die Zahl wird verwendet
+    Numbers: Array Of boolean; // True = Die Zahl wird verwendet
     RowCount: Integer;
     ColCount: Integer;
     EmptyFieldsPerCol: Integer;
@@ -54,6 +54,7 @@ Type
     ProgressBar1: TProgressBar;
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
+    Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
   private
     fCardTitle: String;
@@ -65,6 +66,7 @@ Type
     fCards: Array Of TBingoCard;
     Procedure PrintCard(tl, Dim: TPoint; Cardindex: integer);
     Procedure PrintCards(StartIndex: Integer; CardsPerPage: Integer);
+    Procedure Clear;
   public
 
   End;
@@ -77,7 +79,7 @@ Implementation
 {$R *.lfm}
 
 Uses
-  Printers, math;
+  Printers, math, unit1;
 
 Operator = (a, b: TBingoCard): Boolean;
 Var
@@ -159,7 +161,8 @@ Begin
   edit5.text := '3';
   edit1.text := '4';
   edit2.text := '4';
-  label7.caption := ''
+  label7.caption := '';
+  fCards := Nil;
 End;
 
 Procedure DrawCell(tl, Dim: TPoint; Text: String);
@@ -223,8 +226,8 @@ Begin
   CellHeight := dim.Y / rows;
   d := (round(min(CellWidth, CellHeight)) * 95) Div 100;
   Printer.Canvas.Font.Size := 1;
-  While (Printer.Canvas.TextHeight('75') < d) And
-    (Printer.Canvas.TextWidth('75') < d) Do Begin
+  While (Printer.Canvas.TextHeight(inttostr(MaxNumber)) < d) And
+    (Printer.Canvas.TextWidth(inttostr(MaxNumber)) < d) Do Begin
     Printer.Canvas.Font.Size := Printer.Canvas.Font.Size + 1;
   End;
   Printer.Canvas.Font.Size := Printer.Canvas.Font.Size - 1;
@@ -250,7 +253,7 @@ Begin
   rowSkipCounters := Nil;
   setlength(rowSkipCounters, fCards[Cardindex].RowCount);
   FillChar(rowSkipCounters[0], sizeof(rowSkipCounters[0]) * length(rowSkipCounters), 0);
-  num := 0;
+  num := -1;
   For i := 0 To fCards[Cardindex].ColCount - 1 Do Begin
     For j := 0 To fCards[Cardindex].RowCount - 1 Do Begin
       If
@@ -271,7 +274,7 @@ Begin
         While (Not fCards[Cardindex].Numbers[num]) Do Begin
           num := num + 1;
         End;
-        t := inttostr(num);
+        t := inttostr(num + 1);
       End;
       ctl := point(
         round(i * CellWidth),
@@ -299,6 +302,16 @@ Begin
   End;
 End;
 
+Procedure TForm2.Clear;
+Var
+  i: Integer;
+Begin
+  For i := 0 To high(fCards) Do Begin
+    setlength(fCards[i].Numbers, 0);
+  End;
+  setlength(fCards, 0);
+End;
+
 Procedure TForm2.Button1Click(Sender: TObject);
 Var
   NumbersPerCard,
@@ -306,6 +319,7 @@ Var
   needNew: Boolean;
 Begin
   // 0. Init and Prechecks
+  Clear;
   fCardTitle := edit3.text;
   fColumsPerCard := strtoint(edit4.text);
   fEmptyFieldPerColum := strtoint(edit6.text);
@@ -314,11 +328,11 @@ Begin
   fCardsPerPage := strtoint(edit2.text);
   // Prechecks ob die Kartengenerierung überhaupt möglich ist.
   NumbersPerCard := fRowsPerCard * (fColumsPerCard - fEmptyFieldPerColum);
-  If NumbersPerCard > 75 Then Begin
+  If NumbersPerCard > MaxNumber Then Begin
     showmessage('Error, to much fields for cards, please increase "Empty field per colum" or decrease "Columns per card" or "Rows per card"');
     exit;
   End;
-  If Binomial(75, NumbersPerCard) < fCardCount Then Begin
+  If Binomial(MaxNumber, NumbersPerCard) < fCardCount Then Begin
     showmessage('Error, with the given setting it is not possible to create the requested number of cards');
     exit;
   End;
@@ -329,23 +343,24 @@ Begin
   ProgressBar1.Max := fCardCount;
   setlength(fcards, fCardCount);
   For i := 0 To high(fCards) Do Begin
+    setlength(fCards[i].Numbers, MaxNumber);
     needNew := true;
     While needNew Do Begin
       // Alles Löschen
-      FillChar(fCards[i].Numbers[1], sizeof(fCards[i].Numbers), 0);
+      FillChar(fCards[i].Numbers[0], sizeof(fCards[i].Numbers[0]) * MaxNumber, 0);
       fCards[i].Title := fCardTitle;
       fCards[i].ColCount := fColumsPerCard;
       fCards[i].RowCount := fRowsPerCard;
       fCards[i].EmptyFieldsPerCol := fEmptyFieldPerColum;
       // Zahlen "Generieren"
       For j := 0 To (fColumsPerCard - fEmptyFieldPerColum) * fRowsPerCard - 1 Do Begin
-        index := Random(75) + 1;
+        index := Random(MaxNumber);
         While fCards[i].Numbers[index] Do Begin
-          index := Random(75) + 1;
+          index := Random(MaxNumber);
         End;
         fCards[i].Numbers[index] := true;
       End;
-      // TODO: Vergleichen ob auch ja keine 2 Gleichen Karten erstellt wurden
+      // Vergleichen ob auch ja keine 2 Gleichen Karten erstellt wurden
       needNew := false;
       For j := 0 To i - 1 Do Begin
         If fCards[i] = fCards[j] Then Begin
@@ -354,7 +369,7 @@ Begin
         End;
       End;
     End;
-    // Aupdate der LCL, dass der User auch nen Fortschritt sieht ;)
+    // Update der LCL, dass der User auch nen Fortschritt sieht ;)
     ProgressBar1.Position := i;
     If i Mod fCardsPerPage = 0 Then Begin
       Application.ProcessMessages;
@@ -388,6 +403,11 @@ End;
 Procedure TForm2.Button2Click(Sender: TObject);
 Begin
   close;
+End;
+
+Procedure TForm2.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
+Begin
+  Clear;
 End;
 
 End.

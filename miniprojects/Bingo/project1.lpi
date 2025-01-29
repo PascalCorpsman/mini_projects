@@ -48,6 +48,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
       </Unit>
+      <Unit>
+        <Filename Value="unit3.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form3"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit3"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -8,6 +8,7 @@ object Form2: TForm2
   ClientWidth = 252
   Position = poScreenCenter
   LCLVersion = '4.99.0.0'
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   object Label1: TLabel
     Left = 8
