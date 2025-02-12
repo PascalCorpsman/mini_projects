@@ -148,6 +148,7 @@ Type
 
   TCursor = Record
     Compact: TCompactCursor;
+    UnClampedMousePos: TPoint; // Die Aktuelle Mausposition im Bild kontext, ohne Clamping auf die Tatsächliche Bild größe!
     LastMovePos: TPoint; // die letzte Pixelpos von MouseMove
     // Alles was der Cursor noch mehr braucht
     LeftColor: TOpenGL_ColorBox;

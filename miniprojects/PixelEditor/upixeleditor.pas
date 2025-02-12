@@ -69,6 +69,7 @@ Const
    *                   FIX: Memleak on STRG+C
    *                   ADD: Cleanup STRG+C / STRG+V Code
    *            0.10 - ADD: Feature Request #7 Add Background Image (via double right click)
+   *                   ADD: improve UI for Select subimage
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -243,7 +244,7 @@ Type
     Function getChanged: Boolean;
 
     Procedure LoadColorDialogColor(Sender: TObject);
-    Function CursorToPixel(x, y: integer): TPoint;
+    Function CursorToPixel(x, y: integer; ClampToImage: Boolean): TPoint;
     Function CursorIsInImageWindow: Boolean;
     Procedure SetLeftColor(Const c: TOpenGL_ColorBox);
     Procedure SetRightColor(Const c: TRGBA);
@@ -655,7 +656,7 @@ Begin
   If fCriticalError <> '' Then exit;
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
   fScrollInfo.ScrollPos := point(x, y);
-  fCursor.Compact.PixelPos := CursorToPixel(x, y);
+  fCursor.Compact.PixelPos := CursorToPixel(x, y, true);
   fCursor.LastMovePos := fCursor.Compact.PixelPos;
   fCursor.Pos := point(x, y);
   fCursor.PixelDownPos := fCursor.Compact.PixelPos;
@@ -746,7 +747,8 @@ Var
 Begin
   If fCriticalError <> '' Then exit;
   If ColorPicDialog.Visible Then exit; // ColorPicDialog Modal emulieren ;)
-  fCursor.Compact.PixelPos := CursorToPixel(x, y);
+  fCursor.Compact.PixelPos := CursorToPixel(x, y, true);
+  fCursor.UnClampedMousePos := CursorToPixel(x, y, false);
   fCursor.Pos := point(x, y);
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
@@ -798,26 +800,28 @@ Begin
     ColorPicDialog.Visible := false;
     exit;
   End;
-  fCursor.Compact.PixelPos := CursorToPixel(x, y);
+  fCursor.Compact.PixelPos := CursorToPixel(x, y, true);
   fCursor.Pos := Point(x, y);
-  If (button = mbLeft) And (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
+  If (button = mbLeft) And (Not ColorPicDialog.Visible) Then Begin
     Case fCursor.Tool Of
       tEraser, tPen, tMirror,
         tLine, tEllipse, tBucket,
         tRectangle: Begin
-          fImage.BeginUpdate;
-          CursorToPixelOperation(@SetImagePixelByCursor);
-          fImage.EndUpdate;
-          fundo.PushRecording;
+          If (CursorIsInImageWindow()) Then Begin
+            fImage.BeginUpdate;
+            CursorToPixelOperation(@SetImagePixelByCursor);
+            fImage.EndUpdate;
+            fundo.PushRecording;
+          End;
         End;
-      tPipette: UnselectPipette;
+      tPipette: If (CursorIsInImageWindow()) Then UnselectPipette;
       TSelect: Begin
           If Not fCursor.Select.aSet Then Begin
             If fCursor.LeftMouseButton Then Begin
-              fCursor.Select.tl.x := min(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
-              fCursor.Select.tl.Y := min(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
-              fCursor.Select.br.x := max(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
-              fCursor.Select.br.Y := max(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
+              fCursor.Select.tl.x := max(0, min(fCursor.PixelDownPos.X, fCursor.UnClampedMousePos.X));
+              fCursor.Select.tl.Y := max(0, min(fCursor.PixelDownPos.Y, fCursor.UnClampedMousePos.Y));
+              fCursor.Select.br.x := min(fImage.Width - 1, max(fCursor.PixelDownPos.X, fCursor.UnClampedMousePos.X));
+              fCursor.Select.br.Y := min(fImage.Height - 1, max(fCursor.PixelDownPos.Y, fCursor.UnClampedMousePos.Y));
               // Wenn der User nur auf einen Pixel Klickt, dann passiert nix
               If Not (((fCursor.Select.br.x - fCursor.Select.tl.X) = 0)
                 And ((fCursor.Select.br.Y - fCursor.Select.tl.Y) = 0)) Then Begin
@@ -1575,10 +1579,10 @@ Begin
     valid := false;
     If (fCursor.LeftMouseButton) Then Begin
       // Der Auswahl Rahmen wird gerade gezogen
-      tl.x := min(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
-      tl.Y := min(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
-      br.x := max(fCursor.PixelDownPos.X, fCursor.Compact.PixelPos.X);
-      br.Y := max(fCursor.PixelDownPos.Y, fCursor.Compact.PixelPos.Y);
+      tl.x := max(0, min(fCursor.PixelDownPos.X, fCursor.UnClampedMousePos.X));
+      tl.Y := max(0, min(fCursor.PixelDownPos.Y, fCursor.UnClampedMousePos.Y));
+      br.x := min(fImage.Width - 1, max(fCursor.PixelDownPos.X, fCursor.UnClampedMousePos.X));
+      br.Y := min(fImage.Height - 1, max(fCursor.PixelDownPos.Y, fCursor.UnClampedMousePos.Y));
       valid := (tl.x <> -1);
     End;
     If fCursor.Select.aSet Then Begin
@@ -1679,7 +1683,7 @@ Var
   p1, p2: TPoint;
 Begin
   // Store the old position
-  p1 := CursorToPixel(fCursor.Pos.X, fCursor.Pos.Y);
+  p1 := CursorToPixel(fCursor.Pos.X, fCursor.Pos.Y, true);
   // Do the Zoom
   If ZoomIn Then Begin
     For i := 0 To high(ZoomLevels) Do Begin
@@ -1698,18 +1702,18 @@ Begin
     End;
   End;
   // Calc the new "wrong" position
-  p2 := CursorToPixel(fCursor.Pos.X, fCursor.Pos.y);
+  p2 := CursorToPixel(fCursor.Pos.X, fCursor.Pos.y, true);
   // "Scroll" so that the new position is the old one ;)
   fScrollInfo.GlobalXOffset := fScrollInfo.GlobalXOffset + (p1.x - p2.x) * fZoom Div 100 * ScreenWidth Div FOwner.Width;
   fScrollInfo.GlobalyOffset := fScrollInfo.GlobalyOffset + (p1.Y - p2.Y) * fZoom Div 100 * ScreenHeight Div FOwner.Height;
   // Let the scrollbars do their constraint thing
   // Nachziehen des Cursors sonst springt der beim Zoomen
-  fCursor.compact.PixelPos := CursorToPixel(fCursor.Pos.x, fCursor.Pos.y);
+  fCursor.compact.PixelPos := CursorToPixel(fCursor.Pos.x, fCursor.Pos.y, true);
   CheckScrollBorders();
   UpdateInfoLabel;
 End;
 
-Function TPixelEditor.CursorToPixel(x, y: integer): TPoint;
+Function TPixelEditor.CursorToPixel(x, y: integer; ClampToImage: Boolean): TPoint;
 Var
   rx, ry: Single;
   riy, rix: Integer;
@@ -1732,8 +1736,13 @@ Begin
   // 5. Limitieren auf die Image Größe
   rix := round(rx);
   riy := round(ry);
-  If (rix >= 0) And (rix < fImage.Width) And
-    (riy >= 0) And (riy < fImage.Height) Then Begin
+  If ClampToImage Then Begin
+    If (rix >= 0) And (rix < fImage.Width) And
+      (riy >= 0) And (riy < fImage.Height) Then Begin
+      result := point(rix, riy);
+    End;
+  End
+  Else Begin
     result := point(rix, riy);
   End;
 End;

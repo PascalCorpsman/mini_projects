@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Eventer                                                         09.05.2019 *)
 (*                                                                            *)
-(* Version     : 0.05                                                         *)
+(* Version     : 0.06                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -26,6 +26,7 @@
 (*               0.03 - improve .click detection                              *)
 (*               0.04 - MouseEnter / MouseLeave                               *)
 (*               0.05 - Owner property public                                 *)
+(*               0.06 - Click event only, if mouse down was also on element   *)
 (*                                                                            *)
 (* Known Bugs  : none                                                         *)
 (*                                                                            *)
@@ -198,7 +199,7 @@ Type
     fOnMouseDownCapture: TMouseEvent;
     fOnMouseMoveCapture: TMouseMoveEvent;
     fOnMouseUpCapture: TMouseEvent;
-
+    fTransformedMouseDownPos: TPoint;
 {$IFDEF KeyEvents}
     fOnKeyDownCapture: TKeyEvent;
     fOnKeyUpCapture: TKeyEvent;
@@ -304,7 +305,13 @@ Begin
   End;
   For i := 0 To high(fEventer) Do Begin
     If i > high(fEventer) Then break; // Da im Event das Eventer element auch freigegeben werden darf, braucht es dieses if
-    If PointInRect(point(x, y), fEventer[i].ClientRect) And fEventer[i].fVisible And fEventer[i].fEnabled Then Begin
+    If
+      // Das Element wurde im MouseDown bereits ausgewählt
+      PointInRect(point(fTransformedMouseDownPos.x, fTransformedMouseDownPos.y), fEventer[i].ClientRect)
+      // Das Element ist immer noch ausgewählt
+      And PointInRect(point(x, y), fEventer[i].ClientRect)
+      And fEventer[i].fVisible
+      And fEventer[i].fEnabled Then Begin
       handled := true;
       If fMouseDownEventer = fEventer[i] Then fMouseDownEventer := Nil;
       fEventer[i].MouseUp(button, shift, x - fEventer[i].Left, y - fEventer[i].Top);
@@ -343,6 +350,7 @@ Begin
     x := p.x;
     y := p.y;
   End;
+  fTransformedMouseDownPos := point(x, y);
   For i := 0 To high(fEventer) Do Begin
     fEventer[i].FFocus := false;
   End;
