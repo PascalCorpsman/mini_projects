@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* umathsolver.pas                                                 ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.09                                                         *)
+(* Version     : 0.10                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -32,6 +32,7 @@
 (*               0.07 - Formatieren von Binärzahlen Nibble weise              *)
 (*               0.08 - trunc, floor repariert                                *)
 (*               0.09 - a^b für a < 0 und b ganzzahlig                        *)
+(*               0.10 - rnd / random function                                 *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -61,6 +62,7 @@ Unit umathsolver;
  *      floor      = Die nächst kleinere Integer Zahl
  *      ceil       = Die nächst größere Integer Zahl
  *      round      = Rundet zur nächsten Integer Zahl
+ *      rnd/random = Erzeugt eine Zufallszahl im Bereich [0 .. Param -1]
  *
  * Binäre Operanden
  *      ^          = Exponenzieren
@@ -409,6 +411,25 @@ Begin
   mpf_round(pmp_float(v1)^, tmp);
   mpf_set_mpi(res^, tmp);
   mp_clear(tmp);
+  result := res;
+  Result_is_Float := false;
+End;
+
+Function Random_Float(v1: Pointer): Pointer;
+Var
+  res: pmp_float;
+  tmp: mp_int;
+Begin
+  new(res);
+  mpf_init(res^);
+  mpf_random(res^);
+  mpf_mul(res^, pmp_float(v1)^, res^);
+  If Not Result_is_Float Then Begin
+    mp_init(tmp);
+    mpf_trunc(res^, tmp);
+    mpf_set_mpi(res^, tmp);
+    mp_clear(tmp);
+  End;
   result := res;
   Result_is_Float := false;
 End;
@@ -806,6 +827,8 @@ Initialization
   calc.AddUnOP('trunc', @trunc_Float);
   calc.AddUnOP('ceil', @Ceil_Float);
   calc.AddUnOP('round', @Round_Float);
+  calc.AddUnOP('rnd', @Random_Float);
+  calc.AddUnOP('random', @Random_Float);
 
   calc.AddBinOP('^', @Pow_Float);
   calc.AddBinOP('shl', @shift_left_Float);

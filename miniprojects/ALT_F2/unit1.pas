@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* ALT_F2                                                          ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.49                                                         *)
+(* Version     : 0.52                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -96,7 +96,9 @@
 (*               0.47 - Bessere Fehlermeldung in "Open Program folder"        *)
 (*               0.48 - Hex Zahlen ebenfalls mit Nibbletrenner schreiben      *)
 (* - Released -  0.49 - a^b für a < 0 und b ganzzahlig                        *)
-(* - Released -  0.50 -                                                       *)
+(*               0.50 - ?                                                     *)
+(*               0.51 - ?                                                     *)
+(*               0.52 - rnd / random function                                 *)
 (*                                                                            *)
 (* Feature Request:     Ein "freifeld" mit dem man Infos zur Anwendung mit    *)
 (*                      ablegen kann ??                                       *)
@@ -122,7 +124,7 @@ Uses
   umathsolver, UniqueInstance, math, Clipbrd;
 
 Const
-  ALT_F2_Version = '0.51';
+  ALT_F2_Version = '0.52';
 
 Type
 
