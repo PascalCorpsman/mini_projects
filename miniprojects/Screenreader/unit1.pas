@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Screenreader                                                    13.01.2025 *)
 (*                                                                            *)
-(* Version     : 0.05                                                         *)
+(* Version     : 0.06                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -27,6 +27,7 @@
 (*               0.03 - Speedup Linuxport                                     *)
 (*               0.04 - Editierbare Koordinaten                               *)
 (*               0.05 - Store Settings                                        *)
+(*               0.06 - Speedup Windows code                                  *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -36,6 +37,9 @@ Unit Unit1;
 Interface
 
 Uses
+{$IFDEF Windows}
+  windows,
+{$ENDIF}
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
   IniPropStorage;
 
@@ -86,30 +90,30 @@ Implementation
 
 {$R *.lfm}
 
-Uses lclintf, lcltype, math, IntfGraphics, fpImage, GraphType;
+Uses
+  lclintf, lcltype, math, IntfGraphics, fpImage, GraphType;
+
 (*
-Erzeugt einen Teil Screenshot und gibt diesen zurück
-*)
+ * Erzeugt einen Teil Screenshot und gibt diesen zurück, je nach OS unterschiedlich
+ * damit es auch möglichst "schnell" geht ..
+ *)
 
 Function CaptureScreenRect(aTopLeft, aBottomRight: TPoint): TBitmap;
 {$IFDEF WINDOWS}
 Var
   ScreenDC: HDC;
-  tmp: TBitmap;
 Begin
-  tmp := TBitmap.Create;
-  tmp.Width := Screen.DesktopWidth;
-  tmp.Height := Screen.DesktopHeight;
-  tmp.Canvas.Brush.Color := clWhite;
-  tmp.Canvas.FillRect(0, 0, tmp.Width, tmp.Height);
+  Result := TBitmap.Create;
+  Result.Width := abs(aBottomRight.X - aTopLeft.X) + 1;
+  Result.Height := abs(aBottomRight.Y - aTopLeft.Y) + 1;
+  Result.Canvas.Brush.Color := clWhite;
+  Result.Canvas.FillRect(0, 0, Result.Width, Result.Height);
   ScreenDC := GetDC(GetDesktopWindow);
-  BitBlt(tmp.Canvas.Handle, 0, 0, tmp.Width, tmp.Height, ScreenDC, Screen.DesktopLeft, Screen.DesktopTop, SRCCOPY);
+  BitBlt(Result.Canvas.Handle, 0, 0, Result.Width, Result.Height, ScreenDC,
+    Screen.DesktopLeft + min(aBottomRight.X, aTopLeft.X),
+    Screen.DesktopTop + min(aBottomRight.Y, aTopLeft.Y),
+    SRCCOPY);
   ReleaseDC(0, ScreenDC);
-  result := TBitmap.Create;
-  result.Width := abs(aTopLeft.X - aBottomRight.X + 1);
-  result.Height := abs(aTopLeft.Y - aBottomRight.Y + 1);
-  result.Canvas.Draw(-min(aTopLeft.X, aBottomRight.X), -min(aTopLeft.Y, aBottomRight.Y), tmp);
-  tmp.free;
 End;
 {$ENDIF}
 {$IFDEF LINUX}
