@@ -28,6 +28,7 @@
 (*               0.04 - Editierbare Koordinaten                               *)
 (*               0.05 - Store Settings                                        *)
 (*               0.06 - Speedup Windows code                                  *)
+(*               0.07 - Fix FPS Formula                                       *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -53,6 +54,7 @@ Type
     Button3: TButton;
     Button4: TButton;
     CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -65,6 +67,7 @@ Type
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
+    Label7: TLabel;
     Timer1: TTimer;
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
@@ -76,6 +79,8 @@ Type
     Procedure FormCreate(Sender: TObject);
     Procedure Timer1Timer(Sender: TObject);
   private
+    StartTime: Int64;
+    FrameCounter: integer;
     Procedure PlotPs();
   public
     p1, p2: TPoint;
@@ -161,15 +166,31 @@ Begin
 End;
 
 Procedure TForm1.Button4Click(Sender: TObject);
+Var
+  t: Integer;
+  delta: Int64;
 Begin
   If Timer1.Enabled Then Begin
+    Timer1.Enabled := false;
+    If CheckBox2.Checked Then Begin
+      delta := GetTickCount64() - StartTime;
+      If FrameCounter <> 0 Then Begin
+        showmessage(format('Took %d images with a avg of %0.2f FPS', [FrameCounter, (FrameCounter * 1000) / delta ]));
+      End
+      Else Begin
+        showmessage('No images taken.');
+      End;
+    End;
     Button4.Caption := 'start capturing';
   End
   Else Begin
-    Timer1.Interval := max(1000 Div strtoint(edit1.text), 10);
+    t := 1000 Div max(1, strtointdef(edit1.text, 0)); // Umrechnen FPS in ms pro Periode
+    Timer1.Interval := max(10, t);
     Button4.Caption := 'stop capturing';
+    StartTime := GetTickCount64();
+    FrameCounter := 0;
+    Timer1.Enabled := true;
   End;
-  Timer1.Enabled := Not Timer1.Enabled;
 End;
 
 Procedure TForm1.Edit4KeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState
@@ -226,7 +247,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Screeny ver. 0.05';
+  caption := 'Screeny ver. 0.07';
   Constraints.MinHeight := Height;
   Constraints.MaxHeight := Height;
   Constraints.MinWidth := Width;
@@ -237,7 +258,11 @@ Begin
   p2.x := IniPropStorage1.ReadInteger('p2x', p2.x);
   p2.y := IniPropStorage1.ReadInteger('p2y', p2.y);
   PlotPs();
-  Label2.caption := '';
+  label2.caption :=
+    'Time [ms]: ' + LineEnding +
+    'max FPS:' + LineEnding +
+    'Imgcount: ';
+  label7.caption := '';
   edit1.text := '25';
   edit3.text := 'screenshoot';
   Edit2.text := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'tmp';
@@ -251,7 +276,7 @@ Var
   s: String;
   png: TPortableNetworkGraphic;
 Begin
-  d := GetTickCount64;
+  d := GetTickCount64();
   s := IncludeTrailingBackslash(Edit2.text);
   If Not ForceDirectories(s) Then Begin
     Button4Click(Nil); // Stop recording
@@ -289,9 +314,12 @@ Begin
   End;
   bm.Free;
   inc(n);
-  label2.caption :=
-    'Time [ms]: ' + inttostr(GetTickCount64 - d) + LineEnding +
-    'Imgcount = ' + inttostr(n);
+  inc(FrameCounter);
+  d := GetTickCount64() - d;
+  label7.caption :=
+    inttostr(d) + LineEnding +
+    inttostr(1000 Div max(d, 1)) + LineEnding +
+    inttostr(n);
 End;
 
 Procedure TForm1.PlotPs();

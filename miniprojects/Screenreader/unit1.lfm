@@ -1,14 +1,14 @@
 object Form1: TForm1
   Left = 323
-  Height = 358
+  Height = 403
   Top = 107
   Width = 198
   Caption = 'Form1'
-  ClientHeight = 358
+  ClientHeight = 403
   ClientWidth = 198
   FormStyle = fsSystemStayOnTop
   Position = poScreenCenter
-  SessionProperties = 'CheckBox1.Checked;Edit1.Text;Edit2.Text;Edit3.Text;Left;Top'
+  SessionProperties = 'CheckBox1.Checked;Edit1.Text;Edit2.Text;Edit3.Text;Left;Top;CheckBox2.Checked'
   LCLVersion = '4.99.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -22,28 +22,28 @@ object Form1: TForm1
   object Label3: TLabel
     Left = 8
     Height = 16
-    Top = 130
+    Top = 154
     Width = 25
     Caption = 'FPS:'
   end
   object Label4: TLabel
     Left = 8
     Height = 16
-    Top = 162
+    Top = 186
     Width = 28
     Caption = 'Path'
   end
   object Label5: TLabel
     Left = 8
     Height = 16
-    Top = 194
+    Top = 218
     Width = 54
     Caption = 'Filename'
   end
   object Edit1: TEdit
     Left = 66
     Height = 26
-    Top = 120
+    Top = 144
     Width = 121
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 1
@@ -52,7 +52,7 @@ object Form1: TForm1
   object Edit2: TEdit
     Left = 66
     Height = 26
-    Top = 152
+    Top = 176
     Width = 121
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 2
@@ -61,7 +61,7 @@ object Form1: TForm1
   object Button1: TButton
     Left = 8
     Height = 25
-    Top = 248
+    Top = 272
     Width = 179
     Anchors = [akTop, akLeft, akRight]
     Caption = '1 screenshot'
@@ -71,7 +71,7 @@ object Form1: TForm1
   object Button2: TButton
     Left = 8
     Height = 25
-    Top = 320
+    Top = 368
     Width = 179
     Anchors = [akTop, akLeft, akRight]
     Caption = 'Close'
@@ -81,7 +81,7 @@ object Form1: TForm1
   object Edit3: TEdit
     Left = 82
     Height = 26
-    Top = 184
+    Top = 208
     Width = 105
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 3
@@ -100,7 +100,7 @@ object Form1: TForm1
   object Button4: TButton
     Left = 8
     Height = 25
-    Top = 280
+    Top = 328
     Width = 179
     Anchors = [akTop, akLeft, akRight]
     Caption = 'start capturing'
@@ -110,7 +110,7 @@ object Form1: TForm1
   object CheckBox1: TCheckBox
     Left = 8
     Height = 22
-    Top = 216
+    Top = 240
     Width = 101
     Caption = 'store as .png'
     TabOrder = 7
@@ -147,16 +147,31 @@ object Form1: TForm1
     Width = 16
     Caption = 'P2'
   end
+  object Label7: TLabel
+    Left = 88
+    Height = 16
+    Top = 88
+    Width = 41
+    Caption = 'Label7'
+  end
+  object CheckBox2: TCheckBox
+    Left = 8
+    Height = 22
+    Top = 304
+    Width = 138
+    Caption = 'show report at end'
+    TabOrder = 10
+  end
   object Timer1: TTimer
     Enabled = False
     OnTimer = Timer1Timer
     Left = 144
-    Top = 192
+    Top = 216
   end
   object IniPropStorage1: TIniPropStorage
     StoredValues = <>
     IniFileName = 'screenreader.ini'
     Left = 120
-    Top = 72
+    Top = 32
   end
 end
