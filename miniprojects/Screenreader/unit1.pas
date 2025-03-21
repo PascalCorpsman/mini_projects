@@ -175,7 +175,7 @@ Begin
     If CheckBox2.Checked Then Begin
       delta := GetTickCount64() - StartTime;
       If FrameCounter <> 0 Then Begin
-        showmessage(format('Took %d images with a avg of %0.2f FPS', [FrameCounter, (FrameCounter * 1000) / delta ]));
+        showmessage(format('Took %d images with a avg of %0.2f FPS', [FrameCounter, (FrameCounter * 1000) / delta]));
       End
       Else Begin
         showmessage('No images taken.');
@@ -184,7 +184,8 @@ Begin
     Button4.Caption := 'start capturing';
   End
   Else Begin
-    t := 1000 Div max(1, strtointdef(edit1.text, 0)); // Umrechnen FPS in ms pro Periode
+    (* Auf Windows erhöhen wir die angeforderten FPS ein kleines Bisschen, weil da irgendwie alles langsammer ist ..*)
+    t := 1000 Div max(1, strtointdef(edit1.text, 0){$IFDEF Windows} + 4{$ENDIF}); // Umrechnen FPS in ms pro Periode
     Timer1.Interval := max(10, t);
     Button4.Caption := 'stop capturing';
     StartTime := GetTickCount64();
