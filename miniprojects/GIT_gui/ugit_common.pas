@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* GIT gui                                                         26.11.2023 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - add functions for sshCommand                          *)
 (*                                                                            *)
 (******************************************************************************)
 Unit ugit_common;
@@ -110,6 +111,9 @@ Function GetCommitInformations(Const aDir, Hash: String): TCommitInformations;
 Function GetRepoSettings(Const aDir: String; aSource: String): TRepoSettings;
 Function GetEffectiveRepoSettings(Const aDir: String): TRepoSettings; // Leitet aus den verfügbaren konfigurationen diejenige ab, welche "effektiv" gillt
 Procedure SetRepoSettings(Const aDir: String; aSource: String; Const aValue: TRepoSettings);
+
+Function GetRepoSSHCommand(Const aDir: String): String;
+Procedure SetRepoSSHCommand(Const aDir: String; CMD: String);
 
 (*
  * Listet alle Localen und Remote Branches
@@ -463,6 +467,28 @@ Begin
       End;
     End;
   End;
+End;
+
+Function GetRepoSSHCommand(Const aDir: String): String;
+Var
+  res: TStringList;
+Begin
+  res := RunCommand(adir, 'git', ['config', 'core.sshCommand']);
+  result := trim(res.text);
+  res.free;
+End;
+
+Procedure SetRepoSSHCommand(Const aDir: String; CMD: String);
+Var
+  res: TStringList;
+Begin
+  If trim(CMD) = '' Then Begin
+    res := RunCommand(adir, 'git', ['config', '--unset', 'core.sshCommand']);
+  End
+  Else Begin
+    res := RunCommand(adir, 'git', ['config', 'core.sshCommand', CMD]);
+  End;
+  res.free;
 End;
 
 Function GetBrancheInfo(Const aDir: String): TBranchInfo;

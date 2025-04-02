@@ -39,10 +39,11 @@ Const
    *          0.06 = ADD: STRG + A in Stringgrid
    *          0.07 = FIX: calculations of selected files when using the filter shortcuts
    *          0.08 = ADD: "edit .gitignore" Button
+   *          0.09 = ADD: ability to edit sshCommand
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.08';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.09';
   CommitText = 'Commit               | ▼';
   ReCommitText = 'ReCommit           | ▼';
   CommitAndPushText = 'Commit && Push | ▼';
