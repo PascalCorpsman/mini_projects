@@ -68,8 +68,9 @@ Const
    * -Released- 0.09 - FIX: Colormatch hatte Transparenz nicht berücksichtigt
    *                   FIX: Memleak on STRG+C
    *                   ADD: Cleanup STRG+C / STRG+V Code
-   *            0.10 - ADD: Feature Request #7 Add Background Image (via double right click)
+   * -Released- 0.10 - ADD: Feature Request #7 Add Background Image (via double right click)
    *                   ADD: improve UI for Select subimage
+   *            0.11 - 
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -77,7 +78,7 @@ Const
    * Missing Features:
    *
    *)
-  Version = '0.10';
+  Version = '0.11';
 
   (*
    * History: 1 - Initialversion

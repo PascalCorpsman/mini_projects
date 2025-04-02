@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* ALT_F2                                                          ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.52                                                         *)
+(* Version     : 0.53                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -98,7 +98,8 @@
 (* - Released -  0.49 - a^b für a < 0 und b ganzzahlig                        *)
 (*               0.50 - ?                                                     *)
 (*               0.51 - ?                                                     *)
-(*               0.52 - rnd / random function                                 *)
+(* - Released -  0.52 - rnd / random function                                 *)
+(*               0.53 -                                                       *)
 (*                                                                            *)
 (* Feature Request:     Ein "freifeld" mit dem man Infos zur Anwendung mit    *)
 (*                      ablegen kann ??                                       *)
@@ -124,7 +125,7 @@ Uses
   umathsolver, UniqueInstance, math, Clipbrd;
 
 Const
-  ALT_F2_Version = '0.52';
+  ALT_F2_Version = '0.53';
 
 Type
 
