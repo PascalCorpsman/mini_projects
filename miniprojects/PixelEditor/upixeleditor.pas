@@ -70,7 +70,7 @@ Const
    *                   ADD: Cleanup STRG+C / STRG+V Code
    * -Released- 0.10 - ADD: Feature Request #7 Add Background Image (via double right click)
    *                   ADD: improve UI for Select subimage
-   *            0.11 - 
+   *            0.11 - ADD: Colored / monochron switcher
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -124,6 +124,7 @@ Type
     ZoomInButton: TOpenGL_Bevel;
     ZoomInfoTextbox: TOpenGL_Textbox;
     ZoomOutButton: TOpenGL_Bevel;
+    ColorMonochronButton: TOpenGL_ToggleButton;
     OptionsButton: TOpenGL_Bevel;
     UndoButton: TOpenGL_Bevel;
 
@@ -637,6 +638,7 @@ Begin
   If (key = VK_SUBTRACT) Then OnZoomOutButtonClick(ZoomOutButton);
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
   If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
+  // TODO: deutlich mehr keyboard commands erstellen, orientieren an den KeyCommands von "Aseprite" -> https://www.aseprite.org/quickref/
 
   fCursor.Shift := ssShift In Shift;
 End;
@@ -955,7 +957,7 @@ Begin
     glPushMatrix;
     glTranslatef(0, 0, LayerBackGroundColor + 0.01);
     glScalef((fImage.Width * zf) / fBackGroundImage.Width, (fImage.Height * zf) / fBackGroundImage.Height, 1);
-    fBackGroundImage.Render();
+    fBackGroundImage.Render(ColorMonochronButton.Style = bsRaised);
     glPopMatrix;
   End;
   // Der Rahmen um die Graphik für "niedrige" Zoom stufen
@@ -1008,7 +1010,7 @@ Begin
   glColor4f(1, 1, 1, 1);
   // Zoom und Verzerrung rausrechnen
   glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
-  fImage.Render();
+  fImage.Render(ColorMonochronButton.Style = bsRaised);
   glPopMatrix;
 End;
 
@@ -1622,7 +1624,7 @@ Begin
           End;
         End;
       End;
-      TPixelImage(fCursor.Select.Data).Render();
+      TPixelImage(fCursor.Select.Data).Render(ColorMonochronButton.Style = bsRaised);
       glPopMatrix;
     End;
   End;

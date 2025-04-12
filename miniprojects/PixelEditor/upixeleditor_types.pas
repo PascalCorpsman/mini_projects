@@ -713,12 +713,15 @@ Begin
 End;
 
 Function RGBAToFormatString(Const c: TRGBA; AsHex: Boolean): String;
+Var
+  l: Byte;
 Begin
+  l := RGBAtoLuminanz(c);
   If AsHex Then Begin
-    result := format('%0.2X/%0.2X/%0.2X', [c.r, c.g, c.b]);
+    result := format('%0.2X/%0.2X/%0.2X (%0.2X)', [c.r, c.g, c.b, l]);
   End
   Else Begin
-    result := format('%d/%d/%d', [c.r, c.g, c.b]);
+    result := format('%d/%d/%d (%d)', [c.r, c.g, c.b, l]);
   End;
 End;
 

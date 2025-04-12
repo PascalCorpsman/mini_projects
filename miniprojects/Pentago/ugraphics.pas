@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uGraphiks.pas                                                   ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.13                                                         *)
+(* Version     : 0.14                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -41,6 +41,7 @@
 (*               0.12 - add wmFuchsia                                         *)
 (*                      FIX: glitch on rotating images                        *)
 (*               0.13 - RGBAToFPColor, FPColorToRGBA                          *)
+(*               0.14 - RGBAtoLuminanz                                        *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -116,6 +117,7 @@ Function FPColorToRGBA(Const Color: TFPColor): TRGBA;
 Function FPColorToHSL(Const Color: TFPColor): THSL;
 Function HSLToFPColor(Const hsl: THSL): TFPColor;
 
+Function RGBAtoLuminanz(Value: TRGBA): Byte; // Berechnet die Helligkeit einer Farbe
 Function FPColortoLuminanz(Value: TFPColor): Byte; // Berechnet die Helligkeit einer Farbe
 Function ColortoLuminanz(Value: TColor): Byte; // Berechnet die Helligkeit einer Farbe
 
@@ -527,6 +529,17 @@ Begin
   result.Alpha := 255 Shr 8;
 End;
 
+Function RGBAtoLuminanz(Value: TRGBA): Byte;
+Begin
+   //Y = 0.3R + 0.59G + 0.11B
+  result := min(255, max(0,
+    round(
+    value.R * 0.3 +
+    value.g * 0.59 +
+    value.b * 0.11
+    )));
+End;
+
 Function FPColortoLuminanz(Value: TFPColor): Byte;
 Begin
   //Y = 0.3R + 0.59G + 0.11B
@@ -542,6 +555,7 @@ Function ColortoLuminanz(Value: TColor): Byte;
 Var
   c: TFPColor;
 Begin
+  // TODO: ohne umwandlung nach tFPColor realisieren
   c.red := (value And $FF) Shl 8;
   c.green := (value And $FF00);
   c.blue := (value And $FF0000) Shr 8;

@@ -35,6 +35,8 @@ Type
     fChanged: Boolean;
     fOpenGLImage: integer;
     fPixels: TPixelArea;
+    fMonochronPixels: TPixelArea;
+    fMonochronOpenGLImage: integer;
     fUpdate: TUpdate;
     Function getHeight: integer;
     Function getWidth: integer;
@@ -60,7 +62,7 @@ Type
     Procedure SetSize(aWidth, aHeight: Integer);
     Procedure Clear();
 
-    Procedure Render();
+    Procedure Render(Monochrone: Boolean);
 
     Procedure AppendToPEStream(Const Stream: TStream; Const aFilename: String);
     Procedure LoadFromPEStream(Const Stream: TStream; Const aFilename: String);
@@ -380,7 +382,9 @@ Constructor TPixelImage.Create;
 Begin
   Inherited Create;
   setlength(fPixels, 0, 0);
+  setlength(fMonochronPixels, 0, 0);
   fOpenGLImage := 0;
+  fMonochronOpenGLImage := 0;
   fChanged := false;
   Clear();
 End;
@@ -388,9 +392,14 @@ End;
 Destructor TPixelImage.Destroy;
 Begin
   setlength(fPixels, 0, 0);
+  setlength(fMonochronPixels, 0, 0);
   If fOpenGLImage <> 0 Then Begin
     glDeleteTextures(1, @fOpenGLImage);
     fOpenGLImage := 0;
+  End;
+  If fMonochronOpenGLImage <> 0 Then Begin
+    glDeleteTextures(1, @fMonochronOpenGLImage);
+    fMonochronOpenGLImage := 0;
   End;
 End;
 
@@ -413,7 +422,8 @@ End;
 Procedure TPixelImage.EndUpdate;
 Var
   c, x, y, w, h, i, j: integer;
-  Data: Array Of Array[0..3] Of Byte;
+  l: byte;
+  Data, Data2: Array Of Array[0..3] Of Byte;
 Begin
   fUpdate.Counter := max(fUpdate.Counter - 1, 0);
   If (fUpdate.Counter = 0) And (fUpdate.br.X <> -1) Then Begin // Es gab tatsächlich was zum Updaten
@@ -424,40 +434,59 @@ Begin
     c := 0;
     data := Nil;
     setlength(data, w * h);
+    data2 := Nil;
+    setlength(data2, w * h);
     For j := 0 To h - 1 Do Begin
       For i := 0 To w - 1 Do Begin
         data[c][0] := fPixels[x + i, y + j].r;
         data[c][1] := fPixels[x + i, y + j].g;
         data[c][2] := fPixels[x + i, y + j].b;
         data[c][3] := fPixels[x + i, y + j].a;
+        l := RGBAtoLuminanz(fPixels[x + i, y + j]);
+        data2[c][0] := l;
+        data2[c][1] := l;
+        data2[c][2] := l;
+        data2[c][3] := fPixels[x + i, y + j].a;
         inc(c);
       End;
     End;
     glEnable(GL_TEXTURE_2D);
     glBindTexture(gl_texture_2d, fOpenGLImage);
     glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, @Data[0]);
+    glBindTexture(gl_texture_2d, fMonochronOpenGLImage);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, @Data2[0]);
     fUpdate.br.X := -1;
   End;
 End;
 
 Procedure TPixelImage.SetColorAt(x, y: integer; c: TRGBA);
 Var
-  oc: Array[0..3] Of Byte;
+  oc, oc2: Array[0..3] Of Byte;
 Begin
   // Übernehmen in die Interne Struktur
   If (x < 0) Or (x >= Width) Or (y < 0) Or (y >= Height) Then exit;
   If fPixels[x, y] <> c Then Begin
     fChanged := true;
     fPixels[x, y] := c;
-    // Übernehmen nach OpenGL
-    oc[0] := c.r;
-    oc[1] := c.g;
-    oc[2] := c.b;
-    oc[3] := c.a;
+    fMonochronPixels[x, y].r := RGBAtoLuminanz(c);
+    fMonochronPixels[x, y].g := fMonochronPixels[x, y].r;
+    fMonochronPixels[x, y].b := fMonochronPixels[x, y].r;
+    fMonochronPixels[x, y].a := c.a;
     If fUpdate.Counter = 0 Then Begin
+      // Übernehmen nach OpenGL
+      oc[0] := c.r;
+      oc[1] := c.g;
+      oc[2] := c.b;
+      oc[3] := c.a;
+      oc2[0] := fMonochronPixels[x, y].r;
+      oc2[1] := fMonochronPixels[x, y].r;
+      oc2[2] := fMonochronPixels[x, y].r;
+      oc2[3] := c.a;
       glEnable(GL_TEXTURE_2D);
       glBindTexture(gl_texture_2d, fOpenGLImage);
       glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc[0]);
+      glBindTexture(gl_texture_2d, fMonochronOpenGLImage);
+      glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc2[0]);
     End
     Else Begin
       fUpdate.tl.x := min(fUpdate.tl.x, x);
@@ -476,9 +505,14 @@ Begin
   Clear();
   // 2. Neu erstellen
   setlength(fPixels, aWidth, aHeight);
+  setlength(fMonochronPixels, aWidth, aHeight);
   glGenTextures(1, @fOpenGLImage);
+  glGenTextures(1, @fMonochronOpenGLImage);
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, fOpenGLImage);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glBindTexture(GL_TEXTURE_2D, fMonochronOpenGLImage);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   data := Nil;
@@ -491,10 +525,14 @@ Begin
       data[i] := 0; // Die Farbe ist erst mal egal -> Schwarz
     End;
   End;
+  glBindTexture(GL_TEXTURE_2D, fOpenGLImage);
+  glTexImage2D(GL_TEXTURE_2D, 0, gl_RGBA, aWidth, Aheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, @Data[0]);
+  glBindTexture(GL_TEXTURE_2D, fMonochronOpenGLImage);
   glTexImage2D(GL_TEXTURE_2D, 0, gl_RGBA, aWidth, Aheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, @Data[0]);
   For i := 0 To high(fPixels) Do Begin
     For j := 0 To high(fPixels[i]) Do Begin
       fPixels[i, j] := ColorTransparent;
+      fMonochronPixels[i, j] := ColorTransparent;
     End;
   End;
 End;
@@ -505,21 +543,24 @@ Var
 Begin
   fUpdate.Counter := 0;
   For i := 0 To high(fPixels) Do Begin
-    For j := 0 To high(fPixels[i]) Do Begin
-      fPixels[i, j] := ColorTransparent;
-    End;
     SetLength(fPixels[i], 0);
+    SetLength(fMonochronPixels[i], 0);
   End;
   SetLength(fPixels, 0);
+  SetLength(fMonochronPixels, 0);
   If fOpenGLImage <> 0 Then Begin
     glDeleteTextures(1, @fOpenGLImage);
     fOpenGLImage := 0;
+  End;
+  If fMonochronOpenGLImage <> 0 Then Begin
+    glDeleteTextures(1, @fMonochronOpenGLImage);
+    fMonochronOpenGLImage := 0;
   End;
   fChanged := false;
   Filename := '';
 End;
 
-Procedure TPixelImage.Render;
+Procedure TPixelImage.Render(Monochrone: Boolean);
 Var
   b: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
   w, h: integer;
@@ -532,7 +573,12 @@ Begin
   If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
     glenable(gl_Blend);
   glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-  glBindTexture(gl_texture_2d, fOpenGLImage);
+  If Monochrone Then Begin
+    glBindTexture(gl_texture_2d, fMonochronOpenGLImage);
+  End
+  Else Begin
+    glBindTexture(gl_texture_2d, fOpenGLImage);
+  End;
   glbegin(gl_quads);
   glTexCoord2f(0, 0);
   glvertex3f(0, 0, 0);
@@ -580,7 +626,7 @@ Begin
   For j := 0 To Height - 1 Do Begin
     For i := 0 To Width - 1 Do Begin
       stream.Read(fPixels[i, j], sizeof(fPixels[i, j]));
-      // Sieht unsinnig aus, aber initialisiert das OpenGL Bild ;)
+      // Sieht unsinnig aus, aber initialisiert das OpenGL Bild und den Monochron Buffer ;)
       c := GetColorAt(i, j);
       If c.r = 255 Then Begin
         fPixels[i, j].r := 0;

@@ -138,6 +138,22 @@ ZoomInButton.OnClick := @OnZoomInButtonClick;
 ZoomInButton.Hint := 'Zoom in';
 AddElement(ZoomInButton);
 
+ColorMonochronButton := TOpenGL_ToggleButton.Create(Owner);
+ColorMonochronButton.Left := 386;
+ColorMonochronButton.Top := 3;
+image := LoadAlphaColorGraphik('Monochrome_vs_Colored_2.bmp');
+If image = 0 Then exit;
+ColorMonochronButton.SetImage(image);
+image := LoadAlphaColorGraphik('Monochrome_vs_Colored_1.bmp');
+If image = 0 Then exit;
+ColorMonochronButton.SetDownImage(image);
+ColorMonochronButton.Transparent := true;
+ColorMonochronButton.Width := 32;
+ColorMonochronButton.Height := 32;
+ColorMonochronButton.Hint := 'Switch colored / monochrone view';
+//ColorMonochronButton.OnClick := @OnSelectModeButtonClick; -- Braucht es nicht, man kann ja den Style abfragen ;)
+AddElement(ColorMonochronButton);
+
 OptionsButton := TOpenGL_Bevel.Create(Owner);
 OptionsButton.Left := 570;
 OptionsButton.Top := 3;
