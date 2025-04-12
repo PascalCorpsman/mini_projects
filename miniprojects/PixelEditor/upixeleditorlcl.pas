@@ -734,6 +734,9 @@ End;
 { TOpenGL_ColorPicDialog }
 
 Procedure TOpenGL_ColorPicDialog.ApplyColor(Const Color: TRGBA);
+Var
+  s, t: String;
+  i: integer;
 Begin
   fDarken.Color := ClampAdd(Color, -30, -30, -30);
   fRed.Color := ClampAdd(Color, 30, 0, 0);
@@ -741,18 +744,15 @@ Begin
   fBlue.Color := ClampAdd(Color, 0, 0, 30);
   fBrighten.Color := ClampAdd(Color, 30, 30, 30);
   fPicColorButton.FontColor := v3(Color.r / 255, Color.g / 255, Color.b / 255);
-  fColorInfo.caption := RGBAToFormatString(Color, fColorAsHex);
+  s := RGBAToFormatString(Color, fColorAsHex);
+  i := pos('(', s);
+  t := copy(s, i, length(s));
+  fColorInfo.caption := copy(s, 1, i - 2) + LineEnding + t.PadLeft(i - 2);
 End;
 
 Procedure TOpenGL_ColorPicDialog.ApplyColor(Const CB: TOpenGL_ColorBox);
 Begin
-  If cb <> fDarken Then fDarken.Color := ClampAdd(cb.Color, -30, -30, -30);
-  If cb <> fRed Then fRed.Color := ClampAdd(cb.Color, 30, 0, 0);
-  If cb <> fGreen Then fGreen.Color := ClampAdd(cb.Color, 0, 30, 0);
-  If cb <> fBlue Then fBlue.Color := ClampAdd(cb.Color, 0, 0, 30);
-  If cb <> fBrighten Then fBrighten.Color := ClampAdd(cb.Color, 30, 30, 30);
-  fPicColorButton.FontColor := v3(cb.Color.r / 255, cb.Color.g / 255, cb.Color.b / 255);
-  fColorInfo.caption := RGBAToFormatString(cb.Color, fColorAsHex);
+  ApplyColor(cb.Color);
 End;
 
 Function TOpenGL_ColorPicDialog.getShower: TOpenGL_ColorBox;
@@ -870,8 +870,8 @@ Procedure TOpenGL_ColorPicDialog.SetTop(AValue: integer);
 Begin
   Inherited SetTop(AValue);
   fColorTable.Top := AValue + 77;
-  fPicColorButton.Top := AValue + 33;
-  fColorInfo.top := AValue + 14;
+  fPicColorButton.Top := AValue + 33 + 4;
+  fColorInfo.top := AValue + 14 - 4;
   fBlack.top := AValue + 33;
   fDarken.top := AValue + 33;
   fRed.top := AValue + 33;
