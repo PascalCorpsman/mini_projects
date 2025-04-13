@@ -670,9 +670,9 @@ Begin
       fCursor.Select.br.y := fCursor.Select.br.y + 1;
       fCursor.Select.tl.y := fCursor.Select.tl.y + 1;
     End;
-    If (key = VK_H) And (ssShift In Shift) Then SelectMirrorHorButton.Click;
-    If (key = VK_V) And (ssShift In Shift) Then SelectMirrorVerButton.Click;
   End;
+  If (key = VK_H) And (ssShift In Shift) Then SelectMirrorHorButton.Click;
+  If (key = VK_V) And (ssShift In Shift) Then SelectMirrorVerButton.Click;
   If (ssAlt In shift) Then SelectRotateCounterClockwise90.Click;
   If (key = VK_M) Then SelectButton.Click;
   If (key = VK_B) Then PencilButton.Click;
