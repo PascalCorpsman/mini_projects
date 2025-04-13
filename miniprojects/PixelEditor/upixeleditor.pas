@@ -71,6 +71,7 @@ Const
    * -Released- 0.10 - ADD: Feature Request #7 Add Background Image (via double right click)
    *                   ADD: improve UI for Select subimage
    *            0.11 - ADD: Colored / monochron switcher
+   *                   ADD: improve UX
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -567,6 +568,9 @@ Begin
   Else Begin
     // 2. Mach den Pen zu einem "Erheller"
     BrightenButton.Style := ifthen(BrightenButton.Style = bsLowered, bsRaised, bsLowered);
+    If EraserButton.Style <> bsLowered Then Begin
+      SelectTool(fCursor.LastTool);
+    End;
     DarkenButton.Style := bsLowered;
   End;
 End;
@@ -596,6 +600,9 @@ Begin
   Else Begin
     // 2. Mach den Pen zu einem "Dunkler"
     DarkenButton.Style := ifthen(DarkenButton.Style = bsLowered, bsRaised, bsLowered);
+    If EraserButton.Style <> bsLowered Then Begin
+      SelectTool(fCursor.LastTool);
+    End;
     BrightenButton.Style := bsLowered;
   End;
 End;
@@ -1024,14 +1031,20 @@ Begin
   End
   Else Begin
     If fCursor.Tool = tSelect Then Begin
-      img := TPixelImage(fCursor.Select.Data);
-      img.BeginUpdate;
-      For i := 0 To img.Width - 1 Do Begin
-        For j := 0 To img.Height - 1 Do Begin
-          img.SetColorAt(i, j, upixeleditor_types.ColorTransparent);
+      If fCursor.Select.aSet Then Begin
+        img := TPixelImage(fCursor.Select.Data);
+        img.BeginUpdate;
+        For i := 0 To img.Width - 1 Do Begin
+          For j := 0 To img.Height - 1 Do Begin
+            img.SetColorAt(i, j, upixeleditor_types.ColorTransparent);
+          End;
         End;
+        img.EndUpdate;
+      End
+      Else Begin
+        SelectTool(tPen);
+        SelectTool(tEraser);
       End;
-      img.EndUpdate;
     End
     Else Begin
       SelectTool(tEraser);
@@ -1854,7 +1867,7 @@ Begin
 
   EraserButton.Style := ifThen(atool = tEraser, bsRaised, bsLowered);
 
-  // Das Umschalten des "LÖschers folgt eigenen Regeln
+  // Das Umschalten des "Löschers folgt eigenen Regeln
   If aTool <> tEraser Then Begin
     PencilButton.Style := ifThen(atool In [TPen, tMirror], bsRaised, bsLowered);
     FloodFillButton.Style := ifThen(atool = tBucket, bsRaised, bsLowered);
