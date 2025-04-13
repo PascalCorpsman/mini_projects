@@ -72,6 +72,7 @@ Const
    *                   ADD: improve UI for Select subimage
    *            0.11 - ADD: Colored / monochron switcher
    *                   ADD: improve UX
+   *                   ADD: more key commands
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -629,11 +630,18 @@ Begin
     End;
     exit;
   End;
+  (*
+   * Die Keycommands sind so gut es geht an https://www.aseprite.org/quickref/
+   * angelehnt ;)
+   *)
   If (key = VK_ADD) Then OnZoomInButtonClick(ZoomInButton);
   If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
   If (key = VK_C) And (ssCtrl In Shift) Then CopySelectionToClipboard;
-  If (key = VK_DELETE) Then EraserButton.click;
-  If (key = VK_E) And (ssCtrl In Shift) Then EditImageSelectionProperties;
+  If (key = VK_DELETE) Or (key = VK_BACK) Then EraserButton.click;
+  If (key = VK_E) And (ssCtrl In Shift) Then Begin
+    EditImageSelectionProperties;
+    exit; // VK_E gibt es unten auch "allein"
+  End;
   If (key = VK_ESCAPE) And (fCursor.Tool = tSelect) Then Begin
     SelectTool(tPen); // Abwählen des evtl. gewählten Bereichs
     SelectTool(tSelect);
@@ -645,7 +653,37 @@ Begin
   If (key = VK_SUBTRACT) Then OnZoomOutButtonClick(ZoomOutButton);
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
   If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
-  // TODO: deutlich mehr keyboard commands erstellen, orientieren an den KeyCommands von "Aseprite" -> https://www.aseprite.org/quickref/
+  If fCursor.Select.aSet Then Begin
+    If key = VK_RIGHT Then Begin
+      fCursor.Select.br.X := fCursor.Select.br.X + 1;
+      fCursor.Select.tl.X := fCursor.Select.tl.X + 1;
+    End;
+    If key = VK_LEFT Then Begin
+      fCursor.Select.br.X := fCursor.Select.br.X - 1;
+      fCursor.Select.tl.X := fCursor.Select.tl.X - 1;
+    End;
+    If key = VK_UP Then Begin
+      fCursor.Select.br.y := fCursor.Select.br.y - 1;
+      fCursor.Select.tl.y := fCursor.Select.tl.y - 1;
+    End;
+    If key = VK_DOWN Then Begin
+      fCursor.Select.br.y := fCursor.Select.br.y + 1;
+      fCursor.Select.tl.y := fCursor.Select.tl.y + 1;
+    End;
+    If (key = VK_H) And (ssShift In Shift) Then SelectMirrorHorButton.Click;
+    If (key = VK_V) And (ssShift In Shift) Then SelectMirrorVerButton.Click;
+  End;
+  If (ssAlt In shift) Then SelectRotateCounterClockwise90.Click;
+  If (key = VK_M) Then SelectButton.Click;
+  If (key = VK_B) Then PencilButton.Click;
+  If (key = VK_E) Then EraserButton.Click;
+  If (key = VK_G) Then FloodFillButton.Click;
+  If (key = VK_L) Then LineButton.Click;
+  If (key = VK_U) And (ssShift In Shift) Then Begin
+    CircleButton.Click;
+    exit; // VK_U gibt es unten auch "allein"
+  End;
+  If (key = VK_U) Then SquareButton.Click;
 
   fCursor.Shift := ssShift In Shift;
 End;
