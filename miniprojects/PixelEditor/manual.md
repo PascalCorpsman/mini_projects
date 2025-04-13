@@ -19,21 +19,42 @@ Run the executable and enjoy ;).
 | double Right | access to background image dialog 
 
 ## Keyboard actions
+The keyboard commands are mostly oriented on the aseprite program.
+
 | Action | Description |
 | --- | ---
+| B | select "pencil" tool
+| E | select "eraser" tool
+| G | select "bucket" tool
+| L | select "line" tool
+| M | select "select" tool
+| U | select "rectangle" tool
+| SHIFT | when pressed during line / rectangle / ellipse creation the shape will be forced to be equal in width / height
+| SHIFT + H | horizontal flip image / selection
+| SHIFT + U | select "ellipse" tool
+| SHIFT + V | vertical flip image / selection
 | CTRL + A | Select all
-| CTRL + C | copy selected 
+| CTRL + C | Copy selected / all
 | CTRL + E | Open Resize dialog (for selected or image)
+| CTRL + L | Open "Load dialog"
 | CTRL + N | New image
 | CTRL + O | show options dialog
 | CTRL + S | Save / Save as
 | CTRL + V | paste image from clipboard
 | CTRL + Z | Undo last pixeloperation
 | + / - | Zoom in / out
+| Cursors | when selected a subimage "move" the image
 | DEL | clears "selected" part if something is selected
 | ESC | skips actual selection / terminates application in error mode
-| SHIFT | when pressed during line / rectangle / ellipse creation the shape will be forced to be equal in width / height
+| ALT | rotate image / selection 90° counter clock wise
 
+## The color match dialog
+
+The select by color and the floodfill (bucket) feature are dependant to the color match settings.
+
+![colormatch](colormatch.png)
+
+You can switch between "Exact match" and 1% .. 30%. This feature is espacially helpfull if you want to work with dithered images (like compressed JPEG).
 
 ## Select context menu
 
@@ -65,10 +86,3 @@ Menu is activated by double right click on the image area (without any selection
 
 If set the background image will always be scaled to the image dimensions.
 
-### The Color match dialog
-
-The select by color and the floodfill (bucket) feature are dependant to the color match settings.
-
-![colormatch](colormatch.png)
-
-You can switch between "Exact match" and 1% .. 30%. This feature is espacially helpfull if you want to work with dithered images (like compressed JPEG).
