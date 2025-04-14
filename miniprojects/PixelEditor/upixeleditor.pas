@@ -648,21 +648,19 @@ Begin
   If (key = VK_S) And (ssCtrl In Shift) Then SaveButton.Click;
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
   If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
-  // TODO: Geht das auch unter Linux ?
-  If (key = $DD {´}) And (ssCtrl In shift) Then GridButton.Click;
+  If (key = {$IFDEF Windows}$DD{$ELSE}$92{$ENDIF} {´}) And (ssCtrl In shift) Then GridButton.Click;
 
   // SHIFT + ?
   If (key = VK_D) And (ssShift In Shift) Then Begin
     BrightenButton.Click;
     exit; // VK_D gibt es unten auch "allein"
   End;
-
   If (key = VK_H) And (ssShift In Shift) Then SelectMirrorHorButton.Click;
-  If (key = VK_V) And (ssShift In Shift) Then SelectMirrorVerButton.Click;
   If (key = VK_U) And (ssShift In Shift) Then Begin
     CircleButton.Click;
     exit; // VK_U gibt es unten auch "allein"
   End;
+  If (key = VK_V) And (ssShift In Shift) Then SelectMirrorVerButton.Click;
 
   // ?
   If (key = VK_ADD) Then ZoomInButton.Click;
