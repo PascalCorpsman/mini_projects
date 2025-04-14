@@ -14,6 +14,8 @@ Run the executable and enjoy ;).
 | Action | Description |
 | --- | ---
 | wheel (up/down)| zoom (in/out)
+| SHIFT + wheel (up/down)| change cursor size
+| CTRL + wheel (up/down)| change tool shape
 | CTRL + Left | Copies selection to image before drag
 | Right | when clicked inside a selected area gives access to additional features (see below)
 | double Right | access to background image dialog 
@@ -24,12 +26,17 @@ The keyboard commands are mostly oriented on the aseprite program.
 | Action | Description |
 | --- | ---
 | B | select "pencil" tool
+| D | select "darken" tool
 | E | select "eraser" tool
 | G | select "bucket" tool
+| I | select "pipette" tool
 | L | select "line" tool
 | M | select "select" tool
+| R | rotate image / selection 90° counter clock wise
 | U | select "rectangle" tool
+| X | toggle color/monochron view
 | SHIFT | when pressed during line / rectangle / ellipse creation the shape will be forced to be equal in width / height
+| SHIFT + D | select "brighten" tool
 | SHIFT + H | horizontal flip image / selection
 | SHIFT + U | select "ellipse" tool
 | SHIFT + V | vertical flip image / selection
@@ -42,11 +49,11 @@ The keyboard commands are mostly oriented on the aseprite program.
 | CTRL + S | Save / Save as
 | CTRL + V | paste image from clipboard
 | CTRL + Z | Undo last pixeloperation
-| + / - | Zoom in / out
+| CTRL + ´ | toggle grid view
 | Cursors | when selected a subimage "move" the image
-| DEL | clears "selected" part if something is selected
+| + / - | Zoom in / out
+| DEL + BACK | clears "selected" part if something is selected
 | ESC | skips actual selection / terminates application in error mode
-| ALT | rotate image / selection 90° counter clock wise
 
 ## The color match dialog
 
