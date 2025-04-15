@@ -25,19 +25,26 @@ The keyboard commands are mostly oriented on the aseprite program.
 
 | Action | Description |
 | --- | ---
+| 4 | select "mirror horizontal and vertical" option, when mirror tool is active
 | B | select "pencil" tool
+| C | select toggle "mirror on pixeledge / pixelcenter" option, when mirror tool is active
 | D | select "darken" tool
 | E | select "eraser" tool
+| F | select "filled" option, when rectangle / ellipse tool is active
 | G | select "bucket" tool
+| H | select toggle "mirror horizontal" option, when mirror tool is active
 | I | select "pipette" tool
 | L | select "line" tool
 | M | select "select" tool
+| O | select "outline" option, when rectangle / ellipse tool is active
 | R | rotate image / selection 90° counter clock wise
 | U | select "rectangle" tool
+| V | select toggle "mirror vertical" option, when mirror tool is active
 | X | toggle color/monochron view
 | SHIFT | when pressed during line / rectangle / ellipse creation the shape will be forced to be equal in width / height
 | SHIFT + D | select "brighten" tool
 | SHIFT + H | horizontal flip image / selection
+| SHIFT + M | select "mirror horizontal" option, when mirror tool is active
 | SHIFT + U | select "ellipse" tool
 | SHIFT + V | vertical flip image / selection
 | CTRL + A | Select all
