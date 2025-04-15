@@ -188,6 +188,17 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
+  (*
+   * Recherche:
+   * Aseprite: https://github.com/aseprite/aseprite/tree/main
+   *           Convolution Matrix: https://github.com/aseprite/aseprite/blob/main/data/convmatr.def
+   *
+   * Pixelperfect Algo: https://deepnight.net/blog/tools/pixel-perfect-drawing/
+   *
+   * Abbildungsfunktion f(rgba) -> RGBA
+   * Farbersetzungdialog -> mehrere Eingangsfarben werden automatisch convertiert zu mehreren Ausgangsfarben, im Trivialfall ein "suchen/ersetzen"
+   *)
+
   Constraints.MinWidth := 640;
   Constraints.MinHeight := 480;
   defcaption := 'PixelEditor ver. ' + Version + ' by Uwe Schächterle, www.Corpsman.de';

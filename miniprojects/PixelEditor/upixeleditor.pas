@@ -637,14 +637,20 @@ Begin
 
   // CTRL + ?
   If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
-  If (key = VK_C) And (ssCtrl In Shift) Then CopySelectionToClipboard;
+  If (key = VK_C) And (ssCtrl In Shift) Then Begin
+    CopySelectionToClipboard;
+    exit;
+  End;
   If (key = VK_E) And (ssCtrl In Shift) Then Begin
     EditImageSelectionProperties;
-    exit; // VK_E gibt es unten auch "allein"
+    exit;
   End;
   If (key = VK_L) And (ssCtrl In Shift) Then OpenButton.Click;
   If (key = VK_N) And (ssCtrl In Shift) Then NewButton.Click;
-  If (key = VK_O) And (ssCtrl In Shift) Then OptionsButton.Click;
+  If (key = VK_O) And (ssCtrl In Shift) Then Begin
+    OptionsButton.Click;
+    exit;
+  End;
   If (key = VK_S) And (ssCtrl In Shift) Then SaveButton.Click;
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
   If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
@@ -653,18 +659,30 @@ Begin
   // SHIFT + ?
   If (key = VK_D) And (ssShift In Shift) Then Begin
     BrightenButton.Click;
-    exit; // VK_D gibt es unten auch "allein"
+    exit;
   End;
-  If (key = VK_H) And (ssShift In Shift) Then SelectMirrorHorButton.Click;
+  If (key = VK_H) And (ssShift In Shift) Then Begin
+    SelectMirrorHorButton.Click;
+    exit;
+  End;
+  If (key = VK_M) And (ssShift In Shift) Then Begin
+    MirrorButton.Click;
+    exit;
+  End;
   If (key = VK_U) And (ssShift In Shift) Then Begin
     CircleButton.Click;
-    exit; // VK_U gibt es unten auch "allein"
+    exit;
   End;
-  If (key = VK_V) And (ssShift In Shift) Then SelectMirrorVerButton.Click;
+  If (key = VK_V) And (ssShift In Shift) Then Begin
+    SelectMirrorVerButton.Click;
+    exit;
+  End;
 
   // ?
+  If (key = VK_4) And Mirror4Button.Visible Then Mirror4Button.Click;
   If (key = VK_ADD) Then ZoomInButton.Click;
   If (key = VK_B) Then PencilButton.Click;
+  If (key = VK_C) And MirrorCenterButton.Visible Then MirrorCenterButton.Click;
   If (key = VK_BACK) Or (key = VK_DELETE) Then EraserButton.click;
   If (key = VK_D) Then DarkenButton.Click;
   If (key = VK_E) Then EraserButton.Click;
@@ -672,13 +690,17 @@ Begin
     SelectTool(tPen); // Abwählen des evtl. gewählten Bereichs
     SelectTool(tSelect);
   End;
+  If (key = VK_F) And FilledButton.Visible Then FilledButton.Click;
   If (key = VK_G) Then FloodFillButton.Click;
+  If (key = VK_H) And MirrorHorButton.Visible Then MirrorHorButton.Click;
   If (key = VK_I) Then PipetteButton.Click;
   If (key = VK_L) Then LineButton.Click;
   If (key = VK_M) Then SelectButton.Click;
+  If (key = VK_O) And OutlineButton.Visible Then OutlineButton.Click;
   If (key = VK_R) Then SelectRotateCounterClockwise90.Click;
   If (key = VK_SUBTRACT) Then ZoomOutButton.Click;
   If (key = VK_U) Then SquareButton.Click;
+  If (key = VK_V) And MirrorVertButton.Visible Then MirrorVertButton.Click;
   If (key = VK_X) Then ColorMonochronButton.click;
 
   If fCursor.Select.aSet Then Begin
