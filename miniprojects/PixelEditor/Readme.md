@@ -2,7 +2,7 @@
 
 My most favorite image editing program is kolourpaint. Unfortunatunelly kolourpaint is not the best when drawing pixelart images (which are needed for e.g. [Config TD](https://github.com/PascalCorpsman/ConfigTD)). After some research i found these two
 
-- https://makepixelart.com/free#
+- https://makepixelart.com
 - https://www.piskelapp.com/p/create/sprite
 
 both are good, but do not perfectly fit my needs. So i decided to write my own pixel editing program.
