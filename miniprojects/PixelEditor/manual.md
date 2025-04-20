@@ -14,53 +14,84 @@ Run the executable and enjoy ;).
 | Action | Description |
 | --- | ---
 | wheel (up/down)| zoom (in/out)
-| SHIFT + wheel (up/down)| change cursor size
-| CTRL + wheel (up/down)| change tool shape
 | CTRL + Left | Copies selection to image before drag
 | Right | when clicked inside a selected area gives access to additional features (see below)
 | double Right | access to background image dialog 
 
 ## Keyboard actions
-The keyboard commands are mostly oriented on the aseprite program.
+Keyboard commands:
 
+### top line
 | Action | Description |
 | --- | ---
-| 4 | select "mirror horizontal and vertical" option, when mirror tool is active
-| B | select "pencil" tool
-| C | select toggle "mirror on pixeledge / pixelcenter" option, when mirror tool is active
-| D | select "darken" tool
-| E | select "eraser" tool
-| F | select "filled" option, when rectangle / ellipse tool is active
-| G | select "bucket" tool
-| H | select toggle "mirror horizontal" option, when mirror tool is active
-| I | select "pipette" tool
-| L | select "line" tool
-| M | select "select" tool
-| O | select "outline" option, when rectangle / ellipse tool is active
-| R | rotate image / selection 90° counter clock wise
-| U | select "rectangle" tool
-| V | select toggle "mirror vertical" option, when mirror tool is active
+| CTRL + N | New image
+| CTRL + L | Open "Load dialog"
+| CTRL + S | Save / Save as
+| ALT + F4 | Close pixeleditor
+| CTRL + G | toggle grid view
+| + / - | Zoom in / out
 | X | toggle color/monochron view
-| SHIFT | when pressed during line / rectangle / ellipse creation the shape will be forced to be equal in width / height
-| SHIFT + D | select "brighten" tool
+| CTRL + O | show options dialog
+| CTRL + Z | Undo last pixeloperation
+
+### Tools
+| Action | Description |
+| --- | ---
+| S | select "select" tool
+| SHIFT + R | rotate image / selection 90° counter clock wise
 | SHIFT + H | horizontal flip image / selection
-| SHIFT + M | select "mirror horizontal" option, when mirror tool is active
-| SHIFT + U | select "ellipse" tool
 | SHIFT + V | vertical flip image / selection
+| SHIFT + A | open rotate by angle dialog
+| Cursors | "move" selected subimage
+| ESC | skips actual selection / terminates application in error mode
+| B | select "brighten" tool
+| D | select "darken" tool
+| DEL + BACK | select "eraser" tool / clears "selected" subimage if something is selected
+| 1 | cursor size 1
+| 2 | cursor size 2
+| 3 | cursor size 3
+| 4 | cursor size 4
+| SHIFT + 1 | round cursor size 1
+| SHIFT + 2 | square cursor size 1
+| SHIFT + 3 | round cursor size 2
+| SHIFT + 4 | square cursor size 2
+| SHIFT + 5 | round cursor size 3
+| SHIFT + 6 | square cursor size 3
+| P | select "pencil" tool
+| L | select "line" tool
+| E | select "ellipse" tool
+| R | select "rectangle" tool
+| O | select "outline" option, when rectangle / ellipse tool is active
+| F | select "filled" option, when rectangle / ellipse tool is active
+| M | select "mirror" tool, toggles between 4-achses/ mirror horizontal / mirror vertical
+| C | select toggle "mirror on pixeledge / pixelcenter" option, when mirror tool is active
+| SHIFT + M | unselect "mirror" tool
+| SHIFT + B | select "bucket" tool
+| T | opens color toleranze dialog
+| I | select "pipette" tool
+| U | opens color curve dialog
+
+### Colors
+| Action | Description |
+| --- | ---
+| CTRL + 1 | select color / open color 1 dialog
+| CTRL + 2 | select color / open color 2 dialog
+| CTRL + 3 | select color / open color 3 dialog
+| CTRL + 4 | select color / open color 4 dialog
+| CTRL + 5 | select color / open color 5 dialog
+| CTRL + 6 | select color / open color 6 dialog
+| CTRL + 7 | select color / open color 7 dialog
+| CTRL + 8 | select color / open color 8 dialog
+
+### Leneral
+| Action | Description |
+| --- | ---
+| CTRL + E | Open Resize dialog (for selected or image)
+| SHIFT | when pressed during line / rectangle / ellipse creation the shape will be forced to be equal in width / height
 | CTRL + A | Select all
 | CTRL + C | Copy selected / all
-| CTRL + E | Open Resize dialog (for selected or image)
-| CTRL + L | Open "Load dialog"
-| CTRL + N | New image
-| CTRL + O | show options dialog
-| CTRL + S | Save / Save as
+| CTRL + X | Cut selected / all
 | CTRL + V | paste image from clipboard
-| CTRL + Z | Undo last pixeloperation
-| CTRL + ´ | toggle grid view
-| Cursors | when selected a subimage "move" the image
-| + / - | Zoom in / out
-| DEL + BACK | clears "selected" part if something is selected
-| ESC | skips actual selection / terminates application in error mode
 
 ## The color match dialog
 
@@ -100,3 +131,17 @@ Menu is activated by double right click on the image area (without any selection
 
 If set the background image will always be scaled to the image dimensions.
 
+## Color curve menu
+
+Manipulate the colors of selection or the whole image
+
+![](colorcurve.png)
+
+Choose the desirec colorchannels at the right top corner. Load a predifined colorcurve, or use
+- left mouse to create new points, move existing
+- right mouse to delete points
+  
+on the curve editor on the left side.
+
+### pro tip
+> the .curve files can be edited via a text editor
