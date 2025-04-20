@@ -70,12 +70,13 @@ Const
    *                   ADD: Cleanup STRG+C / STRG+V Code
    * -Released- 0.10 - ADD: Feature Request #7 Add Background Image (via double right click)
    *                   ADD: improve UI for Select subimage
-   *            0.11 - ADD: Colored / monochron switcher
+   * -Released- 0.11 - ADD: Colored / monochron switcher
    *                   ADD: improve UX
    *                   ADD: more key commands
    *                   ADD: Color curve feature
    *                   FIX: "Pic color" -> "Pick color"
    *                   ADD: CTRL+X
+   *            0.12 -
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -83,7 +84,7 @@ Const
    * Missing Features:
    *
    *)
-  Version = '0.11';
+  Version = '0.12';
 
   (*
    * History: 1 - Initialversion
