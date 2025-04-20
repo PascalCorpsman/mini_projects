@@ -1,0 +1,10 @@
+# Pixeleditor curve file
+4 points
+X_1=0 # always 0
+Y_1=0.00
+X_2=50.00
+Y_2=0.00
+X_3=51.00
+Y_3=100.00
+X_4=100 # always 100
+Y_4=100.00

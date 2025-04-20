@@ -1,0 +1,119 @@
+object Form8: TForm8
+  Left = 517
+  Height = 321
+  Top = 163
+  Width = 378
+  Caption = 'Form8'
+  ClientHeight = 321
+  ClientWidth = 378
+  Color = clGray
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object SpeedButton1: TSpeedButton
+    Left = 280
+    Height = 25
+    Top = 8
+    Width = 25
+    AllowAllUp = True
+    Caption = 'R'
+    Down = True
+    GroupIndex = 1
+    OnClick = SpeedButton1Click
+  end
+  object SpeedButton2: TSpeedButton
+    Left = 312
+    Height = 25
+    Top = 8
+    Width = 25
+    AllowAllUp = True
+    Caption = 'G'
+    Down = True
+    GroupIndex = 2
+    OnClick = SpeedButton1Click
+  end
+  object SpeedButton3: TSpeedButton
+    Left = 344
+    Height = 25
+    Top = 8
+    Width = 25
+    AllowAllUp = True
+    Caption = 'B'
+    Down = True
+    GroupIndex = 3
+    OnClick = SpeedButton1Click
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 288
+    Width = 89
+    Caption = 'Cancel'
+    Color = clGray
+    Font.Color = clSilver
+    ModalResult = 2
+    ParentFont = False
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 280
+    Height = 25
+    Top = 288
+    Width = 89
+    Caption = 'OK'
+    Color = clGray
+    Font.Color = clSilver
+    ModalResult = 1
+    ParentFont = False
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 280
+    Height = 25
+    Top = 176
+    Width = 89
+    Caption = 'reset'
+    Color = clGray
+    Font.Color = clSilver
+    ParentFont = False
+    TabOrder = 2
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    Left = 280
+    Height = 25
+    Top = 112
+    Width = 89
+    Caption = 'load'
+    Color = clGray
+    Font.Color = clSilver
+    ParentFont = False
+    TabOrder = 3
+    OnClick = Button4Click
+  end
+  object Button5: TButton
+    Left = 280
+    Height = 25
+    Top = 144
+    Width = 89
+    Caption = 'save'
+    Color = clGray
+    Font.Color = clSilver
+    ParentFont = False
+    TabOrder = 4
+    OnClick = Button5Click
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.curve'
+    Filter = 'Colorcurve|*.curve|All|*'
+    Left = 96
+    Top = 80
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.curve'
+    Filter = 'Colorcurve|*.curve|All|*'
+    Left = 96
+    Top = 144
+  end
+end

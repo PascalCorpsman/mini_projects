@@ -1034,7 +1034,7 @@ Begin
   fColorTable.OnDblClick := @OnColorDBLClick;
 
   fPicColorButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
-  fPicColorButton.Caption := 'Pic color';
+  fPicColorButton.Caption := 'Pick color';
   fPicColorButton.Width := 86;
   fPicColorButton.Height := 18;
   fPicColorButton.Layout := tlCenter;

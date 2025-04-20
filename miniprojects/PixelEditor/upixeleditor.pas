@@ -73,6 +73,8 @@ Const
    *            0.11 - ADD: Colored / monochron switcher
    *                   ADD: improve UX
    *                   ADD: more key commands
+   *                   ADD: Color curve feature
+   *                   FIX: "Pic color" -> "Pick color"
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -164,6 +166,7 @@ Type
     FloodFillButton: TOpenGL_Bevel;
     FloodFillModeButton: TOpenGL_Bevel;
     PipetteButton: TOpenGL_Bevel;
+    ColorCurveButton: TOpenGl_Image;
 
     // Menüleiste unten
     ColorPicDialog: TOpenGL_ColorPicDialog;
@@ -215,6 +218,8 @@ Type
     Procedure OnFloodFillButtonClick(Sender: TObject);
     Procedure OnFloodFillModeButtonClick(Sender: TObject);
     Procedure OnPipetteButtonClick(Sender: TObject);
+
+    Procedure OnColorCurveButton(Sender: TObject);
 
     Procedure OnColorClick(Sender: TObject);
     Procedure OnColorDblClick(Sender: TObject);
@@ -312,6 +317,7 @@ Uses
   , Unit5 // FBucket Toleranz
   , unit6 // Resize Scale
   , unit7 // Rotate
+  , Unit8 // Color transfer function
   ;
 
 { TPixelEditor }
@@ -665,10 +671,6 @@ Begin
     SelectMirrorHorButton.Click;
     exit;
   End;
-  If (key = VK_M) And (ssShift In Shift) Then Begin
-    MirrorButton.Click;
-    exit;
-  End;
   If (key = VK_U) And (ssShift In Shift) Then Begin
     CircleButton.Click;
     exit;
@@ -679,10 +681,8 @@ Begin
   End;
 
   // ?
-  If (key = VK_4) And Mirror4Button.Visible Then Mirror4Button.Click;
   If (key = VK_ADD) Then ZoomInButton.Click;
   If (key = VK_B) Then PencilButton.Click;
-  If (key = VK_C) And MirrorCenterButton.Visible Then MirrorCenterButton.Click;
   If (key = VK_BACK) Or (key = VK_DELETE) Then EraserButton.click;
   If (key = VK_D) Then DarkenButton.Click;
   If (key = VK_E) Then EraserButton.Click;
@@ -692,16 +692,42 @@ Begin
   End;
   If (key = VK_F) And FilledButton.Visible Then FilledButton.Click;
   If (key = VK_G) Then FloodFillButton.Click;
-  If (key = VK_H) And MirrorHorButton.Visible Then MirrorHorButton.Click;
   If (key = VK_I) Then PipetteButton.Click;
   If (key = VK_L) Then LineButton.Click;
-  If (key = VK_M) Then SelectButton.Click;
   If (key = VK_O) And OutlineButton.Visible Then OutlineButton.Click;
   If (key = VK_R) Then SelectRotateCounterClockwise90.Click;
   If (key = VK_SUBTRACT) Then ZoomOutButton.Click;
+  If (key = VK_S) Then SelectButton.Click;
   If (key = VK_U) Then SquareButton.Click;
-  If (key = VK_V) And MirrorVertButton.Visible Then MirrorVertButton.Click;
   If (key = VK_X) Then ColorMonochronButton.click;
+
+  If MirrorButton.Style = bsRaised Then Begin
+    If (key = VK_M) And (ssShift In Shift) Then Begin
+      MirrorButton.Click;
+      exit;
+    End;
+    If key = VK_M Then Begin
+      If Mirror4Button.Style = bsRaised Then Begin
+        MirrorVertButton.Click;
+      End
+      Else Begin
+        If MirrorVertButton.Style = bsRaised Then Begin
+          MirrorHorButton.Click;
+        End
+        Else Begin
+          Mirror4Button.Click;
+        End;
+      End;
+    End;
+    If (key = VK_C) Then MirrorCenterButton.Click;
+  End
+  Else Begin
+    If (key = VK_M) Then Begin
+      MirrorButton.Click;
+      MirrorVertButton.Click;
+      If MirrorCenterButton.Style = bsRaised Then MirrorCenterButton.Click;
+    End;
+  End;
 
   If fCursor.Select.aSet Then Begin
     If key = VK_RIGHT Then Begin
@@ -1248,6 +1274,26 @@ End;
 Procedure TPixelEditor.OnPipetteButtonClick(Sender: TObject);
 Begin
   SelectTool(tPipette);
+End;
+
+Procedure TPixelEditor.OnColorCurveButton(Sender: TObject);
+Var
+  s: String;
+Begin
+  If (fCursor.Tool = tSelect) And (fCursor.Select.aSet) Then Begin
+    form8.Init(TPixelImage(fCursor.Select.Data));
+  End
+  Else Begin
+    form8.Init(fImage);
+  End;
+  s := ColorCurveButton.Hint;
+  ColorCurveButton.Hint := '';
+  form8.ShowModal;
+  // If Cancel, restore image from before..
+  If form8.ModalResult <> mrOK Then Begin
+    form8.faImage.CloneFrom(form8.fBackupImage);
+  End;
+  ColorCurveButton.Hint := s;
 End;
 
 Procedure TPixelEditor.LoadColorDialogColor(Sender: TObject);

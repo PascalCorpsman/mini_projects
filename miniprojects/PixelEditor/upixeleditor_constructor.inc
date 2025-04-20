@@ -618,6 +618,19 @@ PipetteButton.OnClick := @OnPipetteButtonClick;
 PipetteButton.Hint := 'Color pick tool';
 AddElement(PipetteButton);
 
+ColorCurveButton := TOpenGL_Bevel.Create(Owner);
+ColorCurveButton.Left := 3;
+ColorCurveButton.Top := 429 + 10;
+image := LoadAlphaColorGraphik('ColorCurve.bmp');
+If image = 0 Then exit;
+ColorCurveButton.SetImage(image);
+ColorCurveButton.Transparent := true;
+ColorCurveButton.Width := 32;
+ColorCurveButton.Height := 32;
+ColorCurveButton.OnClick := @OnColorCurveButton;
+ColorCurveButton.Hint := 'Color curve tool';
+AddElement(ColorCurveButton);
+
 ColorPicDialog := TOpenGL_ColorPicDialog.Create(Owner);
 If ColorPicDialog.CriticalError <> '' Then Begin
   fCriticalError := ColorPicDialog.CriticalError;

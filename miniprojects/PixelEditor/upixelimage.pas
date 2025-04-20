@@ -23,6 +23,8 @@ Uses
 
 Type
 
+  TMapColor = Function(aColor: TRGBA): TRGBA Of Object;
+
   TUpdate = Record
     Counter: Integer; // 0 = Deaktiviert, > 0 = Schachtelungstiefe der BeginUpdate Aufrufe
     tl, br: TPoint;
@@ -53,6 +55,8 @@ Type
     Constructor Create(); virtual;
     Destructor Destroy(); override;
 
+    Procedure CloneFrom(Const aSource: TPixelImage);
+
     Function GetColorAt(x, y: integer): TRGBA;
 
     Procedure BeginUpdate;
@@ -80,6 +84,8 @@ Type
     Procedure LeftRight;
     Procedure Rotate(Angle: Single; ScaleMode: TScaleMode);
     Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Callback: TPixelCallback);
+
+    Procedure MapColors(Const ColorMap: TMapColor); // Wendet ColorMap auf jedes Pixel <> Transparent an
   End;
 
 Implementation
@@ -129,6 +135,23 @@ Begin
     End;
   End;
   fifo.free;
+  EndUpdate;
+End;
+
+Procedure TPixelImage.MapColors(Const ColorMap: TMapColor);
+Var
+  i, j: Integer;
+  c: TRGBA;
+Begin
+  BeginUpdate;
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      c := GetColorAt(i, j);
+      If c <> ColorTransparent Then Begin
+        SetColorAt(i, j, ColorMap(c));
+      End;
+    End;
+  End;
   EndUpdate;
 End;
 
@@ -403,6 +426,20 @@ Begin
   End;
 End;
 
+Procedure TPixelImage.CloneFrom(Const aSource: TPixelImage);
+Var
+  i, j: Integer;
+Begin
+  BeginUpdate;
+  SetSize(aSource.Width, aSource.Height);
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      SetColorAt(i, j, aSource.GetColorAt(i, j));
+    End;
+  End;
+  EndUpdate;
+End;
+
 Function TPixelImage.GetColorAt(x, y: integer): TRGBA;
 Begin
   result := ColorTransparent;
@@ -463,38 +500,36 @@ Procedure TPixelImage.SetColorAt(x, y: integer; c: TRGBA);
 Var
   oc, oc2: Array[0..3] Of Byte;
 Begin
-  // Übernehmen in die Interne Struktur
   If (x < 0) Or (x >= Width) Or (y < 0) Or (y >= Height) Then exit;
-  If fPixels[x, y] <> c Then Begin
-    fChanged := true;
-    fPixels[x, y] := c;
-    fMonochronPixels[x, y].r := RGBAtoLuminanz(c);
-    fMonochronPixels[x, y].g := fMonochronPixels[x, y].r;
-    fMonochronPixels[x, y].b := fMonochronPixels[x, y].r;
-    fMonochronPixels[x, y].a := c.a;
-    If fUpdate.Counter = 0 Then Begin
-      // Übernehmen nach OpenGL
-      oc[0] := c.r;
-      oc[1] := c.g;
-      oc[2] := c.b;
-      oc[3] := c.a;
-      oc2[0] := fMonochronPixels[x, y].r;
-      oc2[1] := fMonochronPixels[x, y].r;
-      oc2[2] := fMonochronPixels[x, y].r;
-      oc2[3] := c.a;
-      glEnable(GL_TEXTURE_2D);
-      glBindTexture(gl_texture_2d, fOpenGLImage);
-      glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc[0]);
-      glBindTexture(gl_texture_2d, fMonochronOpenGLImage);
-      glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc2[0]);
-    End
-    Else Begin
-      fUpdate.tl.x := min(fUpdate.tl.x, x);
-      fUpdate.tl.Y := min(fUpdate.tl.Y, y);
-      fUpdate.br.x := max(fUpdate.br.x, x);
-      fUpdate.br.Y := max(fUpdate.br.Y, y);
-    End;
+  If fPixels[x, y] = c Then exit;
+  fChanged := true;
+  // Übernehmen in die Interne Struktur
+  fPixels[x, y] := c;
+  fMonochronPixels[x, y].r := RGBAtoLuminanz(c);
+  fMonochronPixels[x, y].g := fMonochronPixels[x, y].r;
+  fMonochronPixels[x, y].b := fMonochronPixels[x, y].r;
+  fMonochronPixels[x, y].a := c.a;
+  If fUpdate.Counter <> 0 Then Begin
+    fUpdate.tl.x := min(fUpdate.tl.x, x);
+    fUpdate.tl.Y := min(fUpdate.tl.Y, y);
+    fUpdate.br.x := max(fUpdate.br.x, x);
+    fUpdate.br.Y := max(fUpdate.br.Y, y);
+    exit;
   End;
+  // Übernehmen nach OpenGL
+  oc[0] := c.r;
+  oc[1] := c.g;
+  oc[2] := c.b;
+  oc[3] := c.a;
+  oc2[0] := fMonochronPixels[x, y].r;
+  oc2[1] := fMonochronPixels[x, y].r;
+  oc2[2] := fMonochronPixels[x, y].r;
+  oc2[3] := c.a;
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(gl_texture_2d, fOpenGLImage);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc[0]);
+  glBindTexture(gl_texture_2d, fMonochronOpenGLImage);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc2[0]);
 End;
 
 Procedure TPixelImage.SetSize(aWidth, aHeight: Integer);
@@ -539,7 +574,7 @@ End;
 
 Procedure TPixelImage.Clear;
 Var
-  i, j: Integer;
+  i: Integer;
 Begin
   fUpdate.Counter := 0;
   For i := 0 To high(fPixels) Do Begin

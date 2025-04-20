@@ -22,7 +22,7 @@ Uses
 {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, Unit1, unit2, unit3, unit4,
-  uundo, Unit5, unit6, unit7;
+  uundo, Unit5, unit6, unit7, Unit8;
 
 Begin
   Application.Initialize;
@@ -33,6 +33,7 @@ Begin
   Application.CreateForm(TForm5, Form5);
   Application.CreateForm(TForm6, Form6);
   Application.CreateForm(TForm7, Form7);
+  Application.CreateForm(TForm8, Form8);
   Application.Run;
 End.
 

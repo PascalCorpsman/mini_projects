@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="26">
+    <Units Count="28">
       <Unit0>
         <Filename Value="PixelEditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -177,6 +177,19 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit7"/>
       </Unit25>
+      <Unit26>
+        <Filename Value="unit8.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form8"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit8"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="../Sample/Graphik/ulineedit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uLineEdit"/>
+      </Unit27>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
