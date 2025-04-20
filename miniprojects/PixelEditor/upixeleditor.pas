@@ -75,6 +75,7 @@ Const
    *                   ADD: more key commands
    *                   ADD: Color curve feature
    *                   FIX: "Pic color" -> "Pick color"
+   *                   ADD: CTRL+X
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -270,7 +271,8 @@ Type
     Function SaveTImage(Const Image: TPixelImage; Const aFilename: String): Boolean;
 
     Procedure PasteImageFromClipboard;
-    Procedure CopySelectionToClipboard;
+    Procedure CopyImageToClipboard;
+    Procedure CutImageToClipboard;
     Procedure EditImageSelectionProperties;
     Procedure CutSubimageFromImageToSelection;
     Procedure PasteSubimageFromSelectionToImage;
@@ -644,7 +646,7 @@ Begin
   If (key = VK_G) And (ssCtrl In Shift) Then GridButton.Click;
   If (key = VK_SUBTRACT) And (shift = []) Then ZoomOutButton.Click;
   If (key = VK_ADD) And (shift = []) Then ZoomInButton.Click;
-  If (key = VK_X) And (ssCtrl In Shift) Then ColorMonochronButton.click;
+  If (key = VK_X) And (Shift = []) Then ColorMonochronButton.click;
   If (key = VK_O) And (ssCtrl In Shift) Then OptionsButton.Click;
   If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
 
@@ -664,8 +666,9 @@ Begin
     SelectTool(tPen);
     SelectTool(tSelect);
   End;
-  If (key = VK_C) And (ssCtrl In Shift) Then CopySelectionToClipboard;
+  If (key = VK_C) And (ssCtrl In Shift) Then CopyImageToClipboard;
   If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
+  If (key = VK_X) And (ssCtrl In Shift) Then CutImageToClipboard;
   If fCursor.Select.aSet And (shift = []) Then Begin
     If key = VK_RIGHT Then Begin
       fCursor.Select.br.X := fCursor.Select.br.X + 1;
@@ -2105,7 +2108,7 @@ Begin
   End;
 End;
 
-Procedure TPixelEditor.CopySelectionToClipboard;
+Procedure TPixelEditor.CopyImageToClipboard;
 Var
   b: TBitmap;
 Begin
@@ -2120,6 +2123,27 @@ Begin
     End;
     Clipboard.Assign(b);
     b.free;
+  End;
+End;
+
+Procedure TPixelEditor.CutImageToClipboard;
+Begin
+  // 1. Kopieren
+  CopyImageToClipboard;
+  // 2. Wenn das erfolgreich war -> "löschen"
+  If form4.ModalResult = mrOK Then Begin
+    If (fCursor.Tool = tSelect) And fCursor.Select.aSet Then Begin
+      fCursor.Select.aSet := false; // Wir verwerfen die Aktuelle Auswahl
+    End
+    Else Begin
+      // Wir haben das gesamte Bild "gelöscht"
+      fCursor.Select.tl := point(0, 0);
+      fCursor.Select.br := point(fImage.Width - 1, fImage.Height - 1);
+      CutSubimageFromImageToSelection();
+      EraserButton.Style := bsLowered;
+      EraserButton.Click;
+      PencilButton.Click;
+    End;
   End;
 End;
 
