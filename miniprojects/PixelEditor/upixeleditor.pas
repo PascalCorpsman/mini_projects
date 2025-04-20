@@ -636,100 +636,37 @@ Begin
     End;
     exit;
   End;
-  (*
-   * Die Keycommands sind so gut es geht an https://www.aseprite.org/quickref/
-   * angelehnt, aber nicht alles konnte übernommen werden ..
-   *)
-
-  // CTRL + ?
-  If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
-  If (key = VK_C) And (ssCtrl In Shift) Then Begin
-    CopySelectionToClipboard;
-    exit;
-  End;
-  If (key = VK_E) And (ssCtrl In Shift) Then Begin
-    EditImageSelectionProperties;
-    exit;
-  End;
-  If (key = VK_L) And (ssCtrl In Shift) Then OpenButton.Click;
+  // 1. Reihe
   If (key = VK_N) And (ssCtrl In Shift) Then NewButton.Click;
-  If (key = VK_O) And (ssCtrl In Shift) Then Begin
-    OptionsButton.Click;
-    exit;
-  End;
+  If (key = VK_L) And (ssCtrl In Shift) Then OpenButton.Click;
   If (key = VK_S) And (ssCtrl In Shift) Then SaveButton.Click;
-  If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
+  // ALT + F4 -> Global benötigt kein Extra Key handler
+  If (key = VK_G) And (ssCtrl In Shift) Then GridButton.Click;
+  If (key = VK_SUBTRACT) And (shift = []) Then ZoomOutButton.Click;
+  If (key = VK_ADD) And (shift = []) Then ZoomInButton.Click;
+  If (key = VK_X) And (ssCtrl In Shift) Then ColorMonochronButton.click;
+  If (key = VK_O) And (ssCtrl In Shift) Then OptionsButton.Click;
   If (key = VK_Z) And (ssCtrl In shift) Then UndoButton.Click;
-  If (key = {$IFDEF Windows}$DD{$ELSE}$92{$ENDIF} {´}) And (ssCtrl In shift) Then GridButton.Click;
 
-  // SHIFT + ?
-  If (key = VK_D) And (ssShift In Shift) Then Begin
-    BrightenButton.Click;
-    exit;
-  End;
-  If (key = VK_H) And (ssShift In Shift) Then Begin
-    SelectMirrorHorButton.Click;
-    exit;
-  End;
-  If (key = VK_U) And (ssShift In Shift) Then Begin
-    CircleButton.Click;
-    exit;
-  End;
-  If (key = VK_V) And (ssShift In Shift) Then Begin
-    SelectMirrorVerButton.Click;
-    exit;
-  End;
+  If (key = VK_E) And (ssCtrl In Shift) Then EditImageSelectionProperties;
 
-  // ?
-  If (key = VK_ADD) Then ZoomInButton.Click;
-  If (key = VK_B) Then PencilButton.Click;
-  If (key = VK_BACK) Or (key = VK_DELETE) Then EraserButton.click;
-  If (key = VK_D) Then DarkenButton.Click;
-  If (key = VK_E) Then EraserButton.Click;
-  If (key = VK_ESCAPE) And (fCursor.Tool = tSelect) Then Begin
-    SelectTool(tPen); // Abwählen des evtl. gewählten Bereichs
+  // Tools
+  If (key = VK_A) And (ssCtrl In Shift) Then SelectAll;
+  If (key = VK_S) And (shift = []) Then SelectButton.Click;
+  If SelectButton.Style = bsRaised Then Begin
+    If (key = VK_R) And (ssShift In Shift) Then SelectRotateCounterClockwise90.Click;
+    If (key = VK_H) And (ssShift In Shift) Then SelectMirrorHorButton.Click;
+    If (key = VK_V) And (ssShift In Shift) Then SelectMirrorVerButton.Click;
+    If (key = VK_A) And (ssShift In Shift) Then SelectRotateAngle.Click;
+    If (key = VK_M) And (ssShift In Shift) Then SelectModeButton.Click;
+  End;
+  If (key = VK_ESCAPE) And (shift = []) And (fCursor.Tool = tSelect) Then Begin // Abwählen des evtl. gewählten Bereichs
+    SelectTool(tPen);
     SelectTool(tSelect);
   End;
-  If (key = VK_F) And FilledButton.Visible Then FilledButton.Click;
-  If (key = VK_G) Then FloodFillButton.Click;
-  If (key = VK_I) Then PipetteButton.Click;
-  If (key = VK_L) Then LineButton.Click;
-  If (key = VK_O) And OutlineButton.Visible Then OutlineButton.Click;
-  If (key = VK_R) Then SelectRotateCounterClockwise90.Click;
-  If (key = VK_SUBTRACT) Then ZoomOutButton.Click;
-  If (key = VK_S) Then SelectButton.Click;
-  If (key = VK_U) Then SquareButton.Click;
-  If (key = VK_X) Then ColorMonochronButton.click;
-
-  If MirrorButton.Style = bsRaised Then Begin
-    If (key = VK_M) And (ssShift In Shift) Then Begin
-      MirrorButton.Click;
-      exit;
-    End;
-    If key = VK_M Then Begin
-      If Mirror4Button.Style = bsRaised Then Begin
-        MirrorVertButton.Click;
-      End
-      Else Begin
-        If MirrorVertButton.Style = bsRaised Then Begin
-          MirrorHorButton.Click;
-        End
-        Else Begin
-          Mirror4Button.Click;
-        End;
-      End;
-    End;
-    If (key = VK_C) Then MirrorCenterButton.Click;
-  End
-  Else Begin
-    If (key = VK_M) Then Begin
-      MirrorButton.Click;
-      MirrorVertButton.Click;
-      If MirrorCenterButton.Style = bsRaised Then MirrorCenterButton.Click;
-    End;
-  End;
-
-  If fCursor.Select.aSet Then Begin
+  If (key = VK_C) And (ssCtrl In Shift) Then CopySelectionToClipboard;
+  If (key = VK_V) And (ssCtrl In Shift) Then PasteImageFromClipboard;
+  If fCursor.Select.aSet And (shift = []) Then Begin
     If key = VK_RIGHT Then Begin
       fCursor.Select.br.X := fCursor.Select.br.X + 1;
       fCursor.Select.tl.X := fCursor.Select.tl.X + 1;
@@ -747,6 +684,80 @@ Begin
       fCursor.Select.tl.y := fCursor.Select.tl.y + 1;
     End;
   End;
+
+  If (key = VK_B) And (shift = []) Then BrightenButton.Click;
+  If (key = VK_D) And (shift = []) Then DarkenButton.Click;
+
+  If (key = VK_1) And (shift = []) Then CurserSize1.Click;
+  If (key = VK_2) And (shift = []) Then CurserSize2.Click;
+  If (key = VK_3) And (shift = []) Then CurserSize3.Click;
+  If (key = VK_4) And (shift = []) Then CurserSize4.Click;
+
+  If ((key = VK_BACK) Or (key = VK_DELETE)) And (shift = []) Then EraserButton.Click;
+
+  If (key = VK_1) And (ssShift In Shift) Then CursorRoundShape1.Click;
+  If (key = VK_2) And (ssShift In Shift) Then CursorSquareShape1.Click;
+  If (key = VK_3) And (ssShift In Shift) Then CursorRoundShape2.Click;
+  If (key = VK_4) And (ssShift In Shift) Then CursorSquareShape2.Click;
+  If (key = VK_5) And (ssShift In Shift) Then CursorRoundShape3.Click;
+  If (key = VK_6) And (ssShift In Shift) Then CursorSquareShape3.Click;
+
+  If (key = VK_P) And (shift = []) Then PencilButton.Click;
+  If (key = VK_L) And (shift = []) Then LineButton.Click;
+  If (key = VK_E) And (shift = []) Then CircleButton.Click;
+  If (key = VK_R) And (shift = []) Then SquareButton.Click;
+
+  If (SquareButton.Style = bsRaised) Or
+    (CircleButton.Style = bsRaised) Then Begin
+    If (key = VK_F) And (shift = []) Then FilledButton.Click;
+    If (key = VK_O) And (shift = []) Then OutlineButton.Click;
+  End;
+
+  If MirrorButton.Style = bsRaised Then Begin
+    If (key = VK_M) And (ssShift In Shift) Then Begin
+      MirrorButton.Click;
+      exit;
+    End;
+    If (key = VK_M) And (shift = []) Then Begin
+      If Mirror4Button.Style = bsRaised Then Begin
+        MirrorVertButton.Click;
+      End
+      Else Begin
+        If MirrorVertButton.Style = bsRaised Then Begin
+          MirrorHorButton.Click;
+        End
+        Else Begin
+          Mirror4Button.Click;
+        End;
+      End;
+    End;
+    If (key = VK_C) And (shift = []) Then MirrorCenterButton.Click;
+  End
+  Else Begin
+    If (key = VK_M) And (shift = []) Then Begin
+      MirrorButton.Click;
+      MirrorVertButton.Click;
+      If MirrorCenterButton.Style = bsRaised Then MirrorCenterButton.Click;
+    End;
+  End;
+
+  If (key = VK_B) And (ssShift In Shift) Then FloodFillButton.Click;
+  If (SelectButton.Style = bsRaised) Or
+    (FloodFillButton.Style = bsRaised) Then Begin
+    If (key = VK_T) And (shift = []) Then FloodFillModeButton.click;
+  End;
+  If (key = VK_I) And (shift = []) Then PipetteButton.Click;
+  If (key = VK_U) And (shift = []) Then ColorCurveButton.OnClick(ColorCurveButton);
+
+  // Farb Felder
+  If (key = VK_1) And (ssCtrl In Shift) Then Color1.OnClick(Color1);
+  If (key = VK_2) And (ssCtrl In Shift) Then Color2.OnClick(Color2);
+  If (key = VK_3) And (ssCtrl In Shift) Then Color3.OnClick(Color3);
+  If (key = VK_4) And (ssCtrl In Shift) Then Color4.OnClick(Color4);
+  If (key = VK_5) And (ssCtrl In Shift) Then Color5.OnClick(Color5);
+  If (key = VK_6) And (ssCtrl In Shift) Then Color6.OnClick(Color6);
+  If (key = VK_7) And (ssCtrl In Shift) Then Color7.OnClick(Color7);
+  If (key = VK_8) And (ssCtrl In Shift) Then Color8.OnClick(Color8);
 
   fCursor.Shift := ssShift In Shift;
 End;
@@ -970,45 +981,13 @@ End;
 Procedure TPixelEditor.OpenGLControlMouseWheelDown(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
 Begin
-  If (ssShift In shift) And (fCursor.Tool In [tEraser, tPen, tLine, tEllipse, tRectangle, tMirror]) Then Begin
-    If CurserSize2.Style = bsRaised Then CurserSize1.Click;
-    If CurserSize3.Style = bsRaised Then CurserSize2.Click;
-    If CurserSize4.Style = bsRaised Then CurserSize3.Click;
-  End
-  Else Begin
-    If (ssCtrl In shift) And (fCursor.Tool In [tEraser, tPen, tLine, tEllipse, tRectangle, tMirror]) Then Begin
-      If CursorRoundShape2.Style = bsRaised Then CursorRoundShape1.Click;
-      If CursorRoundShape3.Style = bsRaised Then CursorRoundShape2.Click;
-      If CursorSquareShape1.Style = bsRaised Then CursorRoundShape3.Click;
-      If CursorSquareShape2.Style = bsRaised Then CursorSquareShape1.Click;
-      If CursorSquareShape3.Style = bsRaised Then CursorSquareShape2.Click;
-    End
-    Else Begin
-      Zoom(true);
-    End;
-  End;
+  Zoom(true);
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseWheelUp(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
 Begin
-  If (ssShift In shift) And (fCursor.Tool In [tEraser, tPen, tLine, tEllipse, tRectangle, tMirror]) Then Begin
-    If CurserSize3.Style = bsRaised Then CurserSize4.Click;
-    If CurserSize2.Style = bsRaised Then CurserSize3.Click;
-    If CurserSize1.Style = bsRaised Then CurserSize2.Click;
-  End
-  Else Begin
-    If (ssCtrl In shift) And (fCursor.Tool In [tEraser, tPen, tLine, tEllipse, tRectangle, tMirror]) Then Begin
-      If CursorSquareShape2.Style = bsRaised Then CursorSquareShape3.Click;
-      If CursorSquareShape1.Style = bsRaised Then CursorSquareShape2.Click;
-      If CursorRoundShape3.Style = bsRaised Then CursorSquareShape1.Click;
-      If CursorRoundShape2.Style = bsRaised Then CursorRoundShape3.Click;
-      If CursorRoundShape1.Style = bsRaised Then CursorRoundShape2.Click;
-    End
-    Else Begin
-      Zoom(false);
-    End;
-  End;
+  Zoom(false);
 End;
 
 Procedure TPixelEditor.OnSaveColorPaletteButtonClick(Sender: TObject);
