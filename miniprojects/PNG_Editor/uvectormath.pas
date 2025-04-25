@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uvectormat.pas                                                  12.11.2014 *)
 (*                                                                            *)
-(* Version     : 0.18                                                         *)
+(* Version     : 0.19                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -60,6 +60,7 @@
 (*                     TMatrix3x3.getInverse, TMatrix2x2.getInverse           *)
 (*                    InvertMatrix2 for TMatrix4x4, TMatrix2x2                *)
 (*               0.18 CalculatePlumbFootPoint                                 *)
+(*               0.19 Convolve                                                *)
 (*                                                                            *)
 (******************************************************************************)
 Unit uvectormath;
@@ -579,6 +580,14 @@ Function LeastSquares(Points: TVector2Array; Grade: integer): TVectorN;
 // an der Stelle x
 // Die Koeffizienten von a werden als Vector übergben
 Function CalculatePolynom(x: TBaseType; Const a: TVectorN): TBaseType;
+
+// Faltet 2 Vectoren mit einander und gibt das Ergebnis zurück, Achtung,
+// hier wird die "ineffiziente" Quadratische Faltung verwendet,
+// also die Vectoren lieber nicht zu groß machen!
+// Es gibt auch noch die Variante, bei der man zuerst die beiden Vektoren
+// durch eine FFT jagt, dann komponentenweise multipliziert und dann wieder
+// zurück transformiert, das ist bei Großen Vektoren tatsächlich schneller (siehe hier: https://www.youtube.com/watch?v=KuXjwB4LzSA )
+Function Convolve(Const a, b: tvectorN): TVectorN;
 
 Implementation
 
@@ -3299,6 +3308,21 @@ Begin
   For i := 1 To high(a) Do Begin
     result := result + xx * a[i];
     xx := xx * x;
+  End;
+End;
+
+Function Convolve(Const a, b: tvectorN): TVectorN;
+Var
+  i, j: Integer;
+Begin
+  result := Nil;
+  setlength(result, length(a) + length(b) - 1);
+  For i := 0 To High(Result) Do Begin
+    Result[i] := 0;
+    For j := 0 To High(a) Do Begin
+      If (i - j >= 0) And (i - j <= High(b)) Then
+        Result[i] := Result[i] + a[j] * b[i - j];
+    End;
   End;
 End;
 

@@ -61,6 +61,10 @@ Uses
   math // max, min, arctan2
   ;
 
+Const
+  AlphaOpaque = 0;
+  AlphaTranslucent = 255;
+
 Type
   TInterpolationMode = (
     imNone, // Keine Interpolierung die Koordinaten werden immer auf trunc und dann direkt ausgegen => nur Sinnvoll bei 1:1 Abtastungen da sonst bildfehler entstehen können
@@ -104,7 +108,7 @@ Function Color565ToRGB(value: Word): TRGB; // Wandelt eine 2Byte Farbe in eine 3
 Function RGB(r, g, b: Byte): TRGB;
 Function RGBA(R, G, B, A: Byte): TRGBA;
 Function ColorToRGB(c: TColor): TRGB;
-Function ColorToRGBA(c: TColor; AlphaValue: byte = 0): TRGBA;
+Function ColorToRGBA(c: TColor; AlphaValue: byte = AlphaOpaque): TRGBA;
 Function RGBToColor(rgb: TRGB): TColor;
 Function RGBAToColor(rgba: TRGBA): TColor;
 Function FPColorToColor(Const Color: TFPColor): TColor; // Wandelt eine FPColor in TColor um
@@ -531,7 +535,7 @@ End;
 
 Function RGBAtoLuminanz(Value: TRGBA): Byte;
 Begin
-   //Y = 0.3R + 0.59G + 0.11B
+  //Y = 0.3R + 0.59G + 0.11B
   result := min(255, max(0,
     round(
     value.R * 0.3 +

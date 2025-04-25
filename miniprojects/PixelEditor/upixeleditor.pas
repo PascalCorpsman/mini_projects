@@ -76,7 +76,7 @@ Const
    *                   ADD: Color curve feature
    *                   FIX: "Pic color" -> "Pick color"
    *                   ADD: CTRL+X
-   *            0.12 -
+   *            0.12 - ADD: Convolute button
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -169,6 +169,7 @@ Type
     FloodFillModeButton: TOpenGL_Bevel;
     PipetteButton: TOpenGL_Bevel;
     ColorCurveButton: TOpenGl_Image;
+    ConvoluteButton: TOpenGl_Image;
 
     // Menüleiste unten
     ColorPicDialog: TOpenGL_ColorPicDialog;
@@ -222,6 +223,7 @@ Type
     Procedure OnPipetteButtonClick(Sender: TObject);
 
     Procedure OnColorCurveButton(Sender: TObject);
+    Procedure OnConvoluteButton(Sender: TObject);
 
     Procedure OnColorClick(Sender: TObject);
     Procedure OnColorDblClick(Sender: TObject);
@@ -321,6 +323,7 @@ Uses
   , unit6 // Resize Scale
   , unit7 // Rotate
   , Unit8 // Color transfer function
+  , unit9 // Convolute function
   ;
 
 { TPixelEditor }
@@ -1030,7 +1033,7 @@ Begin
       m.free;
       exit;
     End;
-    c := rgba(0, 0, 0, 0);
+    c := rgba(0, 0, 0, AlphaOpaque);
     m.Read(c, sizeof(C));
     Color1.Color := c;
     m.Read(c, sizeof(C));
@@ -1271,12 +1274,34 @@ Begin
   End;
   s := ColorCurveButton.Hint;
   ColorCurveButton.Hint := '';
+  ColorPicDialog.Visible := false;
   form8.ShowModal;
   // If Cancel, restore image from before..
   If form8.ModalResult <> mrOK Then Begin
     form8.faImage.CloneFrom(form8.fBackupImage);
   End;
   ColorCurveButton.Hint := s;
+End;
+
+Procedure TPixelEditor.OnConvoluteButton(Sender: TObject);
+Var
+  s: String;
+Begin
+  If (fCursor.Tool = tSelect) And (fCursor.Select.aSet) Then Begin
+    If Not form9.Init(TPixelImage(fCursor.Select.Data)) Then exit;
+  End
+  Else Begin
+    If Not form9.Init(fImage) Then exit;
+  End;
+  s := ConvoluteButton.Hint;
+  ConvoluteButton.Hint := '';
+  ColorPicDialog.Visible := false;
+  form9.ShowModal;
+  // If Cancel, restore image from before..
+  If form9.ModalResult <> mrOK Then Begin
+    form9.faImage.CloneFrom(form9.fBackupImage);
+  End;
+  ConvoluteButton.Hint := s;
 End;
 
 Procedure TPixelEditor.LoadColorDialogColor(Sender: TObject);
@@ -2229,7 +2254,7 @@ Begin
           exit;
         End;
         If LoadedFileVersion >= 2 Then Begin
-          c := RGBA(0, 0, 0, 255);
+          c := RGBA(0, 0, 0, AlphaTranslucent);
           m.Read(C, sizeof(C));
           color1.Color := c;
           m.Read(C, sizeof(C));
@@ -2431,7 +2456,7 @@ Begin
             255 - c.r,
             255 - c.g,
             255 - c.b,
-            0));
+            AlphaOpaque));
         End;
       End;
     End;
@@ -2452,7 +2477,7 @@ Begin
       For j := 0 To img.Height - 1 Do Begin
         If img.GetColorAt(i, j) <> upixeleditor_types.ColorTransparent Then Begin
           l := ColortoLuminanz(RGBAToColor(img.GetColorAt(i, j)));
-          img.SetColorAt(i, j, rgba(l, l, l, 0));
+          img.SetColorAt(i, j, rgba(l, l, l, AlphaOpaque));
         End;
       End;
     End;
