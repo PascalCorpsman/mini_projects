@@ -53,7 +53,10 @@ Const
   ScreenWidth = 640;
   ScreenHeight = 480;
 
-  ColorTransparent: TRGBA = (r: 0; g: 0; b: 0; a: 255);
+  AlphaOpaque = 0;
+  AlphaTranslucent = 255;
+
+  ColorTransparent: TRGBA = (r: 0; g: 0; b: 0; a: AlphaTranslucent);
 
   // Beim Rendern der "Transparent" kachel werden diese beiden Farben benötigt.
   TransparentBrightLuminance = 180;
@@ -169,6 +172,19 @@ Type
   TScrollInfo = Record
     GlobalXOffset, GlobalYOffset: integer; // In ScreenKoordinaten
     ScrollPos: Tpoint; // In ScreenKoordinaten
+  End;
+
+  TChannel = (cR, cG, cB);
+
+  TChannels = Set Of TChannel;
+
+  TConvolution = Record
+    Name: String; // Name des Filters, keine Funktion
+    w, h: integer; // Dimension des Filters
+    cx, cy: integer; // Center von Data
+    data: Array Of Array Of Integer; // Filter Daten
+    _div: integer; // Scallierung nachdem die Pixel via data aufgesammelt wurden
+    bias: integer; // Offset dass nach der Scallierung Addiert wird
   End;
 
   TSettings = Record

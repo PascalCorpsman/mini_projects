@@ -86,6 +86,7 @@ Type
     Procedure FloodFill(SourceColor: TRGBA; aPos: TPoint; Toleranz: integer; Callback: TPixelCallback);
 
     Procedure MapColors(Const ColorMap: TMapColor); // Wendet ColorMap auf jedes Pixel <> Transparent an
+    Procedure Convolute(Const Convolution: TConvolution; Const Channels: TChannels);
   End;
 
 Implementation
@@ -150,6 +151,73 @@ Begin
       If c <> ColorTransparent Then Begin
         SetColorAt(i, j, ColorMap(c));
       End;
+    End;
+  End;
+  EndUpdate;
+End;
+
+Procedure TPixelImage.Convolute(Const Convolution: TConvolution;
+  Const Channels: TChannels);
+
+  Function fold(x, y: integer): TRGBA;
+  Var
+    i, j, px, py: Integer;
+    a, r, g, b: integer;
+    c: TRGBA;
+  Begin
+    result := GetColorAt(x, y);
+    If Convolution._div <> 0 Then Begin // Bei Div = 0 wird der Filter deactiviert!
+      r := 0;
+      g := 0;
+      b := 0;
+      a := AlphaTranslucent;
+      For i := 0 To Convolution.w - 1 Do Begin
+        For j := 0 To Convolution.h - 1 Do Begin
+          px := x + i - Convolution.cx;
+          py := y + j - Convolution.cy;
+          If (px >= 0) And (px < Width) And
+            (py >= 0) And (py < Height) Then Begin // GGF könnte man hier noch verschiedene Modi unterstützen ?
+            c := GetColorAt(px, py);
+            If c <> upixeleditor_types.ColorTransparent Then Begin
+              r := r + c.R * Convolution.data[i, j];
+              g := g + c.G * Convolution.data[i, j];
+              b := b + c.B * Convolution.data[i, j];
+              a := AlphaOpaque;
+            End;
+          End;
+        End;
+      End;
+      If TChannel.cR In Channels Then Begin
+        result.r := clamp(r Div Convolution._div + Convolution.bias, 0, 255);
+        result.a := a;
+      End;
+      If TChannel.cg In Channels Then Begin
+        result.g := clamp(g Div Convolution._div + Convolution.bias, 0, 255);
+        result.a := a;
+      End;
+      If TChannel.cb In Channels Then Begin
+        result.b := clamp(b Div Convolution._div + Convolution.bias, 0, 255);
+        result.a := a;
+      End;
+    End;
+  End;
+Var
+  tmp: TPixelArea;
+  i, j: Integer;
+Begin
+  BeginUpdate;
+  tmp := Nil;
+  setlength(tmp, Width, Height);
+  // 1. Faltung Berechnen
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      tmp[i, j] := Fold(i, j);
+    End;
+  End;
+  // 2. Faltung übernehmen
+  For i := 0 To Width - 1 Do Begin
+    For j := 0 To Height - 1 Do Begin
+      SetColorAt(i, j, tmp[i, j]);
     End;
   End;
   EndUpdate;

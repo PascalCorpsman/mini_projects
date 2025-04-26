@@ -1,0 +1,91 @@
+object Form9: TForm9
+  Left = 338
+  Height = 125
+  Top = 118
+  Width = 271
+  Caption = 'Form9'
+  ClientHeight = 125
+  ClientWidth = 271
+  Color = clGray
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object ComboBox1: TComboBox
+    Left = 8
+    Height = 26
+    Top = 16
+    Width = 251
+    Color = clGray
+    Font.Color = clSilver
+    ItemHeight = 0
+    ItemIndex = 2
+    Items.Strings = (
+      'PixelEditor'
+      'Windows BMP'
+      'Portable Network Graphik PNG'
+    )
+    ParentFont = False
+    Style = csDropDownList
+    TabOrder = 0
+    Text = 'Portable Network Graphik PNG'
+    OnChange = SpeedButton1Click
+  end
+  object SpeedButton1: TSpeedButton
+    Left = 8
+    Height = 25
+    Top = 48
+    Width = 75
+    AllowAllUp = True
+    Caption = 'R'
+    Down = True
+    GroupIndex = 1
+    OnClick = SpeedButton1Click
+  end
+  object SpeedButton2: TSpeedButton
+    Left = 96
+    Height = 25
+    Top = 48
+    Width = 75
+    AllowAllUp = True
+    Caption = 'G'
+    Down = True
+    GroupIndex = 2
+    OnClick = SpeedButton1Click
+  end
+  object SpeedButton3: TSpeedButton
+    Left = 184
+    Height = 25
+    Top = 48
+    Width = 75
+    AllowAllUp = True
+    Caption = 'B'
+    Down = True
+    GroupIndex = 3
+    OnClick = SpeedButton1Click
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 88
+    Width = 89
+    Caption = 'Cancel'
+    Color = clGray
+    Font.Color = clSilver
+    ModalResult = 2
+    ParentFont = False
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 170
+    Height = 25
+    Top = 88
+    Width = 89
+    Caption = 'OK'
+    Color = clGray
+    Font.Color = clSilver
+    ModalResult = 1
+    ParentFont = False
+    TabOrder = 2
+  end
+end

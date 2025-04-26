@@ -133,7 +133,7 @@ If set the background image will always be scaled to the image dimensions.
 
 ## Color curve menu
 
-Manipulate the colors of selection or the whole image
+Manipulate the colors of selection or the whole image.
 
 ![](colorcurve.png)
 
@@ -145,3 +145,14 @@ on the curve editor on the left side.
 
 ### pro tip
 > the .curve files can be edited via a text editor
+
+## Color convolute
+
+Manipulate the colors of selection or the whole image with a convolution matrix.
+
+![](convolut.png)
+
+### pro tip
+> the convmatr.def file can be edited via a text editor
+
+> convmatr.def is loaded from [here](https://github.com/aseprite/aseprite/blob/main/data/convmatr.def)

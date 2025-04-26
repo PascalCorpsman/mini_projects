@@ -327,8 +327,8 @@ Begin
   IgnoreDepthtest := false;
   fStyle := bsLowered;
   fmDown := false;
-  RaisedColor := RGBA($FF, $FF, 0, 0);
-  LoweredColor := RGBA(0, 0, 0, 0);
+  RaisedColor := RGBA($FF, $FF, 0, AlphaOpaque);
+  LoweredColor := RGBA(0, 0, 0, AlphaOpaque);
 End;
 
 { TOpenGL_ToggleButton }
@@ -482,9 +482,9 @@ End;
 Constructor TOpenGL_ColorBox.Create(aOwner: TOpenGLControl);
 Begin
   Inherited Create(aOwner);
-  fColor := RGBA(0, 0, 0, 0);
-  RaisedColor := RGBA($FF, $FF, 0, 0);
-  LoweredColor := RGBA(0, 0, 0, 0);
+  fColor := RGBA(0, 0, 0, AlphaOpaque);
+  RaisedColor := RGBA($FF, $FF, 0, AlphaOpaque);
+  LoweredColor := RGBA(0, 0, 0, AlphaOpaque);
   IgnoreDepthtest := false;
 End;
 
@@ -563,8 +563,8 @@ End;
 Constructor TOpenGL_ForeBackGroundColorBox.Create(aOwner: TOpenGLControl);
 Begin
   Inherited Create(aOwner);
-  FrontColor := RGBA(0, 0, 0, 0);
-  BackColor := RGBA(1, 1, 1, 0);
+  FrontColor := RGBA(0, 0, 0, AlphaOpaque);
+  BackColor := RGBA(1, 1, 1, AlphaOpaque);
   IgnoreDepthtest := false;
 End;
 
@@ -646,8 +646,8 @@ Begin
   Inherited Create(aOwner, FontFile);
   Layout := tlTop;
   Alignment := taLeftJustify;
-  BorderColor := RGBA(0, 0, 0, 0);
-  BackColor := RGBA(0, 0, 0, 255);
+  BorderColor := RGBA(0, 0, 0, AlphaOpaque);
+  BackColor := RGBA(0, 0, 0, AlphaTranslucent);
   IgnoreDepthtest := false;
 End;
 
@@ -696,7 +696,7 @@ End;
 Constructor TPlus.Create(aOwner: TOpenGLControl);
 Begin
   Inherited Create(aOwner);
-  Color := RGBA(0, 0, 0, 0);
+  Color := RGBA(0, 0, 0, AlphaOpaque);
   Target := Nil;
   Delta.r := 0;
   Delta.g := 0;
@@ -900,7 +900,8 @@ Begin
     fShower.Color := RGBA(
       min(255, max(0, round(fPicColorButton.FontColor.x * 255))),
       min(255, max(0, round(fPicColorButton.FontColor.y * 255))),
-      min(255, max(0, round(fPicColorButton.FontColor.z * 255))), 0);
+      min(255, max(0, round(fPicColorButton.FontColor.z * 255))),
+      AlphaOpaque);
     OnSetColor(fShower);
   End;
   fShower := Nil;
@@ -930,7 +931,7 @@ Begin
     c := fColorTableRaw.Canvas.Pixels[x, y];
   End;
   If c <> clBlack Then Begin
-    ApplyColor(ColorToRGBA(c, 0));
+    ApplyColor(ColorToRGBA(c, AlphaOpaque));
   End;
 End;
 
@@ -1040,128 +1041,128 @@ Begin
   fPicColorButton.Layout := tlCenter;
   fPicColorButton.Alignment := taCenter;
   fPicColorButton.OnClick := @OnPicColorClick;
-  fPicColorButton.BorderColor := rgba(192, 192, 192, 0);
-  fPicColorButton.BackColor := rgba(128, 128, 128, 0);
+  fPicColorButton.BorderColor := rgba(192, 192, 192, AlphaOpaque);
+  fPicColorButton.BackColor := rgba(128, 128, 128, AlphaOpaque);
 
   fColorInfo.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
   fShower := Nil;
   OnSetColor := Nil;
 
-  fBlack.RaisedColor := RGBA(192, 192, 192, 0);
-  fBlack.LoweredColor := RGBA(192, 192, 192, 0);
+  fBlack.RaisedColor := RGBA(192, 192, 192, AlphaOpaque);
+  fBlack.LoweredColor := RGBA(192, 192, 192, AlphaOpaque);
   fBlack.Height := 18;
   fBlack.Width := 18;
-  fBlack.Color := RGBA(0, 0, 0, 0);
+  fBlack.Color := RGBA(0, 0, 0, AlphaOpaque);
   fBlack.OnClick := @OnColorClick;
   fBlack.OnDblClick := @OnColorDBLClick;
 
-  fDarken.RaisedColor := RGBA(192, 192, 192, 0);
-  fDarken.LoweredColor := RGBA(192, 192, 192, 0);
+  fDarken.RaisedColor := RGBA(192, 192, 192, AlphaOpaque);
+  fDarken.LoweredColor := RGBA(192, 192, 192, AlphaOpaque);
   fDarken.Height := 18;
   fDarken.Width := 18;
   fDarken.OnClick := @OnColorClick;
   fDarken.OnDblClick := @OnColorDBLClick;
 
-  fRed.RaisedColor := RGBA(192, 192, 192, 0);
-  fRed.LoweredColor := RGBA(192, 192, 192, 0);
+  fRed.RaisedColor := RGBA(192, 192, 192, AlphaOpaque);
+  fRed.LoweredColor := RGBA(192, 192, 192, AlphaOpaque);
   fRed.Height := 18;
   fRed.Width := 18;
   fRed.OnClick := @OnColorClick;
   fRed.OnDblClick := @OnColorDBLClick;
 
-  fGreen.RaisedColor := RGBA(192, 192, 192, 0);
-  fGreen.LoweredColor := RGBA(192, 192, 192, 0);
+  fGreen.RaisedColor := RGBA(192, 192, 192, AlphaOpaque);
+  fGreen.LoweredColor := RGBA(192, 192, 192, AlphaOpaque);
   fGreen.Height := 18;
   fGreen.Width := 18;
   fGreen.OnClick := @OnColorClick;
   fGreen.OnDblClick := @OnColorDBLClick;
 
-  fBlue.RaisedColor := RGBA(192, 192, 192, 0);
-  fBlue.LoweredColor := RGBA(192, 192, 192, 0);
+  fBlue.RaisedColor := RGBA(192, 192, 192, AlphaOpaque);
+  fBlue.LoweredColor := RGBA(192, 192, 192, AlphaOpaque);
   fBlue.Height := 18;
   fBlue.Width := 18;
   fBlue.OnClick := @OnColorClick;
   fBlue.OnDblClick := @OnColorDBLClick;
 
-  fBrighten.RaisedColor := RGBA(192, 192, 192, 0);
-  fBrighten.LoweredColor := RGBA(192, 192, 192, 0);
+  fBrighten.RaisedColor := RGBA(192, 192, 192, AlphaOpaque);
+  fBrighten.LoweredColor := RGBA(192, 192, 192, AlphaOpaque);
   fBrighten.Height := 18;
   fBrighten.Width := 18;
   fBrighten.OnClick := @OnColorClick;
   fBrighten.OnDblClick := @OnColorDBLClick;
 
-  fWhite.RaisedColor := RGBA(192, 192, 192, 0);
-  fWhite.LoweredColor := RGBA(192, 192, 192, 0);
+  fWhite.RaisedColor := RGBA(192, 192, 192, AlphaOpaque);
+  fWhite.LoweredColor := RGBA(192, 192, 192, AlphaOpaque);
   fWhite.Height := 18;
   fWhite.Width := 18;
-  fWhite.Color := RGBA(255, 255, 255, 0);
+  fWhite.Color := RGBA(255, 255, 255, AlphaOpaque);
   fWhite.OnClick := @OnColorClick;
   fWhite.OnDblClick := @OnColorDBLClick;
 
-  fDarkenMinus.Color := RGBA(0, 0, 0, 0);
+  fDarkenMinus.Color := RGBA(0, 0, 0, AlphaOpaque);
   fDarkenMinus.Height := 18;
   fDarkenMinus.Width := 17;
   fDarkenMinus.Delta := delta(15, 15, 15);
   fDarkenMinus.Target := fDarken;
   fDarkenMinus.OnUpdate := @ApplyColor;
 
-  fRedMinus.Color := RGBA(255, 0, 0, 0);
+  fRedMinus.Color := RGBA(255, 0, 0, AlphaOpaque);
   fRedMinus.Height := 18;
   fRedMinus.Width := 17;
   fRedMinus.Delta := delta(-15, 0, 0);
   fRedMinus.Target := fRed;
   fRedMinus.OnUpdate := @ApplyColor;
 
-  fGreenMinus.Color := RGBA(0, 255, 0, 0);
+  fGreenMinus.Color := RGBA(0, 255, 0, AlphaOpaque);
   fGreenMinus.Height := 18;
   fGreenMinus.Width := 17;
   fGreenMinus.Delta := delta(0, -15, 0);
   fGreenMinus.Target := fGreen;
   fGreenMinus.OnUpdate := @ApplyColor;
 
-  fBlueMinus.Color := RGBA(0, 0, 255, 0);
+  fBlueMinus.Color := RGBA(0, 0, 255, AlphaOpaque);
   fBlueMinus.Height := 18;
   fBlueMinus.Width := 17;
   fBlueMinus.Delta := delta(0, 0, -15);
   fBlueMinus.Target := fBlue;
   fBlueMinus.OnUpdate := @ApplyColor;
 
-  fWhiteMinus.Color := RGBA(255, 255, 255, 0);
+  fWhiteMinus.Color := RGBA(255, 255, 255, AlphaOpaque);
   fWhiteMinus.Height := 18;
   fWhiteMinus.Width := 17;
   fWhiteMinus.Delta := delta(-15, -15, -15);
   fWhiteMinus.Target := fBrighten;
   fWhiteMinus.OnUpdate := @ApplyColor;
 
-  fDarkenPlus.Color := RGBA(0, 0, 0, 0);
+  fDarkenPlus.Color := RGBA(0, 0, 0, AlphaOpaque);
   fDarkenPlus.Height := 16;
   fDarkenPlus.Width := 16;
   fDarkenPlus.Delta := delta(-15, -15, -15);
   fDarkenPlus.Target := fDarken;
   fDarkenPlus.OnUpdate := @ApplyColor;
 
-  fRedPlus.Color := RGBA(255, 0, 0, 0);
+  fRedPlus.Color := RGBA(255, 0, 0, AlphaOpaque);
   fRedPlus.Height := 16;
   fRedPlus.Width := 16;
   fRedPlus.Delta := delta(15, 0, 0);
   fRedPlus.Target := fRed;
   fRedPlus.OnUpdate := @ApplyColor;
 
-  fGreenPlus.Color := RGBA(0, 255, 0, 0);
+  fGreenPlus.Color := RGBA(0, 255, 0, AlphaOpaque);
   fGreenPlus.Height := 16;
   fGreenPlus.Width := 16;
   fGreenPlus.Delta := delta(0, 15, 0);
   fGreenPlus.Target := fGreen;
   fGreenPlus.OnUpdate := @ApplyColor;
 
-  fBluePlus.Color := RGBA(0, 0, 255, 0);
+  fBluePlus.Color := RGBA(0, 0, 255, AlphaOpaque);
   fBluePlus.Height := 16;
   fBluePlus.Width := 16;
   fBluePlus.Delta := delta(0, 0, 15);
   fBluePlus.Target := fBlue;
   fBluePlus.OnUpdate := @ApplyColor;
 
-  fWhitePlus.Color := RGBA(255, 255, 255, 0);
+  fWhitePlus.Color := RGBA(255, 255, 255, AlphaOpaque);
   fWhitePlus.Height := 16;
   fWhitePlus.Width := 16;
   fWhitePlus.Delta := delta(15, 15, 15);
@@ -1174,8 +1175,8 @@ Begin
   fOpenButton.Height := 18;
   fOpenButton.Layout := tlCenter;
   fOpenButton.Alignment := taCenter;
-  fOpenButton.BorderColor := rgba(192, 192, 192, 0);
-  fOpenButton.BackColor := rgba(128, 128, 128, 0);
+  fOpenButton.BorderColor := rgba(192, 192, 192, AlphaOpaque);
+  fOpenButton.BackColor := rgba(128, 128, 128, AlphaOpaque);
   fOpenButton.Hint := 'Load color palette';
 
   fSaveAsButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
@@ -1184,8 +1185,8 @@ Begin
   fSaveAsButton.Height := 18;
   fSaveAsButton.Layout := tlCenter;
   fSaveAsButton.Alignment := taCenter;
-  fSaveAsButton.BorderColor := rgba(192, 192, 192, 0);
-  fSaveAsButton.BackColor := rgba(128, 128, 128, 0);
+  fSaveAsButton.BorderColor := rgba(192, 192, 192, AlphaOpaque);
+  fSaveAsButton.BackColor := rgba(128, 128, 128, AlphaOpaque);
   fSaveAsButton.Hint := 'Store color palette';
 
   fResetButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
@@ -1194,8 +1195,8 @@ Begin
   fResetButton.Height := 18;
   fResetButton.Layout := tlCenter;
   fResetButton.Alignment := taCenter;
-  fResetButton.BorderColor := rgba(192, 192, 192, 0);
-  fResetButton.BackColor := rgba(128, 128, 128, 0);
+  fResetButton.BorderColor := rgba(192, 192, 192, AlphaOpaque);
+  fResetButton.BackColor := rgba(128, 128, 128, AlphaOpaque);
   fResetButton.OnClick := @OnResetColorClick;
   fResetButton.Hint := 'Reset to default';
 End;
