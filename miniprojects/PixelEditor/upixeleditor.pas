@@ -77,6 +77,7 @@ Const
    *                   FIX: "Pic color" -> "Pick color"
    *                   ADD: CTRL+X
    *            0.12 - ADD: Convolute button
+   *                   ADD: Custom values for colors in Color Pic dialog
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt

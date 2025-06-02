@@ -195,6 +195,7 @@ Type
 
     fOpenButton: TOpenGL_Textbox;
     fSaveAsButton: TOpenGL_Textbox;
+    fSetValuesButton: TOpenGL_Textbox;
     fColorAsHex: Boolean;
 
     Procedure OnRender(); override;
@@ -205,6 +206,7 @@ Type
     Procedure OnPicColorClick(Sender: TObject);
     Procedure OnColorDBLClick(Sender: TObject);
     Procedure OnResetColorClick(Sender: TObject);
+    Procedure OnSetColorValuesClick(Sender: TObject);
     Procedure OpenColorTableMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
     Procedure OnColorClick(Sender: TObject);
@@ -228,11 +230,29 @@ Procedure RenderTransparentQuad(x, y, w, h: Single);
 Implementation
 
 Uses
-  math, FileUtil
+  math, FileUtil, Forms, StdCtrls
   , dglOpenGL
   , uvectormath
   , upixeleditor_types
   ;
+
+Type
+
+  { TRGBDialog }
+
+  TRGBDialog = Class(TForm)
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Button1: TButton;
+    Button2: TButton;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    Edit3: TEdit;
+  private
+  public
+    Constructor CreateNew(AOwner: TComponent; Num: Integer = 0); override;
+  End;
 
 Function Delta(r, g, b: integer): TDelta;
 Begin
@@ -265,6 +285,86 @@ Begin
   glVertex2f(x + w / 2, y + h);
   glVertex2f(x, y + h);
   glend;
+End;
+
+{ TRGBDialog }
+
+Constructor TRGBDialog.CreateNew(AOwner: TComponent; Num: Integer);
+Begin
+  Inherited CreateNew(AOwner, Num);
+  caption := 'Edit color';
+  BorderStyle := bsDialog;
+  Position := poScreenCenter;
+  Color := clGray;
+  width := Scale96ToScreen(200);
+  Height := Scale96ToScreen(100);
+  Constraints.MinWidth := Width;
+  Constraints.MaxWidth := Width;
+  Constraints.MinHeight := Height;
+  Constraints.MaxHeight := Height;
+  label1 := TLabel.Create(self);
+  label1.name := 'Label1';
+  label1.Parent := self;
+  label1.Caption := 'R-Value';
+  label1.Left := Scale96ToScreen(8);
+  label1.Top := Scale96ToScreen(8);
+  Edit1 := TEdit.Create(self);
+  Edit1.name := 'Edit1';
+  Edit1.Parent := self;
+  edit1.left := Scale96ToScreen(8);
+  edit1.Width := Scale96ToScreen(50);
+  edit1.Top := label1.top + Label1.Height + Scale96ToScreen(8);
+  Edit2 := TEdit.Create(self);
+  Edit2.name := 'Edit2';
+  Edit2.Parent := self;
+  edit2.left := edit1.Left + edit1.Width + Scale96ToScreen(8);
+  edit2.Width := Scale96ToScreen(50);
+  edit2.Top := label1.top + Label1.Height + Scale96ToScreen(8);
+  Edit3 := TEdit.Create(self);
+  Edit3.name := 'Edit3';
+  Edit3.Parent := self;
+  edit3.left := Edit2.left + edit2.Width + Scale96ToScreen(8);
+  edit3.Width := Scale96ToScreen(50);
+  edit3.Top := label1.top + Label1.Height + Scale96ToScreen(8);
+  label2 := TLabel.Create(self);
+  label2.name := 'Label2';
+  label2.Parent := self;
+  label2.Caption := 'G-Value';
+  label2.Left := Edit2.Left;
+  label2.Top := Scale96ToScreen(8);
+  label3 := TLabel.Create(self);
+  label3.name := 'Label3';
+  label3.Parent := self;
+  label3.Caption := 'B-Value';
+  label3.Left := Edit3.Left;
+  label3.Top := Scale96ToScreen(8);
+  Button1 := TButton.Create(self);
+  Button1.name := 'Button1';
+  Button1.Parent := self;
+  Button1.Left := Scale96ToScreen(8);
+  Button1.Top := Edit1.Top + Edit1.Height + Scale96ToScreen(8);
+  Button1.Caption := 'Cancel';
+  Button1.ModalResult := mrCancel;
+  Button2 := TButton.Create(self);
+  Button2.name := 'Button2';
+  Button2.Parent := self;
+  Button2.Left := width - button2.Width - Scale96ToScreen(8);
+  Button2.Top := Edit1.Top + Edit1.Height + Scale96ToScreen(8);
+  Button2.Caption := 'OK';
+  Button2.ModalResult := mrOK;
+  label1.font.color := clSilver;
+  label2.font.color := clSilver;
+  label3.font.color := clSilver;
+  Button1.Color := clGray;
+  Button1.font.Color := clSilver;
+  Button2.Color := clGray;
+  Button2.font.Color := clSilver;
+  Edit1.Color := clGray;
+  Edit1.font.Color := clSilver;
+  Edit2.Color := clGray;
+  Edit2.font.Color := clSilver;
+  Edit3.Color := clGray;
+  Edit3.font.Color := clSilver;
 End;
 
 { TOpenGL_Bevel }
@@ -799,6 +899,7 @@ Begin
   fSaveAsButton.Render();
   fOpenButton.Render();
   fResetButton.Render();
+  fSetValuesButton.Render();
 
   // Den kleinen Auswahlzeiger malen ;)
   glPushMatrix;
@@ -836,6 +937,7 @@ Begin
   fOpenButton.Visible := AValue;
   fSaveAsButton.Visible := AValue;
   fResetButton.Visible := AValue;
+  fSetValuesButton.Visible := AValue;
 End;
 
 Procedure TOpenGL_ColorPicDialog.SetLeft(AValue: integer);
@@ -864,6 +966,7 @@ Begin
   fOpenButton.Left := AValue + 15;
   fSaveAsButton.Left := AValue + 37;
   fResetButton.Left := AValue + 240;
+  fSetValuesButton.Left := AValue + 15;
 End;
 
 Procedure TOpenGL_ColorPicDialog.SetTop(AValue: integer);
@@ -892,6 +995,7 @@ Begin
   fOpenButton.top := AValue + 250;
   fSaveAsButton.top := AValue + 250;
   fResetButton.top := AValue + 250;
+  fSetValuesButton.Top := AValue + 33 + 4 + 26;
 End;
 
 Procedure TOpenGL_ColorPicDialog.OnPicColorClick(Sender: TObject);
@@ -918,6 +1022,51 @@ Begin
   If assigned(fShower) Then Begin
     ApplyColor(fShower.DefaultColor);
   End;
+End;
+
+Procedure TOpenGL_ColorPicDialog.OnSetColorValuesClick(Sender: TObject);
+Var
+  Dialog: TRGBDialog;
+  s, t: String;
+  c: TRGBA;
+  dummy: integer;
+Begin
+  s := fSetValuesButton.Hint;
+  fSetValuesButton.Hint := '';
+  Dialog := TRGBDialog.CreateNew(Nil);
+  If fColorAsHex Then Begin
+    dialog.Edit1.Text := format('%0.2X', [fShower.Color.r]);
+    dialog.Edit2.Text := format('%0.2X', [fShower.Color.g]);
+    dialog.Edit3.Text := format('%0.2X', [fShower.Color.b]);
+  End
+  Else Begin
+    dialog.Edit1.Text := format('%d', [fShower.Color.r]);
+    dialog.Edit2.Text := format('%d', [fShower.Color.g]);
+    dialog.Edit3.Text := format('%d', [fShower.Color.b]);
+  End;
+  If Dialog.ShowModal = mrOK Then Begin
+    c.a := fShower.Color.a;
+    If fColorAsHex Then Begin
+      t := Dialog.Edit1.Text;
+      val('$' + t, c.r, Dummy);
+      If dummy <> 0 Then c.r := fShower.Color.r;
+      t := Dialog.Edit2.Text;
+      val('$' + t, c.g, Dummy);
+      If dummy <> 0 Then c.g := fShower.Color.g;
+      t := Dialog.Edit3.Text;
+      val('$' + t, c.b, Dummy);
+      If dummy <> 0 Then c.b := fShower.Color.b;
+    End
+    Else Begin
+      c.r := strtointdef(dialog.Edit1.Text, fShower.Color.r);
+      c.g := strtointdef(dialog.Edit2.Text, fShower.Color.g);
+      c.b := strtointdef(dialog.Edit3.Text, fShower.Color.b);
+    End;
+    ApplyColor(c);
+  End;
+  fSetValuesButton.Hint := s;
+  Dialog.Free;
+  Dialog := Nil;
 End;
 
 Procedure TOpenGL_ColorPicDialog.OpenColorTableMouseDown(Sender: TObject;
@@ -994,6 +1143,7 @@ Begin
   fResetButton := TOpenGL_Textbox.Create(aOwner, ''); // Muss vor fColorTable erzeugt werden !
   fOpenButton := TOpenGL_Textbox.Create(aOwner, ''); // Muss vor fColorTable erzeugt werden !
   fSaveAsButton := TOpenGL_Textbox.Create(aOwner, ''); // Muss vor fColorTable erzeugt werden !
+  fSetValuesButton := TOpenGL_Textbox.Create(aOwner, ''); // Muss vor fColorTable erzeugt werden !
   fColorTable := TOpenGl_Image.Create(aOwner);
   fPicColorButton := TOpenGL_Textbox.Create(aOwner, '');
   fColorInfo := TOpenGl_Label.Create(aOwner, '');
@@ -1199,6 +1349,17 @@ Begin
   fResetButton.BackColor := rgba(128, 128, 128, AlphaOpaque);
   fResetButton.OnClick := @OnResetColorClick;
   fResetButton.Hint := 'Reset to default';
+
+  fSetValuesButton.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
+  fSetValuesButton.Caption := 'E';
+  fSetValuesButton.Width := 18;
+  fSetValuesButton.Height := 18;
+  fSetValuesButton.Layout := tlCenter;
+  fSetValuesButton.Alignment := taCenter;
+  fSetValuesButton.BorderColor := rgba(192, 192, 192, AlphaOpaque);
+  fSetValuesButton.BackColor := rgba(128, 128, 128, AlphaOpaque);
+  fSetValuesButton.OnClick := @OnSetColorValuesClick;
+  fSetValuesButton.Hint := 'Set RGB values by hand';
 End;
 
 Destructor TOpenGL_ColorPicDialog.Destroy;
@@ -1251,6 +1412,8 @@ Begin
   fSaveAsButton := Nil;
   fResetButton.free;
   fResetButton := Nil;
+  fSetValuesButton.free;
+  fSetValuesButton := Nil;
   Inherited Destroy;
 End;
 
