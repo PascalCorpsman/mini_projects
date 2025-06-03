@@ -83,7 +83,7 @@ Keyboard commands:
 | CTRL + 7 | select color / open color 7 dialog
 | CTRL + 8 | select color / open color 8 dialog
 
-### Leneral
+### General
 | Action | Description |
 | --- | ---
 | CTRL + E | Open Resize dialog (for selected or image)
