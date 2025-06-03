@@ -34,7 +34,7 @@ Newbutton.Transparent := true;
 Newbutton.Width := 32;
 Newbutton.Height := 32;
 NewButton.OnClick := @OnNewButtonClick;
-NewButton.Hint := 'Create new image';
+NewButton.Hint := 'Create new image (CTRL+N)';
 AddElement(NewButton);
 
 OpenButton := TOpenGL_Bevel.Create(Owner);
@@ -47,7 +47,7 @@ OpenButton.Transparent := true;
 OpenButton.Width := 32;
 OpenButton.Height := 32;
 OpenButton.OnClick := @OnOpenButtonClick;
-OpenButton.Hint := 'Open image';
+OpenButton.Hint := 'Open image (CTRL+L)';
 AddElement(OpenButton);
 
 SaveButton := TOpenGL_Bevel.Create(Owner);
@@ -60,7 +60,7 @@ SaveButton.Transparent := true;
 SaveButton.Width := 32;
 SaveButton.Height := 32;
 SaveButton.OnClick := @OnSaveButtonClick;
-SaveButton.Hint := 'Save image';
+SaveButton.Hint := 'Save image (CTRL+S)';
 AddElement(SaveButton);
 
 SaveAsButton := TOpenGL_Bevel.Create(Owner);
@@ -86,7 +86,7 @@ Exitbutton.Transparent := true;
 Exitbutton.Width := 32;
 Exitbutton.Height := 32;
 ExitButton.OnClick := @OnExitButtonClick;
-ExitButton.Hint := 'Close pixeleditor';
+ExitButton.Hint := 'Close pixeleditor (ALT+F4)';
 AddElement(ExitButton);
 
 GridButton := TOpenGL_Bevel.Create(Owner);
@@ -99,7 +99,7 @@ GridButton.Transparent := true;
 GridButton.Width := 32;
 GridButton.Height := 32;
 GridButton.OnClick := @OnGridButtonClick;
-GridButton.Hint := 'Toggle grid';
+GridButton.Hint := 'Toggle grid (CTRL+G)';
 AddElement(GridButton);
 
 ZoomOutButton := TOpenGL_Bevel.Create(Owner);
@@ -112,7 +112,7 @@ ZoomOutButton.Transparent := true;
 ZoomOutButton.Width := 16;
 ZoomOutButton.Height := 16;
 ZoomOutButton.OnClick := @OnZoomOutButtonClick;
-ZoomOutButton.hint := 'Zoom out';
+ZoomOutButton.hint := 'Zoom out (-)';
 AddElement(ZoomOutButton);
 
 ZoomInfoTextbox := TOpenGL_Textbox.Create(Owner, '');
@@ -135,7 +135,7 @@ ZoomInButton.Transparent := true;
 ZoomInButton.Width := 16;
 ZoomInButton.Height := 16;
 ZoomInButton.OnClick := @OnZoomInButtonClick;
-ZoomInButton.Hint := 'Zoom in';
+ZoomInButton.Hint := 'Zoom in (+)';
 AddElement(ZoomInButton);
 
 ColorMonochronButton := TOpenGL_ToggleButton.Create(Owner);
@@ -150,7 +150,7 @@ ColorMonochronButton.SetDownImage(image);
 ColorMonochronButton.Transparent := true;
 ColorMonochronButton.Width := 32;
 ColorMonochronButton.Height := 32;
-ColorMonochronButton.Hint := 'Switch colored / monochrone view';
+ColorMonochronButton.Hint := 'Switch colored / monochrone view (X)';
 //ColorMonochronButton.OnClick := @OnSelectModeButtonClick; -- Braucht es nicht, man kann ja den Style abfragen ;)
 AddElement(ColorMonochronButton);
 
@@ -164,7 +164,7 @@ OptionsButton.Transparent := true;
 OptionsButton.Width := 32;
 OptionsButton.Height := 32;
 OptionsButton.OnClick := @OnOptionsButtonClick;
-OptionsButton.Hint := 'Settings';
+OptionsButton.Hint := 'Settings (CTRL+O)';
 AddElement(OptionsButton);
 
 UndoButton := TOpenGL_Bevel.Create(Owner);
@@ -178,7 +178,7 @@ UndoButton.Width := 32;
 UndoButton.Height := 32;
 UndoButton.OnClick := @OnUndoButtonClick;
 UndoButton.OnDblClick := @OnUndoButtonClick;
-UndoButton.Hint := 'Undo';
+UndoButton.Hint := 'Undo (CTRL+Z)';
 AddElement(UndoButton);
 
 SelectButton := TOpenGL_Bevel.Create(Owner);
@@ -191,7 +191,7 @@ SelectButton.Transparent := true;
 SelectButton.Width := 32;
 SelectButton.Height := 32;
 SelectButton.OnClick := @OnSelectButtonClick;
-SelectButton.hint := 'Select pixel area';
+SelectButton.hint := 'Select pixel area (S)';
 AddElement(SelectButton);
 
 SelectModeButton := TOpenGL_ToggleButton.Create(Owner);
@@ -220,7 +220,7 @@ SelectRotateCounterClockwise90.Transparent := true;
 SelectRotateCounterClockwise90.Width := 16;
 SelectRotateCounterClockwise90.Height := 16;
 SelectRotateCounterClockwise90.OnClick := @OnSelectRotateCounterClockwise90ButtonClick;
-SelectRotateCounterClockwise90.Hint := 'Rotate 90' + chr($C3) + chr($B8); // das ° Zeichen
+SelectRotateCounterClockwise90.Hint := 'Rotate 90' + chr($C3) + chr($B8) + ' (SHIFT+R)'; // das ° Zeichen
 AddElement(SelectRotateCounterClockwise90);
 
 SelectMirrorHorButton := TOpenGL_Bevel.Create(Owner);
@@ -233,7 +233,7 @@ SelectMirrorHorButton.Transparent := true;
 SelectMirrorHorButton.Width := 16;
 SelectMirrorHorButton.Height := 16;
 SelectMirrorHorButton.OnClick := @OnSelectMirrorHorButtonClick;
-SelectMirrorHorButton.hint := 'Mirror horizontally';
+SelectMirrorHorButton.hint := 'Mirror horizontally (SHIFT+H)';
 AddElement(SelectMirrorHorButton);
 
 SelectMirrorVerButton := TOpenGL_Bevel.Create(Owner);
@@ -246,7 +246,7 @@ SelectMirrorVerButton.Transparent := true;
 SelectMirrorVerButton.Width := 16;
 SelectMirrorVerButton.Height := 16;
 SelectMirrorVerButton.OnClick := @OnSelectMirrorVerButtonClick;
-SelectMirrorVerButton.Hint := 'Mirror vertically';
+SelectMirrorVerButton.Hint := 'Mirror vertically (SHIFT+V)';
 AddElement(SelectMirrorVerButton);
 
 SelectRotateAngle := TOpenGL_Bevel.Create(Owner);
@@ -259,7 +259,7 @@ SelectRotateAngle.Transparent := true;
 SelectRotateAngle.Width := 16;
 SelectRotateAngle.Height := 16;
 SelectRotateAngle.OnClick := @OnSelectRotateAngleButtonClick;
-SelectRotateAngle.Hint := 'Rotate by angle';
+SelectRotateAngle.Hint := 'Rotate by angle (SHIFT+A)';
 AddElement(SelectRotateAngle);
 
 BrightenButton := TOpenGL_Bevel.Create(Owner);
@@ -273,7 +273,7 @@ BrightenButton.Width := 32;
 BrightenButton.Height := 32;
 BrightenButton.OnClick := @OnBrightenButtonClick;
 BrightenButton.OnDblClick := @OnBrightenButtonClick;
-BrightenButton.Hint := 'Brighten';
+BrightenButton.Hint := 'Brighten (B)';
 AddElement(BrightenButton);
 
 DarkenButton := TOpenGL_Bevel.Create(Owner);
@@ -287,7 +287,7 @@ DarkenButton.Width := 32;
 DarkenButton.Height := 32;
 DarkenButton.OnClick := @OnDarkenButtonClick;
 DarkenButton.OnDblClick := @OnDarkenButtonClick;
-DarkenButton.Hint := 'Darken';
+DarkenButton.Hint := 'Darken (D)';
 AddElement(DarkenButton);
 
 CurserSize1 := TOpenGL_Bevel.Create(Owner);
@@ -300,7 +300,7 @@ CurserSize1.Transparent := true;
 CurserSize1.Width := 16;
 CurserSize1.Height := 16;
 CurserSize1.OnClick := @OnCurserSizeButtonClick;
-CurserSize1.Hint := 'Small';
+CurserSize1.Hint := 'Small (1)';
 AddElement(CurserSize1);
 
 CurserSize2 := TOpenGL_Bevel.Create(Owner);
@@ -313,7 +313,7 @@ CurserSize2.Transparent := true;
 CurserSize2.Width := 16;
 CurserSize2.Height := 16;
 CurserSize2.OnClick := @OnCurserSizeButtonClick;
-CurserSize2.Hint := 'Medium';
+CurserSize2.Hint := 'Medium (2)';
 AddElement(CurserSize2);
 
 CurserSize3 := TOpenGL_Bevel.Create(Owner);
@@ -326,7 +326,7 @@ CurserSize3.Transparent := true;
 CurserSize3.Width := 16;
 CurserSize3.Height := 16;
 CurserSize3.OnClick := @OnCurserSizeButtonClick;
-CurserSize3.Hint := 'Large';
+CurserSize3.Hint := 'Large (3)';
 AddElement(CurserSize3);
 
 CurserSize4 := TOpenGL_Bevel.Create(Owner);
@@ -339,7 +339,7 @@ CurserSize4.Transparent := true;
 CurserSize4.Width := 16;
 CurserSize4.Height := 16;
 CurserSize4.OnClick := @OnCurserSizeButtonClick;
-CurserSize4.Hint := 'Extra large';
+CurserSize4.Hint := 'Extra large (4)';
 AddElement(CurserSize4);
 
 EraserButton := TOpenGL_Bevel.Create(Owner);
@@ -352,7 +352,7 @@ EraserButton.Transparent := true;
 EraserButton.Width := 32;
 EraserButton.Height := 32;
 EraserButton.OnClick := @OnEraserButtonClick;
-EraserButton.Hint := 'Eraser tool';
+EraserButton.Hint := 'Eraser tool (DEL/BACK)';
 AddElement(EraserButton);
 
 PencilButton := TOpenGL_Bevel.Create(Owner);
@@ -365,7 +365,7 @@ PencilButton.Transparent := true;
 PencilButton.Width := 32;
 PencilButton.Height := 32;
 PencilButton.OnClick := @OnPencilButtonClick;
-PencilButton.Hint := 'Pencil tool';
+PencilButton.Hint := 'Pencil tool (P)';
 AddElement(PencilButton);
 
 CursorRoundShape1 := TOpenGL_Bevel.Create(Owner);
@@ -378,7 +378,7 @@ CursorRoundShape1.Transparent := true;
 CursorRoundShape1.Width := 16;
 CursorRoundShape1.Height := 16;
 CursorRoundShape1.OnClick := @OnCursorShapeClick;
-CursorRoundShape1.hint := 'Dot';
+CursorRoundShape1.hint := 'Dot (SHIFT+1)';
 AddElement(CursorRoundShape1);
 
 CursorRoundShape2 := TOpenGL_Bevel.Create(Owner);
@@ -391,7 +391,7 @@ CursorRoundShape2.Transparent := true;
 CursorRoundShape2.Width := 16;
 CursorRoundShape2.Height := 16;
 CursorRoundShape2.OnClick := @OnCursorShapeClick;
-CursorRoundShape2.hint := 'Small disc';
+CursorRoundShape2.hint := 'Small disc (SHIFT+3)';
 AddElement(CursorRoundShape2);
 
 CursorRoundShape3 := TOpenGL_Bevel.Create(Owner);
@@ -404,7 +404,7 @@ CursorRoundShape3.Transparent := true;
 CursorRoundShape3.Width := 16;
 CursorRoundShape3.Height := 16;
 CursorRoundShape3.OnClick := @OnCursorShapeClick;
-CursorRoundShape3.hint := 'Big disc';
+CursorRoundShape3.hint := 'Big disc (SHIFT+5)';
 AddElement(CursorRoundShape3);
 
 CursorSquareShape1 := TOpenGL_Bevel.Create(Owner);
@@ -417,7 +417,7 @@ CursorSquareShape1.Transparent := true;
 CursorSquareShape1.Width := 16;
 CursorSquareShape1.Height := 16;
 CursorSquareShape1.OnClick := @OnCursorShapeClick;
-CursorSquareShape1.Hint := 'Small rectangle';
+CursorSquareShape1.Hint := 'Small rectangle (SHIFT+2)';
 AddElement(CursorSquareShape1);
 
 CursorSquareShape2 := TOpenGL_Bevel.Create(Owner);
@@ -430,7 +430,7 @@ CursorSquareShape2.Transparent := true;
 CursorSquareShape2.Width := 16;
 CursorSquareShape2.Height := 16;
 CursorSquareShape2.OnClick := @OnCursorShapeClick;
-CursorSquareShape2.Hint := 'Medium rectangle';
+CursorSquareShape2.Hint := 'Medium rectangle (SHIFT+4)';
 AddElement(CursorSquareShape2);
 
 CursorSquareShape3 := TOpenGL_Bevel.Create(Owner);
@@ -443,7 +443,7 @@ CursorSquareShape3.Transparent := true;
 CursorSquareShape3.Width := 16;
 CursorSquareShape3.Height := 16;
 CursorSquareShape3.OnClick := @OnCursorShapeClick;
-CursorSquareShape3.Hint := 'Big rectangle';
+CursorSquareShape3.Hint := 'Big rectangle (SHIFT+6)';
 AddElement(CursorSquareShape3);
 
 LineButton := TOpenGL_Bevel.Create(Owner);
@@ -456,7 +456,7 @@ LineButton.Transparent := true;
 LineButton.Width := 32;
 LineButton.Height := 32;
 LineButton.OnClick := @OnLineButtonClick;
-LineButton.Hint := 'Line tool';
+LineButton.Hint := 'Line tool (L)';
 AddElement(LineButton);
 
 CircleButton := TOpenGL_Bevel.Create(Owner);
@@ -469,7 +469,7 @@ CircleButton.Transparent := true;
 CircleButton.Width := 32;
 CircleButton.Height := 32;
 CircleButton.OnClick := @OnCircleButtonClick;
-CircleButton.Hint := 'Ellipse tool';
+CircleButton.Hint := 'Ellipse tool (E)';
 AddElement(CircleButton);
 
 SquareButton := TOpenGL_Bevel.Create(Owner);
@@ -482,7 +482,7 @@ SquareButton.Transparent := true;
 SquareButton.Width := 32;
 SquareButton.Height := 32;
 SquareButton.OnClick := @OnSquareButtonClick;
-SquareButton.Hint := 'Rectangle tool';
+SquareButton.Hint := 'Rectangle tool (R)';
 AddElement(SquareButton);
 
 OutlineButton := TOpenGL_Bevel.Create(Owner);
@@ -495,7 +495,7 @@ OutlineButton.Transparent := true;
 OutlineButton.Width := 16;
 OutlineButton.Height := 16;
 OutlineButton.OnClick := @OnOutlineButtonClick;
-OutlineButton.Hint := 'Outline';
+OutlineButton.Hint := 'Outline (O)';
 AddElement(OutlineButton);
 
 FilledButton := TOpenGL_Bevel.Create(Owner);
@@ -508,7 +508,7 @@ FilledButton.Transparent := true;
 FilledButton.Width := 16;
 FilledButton.Height := 16;
 FilledButton.OnClick := @OnOutlineButtonClick;
-FilledButton.Hint := 'Filled';
+FilledButton.Hint := 'Filled (F)';
 AddElement(FilledButton);
 
 MirrorButton := TOpenGL_Bevel.Create(Owner);
@@ -521,7 +521,7 @@ MirrorButton.Transparent := true;
 MirrorButton.Width := 32;
 MirrorButton.Height := 32;
 MirrorButton.OnClick := @OnMirrorButtonClick;
-MirrorButton.Hint := 'Mirror tool';
+MirrorButton.Hint := 'Mirror tool (M / SHIFT+M)';
 AddElement(MirrorButton);
 
 MirrorCenterButton := TOpenGL_ToggleButton.create(Owner);
@@ -536,7 +536,7 @@ MirrorCenterButton.SetDownImage(image);
 MirrorCenterButton.Transparent := true;
 MirrorCenterButton.Width := 16;
 MirrorCenterButton.Height := 16;
-MirrorCenterButton.Hint := 'Toggle mirror center';
+MirrorCenterButton.Hint := 'Toggle mirror center (C)';
 //MirrorCenterButton.OnClick := @OnMirrorCenterButtonClick; -- Braucht es nicht man kann ja den Style abfragen
 AddElement(MirrorCenterButton);
 
@@ -550,7 +550,7 @@ Mirror4Button.Transparent := true;
 Mirror4Button.Width := 16;
 Mirror4Button.Height := 16;
 Mirror4Button.OnClick := @OnMirrorModeButtonClick;
-Mirror4Button.Hint := 'Mirror horizontally and vertically';
+Mirror4Button.Hint := 'Mirror horizontally and vertically (M)';
 AddElement(Mirror4Button);
 
 MirrorVertButton := TOpenGL_Bevel.Create(Owner);
@@ -563,7 +563,7 @@ MirrorVertButton.Transparent := true;
 MirrorVertButton.Width := 16;
 MirrorVertButton.Height := 16;
 MirrorVertButton.OnClick := @OnMirrorModeButtonClick;
-MirrorVertButton.Hint := 'Mirror vertically';
+MirrorVertButton.Hint := 'Mirror vertically (M)';
 AddElement(MirrorVertButton);
 
 MirrorHorButton := TOpenGL_Bevel.Create(Owner);
@@ -576,7 +576,7 @@ MirrorHorButton.Transparent := true;
 MirrorHorButton.Width := 16;
 MirrorHorButton.Height := 16;
 MirrorHorButton.OnClick := @OnMirrorModeButtonClick;
-MirrorHorButton.hint := 'Mirror horizontally';
+MirrorHorButton.hint := 'Mirror horizontally (M)';
 AddElement(MirrorHorButton);
 
 FloodFillButton := TOpenGL_Bevel.Create(Owner);
@@ -589,7 +589,7 @@ FloodFillButton.Transparent := true;
 FloodFillButton.Width := 32;
 FloodFillButton.Height := 32;
 FloodFillButton.OnClick := @OnFloodFillButtonClick;
-FloodFillButton.Hint := 'Floodfill tool';
+FloodFillButton.Hint := 'Floodfill tool (SHIFT+B)';
 AddElement(FloodFillButton);
 
 FloodFillModeButton := TOpenGL_Bevel.Create(Owner);
@@ -602,7 +602,7 @@ FloodFillModeButton.Transparent := true;
 FloodFillModeButton.Width := 32;
 FloodFillModeButton.Height := 32;
 FloodFillModeButton.OnClick := @OnFloodFillModeButtonClick;
-FloodFillModeButton.Hint := 'Set color match conditions';
+FloodFillModeButton.Hint := 'Set color match conditions (T)';
 AddElement(FloodFillModeButton);
 
 PipetteButton := TOpenGL_Bevel.Create(Owner);
@@ -615,7 +615,7 @@ PipetteButton.Transparent := true;
 PipetteButton.Width := 32;
 PipetteButton.Height := 32;
 PipetteButton.OnClick := @OnPipetteButtonClick;
-PipetteButton.Hint := 'Color pick tool';
+PipetteButton.Hint := 'Color pick tool (I)';
 AddElement(PipetteButton);
 
 ColorCurveButton := TOpenGL_Bevel.Create(Owner);
@@ -628,7 +628,7 @@ ColorCurveButton.Transparent := true;
 ColorCurveButton.Width := 32;
 ColorCurveButton.Height := 32;
 ColorCurveButton.OnClick := @OnColorCurveButton;
-ColorCurveButton.Hint := 'Color curve tool';
+ColorCurveButton.Hint := 'Color curve tool (U)';
 AddElement(ColorCurveButton);
 
 ConvoluteButton := TOpenGL_Bevel.Create(Owner);
@@ -675,6 +675,7 @@ Color1.DefaultColor := rgba(0, 102, 153, AlphaOpaque);
 Color1.LoweredColor := rgba(0, 0, 0, AlphaOpaque);
 Color1.RaisedColor := rgba(0, 0, 0, AlphaOpaque);
 Color1.OnMouseUp := @OnColorMouseUp;
+Color1.Hint := 'Color 1 (CTRL+1)';
 AddElement(Color1);
 
 Color2 := TOpenGL_ColorBox.Create(Owner);
@@ -689,6 +690,7 @@ Color2.DefaultColor := rgba(51, 51, 255, AlphaOpaque);
 Color2.LoweredColor := rgba(0, 0, 0, AlphaOpaque);
 Color2.RaisedColor := rgba(0, 0, 0, AlphaOpaque);
 Color2.OnMouseUp := @OnColorMouseUp;
+Color2.Hint := 'Color 2 (CTRL+2)';
 AddElement(Color2);
 
 Color3 := TOpenGL_ColorBox.Create(Owner);
@@ -703,6 +705,7 @@ Color3.DefaultColor := rgba(255, 0, 255, AlphaOpaque);
 Color3.LoweredColor := rgba(0, 0, 0, AlphaOpaque);
 Color3.RaisedColor := rgba(0, 0, 0, AlphaOpaque);
 Color3.OnMouseUp := @OnColorMouseUp;
+Color3.Hint := 'Color 3 (CTRL+3)';
 AddElement(Color3);
 
 Color4 := TOpenGL_ColorBox.Create(Owner);
@@ -717,6 +720,7 @@ Color4.DefaultColor := rgba(204, 0, 0, AlphaOpaque);
 Color4.LoweredColor := rgba(0, 0, 0, AlphaOpaque);
 Color4.RaisedColor := rgba(0, 0, 0, AlphaOpaque);
 Color4.OnMouseUp := @OnColorMouseUp;
+Color4.Hint := 'Color 4 (CTRL+4)';
 AddElement(Color4);
 
 Color5 := TOpenGL_ColorBox.Create(Owner);
@@ -731,6 +735,7 @@ Color5.DefaultColor := rgba(204, 153, 0, AlphaOpaque);
 Color5.LoweredColor := rgba(0, 0, 0, AlphaOpaque);
 Color5.RaisedColor := rgba(0, 0, 0, AlphaOpaque);
 Color5.OnMouseUp := @OnColorMouseUp;
+Color5.Hint := 'Color 5 (CTRL+5)';
 AddElement(Color5);
 
 Color6 := TOpenGL_ColorBox.Create(Owner);
@@ -745,6 +750,7 @@ Color6.DefaultColor := rgba(0, 153, 51, AlphaOpaque);
 Color6.LoweredColor := rgba(0, 0, 0, AlphaOpaque);
 Color6.RaisedColor := rgba(0, 0, 0, AlphaOpaque);
 Color6.OnMouseUp := @OnColorMouseUp;
+Color6.Hint := 'Color 6 (CTRL+6)';
 AddElement(Color6);
 
 Color7 := TOpenGL_ColorBox.Create(Owner);
@@ -759,6 +765,7 @@ Color7.DefaultColor := rgba(255, 255, 255, AlphaOpaque);
 Color7.LoweredColor := rgba(0, 0, 0, AlphaOpaque);
 Color7.RaisedColor := rgba(0, 0, 0, AlphaOpaque);
 Color7.OnMouseUp := @OnColorMouseUp;
+Color7.Hint := 'Color 7 (CTRL+7)';
 AddElement(Color7);
 
 Color8 := TOpenGL_ColorBox.Create(Owner);
@@ -773,6 +780,7 @@ Color8.DefaultColor := rgba(0, 0, 0, AlphaOpaque);
 Color8.LoweredColor := rgba(0, 0, 0, AlphaOpaque);
 Color8.RaisedColor := rgba(0, 0, 0, AlphaOpaque);
 Color8.OnMouseUp := @OnColorMouseUp;
+Color8.Hint := 'Color 8 (CTRL+8)';
 AddElement(Color8);
 
 InfoLabel := TOpenGl_Label.Create(owner, '');

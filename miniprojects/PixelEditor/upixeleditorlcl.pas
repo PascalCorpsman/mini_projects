@@ -250,6 +250,7 @@ Type
     Edit2: TEdit;
     Edit3: TEdit;
   private
+    Procedure OnEditKeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
   public
     Constructor CreateNew(AOwner: TComponent; Num: Integer = 0); override;
   End;
@@ -288,6 +289,13 @@ Begin
 End;
 
 { TRGBDialog }
+
+Procedure TRGBDialog.OnEditKeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  If key = 13 { VK_Return } Then button2.Click;
+  If key = 27 { VK_ESCAPE } Then button1.Click;
+End;
 
 Constructor TRGBDialog.CreateNew(AOwner: TComponent; Num: Integer);
 Begin
@@ -365,6 +373,9 @@ Begin
   Edit2.font.Color := clSilver;
   Edit3.Color := clGray;
   Edit3.font.Color := clSilver;
+  edit1.OnKeyDown := @OnEditKeyDown;
+  edit2.OnKeyDown := @OnEditKeyDown;
+  edit3.OnKeyDown := @OnEditKeyDown;
 End;
 
 { TOpenGL_Bevel }
@@ -514,6 +525,8 @@ Begin
 End;
 
 Procedure TOpenGL_ColorBox.OnRender;
+var
+  p: TPoint;
 Begin
   If Not Visible Then exit;
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -553,6 +566,13 @@ Begin
 
   glLineWidth(1);
   glPopMatrix;
+
+  If fShowHint And (hint <> '') Then Begin
+    p := fOwner.ScreenToClient(Mouse.CursorPos);
+    p.x := round(p.x * ScreenWidth / fOwner.Width);
+    p.Y := round(p.Y * ScreenHeight / fOwner.Height);
+    RenderHint(p, hint);
+  End;
 End;
 
 Procedure TOpenGL_ColorBox.MouseDown(Button: TMouseButton; Shift: TShiftState;
@@ -1049,18 +1069,18 @@ Begin
     If fColorAsHex Then Begin
       t := Dialog.Edit1.Text;
       val('$' + t, c.r, Dummy);
-      If dummy <> 0 Then c.r := fShower.Color.r;
+      If dummy <> 0 Then c.r := max(0, min(255, fShower.Color.r));
       t := Dialog.Edit2.Text;
       val('$' + t, c.g, Dummy);
-      If dummy <> 0 Then c.g := fShower.Color.g;
+      If dummy <> 0 Then c.g := max(0, min(255, fShower.Color.g));
       t := Dialog.Edit3.Text;
       val('$' + t, c.b, Dummy);
-      If dummy <> 0 Then c.b := fShower.Color.b;
+      If dummy <> 0 Then c.b := max(0, min(255, fShower.Color.b));
     End
     Else Begin
-      c.r := strtointdef(dialog.Edit1.Text, fShower.Color.r);
-      c.g := strtointdef(dialog.Edit2.Text, fShower.Color.g);
-      c.b := strtointdef(dialog.Edit3.Text, fShower.Color.b);
+      c.r := max(0, min(255, strtointdef(dialog.Edit1.Text, fShower.Color.r)));
+      c.g := max(0, min(255, strtointdef(dialog.Edit2.Text, fShower.Color.g)));
+      c.b := max(0, min(255, strtointdef(dialog.Edit3.Text, fShower.Color.b)));
     End;
     ApplyColor(c);
   End;

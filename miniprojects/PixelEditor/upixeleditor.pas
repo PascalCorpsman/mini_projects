@@ -78,6 +78,7 @@ Const
    *                   ADD: CTRL+X
    *            0.12 - ADD: Convolute button
    *                   ADD: Custom values for colors in Color Pic dialog
+   *                   ADD: Keyboard shortcuts to hints
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -647,6 +648,7 @@ Begin
   If (key = VK_N) And (ssCtrl In Shift) Then NewButton.Click;
   If (key = VK_L) And (ssCtrl In Shift) Then OpenButton.Click;
   If (key = VK_S) And (ssCtrl In Shift) Then SaveButton.Click;
+  // If (key = VK_A) And (ssCtrl In Shift) Then SaveAsButton.Click; -- Das geht nicht ist mit Select All bereits belegt ..
   // ALT + F4 -> Global benötigt kein Extra Key handler
   If (key = VK_G) And (ssCtrl In Shift) Then GridButton.Click;
   If (key = VK_SUBTRACT) And (shift = []) Then ZoomOutButton.Click;
@@ -756,6 +758,7 @@ Begin
   End;
   If (key = VK_I) And (shift = []) Then PipetteButton.Click;
   If (key = VK_U) And (shift = []) Then ColorCurveButton.OnClick(ColorCurveButton);
+  // TODO: ConvoluteButton fehlt noch !
 
   // Farb Felder
   If (key = VK_1) And (ssCtrl In Shift) Then Color1.OnClick(Color1);
