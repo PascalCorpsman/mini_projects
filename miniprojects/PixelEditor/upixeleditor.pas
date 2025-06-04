@@ -76,7 +76,7 @@ Const
    *                   ADD: Color curve feature
    *                   FIX: "Pic color" -> "Pick color"
    *                   ADD: CTRL+X
-   *            0.12 - ADD: Convolute button
+   * -Released- 0.12 - ADD: Convolute button
    *                   ADD: Custom values for colors in Color Pic dialog
    *                   ADD: Keyboard shortcuts to hints
    *                   ADD: Drag/Drop for .pcp files
@@ -90,7 +90,7 @@ Const
    * Missing Features:
    *
    *)
-  Version = '0.12';
+  Version = '0.13';
 
   (*
    * History: 1 - Initialversion
