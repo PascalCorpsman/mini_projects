@@ -234,7 +234,12 @@ End;
 Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
   );
 Begin
-  Editor.LoadImage(FileNames[0]);
+  If lowercase(ExtractFileExt(FileNames[0])) = '.pcp' Then Begin
+    Editor.LoadColorPaletteFromFile(FileNames[0]);
+  End
+  Else Begin
+    Editor.LoadImage(FileNames[0]);
+  End;
 End;
 
 Procedure TForm1.MenuItem10Click(Sender: TObject);

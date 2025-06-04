@@ -79,6 +79,10 @@ Const
    *            0.12 - ADD: Convolute button
    *                   ADD: Custom values for colors in Color Pic dialog
    *                   ADD: Keyboard shortcuts to hints
+   *                   ADD: Drag/Drop for .pcp files
+   *                   ADD: Scale for Transparent Pattern
+   *                   ADD: Transparent Color Element
+   *                   FIX: use right color when cutting / erasing
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -177,6 +181,7 @@ Type
     ColorPicDialog: TOpenGL_ColorPicDialog;
 
     ColorPreview: TOpenGL_ForeBackGroundColorBox;
+    ColorTransparent: TOpenGL_Bevel;
     Color1: TOpenGL_ColorBox;
     Color2: TOpenGL_ColorBox;
     Color3: TOpenGL_ColorBox;
@@ -228,6 +233,7 @@ Type
     Procedure OnConvoluteButton(Sender: TObject);
 
     Procedure OnColorClick(Sender: TObject);
+    Procedure OnTransparentMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     Procedure OnColorDblClick(Sender: TObject);
     Procedure OnColorMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
@@ -305,6 +311,7 @@ Type
     Procedure ConvertToGrayscale;
     Procedure OnLoadBackgroundImage;
     Procedure OnClearBackGroundImage;
+    Procedure LoadColorPaletteFromFile(Const Filename: String);
   End;
 
 Var
@@ -446,6 +453,7 @@ End;
 Procedure TPixelEditor.OnOptionsButtonClick(Sender: TObject);
 Var
   s: String;
+  i: integer;
 Begin
   // Settings to LCL
   form2.CheckBox1.Checked := fSettings.GridAboveImage;
@@ -456,6 +464,13 @@ Begin
   End;
   form2.CheckBox2.Checked := fSettings.AutoIncSize;
   form2.CheckBox3.Checked := fSettings.BackGroundTransparentPattern;
+  If fSettings.BackGroundTransparentPatternScale <> 1 Then Begin
+    form2.ScrollBar1.Position := fSettings.BackGroundTransparentPatternScale Div 2;
+  End
+  Else Begin
+    form2.ScrollBar1.Position := fSettings.BackGroundTransparentPatternScale;
+  End;
+  form2.ScrollBar1Change(Nil);
   form2.CheckBox4.Checked := fSettings.RGBHEXValues;
   s := OptionsButton.hint;
   OptionsButton.hint := '';
@@ -470,6 +485,11 @@ Begin
   End;
   Setvalue('AutoIncSize', inttostr(ord(Form2.CheckBox2.Checked)));
   Setvalue('BackGroundTransparentPattern', inttostr(ord(Form2.CheckBox3.Checked)));
+  i := Form2.ScrollBar1.Position;
+  If i <> 1 Then Begin
+    i := i * 2;
+  End;
+  Setvalue('BackGroundTransparentPatternScale', inttostr(i));
   Setvalue('RGBHEXValues', inttostr(ord(Form2.CheckBox4.Checked)));
   LoadSettings;
 End;
@@ -1022,41 +1042,9 @@ Begin
 End;
 
 Procedure TPixelEditor.OnLoadColorPaletteButtonClick(Sender: TObject);
-Var
-  m: TMemoryStream;
-  FileVersion: integer;
-  c: TRGBA;
 Begin
   If form1.OpenDialog2.Execute Then Begin
-    m := TMemoryStream.Create;
-    m.LoadFromFile(form1.OpenDialog2.FileName);
-    FileVersion := -1;
-    m.Read(FileVersion, SizeOf(FileVersion));
-    If FileVersion > ColorPaletteFileversion Then Begin
-      showmessage('Error, invalid file version.');
-      m.free;
-      exit;
-    End;
-    c := rgba(0, 0, 0, AlphaOpaque);
-    m.Read(c, sizeof(C));
-    Color1.Color := c;
-    m.Read(c, sizeof(C));
-    Color2.Color := c;
-    m.Read(c, sizeof(C));
-    Color3.Color := c;
-    m.Read(c, sizeof(C));
-    Color4.Color := c;
-    m.Read(c, sizeof(C));
-    Color5.Color := c;
-    m.Read(c, sizeof(C));
-    Color6.Color := c;
-    m.Read(c, sizeof(C));
-    Color7.Color := c;
-    m.Read(c, sizeof(C));
-    Color8.Color := c;
-    SetLeftColor(ColorPicDialog.Shower);
-    ColorPicDialog.Visible := false;
-    m.free;
+    LoadColorPaletteFromFile(form1.OpenDialog2.FileName);
   End;
 End;
 
@@ -1084,9 +1072,13 @@ Begin
   If fsettings.BackGroundTransparentPattern And (fBackGroundImageFilename = '') Then Begin
     glPushMatrix;
     glTranslatef(0, 0, LayerBackGroundColor + 0.01);
-    For i := 0 To fImage.Width - 1 Do Begin
-      For j := 0 To fImage.Height - 1 Do Begin
-        RenderTransparentQuad(i * zf, j * zf, zf, zf);
+    glScalef(fsettings.BackGroundTransparentPatternScale, fsettings.BackGroundTransparentPatternScale, 1);
+    For i := 0 To (fImage.Width - 1) Div fsettings.BackGroundTransparentPatternScale Do Begin
+      For j := 0 To (fImage.Height - 1) Div fsettings.BackGroundTransparentPatternScale Do Begin
+        RenderClampedTransparentQuad(i * zf, j * zf, zf, zf
+          , fImage.Width * zf / fsettings.BackGroundTransparentPatternScale
+          , fImage.Height * zf / fsettings.BackGroundTransparentPatternScale
+          );
       End;
     End;
     glPopMatrix;
@@ -1167,7 +1159,7 @@ Begin
         img.BeginUpdate;
         For i := 0 To img.Width - 1 Do Begin
           For j := 0 To img.Height - 1 Do Begin
-            img.SetColorAt(i, j, upixeleditor_types.ColorTransparent);
+            img.SetColorAt(i, j, fCursor.RightColor);
           End;
         End;
         img.EndUpdate;
@@ -1339,6 +1331,18 @@ Begin
   End
   Else Begin
     SetLeftColor(sender As TOpenGL_ColorBox);
+  End;
+End;
+
+Procedure TPixelEditor.OnTransparentMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+Begin
+  If ssleft In shift Then Begin
+    fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
+    SetLeftColor(fCursor.LeftColor);
+  End;
+  If ssRight In shift Then Begin
+    SetRightColor(upixeleditor_types.ColorTransparent);
   End;
 End;
 
@@ -1620,7 +1624,12 @@ Begin
   // Move to Select, das Bild via SetImagePixelByCursor und TPen Löschen
   fCursor.Tool := tPen;
   c := fCursor.LeftColor.Color;
-  fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
+  If SelectModeButton.Style = bsLowered Then Begin
+    fCursor.LeftColor.Color := upixeleditor_types.ColorTransparent;
+  End
+  Else Begin
+    fCursor.LeftColor.Color := fCursor.RightColor;
+  End;
   For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
     For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
       img.SetColorAt(i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y, fImage.GetColorAt(i, j));
@@ -1902,7 +1911,8 @@ Begin
   UpdateInfoLabel;
 End;
 
-Function TPixelEditor.CursorToPixel(x, y: integer; ClampToImage: Boolean): TPoint;
+Function TPixelEditor.CursorToPixel(x, y: integer; ClampToImage: Boolean
+  ): TPoint;
 Var
   rx, ry: Single;
   riy, rix: Integer;
@@ -2101,6 +2111,7 @@ Begin
   fSettings.DefaultExt := GetValue('DefaultExt', '.pe');
   fSettings.AutoIncSize := GetValue('AutoIncSize', '1') = '1';
   fsettings.BackGroundTransparentPattern := GetValue('BackGroundTransparentPattern', '1') = '1';
+  fsettings.BackGroundTransparentPatternScale := strtointdef(GetValue('BackGroundTransparentPatternScale', '1'), 1);
   fsettings.RGBHEXValues := GetValue('RGBHEXValues', '0') = '1';
   // In Case of change hex vs decimal representation we need to refresh the infolabel
   If assigned(fCursor.LeftColor) Then Begin
@@ -2503,6 +2514,48 @@ Procedure TPixelEditor.OnClearBackGroundImage;
 Begin
   fBackGroundImageFilename := '';
   fBackGroundImage.Clear();
+End;
+
+Procedure TPixelEditor.LoadColorPaletteFromFile(Const Filename: String);
+Var
+  m: TMemoryStream;
+  FileVersion: integer;
+  c: TRGBA;
+Begin
+  m := TMemoryStream.Create;
+  m.LoadFromFile(FileName);
+  FileVersion := -1;
+  m.Read(FileVersion, SizeOf(FileVersion));
+  If FileVersion > ColorPaletteFileversion Then Begin
+    showmessage('Error, invalid file version.');
+    m.free;
+    exit;
+  End;
+  c := rgba(0, 0, 0, AlphaOpaque);
+  m.Read(c, sizeof(C));
+  Color1.Color := c;
+  m.Read(c, sizeof(C));
+  Color2.Color := c;
+  m.Read(c, sizeof(C));
+  Color3.Color := c;
+  m.Read(c, sizeof(C));
+  Color4.Color := c;
+  m.Read(c, sizeof(C));
+  Color5.Color := c;
+  m.Read(c, sizeof(C));
+  Color6.Color := c;
+  m.Read(c, sizeof(C));
+  Color7.Color := c;
+  m.Read(c, sizeof(C));
+  Color8.Color := c;
+  If ColorPicDialog.Visible Then Begin
+    SetLeftColor(ColorPicDialog.Shower);
+    ColorPicDialog.Visible := false;
+  End
+  Else Begin
+    SetLeftColor(fCursor.LeftColor);
+  End;
+  m.free;
 End;
 
 Constructor TPixelEditor.Create;

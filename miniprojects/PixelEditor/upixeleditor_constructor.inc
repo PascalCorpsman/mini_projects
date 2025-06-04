@@ -649,7 +649,7 @@ If ColorPicDialog.CriticalError <> '' Then Begin
   fCriticalError := ColorPicDialog.CriticalError;
   exit;
 End;
-ColorPicDialog.left := 147;
+ColorPicDialog.left := 147 + 14;
 ColorPicDialog.Top := 131;
 ColorPicDialog.OnSetColor := @SetLeftColor;
 ColorPicDialog.OnLoadColorPalette := @OnLoadColorPaletteButtonClick;
@@ -663,8 +663,21 @@ ColorPreview.Width := 49;
 ColorPreview.Height := 49;
 AddElement(ColorPreview);
 
+ColorTransparent := TOpenGL_Bevel.Create(Owner);
+ColorTransparent.Left := 147 - 29 + 12;
+ColorTransparent.Top := 428;
+image := LoadAlphaColorGraphik('Transparent.bmp');
+If image = 0 Then exit;
+ColorTransparent.SetImage(image);
+ColorTransparent.Transparent := true;
+ColorTransparent.Width := 28;
+ColorTransparent.Height := 28;
+ColorTransparent.OnMouseDown := @OnTransparentMouseDown;
+ColorTransparent.Hint := 'Transparent';
+AddElement(ColorTransparent);
+
 Color1 := TOpenGL_ColorBox.Create(Owner);
-Color1.Left := 147;
+Color1.Left := 147 + 14;
 Color1.Top := 428;
 Color1.Width := 32;
 Color1.Height := 32;
@@ -679,7 +692,7 @@ Color1.Hint := 'Color 1 (CTRL+1)';
 AddElement(Color1);
 
 Color2 := TOpenGL_ColorBox.Create(Owner);
-Color2.Left := 182;
+Color2.Left := 182 + 14;
 Color2.Top := 428;
 Color2.Width := 32;
 Color2.Height := 32;
@@ -694,7 +707,7 @@ Color2.Hint := 'Color 2 (CTRL+2)';
 AddElement(Color2);
 
 Color3 := TOpenGL_ColorBox.Create(Owner);
-Color3.Left := 217;
+Color3.Left := 217 + 14;
 Color3.Top := 428;
 Color3.Width := 32;
 Color3.Height := 32;
@@ -709,7 +722,7 @@ Color3.Hint := 'Color 3 (CTRL+3)';
 AddElement(Color3);
 
 Color4 := TOpenGL_ColorBox.Create(Owner);
-Color4.Left := 252;
+Color4.Left := 252 + 14;
 Color4.Top := 428;
 Color4.Width := 32;
 Color4.Height := 32;
@@ -724,7 +737,7 @@ Color4.Hint := 'Color 4 (CTRL+4)';
 AddElement(Color4);
 
 Color5 := TOpenGL_ColorBox.Create(Owner);
-Color5.Left := 287;
+Color5.Left := 287 + 14;
 Color5.Top := 428;
 Color5.Width := 32;
 Color5.Height := 32;
@@ -739,7 +752,7 @@ Color5.Hint := 'Color 5 (CTRL+5)';
 AddElement(Color5);
 
 Color6 := TOpenGL_ColorBox.Create(Owner);
-Color6.Left := 322;
+Color6.Left := 322 + 14;
 Color6.Top := 428;
 Color6.Width := 32;
 Color6.Height := 32;
@@ -754,7 +767,7 @@ Color6.Hint := 'Color 6 (CTRL+6)';
 AddElement(Color6);
 
 Color7 := TOpenGL_ColorBox.Create(Owner);
-Color7.Left := 357;
+Color7.Left := 357 + 14;
 Color7.Top := 428;
 Color7.Width := 32;
 Color7.Height := 32;
@@ -769,7 +782,7 @@ Color7.Hint := 'Color 7 (CTRL+7)';
 AddElement(Color7);
 
 Color8 := TOpenGL_ColorBox.Create(Owner);
-Color8.Left := 392;
+Color8.Left := 392 + 14;
 Color8.Top := 428;
 Color8.Width := 32;
 Color8.Height := 32;
@@ -784,14 +797,14 @@ Color8.Hint := 'Color 8 (CTRL+8)';
 AddElement(Color8);
 
 InfoLabel := TOpenGl_Label.Create(owner, '');
-InfoLabel.Left := 427;
+InfoLabel.Left := 427 + 14;
 InfoLabel.Top := 445;
 InfoLabel.Caption := '';
 InfoLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);
 AddElement(InfoLabel);
 
 InfoDetailLabel := TOpenGl_Label.Create(owner, '');
-InfoDetailLabel.Left := 523;
+InfoDetailLabel.Left := 523 + 14;
 InfoDetailLabel.Top := 445;
 InfoDetailLabel.Caption := '';
 InfoDetailLabel.FontColor := v3(192 / 255, 192 / 255, 192 / 255);

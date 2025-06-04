@@ -226,6 +226,7 @@ Type
   End;
 
 Procedure RenderTransparentQuad(x, y, w, h: Single);
+Procedure RenderClampedTransparentQuad(x, y, w, h, cw, ch: Single);
 
 Implementation
 
@@ -285,6 +286,32 @@ Begin
   glVertex2f(x + w / 2, y + h / 2);
   glVertex2f(x + w / 2, y + h);
   glVertex2f(x, y + h);
+  glend;
+End;
+
+Procedure RenderClampedTransparentQuad(x, y, w, h, cw, ch: Single);
+Begin
+  glColor3ub(TransparentDarkLuminance, TransparentDarkLuminance, TransparentDarkLuminance);
+  glBegin(GL_QUADS);
+  glVertex2f(x, y);
+  glVertex2f(min(x + w / 2, cw), y);
+  glVertex2f(min(x + w / 2, cw), min(y + h / 2, ch));
+  glVertex2f(x, min(y + h / 2, ch));
+  glVertex2f(min(x + w / 2, cw), min(y + h / 2, ch));
+  glVertex2f(min(x + w, cw), min(y + h / 2, ch));
+  glVertex2f(min(x + w, cw), min(y + h, ch));
+  glVertex2f(min(x + w / 2, cw), min(y + h, ch));
+  glend;
+  glColor3ub(TransparentBrightLuminance, TransparentBrightLuminance, TransparentBrightLuminance);
+  glBegin(GL_QUADS);
+  glVertex2f(min(x + w / 2, cw), y);
+  glVertex2f(min(x + w, cw), y);
+  glVertex2f(min(x + w, cw), min(y + h / 2, ch));
+  glVertex2f(min(x + w / 2, cw), min(y + h / 2, ch));
+  glVertex2f(x, min(y + h / 2, ch));
+  glVertex2f(min(x + w / 2, cw), min(y + h / 2, ch));
+  glVertex2f(min(x + w / 2, cw), min(y + h, ch));
+  glVertex2f(x, min(y + h, ch));
   glend;
 End;
 
@@ -525,7 +552,7 @@ Begin
 End;
 
 Procedure TOpenGL_ColorBox.OnRender;
-var
+Var
   p: TPoint;
 Begin
   If Not Visible Then exit;

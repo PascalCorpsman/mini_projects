@@ -192,6 +192,7 @@ Type
     DefaultExt: String; // Die Defaut Dateiendung beim Speichern
     AutoIncSize: Boolean; // Wenn true, dann wird das Image automatisch beim Paste / Resize einer Selection "Vergrößert" wenn diese Selection größer ist als das Bild
     BackGroundTransparentPattern: Boolean;
+    BackGroundTransparentPatternScale: integer;
     RGBHEXValues: Boolean; // If True, all RGB Values will be displayed as HEXvalues
 
     // Hier noch weitere Programmsettings einfügen ;)

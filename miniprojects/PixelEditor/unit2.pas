@@ -33,7 +33,11 @@ Type
     CheckBox4: TCheckBox;
     ComboBox1: TComboBox;
     Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    ScrollBar1: TScrollBar;
     Procedure FormCreate(Sender: TObject);
+    Procedure ScrollBar1Change(Sender: TObject);
   private
 
   public
@@ -52,6 +56,11 @@ Implementation
 Procedure TForm2.FormCreate(Sender: TObject);
 Begin
   Caption := 'Options';
+End;
+
+Procedure TForm2.ScrollBar1Change(Sender: TObject);
+Begin
+  label3.caption := IntToStr(ScrollBar1.Position);
 End;
 
 End.
