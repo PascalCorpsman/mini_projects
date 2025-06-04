@@ -83,6 +83,7 @@ Const
    *                   ADD: Scale for Transparent Pattern
    *                   ADD: Transparent Color Element
    *                   FIX: use right color when cutting / erasing
+   *            0.13 - FIX: Cut / paste did not always take right color into account
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -963,7 +964,7 @@ Begin
   End;
   fCursor.Compact.PixelPos := CursorToPixel(x, y, true);
   fCursor.Pos := Point(x, y);
-  If (button = mbLeft) And (Not ColorPicDialog.Visible) Then Begin
+  If (button = mbLeft) Then Begin
     Case fCursor.Tool Of
       tEraser, tPen, tMirror,
         tLine, tEllipse, tBucket,
@@ -999,14 +1000,22 @@ Begin
         End;
     End;
   End;
-  If (button = mbRight) And (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
-    If fCursor.Tool = tPipette Then Begin
-      UnselectPipette;
+  If (button = mbRight) And (CursorIsInImageWindow()) Then Begin
+    Case fCursor.Tool Of
+      tEraser, tPen, tMirror,
+        tLine, tEllipse, tBucket,
+        tRectangle: Begin
+          fImage.BeginUpdate;
+          CursorToPixelOperation(@SetImagePixelByCursor);
+          fImage.EndUpdate;
+          fundo.PushRecording;
+        End;
+      tPipette: UnselectPipette;
     End;
   End;
   fCursor.PixelDownPos := point(-1, -1);
-  fCursor.LeftMouseButton := ssleft In Shift;
-  fCursor.RightMouseButton := ssRight In Shift;
+  fCursor.LeftMouseButton := false;
+  fCursor.RightMouseButton := false;
 End;
 
 Procedure TPixelEditor.OpenGLControlMouseWheelDown(Sender: TObject;
@@ -1521,7 +1530,12 @@ Begin
       End;
     End
     Else Begin
-      nColor := fCursor.LeftColor.Color;
+      If fCursor.RightMouseButton Then Begin
+        nColor := fCursor.RightColor;
+      End
+      Else Begin
+        nColor := fCursor.LeftColor.Color;
+      End;
       If (fCursor.Tool = tSelect)
         And (i >= fCursor.Select.tl.x) And (i <= fCursor.Select.br.x)
         And (j >= fCursor.Select.tl.Y) And (j <= fCursor.Select.br.Y) Then Begin
@@ -1608,7 +1622,7 @@ End;
 Procedure TPixelEditor.CutSubimageFromImageToSelection;
 Var
   i, j: integer;
-  c: TRGBA;
+  tc, c: TRGBA;
   img: TPixelImage;
 Begin
   (*
@@ -1632,7 +1646,13 @@ Begin
   End;
   For i := fCursor.Select.tl.x To fCursor.Select.br.x Do Begin
     For j := fCursor.Select.tl.Y To fCursor.Select.br.Y Do Begin
-      img.SetColorAt(i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y, fImage.GetColorAt(i, j));
+      tc := fImage.GetColorAt(i, j);
+      If SelectModeButton.Style = bsRaised Then Begin
+        If tc = fCursor.RightColor Then Begin
+          tc := upixeleditor_types.ColorTransparent;
+        End;
+      End;
+      img.SetColorAt(i - fCursor.Select.tl.x, j - fCursor.Select.tl.Y, tc);
       SetImagePixelByCursor(i, j);
     End;
   End;
