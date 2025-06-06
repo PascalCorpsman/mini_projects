@@ -84,6 +84,7 @@ Const
    *                   ADD: Transparent Color Element
    *                   FIX: use right color when cutting / erasing
    *            0.13 - FIX: Cut / paste did not always take right color into account
+   *                   FIX: Right mouse scroll glitch
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -817,6 +818,7 @@ Begin
   fCursor.PixelDownPos := fCursor.Compact.PixelPos;
   fCursor.LeftMouseButton := ssleft In Shift;
   fCursor.RightMouseButton := ssRight In Shift;
+  FCursor.Scrolling := false;
   If ssLeft In shift Then Begin
     If (CursorIsInImageWindow()) And (Not ColorPicDialog.Visible) Then Begin
       If (DarkenButton.Style = bsRaised) Or
@@ -932,11 +934,12 @@ Begin
       End;
     End;
   End;
-  If ssRight In shift Then Begin
+  If (ssRight In shift) Then Begin
     dx := (fScrollInfo.ScrollPos.x - x) * ScreenWidth Div FOwner.Width;
     dy := (fScrollInfo.ScrollPos.y - y) * ScreenHeight Div FOwner.Height;
     fScrollInfo.GlobalXOffset := fScrollInfo.GlobalXOffset + dx;
     fScrollInfo.GlobalYOffset := fScrollInfo.GlobalyOffset + dy;
+    FCursor.Scrolling := true;
     CheckScrollBorders();
   End;
   fScrollInfo.ScrollPos := point(x, y);
@@ -1000,7 +1003,7 @@ Begin
         End;
     End;
   End;
-  If (button = mbRight) And (CursorIsInImageWindow()) Then Begin
+  If (button = mbRight) And (CursorIsInImageWindow()) And (Not fCursor.Scrolling) Then Begin
     Case fCursor.Tool Of
       tEraser, tPen, tMirror,
         tLine, tEllipse, tBucket,

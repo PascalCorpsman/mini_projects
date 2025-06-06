@@ -167,6 +167,7 @@ Type
     Origin: TPoint; // Für das Mirrortool benötigen wir noch einen Ursprung
     Select: TSelectData;
     ColorToleranz: integer;
+    Scrolling: Boolean; // Wenn true, dann "Scrollt" der User gerade
   End;
 
   TScrollInfo = Record
