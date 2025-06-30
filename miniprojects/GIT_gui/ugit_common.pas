@@ -412,7 +412,11 @@ Begin
     res := RunCommand(aDir, 'git', ['show', '--pretty=format:""', '--name-status', Hash]);
     result.BranchSelector.Local := 'todo..';
     result.BranchSelector.Remote := 'todo..';
+{$IFDEF Windows}
     StartIndex := 0;
+{$ELSE}
+    StartIndex := 1;
+{$ENDIF}
     Separator := #9;
   End;
   setlength(result.CommitFileInfo, max(0, Res.Count - StartIndex));

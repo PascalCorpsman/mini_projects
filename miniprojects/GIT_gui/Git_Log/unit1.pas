@@ -251,8 +251,7 @@ Begin
   aDir := '';
   For i := 1 To Paramcount Do Begin
     If DirectoryExistsUTF8(trim(ParamStrUTF8(i))) Then Begin
-      ProjectFileFolder := IncludeTrailingPathDelimiter(trim(ParamStrUTF8(i)));
-      aDir := ProjectFileFolder;
+      aDir := IncludeTrailingPathDelimiter(trim(ParamStrUTF8(i)));
       break;
     End;
     If FileExistsUTF8(trim(ParamStrUTF8(i))) Then Begin
@@ -628,7 +627,12 @@ Var
   GraphInfo: TGraphInfoArray;
   aSingleFile: Boolean;
 Begin
-  caption := ProjectFileFolder + DefCaption;
+  If ProjectFileFolder <> '' Then Begin
+    caption := ProjectFileFolder + DefCaption;
+  End
+  Else Begin
+    caption := ProjectRoot + DefCaption;
+  End;
   edit1.text := '';
   StringGrid1.RowCount := 2;
   StringGrid1.Cells[2, 1] := 'Working tree changes';
@@ -638,7 +642,10 @@ Begin
    * Command to create debug log streams for Git_Graph test environment:
    * git --no-pager log --pretty=format:"%H;%P;%s" --all > log.txt
    *)
-  tmp := trim(ExtractRelativePath(ProjectRoot, ProjectFileFolder));
+  tmp := '';
+  If ProjectFileFolder <> '' Then Begin
+    tmp := trim(ExtractRelativePath(ProjectRoot, ProjectFileFolder));
+  End;
   aSingleFile := false;
   If tmp <> '' Then Begin
     aSingleFile := true;
