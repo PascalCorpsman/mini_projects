@@ -180,6 +180,7 @@ Type
     Procedure StringGrid2DblClick(Sender: TObject);
   private
     ProjectRoot: String;
+    ProjectFileFolder: String; // Datei oder Verzeichnis zu welchem die Historie angezeigt werden soll..
     Graph: TGraph;
     Additionals: Array Of TAdditional;
     FirstLoadLCL: Boolean;
@@ -246,20 +247,23 @@ Begin
   (*
    * Known Bugs:
    *)
+  ProjectFileFolder := '';
   aDir := '';
   For i := 1 To Paramcount Do Begin
     If DirectoryExistsUTF8(trim(ParamStrUTF8(i))) Then Begin
-      aDir := IncludeTrailingPathDelimiter(trim(ParamStrUTF8(i)));
+      ProjectFileFolder := IncludeTrailingPathDelimiter(trim(ParamStrUTF8(i)));
+      aDir := ProjectFileFolder;
       break;
     End;
     If FileExistsUTF8(trim(ParamStrUTF8(i))) Then Begin
-      aDir := trim(ParamStrUTF8(i));
+      ProjectFileFolder := trim(ParamStrUTF8(i));
+      aDir := IncludeTrailingPathDelimiter(ExtractFilePath(ProjectFileFolder));
       break;
     End;
   End;
   ProjectRoot := GetRepoRoot(aDir);
   If ProjectRoot = '' Then Begin
-    showmessage('"' + aDir + '" is not a valid git repository.');
+    showmessage('"' + ProjectFileFolder + '" is not a valid git repository.');
     halt;
   End;
   FirstLoadLCL := true;
@@ -618,12 +622,13 @@ Var
   aParams: Array Of String;
   sa, sa2: TStringArray;
   aActions, i, j: Integer;
-  s: String;
+  s, tmp: String;
   d, FromDate, ToDate: TDateTime;
   first: Boolean;
   GraphInfo: TGraphInfoArray;
+  aSingleFile: Boolean;
 Begin
-  caption := ProjectRoot + DefCaption;
+  caption := ProjectFileFolder + DefCaption;
   edit1.text := '';
   StringGrid1.RowCount := 2;
   StringGrid1.Cells[2, 1] := 'Working tree changes';
@@ -633,12 +638,24 @@ Begin
    * Command to create debug log streams for Git_Graph test environment:
    * git --no-pager log --pretty=format:"%H;%P;%s" --all > log.txt
    *)
-  setlength(aParams, 5);
+  tmp := trim(ExtractRelativePath(ProjectRoot, ProjectFileFolder));
+  aSingleFile := false;
+  If tmp <> '' Then Begin
+    aSingleFile := true;
+    setlength(aParams, 7);
+  End
+  Else Begin
+    setlength(aParams, 5);
+  End;
   aParams[0] := '--no-pager';
   aParams[1] := 'log';
   aParams[2] := '--date=format:"%d.%m.%Y %H:%M:%S"';
   aParams[3] := '--pretty=format:"%H;%P;%an;%ad;%s"';
   aParams[4] := '--name-status';
+  If tmp <> '' Then Begin
+    aParams[5] := '--';
+    aParams[6] := tmp;
+  End;
   If CheckBox2.Checked Then Begin
     setlength(aParams, high(aParams) + 2);
     aParams[high(aParams)] := '--all';
@@ -710,7 +727,7 @@ Begin
       inc(i);
     End;
   End;
-  Graph := CalcGraph(GraphInfo);
+  Graph := CalcGraph(GraphInfo, aSingleFile);
   CalcAdditionals();
   // TODO: Sammeln der Actions eines Branches damit die auch alle Richtig angezeigt werden können
   DateEdit1.Date := FromDate;

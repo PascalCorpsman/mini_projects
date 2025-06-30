@@ -39,7 +39,7 @@ Const
 Type
   (*
    * Der RevisionGraph besteht aus vielen "TeilSegmenten"
-   * Knifflig sind nur dir Bögen
+   * Knifflig sind nur die Bögen
    *
    *        |
    *    LU /|\ RU
@@ -69,7 +69,6 @@ Type
 
   TGraph = Array Of TFieldRow;
 
-
 Type
   TGraphInfo = Record
     hash: String;
@@ -81,8 +80,9 @@ Type
   (*
    * Calculates the TGraph content corresponding to the Graphinfo which was extracted by the command:
    *  git --no-pager log --pretty=format:"%H;%P;%s" --all > log.txt
+   * if aSingleFileFolder = true -> only 1 single chain is created ignoring everything else
    *)
-Function CalcGraph(Const GraphInfo: TGraphInfoArray): TGraph;
+Function CalcGraph(Const GraphInfo: TGraphInfoArray; aSingleFileFolder: Boolean): TGraph;
 
 Procedure DrawGraphRow(Const Canvas: TCanvas; Const aRow: TFieldRow; Const aRect: Trect);
 
@@ -244,6 +244,7 @@ Begin
 End;
 
 {$IFDEF Debug}
+
 Function toLen(aValue: String; aLen: integer): String;
 Begin
   result := aValue;
@@ -253,7 +254,7 @@ Begin
 End;
 {$ENDIF}
 
-Function CalcGraph(Const GraphInfo: TGraphInfoArray): TGraph;
+Function CalcGraph(Const GraphInfo: TGraphInfoArray; aSingleFileFolder: Boolean): TGraph;
 Var
   Graph: TGraph;
 
@@ -306,6 +307,10 @@ Begin
   // Befüllen mit Look Ahead 1
   For j := 0 To high(GraphInfo) Do Begin
     index := GetSwimLane(j + 1, GraphInfo[j].hash);
+    // Wenn das Ergebnis eine einzige Datei / Verzeichnis ist -> immer das 1. element
+    If (j <> 0) And aSingleFileFolder Then Begin
+      index := 0;
+    End;
     If index = -1 Then Begin // Hier Startet was neues -> Neuen Index Suchen
       index := GetEmptySwimLane(j + 1);
       Graph[j + 1, index].Active := true;
@@ -422,7 +427,7 @@ Begin
     For i := 0 To MaxBranches - 1 Do Begin
       For k := i + 1 To MaxBranches - 1 Do Begin
         If (Graph[j + 1, i].Active) And (Graph[j + 1, k].Active) And
-          ( // Ein Merge darf nur gemacht werden, wenn der Knoten der am Merge beteiligt ist, gerade eingefügt wurde.
+          (// Ein Merge darf nur gemacht werden, wenn der Knoten der am Merge beteiligt ist, gerade eingefügt wurde.
           (Graph[j + 1, i].Hash = GraphInfo[j].hash) Or (Graph[j + 1, k].Hash = GraphInfo[j].hash)
           // Or (Graph[j + 1, i].oldHash = GraphInfo[j].hash) Or (Graph[j + 1, k].oldHash = GraphInfo[j].hash) -- Sieht so aus als braucht man das nicht...
           )

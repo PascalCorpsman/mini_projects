@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* GIT gui                                                         26.11.2023 *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -24,6 +24,7 @@
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - add functions for sshCommand                          *)
+(*               0.03 - fix GetCommitInformations for single files            *)
 (*                                                                            *)
 (******************************************************************************)
 Unit ugit_common;
@@ -411,7 +412,7 @@ Begin
     res := RunCommand(aDir, 'git', ['show', '--pretty=format:""', '--name-status', Hash]);
     result.BranchSelector.Local := 'todo..';
     result.BranchSelector.Remote := 'todo..';
-    StartIndex := 1;
+    StartIndex := 0;
     Separator := #9;
   End;
   setlength(result.CommitFileInfo, max(0, Res.Count - StartIndex));
@@ -449,7 +450,12 @@ Begin
       csModifiedWithFurtherModifications,
         csAddedWithModifications,
         csModified: Begin
-          res := RunCommand(aDir, 'git', ['diff', '--stat', result.CommitFileInfo[i].FileName]);
+          If lowercase(trim(hash)) = '0000000000000000000000000000000000000000' Then Begin
+            res := RunCommand(aDir, 'git', ['diff', '--stat', result.CommitFileInfo[i].FileName]);
+          End
+          Else Begin
+            res := RunCommand(aDir, 'git', ['show', '--stat', '--pretty=format:', Hash, result.CommitFileInfo[i].FileName]);
+          End;
           If res.Count = 2 Then Begin
             UpdateCommitFileInfo(result.CommitFileInfo[i], res[1]);
           End
