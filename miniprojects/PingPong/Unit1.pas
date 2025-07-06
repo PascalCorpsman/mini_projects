@@ -114,8 +114,7 @@ Begin
   For i := 0 To High(Things) Do Begin
     Things[i].Move;
     (* Das hier ist neu *)
-    (* Wir bremsen unserern Speed Vektor einfach ein klein wenig ab und haben dadurch Reibung ;) *)
-    Things[i].SpeedVektor := Point(Things[i].SpeedVektor.x * (1 - Friction), Things[i].SpeedVektor.y * (1 - Friction));
+    Things[i].ApplyFriction(Friction);
   End;
 
   // Kollision der Kugeln untereinander

@@ -30,6 +30,8 @@ Type
     x, y: Single;
   End;
 
+  { TBall }
+
   TBall = Class
   private
     fvx, fvy, fx, fy, fr, fm: Single;
@@ -44,13 +46,16 @@ Type
     Property Position: Tfpoint read getpos write Setpos;
     Property SpeedVektor: TFpoint read getSpeed write SetSpeed;
     Property Mass: Single read Fm write fm;
+
     Constructor Create(Position_, SpeedVektor_: TFpoint; Radius_, Mass_: single);
     Destructor Destroy; override;
+
     Procedure Render(Const Canvas: TCanvas);
     Procedure CalculateMass;
     Procedure BorderCollision(CollisionRect: Trect; InsideCollision: Boolean = True);
     Procedure CollideWithOther(Const Ball2: TBall);
     Procedure Move;
+    Procedure ApplyFriction(Friction: Single);
   End;
 
 Function Point(x, y: Single): Tfpoint;
@@ -74,7 +79,8 @@ Begin
   End;
 End;
 
-Constructor Tball.Create(Position_, SpeedVektor_: TFpoint; Radius_, Mass_: single);
+Constructor TBall.Create(Position_, SpeedVektor_: TFpoint; Radius_,
+  Mass_: single);
 Begin
   Inherited Create;
   fc := Random(256 * 256 * 256); // zufällige Farbe für unsere Kugel.
@@ -86,39 +92,44 @@ Begin
   fvy := SpeedVektor_.y;
 End;
 
-Destructor Tball.Destroy;
+Destructor TBall.Destroy;
 Begin
   //  Inherited Destroy; // Brauchen wir net da von Tobject abgeleitet
 End;
 
-Function Tball.getpos: Tfpoint;
+Function TBall.getpos: Tfpoint;
 Begin
   result.x := fx;
   result.y := fy;
 End;
 
-Procedure Tball.Setpos(Value: TFpoint);
+Procedure TBall.Setpos(Value: TFpoint);
 Begin
   fx := value.x;
   fy := value.y;
 End;
 
-Function Tball.getSpeed: Tfpoint;
+Function TBall.getSpeed: Tfpoint;
 Begin
   result.x := fVx;
   result.y := fVy;
 End;
 
-Procedure Tball.SetSpeed(Value: TFpoint);
+Procedure TBall.SetSpeed(Value: TFpoint);
 Begin
   fvx := value.x;
   fvy := value.y;
 End;
 
-Procedure Tball.move;
+Procedure TBall.Move;
 Begin
   fx := fx + fvx;
   fy := fy + fvy;
+End;
+
+Procedure TBall.ApplyFriction(Friction: Single);
+Begin
+  SpeedVektor := Point(SpeedVektor.x * (1 - Friction), SpeedVektor.y * (1 - Friction));
 End;
 
 Function Tangens(Value: Extended): Extended;
@@ -220,7 +231,7 @@ Begin
   If (x <= (sn1 + Sn2)) Then result := true;
 End;
 
-Procedure Tball.BorderCollision(CollisionRect: Trect; InsideCollision: Boolean = True);
+Procedure TBall.BorderCollision(CollisionRect: Trect; InsideCollision: Boolean);
 Begin
   If Insidecollision Then Begin // Bedeutet die Kugel befindet sich inherhalt des Rechtecks
     If ((fx - fr < CollisionRect.Left) And (fvx < 0)) Or ((fx + fr > CollisionRect.Right) And (fvx > 0)) Then fvx := -fvx;
@@ -234,7 +245,7 @@ Begin
   End;
 End;
 
-Procedure Tball.CollideWithOther(Const Ball2: TBall);
+Procedure TBall.CollideWithOther(Const Ball2: TBall);
 Var
   dx, dy, dxs, dys, L, // Die Variablen für den Abstand der beiden Kugeln
   M11, M21, M12, M22, // Die Variablen der Transformationsmatrix
@@ -282,12 +293,12 @@ Begin
   End;
 End;
 
-Procedure Tball.CalculateMass;
+Procedure TBall.CalculateMass;
 Begin
   fm := 4 / 3 * fR * fR * fR * pi;
 End;
 
-Procedure Tball.Render(Const Canvas: TCanvas);
+Procedure TBall.Render(Const Canvas: TCanvas);
 Begin
   With canvas Do Begin
     pen.color := fc;

@@ -4,8 +4,12 @@
     <Version Value="12"/>
     <General>
       <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
         <CompatibilityMode Value="True"/>
       </Flags>
+      <SessionStorage Value="InProjectDir"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
     </General>
@@ -41,11 +45,6 @@
       <Unit0>
         <Filename Value="Project1.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="2"/>
-        <CursorPos Y="15"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="Unit1.pas"/>
@@ -53,73 +52,23 @@
         <ComponentName Value="Form1"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <TopLine Value="166"/>
-        <CursorPos X="7" Y="131"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="elements.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit2>
     </Units>
-    <JumpHistory Count="12" HistoryIndex="11">
-      <Position1>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="3" Column="20"/>
-      </Position1>
-      <Position2>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="19" Column="23"/>
-      </Position2>
-      <Position3>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="185" Column="54" TopLine="170"/>
-      </Position3>
-      <Position4>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="8" Column="21"/>
-      </Position4>
-      <Position5>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="169" Column="26" TopLine="147"/>
-      </Position5>
-      <Position6>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="9" Column="5"/>
-      </Position6>
-      <Position7>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="87" Column="33" TopLine="70"/>
-      </Position7>
-      <Position8>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="112" Column="3" TopLine="64"/>
-      </Position8>
-      <Position9>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="151" Column="69" TopLine="136"/>
-      </Position9>
-      <Position10>
-        <Filename Value="elements.pas"/>
-        <Caret Line="18" Column="16" TopLine="13"/>
-      </Position10>
-      <Position11>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="55" Column="11" TopLine="31"/>
-      </Position11>
-      <Position12>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="119" Column="117" TopLine="90"/>
-      </Position12>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+    </SearchPaths>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

@@ -1,14 +1,14 @@
 object Form1: TForm1
-  Left = 534
+  Left = 324
   Height = 613
-  Top = 109
+  Top = 25
   Width = 862
   BorderStyle = bsSingle
   Caption = 'Form1'
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
