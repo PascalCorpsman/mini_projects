@@ -392,8 +392,9 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  label1.caption := 'With this program you can see what a race condition is, and how you can prevent it.' + LineEnding +
-    'To show race the problem the number of prims below ' + IntToStr(UpperNumerBorder) + ' will be calculated.';
+  label1.caption :=
+    'With this program you can see what a race condition is, and how you can prevent it.' + LineEnding +
+    'To show the problem, the number of prims below ' + IntToStr(UpperNumerBorder) + ' will be calculated.';
   memo1.clear;
   caption := 'Prime Calculus ver. 0.01 by corpsman | www.Corpsman.de |';
   cs := TCriticalSection.Create;
