@@ -1,0 +1,123 @@
+object Form1: TForm1
+  Left = 548
+  Height = 418
+  Top = 190
+  Width = 568
+  Caption = 'Form1'
+  ClientHeight = 418
+  ClientWidth = 568
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 8
+    Width = 41
+    Caption = 'Label1'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 16
+    Hint = 'Typically you should use twice'#13#10'as much threads as your CPU '#13#10'has cores.'
+    Top = 64
+    Width = 114
+    Caption = 'Number of threads'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 136
+    Height = 26
+    Top = 56
+    Width = 80
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 88
+    Width = 552
+    Caption = 'Start (Unsave) creates the race condition'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+  object Label4: TLabel
+    Left = 8
+    Height = 16
+    Top = 184
+    Width = 41
+    Caption = 'Label4'
+    ParentColor = False
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 384
+    Width = 552
+    Caption = 'Close'
+    TabOrder = 2
+    OnClick = Button2Click
+  end
+  object Button3: TButton
+    Left = 8
+    Height = 25
+    Top = 152
+    Width = 552
+    Caption = 'Calc in main thread (Main Thread)'
+    TabOrder = 3
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    Left = 8
+    Height = 25
+    Top = 120
+    Width = 156
+    Caption = 'Start save (Critical)'
+    TabOrder = 4
+    OnClick = Button4Click
+  end
+  object Button5: TButton
+    Left = 176
+    Height = 25
+    Top = 120
+    Width = 176
+    Caption = 'Start save (Synchronized)'
+    TabOrder = 5
+    OnClick = Button5Click
+  end
+  object Memo1: TMemo
+    Left = 8
+    Height = 168
+    Top = 208
+    Width = 552
+    Font.Name = 'Courier New'
+    Lines.Strings = (
+      'Memo1'
+    )
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 6
+    WordWrap = False
+  end
+  object Label3: TLabel
+    Left = 224
+    Height = 16
+    Top = 64
+    Width = 142
+    Caption = 'Optimum CPU-Cores * 2'
+    ParentColor = False
+  end
+  object Button6: TButton
+    Left = 364
+    Height = 25
+    Top = 120
+    Width = 196
+    Caption = 'Start save (Queue)'
+    TabOrder = 7
+    OnClick = Button6Click
+  end
+end

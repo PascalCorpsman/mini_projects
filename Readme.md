@@ -45,6 +45,7 @@ Following is a short description of all listed projects
 | [MAW](miniprojects/MAW) | Demo that shows picking in OpenGL on a little puppet example |
 | [Network](miniprojects/Network) | Develop tools to simulate network properties (limit and delay) |
 | [QProgrammer](miniprojects/QProgrammer) | Lightwight Pascal like interpreter with integrated testsystem |
+| [Race condition](miniprojects/Race_Condition) | Demo to show how (not) to use tThread class |
 | [Raytracer](miniprojects/Raytracer) | Demo that shows how to write a raytracer (including a parser for the scenes) |
 | [Screenreader](miniprojects/Screenreader) | Application to take multiple partly screenshots |
 | [Sequoia](miniprojects/Sequoia) | Application to easy find large files in a folder structure |
