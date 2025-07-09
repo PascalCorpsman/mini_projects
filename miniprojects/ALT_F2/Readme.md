@@ -51,4 +51,4 @@ When the application is closed edit the ALT_F2.ini file, in the general section 
 | --- | --- |
 | OpenWhereMouseIs | if set to 1 the application will popup on the screen where the mouse is located |
 | SkipIcons | if set to 1, no icons will be loaded (deprecated) |
-| ShowDetailedIntValues | if set to 1, when using the calculater the result will also displayed as HEX and binary number if it is a integer value (and small enough) |
+| ShowDetailedIntValues | if set to 1, when using the calculater the result will also display as HEX and binary number if it is a integer value (and small enough) |
