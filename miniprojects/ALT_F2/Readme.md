@@ -20,7 +20,7 @@ Features:
 - automatic priorising of registered applications
 
 Dependencies:
-- MP-Arith: https://web.archive.org/web/20190628091417/http://www.wolfgang-ehrhardt.de/index.html
+- [MP-Arith](https://web.archive.org/web/20190628091417/http://www.wolfgang-ehrhardt.de/index.html) or use this direct [Link](https://web.archive.org/web/20190702203624/http://www.wolfgang-ehrhardt.de/mparith_2018-11-27.zip)
 
 Needed Lazarus packages:
 - UniqueInstance
@@ -36,3 +36,18 @@ Needed Lazarus packages:
 If installed, type whenever you want the keyboard combinition ALT + F2 and the programm pops up. Start typing the name of the application you want to start, as soon as the requested app is the "first" in list, hit return to start (typicalli this happens after two or three charactes)
 
 If you want to create a new shortcut just type in the name of the requested app and hit return. As the programm does not know what to do with it, it asks you to give the target link once. After you submit it, the app automatically calls the target link so you can proofe that everything is right (if not use the context menu)
+
+## Hidden features
+
+When the application is closed edit the ALT_F2.ini file, in the general section you see this:
+
+> [General]
+> OpenWhereMouseIs=0
+> SkipIcons=0
+> ShowDetailedIntValues=1
+
+| Option | Description |
+| --- | --- |
+| OpenWhereMouseIs | if set to 1 the application will popup on the screen where the mouse is located |
+| SkipIcons | if set to 1, no icons will be loaded (deprecated) |
+| ShowDetailedIntValues | if set to 1, when using the calculater the result will also displayed as HEX and binary number if it is a integer value (and small enough) |
