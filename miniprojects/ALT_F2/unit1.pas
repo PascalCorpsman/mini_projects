@@ -99,7 +99,9 @@
 (*               0.50 - ?                                                     *)
 (*               0.51 - ?                                                     *)
 (* - Released -  0.52 - rnd / random function                                 *)
-(*               0.53 -                                                       *)
+(*               0.53 - Fix AV on icon parsing                                *)
+(*                      Fix high dpi scaling graphical glitch                 *)
+(*                      ADD support for .png graphics                         *)
 (*                                                                            *)
 (* Feature Request:     Ein "freifeld" mit dem man Infos zur Anwendung mit    *)
 (*                      ablegen kann ??                                       *)
@@ -320,8 +322,8 @@ Begin
   Color := Back_Color;
   ListBox1.Color := Back_Color;
   ImageList1.DrawingStyle := dsTransparent;
-  ListBox1.ScrollWidth := ListBox1.Width - 10; // Definitiv Deaktivieren des Horizontalen Scrollbalkens
-  height := 38;
+  ListBox1.ScrollWidth := 0;//ListBox1.Width - Scale96ToForm(50); // Definitiv Deaktivieren des Horizontalen Scrollbalkens
+  height := Scale96ToForm(38);
 {$IFDEF Windows}
   // Register Hotkey ALT + F2
   id1 := GlobalAddAtom('Hotkey1');
@@ -429,24 +431,24 @@ Begin
   ListBox1.canvas.Rectangle(ARect);
   // Das Passende Icon Suchen
   If Rechner Then Begin
-    ImageList1.Draw(ListBox1.canvas, arect.Left + 5, arect.Top, 0);
+    ImageList1.Draw(ListBox1.canvas, arect.Left + Scale96ToForm(5), arect.Top, 0);
   End
   Else Begin
     b := false;
     For i := 0 To high(Apps) Do
       If LowerCase(apps[i].AppName) = lowercase(ListBox1.items[Index]) Then Begin
-        ImageList1.Draw(ListBox1.canvas, arect.Left + 5, arect.Top, apps[i].Icon);
+        ImageList1.Draw(ListBox1.canvas, arect.Left + Scale96ToForm(5), arect.Top, apps[i].Icon);
         b := true;
         break;
       End;
     If Not b Then Begin // Das Bild wurde nicht gefunden, darf eigentlich nicht auftreten
-      ImageList1.Draw(ListBox1.canvas, arect.Left + 5, arect.Top, 1);
+      ImageList1.Draw(ListBox1.canvas, arect.Left + Scale96ToForm(5), arect.Top, 1);
     End;
   End;
   // Der Text
   ListBox1.canvas.Brush.Style := bsClear;
   ListBox1.canvas.Font.Color := Font_Color;
-  ListBox1.canvas.TextOut(arect.Left + 32 + 10, arect.Top + 8, ListBox1.Items[Index]);
+  ListBox1.canvas.TextOut(arect.Left + Scale96ToForm(32 + 10), arect.Top + Scale96ToForm(8), ListBox1.Items[Index]);
 End;
 
 Procedure TForm1.ListBox1KeyPress(Sender: TObject; Var Key: char);
@@ -789,6 +791,7 @@ Begin
   Rechner := false;
   ListBox1.Items.Clear;
   // Suchen aus der Liste und Anzeigen der Möglichen Ergebnisse
+  Prios := Nil;
   setlength(Prios, high(apps) + 1);
   For i := 0 To high(Apps) Do Begin
     ListBox1.Items.Add(apps[i].AppName);
@@ -856,9 +859,9 @@ Begin
     Height := def_Height;
   End
   Else Begin
-    Height := min(screen.Height Div 2, def_Height + 12 + 32 * ListBox1.Items.Count);
+    Height := min(screen.Height Div 2, def_Height + Scale96ToForm(12 + 32 * ListBox1.Items.Count));
   End;
-  ListBox1.Height := Height - 44;
+  ListBox1.Height := Height - Scale96ToForm(44);
 End;
 
 Procedure TForm1.LoadApps();
@@ -925,7 +928,14 @@ Begin
       myIcon.Transparent := True;
       myIcon.Masked := True;
       myIcon.Handle := LargeIco;
-      result := ImageList1.AddIcon(myIcon);
+      Try
+        result := ImageList1.AddIcon(myIcon);
+      Except
+        On av: exception Do Begin
+          showmessage('Error, during icon extraction of: "' + Filename + '"');
+          result := -1;
+        End;
+      End;
       If (result = -1) Or (result >= ImageList1.Count) Then Begin
         // Wenn die Liste das Icon aus welchem Grund auch immer nicht adden konnte
         result := 1;

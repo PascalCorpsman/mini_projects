@@ -94,12 +94,29 @@ Begin
 End;
 
 Procedure TForm2.Button4Click(Sender: TObject);
+Var
+  p: TPortableNetworkGraphic;
+  b: TBitmap;
 Begin
   // Set Icon
   OpenPictureDialog1.InitialDir := Form1.Ini_File.ReadString('General', 'LastOpenPictureDialogFolder', OpenPictureDialog1.InitialDir);
   If OpenPictureDialog1.Execute Then Begin
     Form1.Ini_File.WriteString('General', 'LastOpenPictureDialogFolder', ExtractFilePath(OpenPictureDialog1.FileName));
-    Image1.Picture.LoadFromFile(OpenPictureDialog1.FileName);
+    Case lowercase(ExtractFileExt(OpenPictureDialog1.FileName)) Of
+      '.bmp': Image1.Picture.LoadFromFile(OpenPictureDialog1.FileName);
+      '.png': Begin
+          p := TPortableNetworkGraphic.Create;
+          p.LoadFromFile(OpenPictureDialog1.FileName);
+          b := TBitmap.Create;
+          b.Assign(p);
+          p.free;
+          Image1.Picture.Assign(b);
+          b.free;
+        End;
+    Else Begin
+        showmessage('Error, fileformat not supported.');
+      End;
+    End;
   End;
 End;
 
