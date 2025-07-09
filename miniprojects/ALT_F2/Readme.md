@@ -42,8 +42,9 @@ If you want to create a new shortcut just type in the name of the requested app 
 When the application is closed edit the ALT_F2.ini file, in the general section you see this:
 
 > [General]
-> OpenWhereMouseIs=0
-> SkipIcons=0
+> 
+> OpenWhereMouseIs=0<br>
+> SkipIcons=0<br>
 > ShowDetailedIntValues=1
 
 | Option | Description |
