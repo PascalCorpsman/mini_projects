@@ -25,6 +25,9 @@ Uses
   uundo, Unit5, unit6, unit7, Unit8, Unit9;
 
 Begin
+{$IF declared(UseHeapTrace)}
+  GlobalSkipIfNoLeaks := True; // supported as of debugger version 3.2.0
+{$ENDIF}
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TForm2, Form2);
