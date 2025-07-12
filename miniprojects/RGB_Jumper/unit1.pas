@@ -112,7 +112,7 @@ Begin
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
-  WidgetSetGo2d(64, 64);
+  WidgetSetGo2d(128, 128);
   game.Render();
   WidgetSetExit2d();
   OpenGLControl1.SwapBuffers;
@@ -131,6 +131,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
+  caption := 'RGB_Jumper by Corpsman ver. 0.01';
   // Init dglOpenGL.pas , Teil 1
   If Not InitOpenGl Then Begin
     showmessage('Error, could not init dglOpenGL.pas');

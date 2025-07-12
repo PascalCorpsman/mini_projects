@@ -128,13 +128,13 @@ Begin
 
   fNewButton := TOpenGl_Button.Create(fOwner);
   fNewButton.LoadTextures('GFX' + PathDelim + 'New_Up.png', 'GFX' + PathDelim + 'New_Up.png', 'GFX' + PathDelim + 'New_Down.png');
-  fNewButton.Left := 22;
-  fNewButton.Top := 20;
+  fNewButton.Left := 55;
+  fNewButton.Top := 51;
 
   fCloseButton := TOpenGl_Button.Create(fOwner);
   fCloseButton.LoadTextures('GFX' + PathDelim + 'Close_Up.png', 'GFX' + PathDelim + 'Close_Up.png', 'GFX' + PathDelim + 'Close_Down.png');
-  fCloseButton.Left := 19;
-  fCloseButton.Top := 35;
+  fCloseButton.Left := 51;
+  fCloseButton.Top := 67;
   fCloseButton.OnClick := @OnCloseButtonClick;
 
   fMainBack := TOpenGl_Image.Create(fOwner);
