@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* uOpenGL_WidgetSet.pas                                           ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.13                                                         *)
+(* Version     : 0.14                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
 (* Support     : www.Corpsman.de                                              *)
 (*                                                                            *)
-(* Description : <Module_description>                                         *)
+(* Description : Widgetset for OpenGLControl (2D)                             *)
 (*                                                                            *)
 (* License     : See the file license.md, located under:                      *)
 (*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
@@ -39,6 +39,7 @@
 (*               0.11 = OnChange für TOpenGL_Radiobutton                      *)
 (*               0.12 = Fix Font colors where not per instance                *)
 (*               0.13 = TOpenGl_BaseClass.Hint                                *)
+(*               0.14 = .click für buttons                                    *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -171,7 +172,9 @@ Type
   public
     Caption: String;
     RenderCaption: Boolean;
+
     Property OnClick;
+    Procedure Click; override;
 
     Constructor Create(aOwner: TOpenGLControl); override;
     (*
@@ -1167,6 +1170,11 @@ Begin
       End;
     End;
   End;
+End;
+
+Procedure TOpenGl_Button.Click;
+Begin
+  Inherited Click;
 End;
 
 Constructor TOpenGl_Button.Create(aOwner: TOpenGLControl);
