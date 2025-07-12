@@ -47,6 +47,7 @@ Following is a short description of all listed projects
 | [QProgrammer](miniprojects/QProgrammer) | Lightwight Pascal like interpreter with integrated testsystem |
 | [Race condition](miniprojects/Race_Condition) | Demo to show how (not) to use tThread class |
 | [Raytracer](miniprojects/Raytracer) | Demo that shows how to write a raytracer (including a parser for the scenes) |
+| [RGB_Jumper](miniprojects/RGB_Jumper) | Tiny jump and run game |
 | [Screenreader](miniprojects/Screenreader) | Application to take multiple partly screenshots |
 | [Sequoia](miniprojects/Sequoia) | Application to easy find large files in a folder structure |
 | [PNG Editor](miniprojects/PNG_Editor) | Split and merge alpha channel of .png images |
