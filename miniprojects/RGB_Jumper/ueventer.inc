@@ -12,22 +12,16 @@
 (*               source file of the project.                                  *)
 (*                                                                            *)
 (******************************************************************************)
-Program rgb_jumper;
 
-{$MODE objfpc}{$H+}
+   // Hier wird der Uses Teil voll Fertig gemacht (damit alle notwendigen Units für TOwnerClass zur Verfügung gestellt werden können)
+//, ExtCtrls;
+, OpenGLContext;
 
-Uses
-{$IFDEF UNIX}{$IFDEF UseCThreads}
-  cthreads,
-{$ENDIF}{$ENDIF}
-  Interfaces, // this includes the LCL widgetset
-  Forms, imagesforlazarus, Unit1, urgb_jumper, ugraphics, uvectormath,
-  uopengl_widgetset;
+// Die Klasse welche die zu Kapernden Methoden bereit stellt
 
-Begin
-  Application.Initialize;
-  Application.Title := '';
-  Application.CreateForm(TForm1, Form1);
-  Application.Run;
-End.
+Type
+  //  TOwnerClass = TPaintBox;
+  TOwnerClass = TOpenGLControl;
+
+{$DEFINE KeyEvents} // Nicht jede TOwnerClass hat KeyEvents, deswegen sind die Optional => TODO: Manuelles einpflegen der Key Events
 

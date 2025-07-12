@@ -42,6 +42,7 @@ Uses
    *)
   dglOpenGL // http://wiki.delphigl.com/index.php/dglOpenGL.pas
   , uopengl_graphikengine // Die OpenGLGraphikengine ist eine Eigenproduktion von www.Corpsman.de, und kann getrennt auf https://github.com/PascalCorpsman/Examples/tree/master/OpenGL geladen werden.
+  , urgb_jumper
   ;
 
 Type
@@ -51,6 +52,7 @@ Type
   TForm1 = Class(TForm)
     OpenGLControl1: TOpenGLControl;
     Timer1: TTimer;
+    Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
@@ -60,8 +62,7 @@ Type
     { private declarations }
   public
     { public declarations }
-    Procedure Go2d();
-    Procedure Exit2d();
+    Game: TGame;
   End;
 
 Var
@@ -72,27 +73,9 @@ Implementation
 
 {$R *.lfm}
 
+Uses uopengl_widgetset;
+
 { TForm1 }
-
-Procedure Tform1.Go2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  //  glOrtho(0, 640, 0, 480, -1, 1); // Set Up An Ortho Screen
-  glOrtho(0, OpenGLControl1.Width, OpenGLControl1.height, 0, -1, 1); // Set Up An Ortho Screen
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
-End;
-
-Procedure Tform1.Exit2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
-End;
 
 Var
   allowcnt: Integer = 0;
@@ -110,16 +93,11 @@ Begin
     ReadImplementationProperties;
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
-    (*
-    Man bedenke, jedesmal wenn der Renderingcontext neu erstellt wird, müssen sämtliche Graphiken neu Geladen werden.
-    Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
-    *)
-    {
     OpenGL_GraphikEngine.clear;
     glenable(GL_TEXTURE_2D); // Texturen
     glEnable(GL_DEPTH_TEST); // Tiefentest
     glDepthFunc(gl_less);
-    }
+    game.Initialize(OpenGLControl1);
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
     OpenGLControl1Resize(Nil);
@@ -134,17 +112,9 @@ Begin
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
-  // gluLookAt(5, 11, -20, 5, 5, 0, 0, 1, 0);
-  // { Render etwas ---
-  go2d;
-  glcolor3f(1, 0, 0);
-  glbegin(gl_lines);
-  glvertex3f(10, 10, 0);
-  glvertex3f(100, 100, 0);
-  glend;
-  //}
-  exit2d;
-
+  WidgetSetGo2d(64, 64);
+  game.Render();
+  WidgetSetExit2d();
   OpenGLControl1.SwapBuffers;
 End;
 
@@ -173,6 +143,15 @@ Begin
   Generell sollte die Interval Zahl also dynamisch zum Rechenaufwand, mindestens aber immer 17 sein.
   *)
   Timer1.Interval := 17;
+  game := TGame.Create();
+  OpenGLControl1.Align := alClient;
+End;
+
+Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
+Begin
+  Initialized := false;
+  game.free;
+  game := Nil;
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);

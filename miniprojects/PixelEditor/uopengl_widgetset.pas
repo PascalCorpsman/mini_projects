@@ -756,7 +756,12 @@ End;
 
 Procedure TOpenGl_Image.SetImage(Filename: String);
 Begin
-  fImage := OpenGL_GraphikEngine.LoadGraphikItem(Filename, smClamp);
+  If Transparent Then Begin
+    fImage := OpenGL_GraphikEngine.LoadGraphikItem(Filename, smClamp);
+  End
+  Else Begin
+    fImage := OpenGL_GraphikEngine.LoadAlphaGraphikItem(Filename, smClamp);
+  End;
   UpdateDimension;
 End;
 
