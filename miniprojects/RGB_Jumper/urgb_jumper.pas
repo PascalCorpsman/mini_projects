@@ -26,6 +26,7 @@ Type
   TGameState = (
     gsMainMenu
     , gsGame
+    , gsWin
     );
 
   { TGame }
@@ -35,6 +36,8 @@ Type
     fGameState: TGameState;
     fOwner: TOpenGLControl;
     FOnKeyDownCapture, FOnKeyUpCapture: TKeyEvent;
+    fActualLevel: Integer;
+
     (*
      * Main Menu
      *)
@@ -42,9 +45,17 @@ Type
     fCloseButton: TOpenGl_Button;
     fMainBack: TOpenGl_Image;
 
+    (*
+     * Win Menu
+     *)
+    fWinBack: TOpenGl_Image;
+
     Procedure SetGameState(aNewGameState: TGameState);
 
     Procedure OnCloseButtonClick(Sender: TObject);
+    Procedure OnNewButtonClick(Sender: TObject);
+
+    Procedure LoadLevel(Const Level: integer);
 
   protected
     Procedure FOnKeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
@@ -61,7 +72,7 @@ Type
 
 Implementation
 
-Uses unit1;
+Uses unit1, LCLType;
 
 { TGame }
 
@@ -75,6 +86,7 @@ Begin
   fNewButton.free;
   fCloseButton.free;
   fMainBack.free;
+  fWinBack.free;
 End;
 
 Procedure TGame.SetGameState(aNewGameState: TGameState);
@@ -85,6 +97,7 @@ Begin
   fNewButton.Visible := false;
   fCloseButton.Visible := false;
   fMainBack.Visible := false;
+  fWinBack.Visible := false;
   Case fGameState Of
     gsMainMenu: Begin
         fNewButton.Visible := true;
@@ -94,6 +107,9 @@ Begin
     gsGame: Begin
 
       End;
+    gsWin: Begin
+        fWinBack.Visible := true;
+      End;
   End;
 End;
 
@@ -102,9 +118,57 @@ Begin
   form1.Close;
 End;
 
+Procedure TGame.OnNewButtonClick(Sender: TObject);
+Begin
+  // Idee: Man muss die Levels immer von Level 1 Spielen
+  fActualLevel := 1;
+  LoadLevel(fActualLevel);
+
+  (*
+   * Backlog:
+   *  - Zeiten Messen => Highscores ?
+   *  - "Tode" Messen => Highscores ?
+   *)
+End;
+
+Procedure TGame.LoadLevel(Const Level: integer);
+Var
+  Filename: String;
+Begin
+  Filename := 'Levels' + PathDelim + 'Level_' + inttostr(Level) + '.png';
+  If Not FileExists(Filename) Then Begin
+    SetGameState(gsWin);
+  End
+  Else Begin
+    // 1. Level Laden und Prüfen
+    // 2. Spielercharacter "Resetten" auf Spieler Start Pos
+    // 3. Keystates Resetten
+    // 4. Gamestate change -> Los Gehts
+    SetGameState(gsGame);
+  End;
+End;
+
 Procedure TGame.FOnKeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
 Begin
-
+  Case fGameState Of
+    gsMainMenu: Begin
+        If key = VK_ESCAPE Then Begin
+          fCloseButton.click;
+        End;
+      End;
+    gsGame: Begin
+        // R -> zu Rot
+        // G -> zu Grün
+        // B -> zu Blau
+        // C -> Nächste Farbe im Zyklus "RGB"
+        // U -> Reset auf Start Position (auch Reset des Levels)
+        // Cursor -> Move Player
+        If key = VK_ESCAPE Then SetGameState(gsMainMenu);
+      End;
+    gsWin: Begin
+        If key = VK_ESCAPE Then SetGameState(gsMainMenu);
+      End;
+  End;
   If assigned(FOnKeyDownCapture) Then Begin
     FOnKeyDownCapture(sender, key, shift);
   End;
@@ -113,6 +177,9 @@ End;
 Procedure TGame.FOnKeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
 Begin
 
+  If fGameState = gsGame Then Begin
+
+  End;
   If assigned(FOnKeyUpCapture) Then Begin
     FOnKeyUpCapture(sender, key, shift);
   End;
@@ -130,6 +197,7 @@ Begin
   fNewButton.LoadTextures('GFX' + PathDelim + 'New_Up.png', 'GFX' + PathDelim + 'New_Up.png', 'GFX' + PathDelim + 'New_Down.png');
   fNewButton.Left := 55;
   fNewButton.Top := 51;
+  fNewButton.OnClick := @OnNewButtonClick;
 
   fCloseButton := TOpenGl_Button.Create(fOwner);
   fCloseButton.LoadTextures('GFX' + PathDelim + 'Close_Up.png', 'GFX' + PathDelim + 'Close_Up.png', 'GFX' + PathDelim + 'Close_Down.png');
@@ -141,6 +209,11 @@ Begin
   fMainBack.SetImage('GFX' + PathDelim + 'Main.png');
   fMainBack.Top := 0;
   fMainBack.Left := 0;
+
+  fWinBack := TOpenGl_Image.Create(fOwner);
+  fWinBack.SetImage('GFX' + PathDelim + 'Win.png');
+  fWinBack.Top := 0;
+  fWinBack.Left := 0;
 
   SetGameState(gsMainMenu);
 End;
@@ -156,9 +229,11 @@ Begin
     gsGame: Begin
 
       End;
+    gsWin: Begin
+        fWinBack.Render();
+      End;
   End;
 End;
 
 End.
-
 
