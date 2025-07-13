@@ -99,9 +99,10 @@
 (*               0.50 - ?                                                     *)
 (*               0.51 - ?                                                     *)
 (* - Released -  0.52 - rnd / random function                                 *)
-(*               0.53 - Fix AV on icon parsing                                *)
+(* - Released -  0.53 - Fix AV on icon parsing                                *)
 (*                      Fix high dpi scaling graphical glitch                 *)
 (*                      ADD support for .png graphics                         *)
+(*               0.54 -                                                       *)
 (*                                                                            *)
 (* Feature Request:     Ein "freifeld" mit dem man Infos zur Anwendung mit    *)
 (*                      ablegen kann ??                                       *)
@@ -127,7 +128,7 @@ Uses
   umathsolver, UniqueInstance, math, Clipbrd;
 
 Const
-  ALT_F2_Version = '0.53';
+  ALT_F2_Version = '0.54';
 
 Type
 

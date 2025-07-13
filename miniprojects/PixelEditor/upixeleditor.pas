@@ -83,7 +83,7 @@ Const
    *                   ADD: Scale for Transparent Pattern
    *                   ADD: Transparent Color Element
    *                   FIX: use right color when cutting / erasing
-   *            0.13 - FIX: Cut / paste did not always take right color into account
+   * -Released- 0.13 - FIX: Cut / paste did not always take right color into account
    *                   FIX: Right mouse scroll glitch
    *
    * Known Bugs:
@@ -92,7 +92,7 @@ Const
    * Missing Features:
    *
    *)
-  Version = '0.13';
+  Version = '0.14';
 
   (*
    * History: 1 - Initialversion

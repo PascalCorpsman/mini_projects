@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* RGB_Jumper                                                      12.07.2025 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 -                                                       *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -47,7 +48,7 @@ Uses
   ;
 
 Const
-  DefCaption = 'RGB_Jumper by Corpsman ver. 0.01';
+  DefCaption = 'RGB_Jumper by Corpsman ver. 0.02';
 
 Type
 
