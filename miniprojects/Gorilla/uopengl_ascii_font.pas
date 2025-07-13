@@ -149,7 +149,7 @@ Var
 Procedure Create_ASCII_Font();
 Procedure Create_ASCII_BigFont();
 
-// Switcher zwischen 2D und 3D-Modus
+// Switcher zwischen 2D und 3D-Modus, wenn gemeinsam genutzt mit dem Widgetset, ist die Go2D des Widgetset zu nehmen !
 Procedure Go2d(Width_2D, Height_2d: Integer);
 Procedure Exit2d();
 
