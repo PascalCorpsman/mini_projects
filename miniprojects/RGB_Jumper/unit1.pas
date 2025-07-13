@@ -42,6 +42,7 @@ Uses
    *)
   dglOpenGL // http://wiki.delphigl.com/index.php/dglOpenGL.pas
   , uopengl_graphikengine // Die OpenGLGraphikengine ist eine Eigenproduktion von www.Corpsman.de, und kann getrennt auf https://github.com/PascalCorpsman/Examples/tree/master/OpenGL geladen werden.
+  , uOpenGL_ASCII_Font
   , urgb_jumper
   ;
 
@@ -94,6 +95,7 @@ Begin
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
     OpenGL_GraphikEngine.clear;
+    Create_ASCII_Font();
     glenable(GL_TEXTURE_2D); // Texturen
     glEnable(GL_DEPTH_TEST); // Tiefentest
     glDepthFunc(gl_less);

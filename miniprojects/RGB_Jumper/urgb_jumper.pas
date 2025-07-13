@@ -19,13 +19,15 @@ Unit urgb_jumper;
 Interface
 
 Uses
-  Classes, SysUtils, OpenGlcontext, uopengl_widgetset, ueventer, controls;
+  Classes, SysUtils, OpenGlcontext, uopengl_widgetset, ueventer, controls,
+  urgb_level;
 
 Type
 
   TGameState = (
     gsMainMenu
     , gsGame
+    , gsLevelError
     , gsWin
     );
 
@@ -36,7 +38,8 @@ Type
     fGameState: TGameState;
     fOwner: TOpenGLControl;
     FOnKeyDownCapture, FOnKeyUpCapture: TKeyEvent;
-    fActualLevel: Integer;
+    fActualLevelIndex: Integer;
+    fActualLevel: TRGB_Level;
 
     (*
      * Main Menu
@@ -72,13 +75,14 @@ Type
 
 Implementation
 
-Uses unit1, LCLType;
+Uses unit1, LCLType, uOpenGL_ASCII_Font, dglOpenGL, Graphics;
 
 { TGame }
 
 Constructor TGame.Create;
 Begin
   Inherited Create;
+  fActualLevel := TRGB_Level.Create();
 End;
 
 Destructor TGame.Destroy;
@@ -87,6 +91,7 @@ Begin
   fCloseButton.free;
   fMainBack.free;
   fWinBack.free;
+  fActualLevel.free;
 End;
 
 Procedure TGame.SetGameState(aNewGameState: TGameState);
@@ -107,6 +112,9 @@ Begin
     gsGame: Begin
 
       End;
+    gsLevelError: Begin
+
+      End;
     gsWin: Begin
         fWinBack.Visible := true;
       End;
@@ -121,8 +129,7 @@ End;
 Procedure TGame.OnNewButtonClick(Sender: TObject);
 Begin
   // Idee: Man muss die Levels immer von Level 1 Spielen
-  fActualLevel := 1;
-  LoadLevel(fActualLevel);
+  LoadLevel(1);
 
   (*
    * Backlog:
@@ -135,12 +142,17 @@ Procedure TGame.LoadLevel(Const Level: integer);
 Var
   Filename: String;
 Begin
+  fActualLevelIndex := Level;
   Filename := 'Levels' + PathDelim + 'Level_' + inttostr(Level) + '.png';
   If Not FileExists(Filename) Then Begin
     SetGameState(gsWin);
   End
   Else Begin
     // 1. Level Laden und Prüfen
+    If Not fActualLevel.LoadLevel(Filename) Then Begin
+      SetGameState(gsLevelError);
+      exit;
+    End;
     // 2. Spielercharacter "Resetten" auf Spieler Start Pos
     // 3. Keystates Resetten
     // 4. Gamestate change -> Los Gehts
@@ -165,8 +177,16 @@ Begin
         // Cursor -> Move Player
         If key = VK_ESCAPE Then SetGameState(gsMainMenu);
       End;
-    gsWin: Begin
+    gsLevelError: Begin
+        If key = VK_N Then Begin
+          LoadLevel(fActualLevelIndex + 1);
+        End;
         If key = VK_ESCAPE Then SetGameState(gsMainMenu);
+      End;
+    gsWin: Begin
+        // No matter which key -> return to Main menu ;)
+        // TODO: goto Highscores ..
+        SetGameState(gsMainMenu);
       End;
   End;
   If assigned(FOnKeyDownCapture) Then Begin
@@ -227,7 +247,14 @@ Begin
         fCloseButton.Render();
       End;
     gsGame: Begin
-
+        fActualLevel.Render();
+      End;
+    gsLevelError: Begin
+        glBindTexture(GL_TEXTURE_2D, 0);
+        OpenGL_ASCII_Font.Color := clwhite;
+        OpenGL_ASCII_Font.Textout(2, 32, 'Invalid level!');
+        OpenGL_ASCII_Font.Textout(2, 52, 'n = next');
+        OpenGL_ASCII_Font.Textout(2, 72, 'ESC = abort');
       End;
     gsWin: Begin
         fWinBack.Render();

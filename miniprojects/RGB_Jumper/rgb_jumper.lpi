@@ -45,7 +45,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="11">
       <Unit0>
         <Filename Value="rgb_jumper.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -82,6 +82,19 @@
         <Filename Value="ueventer.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="urgb_level.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../Sample/OpenGL/uopengl_ascii_font.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uOpenGL_ASCII_Font"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../Sample/OpenGL/uopengl_ascii_font.ressource"/>
+        <IsPartOfProject Value="True"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
