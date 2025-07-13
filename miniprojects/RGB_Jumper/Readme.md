@@ -12,12 +12,12 @@ Features:
 - Puzzle game
 - Jump and run game
 
-Dependencies:
-- OpenGL ([dglOpenGL](https://github.com/saschawillems/dglopengl) and TOpenGLControl from the LCL)
+## whats needed to play the game
+- download the corresponding bin file and the subfolder "GFX" / "Levels" and store it in the same directory
   
-Needed Lazarus packages:
+  or
 
-LazOpenGLContext
+- clone this repository and compile the sourcecode (see below for dependencies)
 
 # Usermanual
 
@@ -33,3 +33,11 @@ Player start and color changer can be merged into the same spot.
 
 ### Example:
 ![](Levels/Level_2.png)
+
+
+Dependencies:
+- OpenGL ([dglOpenGL](https://github.com/saschawillems/dglopengl) and TOpenGLControl from the LCL)
+  
+Needed Lazarus packages:
+
+LazOpenGLContext
