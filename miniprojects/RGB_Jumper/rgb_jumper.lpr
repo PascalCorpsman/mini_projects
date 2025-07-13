@@ -21,7 +21,7 @@ Uses
   cthreads,
 {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, imagesforlazarus, Unit1;
+  Forms, imagesforlazarus, Unit1, urgb_player, urgb_physics;
 
 Begin
   Application.Initialize;

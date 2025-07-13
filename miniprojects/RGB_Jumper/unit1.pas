@@ -46,6 +46,9 @@ Uses
   , urgb_jumper
   ;
 
+Const
+  DefCaption = 'RGB_Jumper by Corpsman ver. 0.01';
+
 Type
 
   { TForm1 }
@@ -97,8 +100,8 @@ Begin
     OpenGL_GraphikEngine.clear;
     Create_ASCII_Font();
     glenable(GL_TEXTURE_2D); // Texturen
-    glEnable(GL_DEPTH_TEST); // Tiefentest
-    glDepthFunc(gl_less);
+    //    glEnable(GL_DEPTH_TEST); // Tiefentest
+    //    glDepthFunc(gl_less);
     game.Initialize(OpenGLControl1);
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
@@ -133,7 +136,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'RGB_Jumper by Corpsman ver. 0.01';
+  caption := DefCaption;
   // Init dglOpenGL.pas , Teil 1
   If Not InitOpenGl Then Begin
     showmessage('Error, could not init dglOpenGL.pas');
