@@ -46,6 +46,7 @@ Following is a short description of all listed projects
 | [Network](miniprojects/Network) | Develop tools to simulate network properties (limit and delay) |
 | [QProgrammer](miniprojects/QProgrammer) | Lightwight Pascal like interpreter with integrated testsystem |
 | [Race condition](miniprojects/Race_Condition) | Demo to show how (not) to use tThread class |
+| [RAM_user](miniprojects/RAM_user)| Application to allocate RAM |
 | [Raytracer](miniprojects/Raytracer) | Demo that shows how to write a raytracer (including a parser for the scenes) |
 | [RGB_Jumper](miniprojects/RGB_Jumper) | Tiny jump and run game |
 | [Screenreader](miniprojects/Screenreader) | Application to take multiple partly screenshots |
