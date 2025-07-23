@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uFifo.pas                                                     23.09.2005   *)
 (*                                                                            *)
-(* Version     : 0.04                                                         *)
+(* Version     : 0.05                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -28,6 +28,7 @@
 (*                      Bugfix Verlust von Daten beim Push                    *)
 (*               0.03 - property count                                        *)
 (*               0.04 - TFifo thread Safe gemacht                             *)
+(*               0.05 - TBufferedFifo.BufferSize                              *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -97,8 +98,10 @@ Type
     fCount: integer;
     fHead: integer;
     fTail: integer;
+    Function getBufferSize: integer;
   public
     Property Count: integer read fCount; // Anzahl der Aktuell enthaltenen Elemente
+    Property BufferSize:integer read getBufferSize;
     // Initialisieren
     Constructor create; overload; // Ruft Create(16) auf.
     Constructor create(InitialBufferSize: integer); overload;
@@ -243,16 +246,20 @@ Begin
   If InitialBufferSize <= 2 Then Begin
     Raise BufferedFifoException.Create('Invalid InitialBufferSize, has to be > 2');
   End;
-  fHead := 0;
-  fTail := 0;
-  fCount := 0;
   setlength(fBuffer, InitialBufferSize);
+  Clear();
 End;
 
 Destructor TBufferedFifo.Destroy;
 Begin
   setlength(fbuffer, 0);
+  fbuffer := nil;
   Inherited Destroy;
+End;
+
+Function TBufferedFifo.getBufferSize: integer;
+Begin
+  result := length(fBuffer);
 End;
 
 Procedure TBufferedFifo.Clear;
