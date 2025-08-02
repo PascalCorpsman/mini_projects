@@ -63,6 +63,9 @@ Type
       fCount: integer;
       cs: TCriticalSection;
     public
+    Type
+    TComparefunction = Function(Const a, b: T): Boolean Of Object;
+
       Property Count: integer read fCount; // Anzahl der Aktuell enthaltenen Elemente
       // Initialisieren
       Constructor create;
@@ -78,6 +81,8 @@ Type
       Function Top: T;
       // Gibt True zurück wenn Leer
       Function isempty: Boolean;
+      // Zum Prüfen ob die queue einen eintrag aElement hat
+      Function ContainsElement(Const aElement: T; CompareFunction: TComparefunction): Boolean;
   End;
 
   FifoException = Class(Exception);
@@ -101,7 +106,7 @@ Type
     Function getBufferSize: integer;
   public
     Property Count: integer read fCount; // Anzahl der Aktuell enthaltenen Elemente
-    Property BufferSize:integer read getBufferSize;
+    Property BufferSize: integer read getBufferSize;
     // Initialisieren
     Constructor create; overload; // Ruft Create(16) auf.
     Constructor create(InitialBufferSize: integer); overload;
@@ -233,6 +238,29 @@ Begin
   Result := Not assigned(Front);
 End;
 
+Function TFifo.ContainsElement(Const aElement: T;
+  CompareFunction: TComparefunction): Boolean;
+Var
+  p: PGenQ;
+Begin
+  result := false;
+  cs.Acquire;
+  Try
+    p := front;
+    While assigned(p) Do Begin
+      result := CompareFunction(aElement, p^.Value);
+      If result Then Begin
+        p := Nil;
+      End
+      Else Begin
+        p := p^.Next;
+      End;
+    End;
+  Finally
+    cs.Release;
+  End;
+End;
+
 { TBufferedFifo }
 
 Constructor TBufferedFifo.create;
@@ -253,7 +281,7 @@ End;
 Destructor TBufferedFifo.Destroy;
 Begin
   setlength(fbuffer, 0);
-  fbuffer := nil;
+  fbuffer := Nil;
   Inherited Destroy;
 End;
 
@@ -323,8 +351,4 @@ Begin
 End;
 
 End.
-
-
-
-
 
