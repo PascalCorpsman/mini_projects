@@ -65,7 +65,7 @@ Following is a short description of all listed projects
 | [Tippsy3](miniprojects/Tippsy3) | Leanprogram for 10 finger writing |
 | [TuringMachine](miniprojects/TuringMachine) | Implementation of a Turing machine |
 | [Wave function collaps](miniprojects/Wave_function_collapse/) | different implementations of the wave function collapse algorithms
-
+| [WaveShaper](miniprojects/WaveShaper) | Application to shape waves like given images |
 
 ## What do i need to compile the source of the miniprojects
 
