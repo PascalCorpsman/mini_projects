@@ -64,8 +64,8 @@ Following is a short description of all listed projects
 | [Superdom](miniprojects/Superdom) | FPC-Port of the Super domination game which is part of [Rockbox](https://www.rockbox.org/) |
 | [Tippsy3](miniprojects/Tippsy3) | Leanprogram for 10 finger writing |
 | [TuringMachine](miniprojects/TuringMachine) | Implementation of a Turing machine |
-| [Wave function collaps](miniprojects/Wave_function_collapse/) | different implementations of the wave function collapse algorithms
 | [WaveShaper](miniprojects/WaveShaper) | Application to shape waves like given images |
+| [Wave function collaps](miniprojects/Wave_function_collapse/) | different implementations of the wave function collapse algorithms
 
 ## What do i need to compile the source of the miniprojects
 
