@@ -35,11 +35,20 @@ Unit Unit1;
 
 {$MODE objfpc}{$H+}
 
+(*
+ * Enable if you have installed bass.pas and corresponding sound lib
+ *)
+{.$Define UseBassSound}
+
 Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtDlgs,
-  ExtCtrls, TAGraph, TASeries, uwave, Bass;
+  ExtCtrls, TAGraph, TASeries, uwave
+{$IFDEF UseBassSound}
+  , Bass
+{$ENDIF}
+  ;
 
 Type
 
@@ -63,6 +72,7 @@ Type
     Button5: TButton;
     Button6: TButton;
     Button7: TButton;
+    Button8: TButton;
     Chart1: TChart;
     Chart1LineSeries1: TLineSeries;
     Chart1LineSeries2: TLineSeries;
@@ -89,6 +99,7 @@ Type
     Procedure Button5Click(Sender: TObject);
     Procedure Button6Click(Sender: TObject);
     Procedure Button7Click(Sender: TObject);
+    Procedure Button8Click(Sender: TObject);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure Image2MouseDown(Sender: TObject; Button: TMouseButton;
@@ -96,10 +107,13 @@ Type
     Procedure ScrollBar1Change(Sender: TObject);
   private
     Wave: TWave;
+{$IFDEF UseBassSound}
     PreviewStream: HSTREAM;
     WavePos: Integer;
+{$ELSE}
+    PreviewStream: integer;
+{$ENDIF}
     ImageData: TImageData;
-    SoundEnabled: Boolean;
     Procedure AddWaveToLCL;
   public
 
@@ -119,6 +133,7 @@ Uses ugraphics, math, uvectormath,
 
 Const
   DefSampleRate = 44100;
+{$IFDEF UseBassSound}
 
 Function GetPreviewData(handle: HSTREAM; buffer: Pointer; length: DWORD; user: Pointer): DWORD;
 {$IFDEF MSWINDOWS} stdcall{$ELSE} cdecl{$ENDIF};
@@ -139,7 +154,7 @@ Begin
     form1.button4.Enabled := true;
   End;
 End;
-
+{$ENDIF}
 { TForm1 }
 
 Procedure TForm1.Button1Click(Sender: TObject);
@@ -150,6 +165,7 @@ Begin
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
+
 Const
   White: TFPColor = (
     Red: 255 Shl 8 + 255;
@@ -247,7 +263,7 @@ End;
 Procedure TForm1.Button4Click(Sender: TObject);
 Begin
   // Preview
-  If Not SoundEnabled Then exit;
+{$IFDEF UseBassSound}
 
   If Not assigned(Wave) Then Begin
     showmessage('Error, no wav defined.');
@@ -268,6 +284,7 @@ Begin
     showmessage('Could not start stream playback');
     exit;
   End;
+{$ENDIF}
 End;
 
 Procedure TForm1.Button5Click(Sender: TObject);
@@ -415,30 +432,39 @@ Begin
   End;
 End;
 
+Procedure TForm1.Button8Click(Sender: TObject);
+Begin
+  close;
+End;
+
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
 Begin
   If assigned(wave) Then wave.free;
   wave := Nil;
+
   If PreviewStream <> 0 Then Begin
-    BASS_ChannelStop(PreviewStream);
+{$IFDEF UseBassSound}BASS_ChannelStop(PreviewStream);
     BASS_StreamFree(PreviewStream);
+{$ENDIF}
   End;
 End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'WaveShaper ver. 0.01 by Corpsman, www.Corpsman.de';
+  caption := 'WaveShaper ver. 0.03 by Corpsman, www.Corpsman.de';
   Wave := Nil;
-  SoundEnabled := true;
+{$IFNDEF UseBassSound}
+  showmessage('Use in no sound mode, preview will not work.');
+{$ELSE}
   If (BASS_GetVersion() Shr 16) <> Bassversion Then Begin
-    showmessage('Unable to init the Bass Library ver. :' + BASSVERSIONTEXT + ', preview will not work.');
-    SoundEnabled := false;
+    showmessage('Unable to init the Bass Library ver. :' + BASSVERSIONTEXT);
+    halt.
   End;
   If SoundEnabled Then
     If (Not Bass_init(-1, DefSampleRate, 0, {$IFDEF Windows}0{$ELSE}Nil{$ENDIF}, Nil)) Then Begin
-      showmessage('Unable to init sound device, preview will not work.');
-      SoundEnabled := false;
+      showmessage('Unable to init sound device);
     End;
+{$ENDIF}
   PreviewStream := 0;
   Memo1.Clear;
   edit1.text := '200';
@@ -446,9 +472,12 @@ Begin
   ImageData.Width := 0;
   ImageData.Height := 0;
   ImageData.data := Nil;
-  If SoundEnabled Then
-    ScrollBar1.Position := round(100 - BASS_GetVolume() * 100);
+{$IFDEF UseBassSound}
+  ScrollBar1.Position := round(100 - BASS_GetVolume() * 100);
   ScrollBar1Change(Nil);
+{$ELSE}
+  label5.caption := 'disabled';
+{$ENDIF}
   // Debug Remove
   If FileExists('Cow.png') Then
     Image1.Picture.LoadFromFile('Cow.png');
@@ -468,9 +497,10 @@ End;
 
 Procedure TForm1.ScrollBar1Change(Sender: TObject);
 Begin
-  If Not SoundEnabled Then exit;
+{$IFDEF UseBassSound}
   label5.caption := format('%d %%', [100 - ScrollBar1.Position]);
   BASS_SetVolume(1 - ScrollBar1.Position / 100);
+{$ENDIF}
 End;
 
 Procedure TForm1.AddWaveToLCL;
