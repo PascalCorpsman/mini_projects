@@ -14,4 +14,5 @@ Start the application.
 - click "->" button to see the target wave shape that will be possible (ignore the red dots..)
 - If everything is fine you can 
    1. Create a sinewave in the shape of to image or
-   2. Load a different .wav file that will be reshaped to the new shape (not yet implemented)
+   2. Load a different .wav file that will be reshaped to the new shape
+- Preview the created wave file

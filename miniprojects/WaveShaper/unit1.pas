@@ -63,6 +63,8 @@ Type
     Button7: TButton;
     Chart1: TChart;
     Chart1LineSeries1: TLineSeries;
+    Chart1LineSeries2: TLineSeries;
+    CheckBox1: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Image1: TImage;
@@ -107,7 +109,10 @@ Implementation
 
 {$R *.lfm}
 
-Uses ugraphics, math, uvectormath;
+Uses ugraphics, math, uvectormath,
+  IntfGraphics, // TLazIntfImage type
+  fpImage // TFPColor type
+  ;
 
 Const
   DefSampleRate = 44100;
@@ -142,22 +147,44 @@ Begin
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
+Const
+  White: TFPColor = (
+    Red: 255 Shl 8 + 255;
+    Green: 255 Shl 8 + 255;
+    Blue: 255 Shl 8 + 255;
+    Alpha: 255 Shl 8 + 255;
+    );
+
+  Black: TFPColor = (
+    Red: 0 Shl 8;
+    Green: 0 Shl 8;
+    Blue: 0 Shl 8;
+    Alpha: 0;
+    );
+
+  Red: TFPColor = (
+    Red: 255 Shl 8;
+    Green: 0 Shl 8;
+    Blue: 0 Shl 8;
+    Alpha: 0;
+    );
+
 Var
   b: TBitmap;
   freq, Lower, Upper: Integer;
   i, j, k: integer;
   NeededPeriods: Single;
+  img: TLazIntfImage;
 Begin
   b := TBitmap.Create;
   b.Assign(Image1.Picture.Bitmap);
   // 1. Binarisieren
   Binarisate(b, 128);
   // 2. Senkrechten "Konkav" machen
-  // TODO: umstellen auf LazIntfImage
   ImageData.Width := b.Width;
   ImageData.Height := b.Height;
   setlength(ImageData.data, b.Width);
-
+  img := b.CreateIntfImage;
   For i := 0 To b.Width - 1 Do Begin
     Upper := -1;
     Lower := -1;
@@ -166,20 +193,22 @@ Begin
     ImageData.data[i].Mid := -1;
     For j := 0 To b.Height - 1 Do Begin
       If upper = -1 Then Begin
-        If b.Canvas.Pixels[i, j] <> clWhite Then Begin
+        If img.Colors[i, j] <> White Then Begin
           upper := j;
         End;
       End;
       If Lower = -1 Then Begin
-        If b.Canvas.Pixels[i, b.Height - j - 1] <> clWhite Then Begin
+        If img.Colors[i, b.Height - j - 1] <> White Then Begin
           Lower := b.Height - j - 1;
         End;
       End;
       If (upper <> -1) And (lower <> -1) Then Begin
         For k := Upper + 1 To Lower - 1 Do Begin
-          b.Canvas.Pixels[i, k] := clBlack;
+          img.Colors[i, k] := Black;
         End;
-        b.Canvas.Pixels[i, (Upper + Lower) Div 2] := clRed;
+        If CheckBox1.Checked Then Begin
+          img.Colors[i, (Upper + Lower) Div 2] := Red; // Markieren der Mittellinie
+        End;
         ImageData.data[i].Lower := Lower;
         ImageData.data[i].Upper := Upper;
         ImageData.data[i].Mid := (Upper + Lower) / 2;
@@ -187,6 +216,8 @@ Begin
       End;
     End;
   End;
+  b.LoadFromIntfImage(img);
+  img.free;
   Image2.Picture.Assign(b);
   // Berechnen einer Potentiellen Duration
   (*
@@ -278,7 +309,6 @@ Begin
       SampleValue := 0;
     End
     Else Begin
-      Scale := 0.25;
       If SampleValue <= 0 Then Begin // Die Scallierung Unterhalb der Mittellinie
         dist := abs(ImageData.data[x].Mid - ImageData.data[x].Lower);
       End
@@ -293,11 +323,14 @@ Begin
     wave.Sample[0, i] := SampleValue;
   End;
   memo1.lines.add(format('Sine with: %d Hz', [Frequence]));
-  AddWaveToLCL()
+  AddWaveToLCL();
 End;
 
 Procedure TForm1.Button6Click(Sender: TObject);
 Var
+  SourceMin, SourceMax,
+    SamplesPerPixel, SampleValue, duration: Single;
+  xo, x, Samples, SampleRate, i, j: Integer;
   SourceWave: TWave;
 Begin
   // Create Wave From Different Wave
@@ -307,11 +340,58 @@ Begin
     exit;
   End;
   If OpenDialog1.Execute Then Begin
-//    hier weiter..
+    SourceWave := TWave.Create;
+    SourceWave.LoadFromFile(OpenDialog1.FileName);
+    If assigned(Wave) Then wave.free;
+    wave := TWave.Create;
+    duration := SourceWave.SampleCount / SourceWave.SampleRate;
+    SampleRate := SourceWave.SampleRate;
+    If assigned(Wave) Then wave.free;
+    wave := TWave.Create;
+    Samples := round(duration * SampleRate);
+    wave.InitNewBuffer(1, SampleRate, 16, Samples);
+    SamplesPerPixel := SourceWave.SampleCount / ImageData.Width;
+    xo := -1;
+    For i := 0 To SourceWave.SampleCount - 1 Do Begin
+      // Die Reine "unveränderte" Wave
+      SampleValue := SourceWave.Sample[0, i];
+      // Ausrechen der X - Position im Bild
+      x := trunc(i / SamplesPerPixel);
+      If xo <> x Then Begin // Wir betrachten ein neues "Teilsegment" -> Bestimmen der Scalings für das neue Segment
+        SourceMin := 1;
+        SourceMax := -1;
+        For j := 0 To trunc(SamplesPerPixel) - 1 Do Begin
+          SourceMin := min(SourceMin, SourceWave.Sample[0, i + j]);
+          SourceMax := max(SourceMax, SourceWave.Sample[0, i + j]);
+        End;
+        xo := x;
+      End;
+      If (x > high(ImageData.data)) Or (ImageData.data[x].Mid = -1) Then Begin
+        // Der Datenpunkt hat gar keinen Wert -> Das Ausgangssignal ist "0"
+        SampleValue := 0;
+      End
+      Else Begin
+        (*
+         * Nun wird der nächste "Pixel" so umgebogen, dass er den Anforderungen des Bildes entspricht
+         * und die eigentliche Wave Wellenform erhalten bleibt ;)
+         *)
+        // Konvertierung Source nach Image Koordinaten
+        SampleValue := ConvertDimension(SourceMin, SourceMax, SampleValue, ImageData.data[x].Upper, ImageData.data[x].Lower);
+        // Konvertierung Image Koordinaten nach -1 .. 1 für .Wav
+        SampleValue := ConvertDimension(0, ImageData.Height, SampleValue, 1, -1); // Irgendwo ist ein Vorzeichenfehler drin, egal hier wird er wieder raus gerechnet ;)
+        SampleValue := clamp(SampleValue, -1, 1);
+      End;
+      wave.Sample[0, i] := SampleValue;
+    End;
+    memo1.lines.add('Created from: ' + ExtractFileName(OpenDialog1.FileName));
+    AddWaveToLCL();
+    SourceWave.Free;
   End;
 End;
 
 Procedure TForm1.Button7Click(Sender: TObject);
+//Var
+//  Info: TInfo;
 Begin
   // Export Wave
   If Not assigned(Wave) Then Begin
@@ -319,6 +399,10 @@ Begin
     exit;
   End;
   If SaveDialog2.Execute Then Begin
+    // Not supported yet by TWave Class !
+//    info := wave.Info;
+//    info.ISFT := caption;
+//    wave.Info := info;
     If Not wave.SaveToFile(SaveDialog2.FileName) Then Begin
       ShowMessage('Error, during export.');
     End;
@@ -337,7 +421,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'WaveShaper ver. 0.01 by Corpsman';
+  caption := 'WaveShaper ver. 0.01 by Corpsman, www.Corpsman.de';
   Wave := Nil;
   If (BASS_GetVersion() Shr 16) <> Bassversion Then Begin
     showmessage('Unable to init the Bass Library ver. :' + BASSVERSIONTEXT);
@@ -357,8 +441,10 @@ Begin
   ScrollBar1.Position := round(100 - BASS_GetVolume() * 100);
   ScrollBar1Change(Nil);
   // Debug Remove
-  Image1.Picture.LoadFromFile('Cow.png');
-  //Image1.Picture.LoadFromFile('Test.png');
+  If FileExists('Cow.png') Then
+    Image1.Picture.LoadFromFile('Cow.png');
+  //If FileExists('Test.png') Then
+  //  Image1.Picture.LoadFromFile('Test.png');
 End;
 
 Procedure TForm1.Image2MouseDown(Sender: TObject; Button: TMouseButton;
@@ -380,7 +466,19 @@ End;
 Procedure TForm1.AddWaveToLCL;
 Var
   i: Integer;
+  s: Single;
 Begin
+  Chart1LineSeries2.Clear;
+  If CheckBox1.Checked Then Begin
+    s := (wave.SampleCount - 1) / ImageData.Width;
+    For i := 0 To ImageData.Width - 1 Do Begin
+      If ImageData.data[i].Mid = -1 Then Begin
+      End
+      Else Begin
+        Chart1LineSeries2.AddXY(s * i, (-ImageData.data[i].Mid / ImageData.Height + 0.5) * 2);
+      End;
+    End;
+  End;
   Chart1LineSeries1.Clear;
   For i := 0 To wave.SampleCount - 1 Do Begin
     Chart1LineSeries1.Add(wave.Sample[0, i]);
@@ -391,5 +489,4 @@ Begin
 End;
 
 End.
-
 

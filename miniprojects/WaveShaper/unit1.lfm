@@ -84,6 +84,10 @@ object Form1: TForm1
     Anchors = [akTop, akLeft, akRight, akBottom]
     object Chart1LineSeries1: TLineSeries
     end
+    object Chart1LineSeries2: TLineSeries
+      LinePen.Color = clRed
+      LinePen.Width = 2
+    end
   end
   object Button4: TButton
     Left = 8
@@ -112,7 +116,7 @@ object Form1: TForm1
     Left = 432
     Height = 25
     Top = 145
-    Width = 136
+    Width = 243
     Caption = 'Create wave from sine'
     TabOrder = 6
     OnClick = Button5Click
@@ -185,9 +189,9 @@ object Form1: TForm1
     Caption = 'Label5'
   end
   object Button6: TButton
-    Left = 632
+    Left = 696
     Height = 25
-    Top = 145
+    Top = 143
     Width = 243
     Caption = 'Create Wave from different wave'
     TabOrder = 10
@@ -201,6 +205,14 @@ object Form1: TForm1
     Caption = 'export .wav'
     TabOrder = 11
     OnClick = Button7Click
+  end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Height = 22
+    Top = 114
+    Width = 63
+    Caption = 'debug'
+    TabOrder = 12
   end
   object OpenPictureDialog1: TOpenPictureDialog
     Left = 63

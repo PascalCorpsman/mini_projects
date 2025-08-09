@@ -132,6 +132,7 @@ Type
     Function Readid3Chunk(Const Stream: TStream; Var Suceed: Boolean): uint32; // Liest einen ID3Chunk, unter der Annahme das die Prüfung auf 'id3' bereits erfolgreich war und gelesen wurde
 
     Procedure SaveRiFFChunk(Const Stream: TStream);
+    Procedure SaveInfoChunk(Const Stream: TStream);
     Procedure SaveFmtChunk(Const Stream: TStream);
     Procedure SaveDataChunk(Const Stream: TStream);
 
@@ -141,7 +142,7 @@ Type
     Procedure ClearRawData;
     Procedure ClearInfo;
   public
-    Property Info: TInfo read fInfo; // Aus dem Wave gelesene Info (wird beim Save aktuell nicht geschrieben..)
+    Property Info: TInfo read fInfo write fInfo; // Aus dem Wave gelesene Info (wird beim Save aktuell nicht geschrieben..)
 
     Property ChannelCount: uint32 read GetChannelCount; // Anzahl der Kanäle (1 = Mono, 2 = Stereo, .. )
     Property SampleRate: uInt32 read GetSampleRate; // Frequenz in derer das Wave Vorliegt (= Samples Pro Sekunde)
@@ -350,6 +351,7 @@ Var
   aInfoId, aTypeID: String;
   aInfoIDSize, aSize: UInt32;
 Begin
+  // https://www.daubnet.com/en/file-format-riff -> Der Parser hier ist Falsch, sobald der Info Teil mehr wie 1 teil hat, tut das nicht mehr..
   result := 8;
   aSize := 0;
   Stream.Read(aSize, SizeOf(aSize));
@@ -596,6 +598,51 @@ Begin
   WriteString(Stream, 'WAVE');
 End;
 
+Procedure TWave.SaveInfoChunk(Const Stream: TStream);
+  Function CalcInfoSize(): Integer;
+  Begin
+    result := 0;
+    result := result + Ifthen(fInfo.IARL <> '', length(fInfo.IARL) + 4, 0);
+    result := result + Ifthen(fInfo.IART <> '', length(fInfo.IART) + 4, 0);
+    result := result + Ifthen(fInfo.ICMS <> '', length(fInfo.ICMS) + 4, 0);
+    result := result + Ifthen(fInfo.ICMT <> '', length(fInfo.ICMT) + 4, 0);
+    result := result + Ifthen(fInfo.ICOP <> '', length(fInfo.ICOP) + 4, 0);
+    result := result + Ifthen(fInfo.ICRD <> '', length(fInfo.ICRD) + 4, 0);
+    result := result + Ifthen(fInfo.ICRP <> '', length(fInfo.ICRP) + 4, 0);
+    result := result + Ifthen(fInfo.IDIM <> '', length(fInfo.IDIM) + 4, 0);
+    result := result + Ifthen(fInfo.IDPI <> '', length(fInfo.IDPI) + 4, 0);
+    result := result + Ifthen(fInfo.IENG <> '', length(fInfo.IENG) + 4, 0);
+    result := result + Ifthen(fInfo.IGNR <> '', length(fInfo.IGNR) + 4, 0);
+    result := result + Ifthen(fInfo.IKEY <> '', length(fInfo.IKEY) + 4, 0);
+    result := result + Ifthen(fInfo.ILGT <> '', length(fInfo.ILGT) + 4, 0);
+    result := result + Ifthen(fInfo.IMED <> '', length(fInfo.IMED) + 4, 0);
+    result := result + Ifthen(fInfo.INAM <> '', length(fInfo.INAM) + 4, 0);
+    result := result + Ifthen(fInfo.IPLT <> '', length(fInfo.IPLT) + 4, 0);
+    result := result + Ifthen(fInfo.IPRD <> '', length(fInfo.IPRD) + 4, 0);
+    result := result + Ifthen(fInfo.ISBJ <> '', length(fInfo.ISBJ) + 4, 0);
+    result := result + Ifthen(fInfo.ISFT <> '', length(fInfo.ISFT) + 4, 0);
+    result := result + Ifthen(fInfo.ISRC <> '', length(fInfo.ISRC) + 4, 0);
+    result := result + Ifthen(fInfo.ISRF <> '', length(fInfo.ISRF) + 4, 0);
+    result := result + Ifthen(fInfo.ITCH <> '', length(fInfo.ITCH) + 4, 0);
+  End;
+
+Var
+  aCunkSize, aInfoSize: uint32;
+Begin
+  // https://www.daubnet.com/en/file-format-riff
+  aInfoSize := CalcInfoSize();
+  If aInfoSize = 0 Then exit; // No Info needed to write
+  Raise Exception.Create('Error, not implemented yet.!');
+  //  WriteString(Stream, 'LIST');
+  //  aCunkSize :=
+  //    4 // "LIST"
+  //  + 4 // "INFO"
+  //  + aInfoSize;
+  //  Stream.Write(aCunkSize, SizeOf(aCunkSize));
+  //  WriteString(Stream, 'INFO');
+  //  Stream.Write(aInfoSize, SizeOf(aInfoSize));
+End;
+
 Function TWave.GetSampleCount: uInt32;
 Begin
   If assigned(fRawData) Then Begin
@@ -669,6 +716,7 @@ Begin
   ffmt.NumChannels * Length(fRawData[0]) * (ffmt.BitsPerSample Div 8) // Speicherverbrauch durch die Daten
   ;
   SaveRiFFChunk(Stream);
+  SaveInfoChunk(Stream);
   SaveFmtChunk(Stream);
   SaveDataChunk(stream);
   result := true;
