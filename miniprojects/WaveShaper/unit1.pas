@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* WaveShaper                                                      06.08.2025 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -26,6 +26,8 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Add ability to reshape a wave                         *)
+(*               0.03 - no sound mode                                         *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -97,6 +99,7 @@ Type
     PreviewStream: HSTREAM;
     WavePos: Integer;
     ImageData: TImageData;
+    SoundEnabled: Boolean;
     Procedure AddWaveToLCL;
   public
 
@@ -244,6 +247,8 @@ End;
 Procedure TForm1.Button4Click(Sender: TObject);
 Begin
   // Preview
+  If Not SoundEnabled Then exit;
+
   If Not assigned(Wave) Then Begin
     showmessage('Error, no wav defined.');
     exit;
@@ -253,6 +258,7 @@ Begin
     BASS_ChannelStop(PreviewStream);
     BASS_StreamFree(PreviewStream);
   End;
+
   PreviewStream := BASS_StreamCreate(wave.SampleRate, 1, BASS_SAMPLE_FLOAT, @GetPreviewData, Nil);
 
   If BASS_ChannelPlay(PreviewStream, false) Then Begin
@@ -423,14 +429,16 @@ Procedure TForm1.FormCreate(Sender: TObject);
 Begin
   caption := 'WaveShaper ver. 0.01 by Corpsman, www.Corpsman.de';
   Wave := Nil;
+  SoundEnabled := true;
   If (BASS_GetVersion() Shr 16) <> Bassversion Then Begin
-    showmessage('Unable to init the Bass Library ver. :' + BASSVERSIONTEXT);
-    halt;
+    showmessage('Unable to init the Bass Library ver. :' + BASSVERSIONTEXT + ', preview will not work.');
+    SoundEnabled := false;
   End;
-  If (Not Bass_init(-1, DefSampleRate, 0, {$IFDEF Windows}0{$ELSE}Nil{$ENDIF}, Nil)) Then Begin
-    showmessage('Unable to init sound device.');
-    halt;
-  End;
+  If SoundEnabled Then
+    If (Not Bass_init(-1, DefSampleRate, 0, {$IFDEF Windows}0{$ELSE}Nil{$ENDIF}, Nil)) Then Begin
+      showmessage('Unable to init sound device, preview will not work.');
+      SoundEnabled := false;
+    End;
   PreviewStream := 0;
   Memo1.Clear;
   edit1.text := '200';
@@ -438,7 +446,8 @@ Begin
   ImageData.Width := 0;
   ImageData.Height := 0;
   ImageData.data := Nil;
-  ScrollBar1.Position := round(100 - BASS_GetVolume() * 100);
+  If SoundEnabled Then
+    ScrollBar1.Position := round(100 - BASS_GetVolume() * 100);
   ScrollBar1Change(Nil);
   // Debug Remove
   If FileExists('Cow.png') Then
@@ -459,6 +468,7 @@ End;
 
 Procedure TForm1.ScrollBar1Change(Sender: TObject);
 Begin
+  If Not SoundEnabled Then exit;
   label5.caption := format('%d %%', [100 - ScrollBar1.Position]);
   BASS_SetVolume(1 - ScrollBar1.Position / 100);
 End;
