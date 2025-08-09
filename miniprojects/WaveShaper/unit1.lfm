@@ -202,7 +202,7 @@ object Form1: TForm1
     Height = 25
     Top = 616
     Width = 104
-    Caption = 'export .wav'
+    Caption = 'Export .wav'
     TabOrder = 11
     OnClick = Button7Click
   end
