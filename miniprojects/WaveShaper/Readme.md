@@ -25,5 +25,10 @@ Copy the binary from the corresponding [bin](bin) folder for your operating syst
    2. Load a different .wav file that will be reshaped to the new shape
 - Preview the created wave file
 
+# How to enable preview ?
+By default the application does not use preview, because this is only possible, when using the bass.dll / basslib.so. This is done to make "testing" the software more easily, as you now can download the application and run it with no further configuration.
+
+If you want to use sound preview you need to recompile the code with enabled {$Define UseBassSound} switch.
+
 ## Hidden features
 Right click on the image "right" of the "->" button opens a save image dialog.
