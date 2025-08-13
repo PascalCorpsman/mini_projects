@@ -38,7 +38,7 @@ Unit Unit1;
 (*
  * Enable if you have installed bass.pas and corresponding sound lib
  *)
-{.$Define UseBassSound}
+{.$DEFINE UseBassSound}
 
 Interface
 
@@ -458,12 +458,11 @@ Begin
 {$ELSE}
   If (BASS_GetVersion() Shr 16) <> Bassversion Then Begin
     showmessage('Unable to init the Bass Library ver. :' + BASSVERSIONTEXT);
-    halt.
+    halt;
   End;
-  If SoundEnabled Then
-    If (Not Bass_init(-1, DefSampleRate, 0, {$IFDEF Windows}0{$ELSE}Nil{$ENDIF}, Nil)) Then Begin
-      showmessage('Unable to init sound device);
-    End;
+  If (Not Bass_init(-1, DefSampleRate, 0, {$IFDEF Windows}0{$ELSE}Nil{$ENDIF}, Nil)) Then Begin
+    showmessage('Unable to init sound device');
+  End;
 {$ENDIF}
   PreviewStream := 0;
   Memo1.Clear;
