@@ -1,13 +1,13 @@
 object Form1: TForm1
   Left = 339
-  Height = 695
+  Height = 710
   Top = 117
-  Width = 676
+  Width = 722
   Caption = 'Form1'
-  ClientHeight = 695
-  ClientWidth = 676
+  ClientHeight = 710
+  ClientWidth = 722
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   object GroupBox1: TGroupBox
     Left = 16
@@ -15,19 +15,19 @@ object Form1: TForm1
     Top = 128
     Width = 297
     Caption = ' Consumption data '
-    ClientHeight = 108
-    ClientWidth = 293
+    ClientHeight = 111
+    ClientWidth = 295
     TabOrder = 0
     object Label4: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 18
-      Width = 88
+      Width = 97
       Caption = 'from Net [MWh]'
     end
     object Edit4: TEdit
       Left = 136
-      Height = 23
+      Height = 26
       Top = 8
       Width = 80
       TabOrder = 0
@@ -35,14 +35,14 @@ object Form1: TForm1
     end
     object Label5: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 50
-      Width = 114
+      Width = 123
       Caption = 'Akku->House [MWh]'
     end
     object Edit5: TEdit
       Left = 136
-      Height = 23
+      Height = 26
       Top = 40
       Width = 80
       TabOrder = 1
@@ -50,25 +50,33 @@ object Form1: TForm1
     end
     object Label6: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 82
-      Width = 107
+      Width = 115
       Caption = 'Sun->House [MWh]'
     end
     object Edit6: TEdit
       Left = 136
-      Height = 23
+      Height = 26
       Top = 72
       Width = 80
       TabOrder = 2
       Text = 'Edit6'
+      OnChange = Edit6Change
+    end
+    object Label10: TLabel
+      Left = 264
+      Height = 16
+      Top = 82
+      Width = 20
+      Caption = '<->'
     end
   end
   object Button1: TButton
     Left = 7
     Height = 25
     Top = 304
-    Width = 656
+    Width = 702
     Anchors = [akTop, akLeft, akRight]
     Caption = 'Calculate'
     TabOrder = 1
@@ -80,19 +88,19 @@ object Form1: TForm1
     Top = 128
     Width = 297
     Caption = ' Generation data '
-    ClientHeight = 108
-    ClientWidth = 293
+    ClientHeight = 111
+    ClientWidth = 295
     TabOrder = 2
     object Label7: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 18
-      Width = 73
+      Width = 80
       Caption = 'to Net [MWh]'
     end
     object Edit7: TEdit
       Left = 136
-      Height = 23
+      Height = 26
       Top = 8
       Width = 80
       TabOrder = 0
@@ -100,14 +108,14 @@ object Form1: TForm1
     end
     object Label8: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 50
-      Width = 100
+      Width = 108
       Caption = 'Sun->Akku [MWh]'
     end
     object Edit8: TEdit
       Left = 136
-      Height = 23
+      Height = 26
       Top = 40
       Width = 80
       TabOrder = 1
@@ -115,25 +123,26 @@ object Form1: TForm1
     end
     object Label9: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 82
-      Width = 107
+      Width = 115
       Caption = 'Sun->House [MWh]'
     end
     object Edit9: TEdit
       Left = 136
-      Height = 23
+      Height = 26
       Top = 72
       Width = 80
       TabOrder = 2
       Text = 'Edit9'
+      OnChange = Edit9Change
     end
   end
   object Memo1: TMemo
     Left = 7
-    Height = 315
+    Height = 330
     Top = 336
-    Width = 655
+    Width = 701
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Name = 'Courier New'
     Lines.Strings = (
@@ -147,8 +156,8 @@ object Form1: TForm1
   object Button2: TButton
     Left = 7
     Height = 25
-    Top = 659
-    Width = 657
+    Top = 674
+    Width = 703
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Beenden'
     TabOrder = 4
@@ -156,14 +165,14 @@ object Form1: TForm1
   end
   object Label12: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 276
-    Width = 113
+    Width = 126
     Caption = 'rescale akku to [kWh]'
   end
   object Edit12: TEdit
     Left = 224
-    Height = 23
+    Height = 26
     Top = 272
     Width = 80
     TabOrder = 5
@@ -175,19 +184,19 @@ object Form1: TForm1
     Top = 8
     Width = 609
     Caption = ' Facts '
-    ClientHeight = 100
-    ClientWidth = 605
+    ClientHeight = 103
+    ClientWidth = 607
     TabOrder = 6
     object Label1: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 40
-      Width = 76
+      Width = 87
       Caption = 'Profit per kWh'
     end
     object Edit1: TEdit
       Left = 208
-      Height = 23
+      Height = 26
       Top = 8
       Width = 80
       TabOrder = 0
@@ -195,14 +204,14 @@ object Form1: TForm1
     end
     object Label2: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 8
-      Width = 71
+      Width = 80
       Caption = 'Cost per kWh'
     end
     object Edit2: TEdit
       Left = 208
-      Height = 23
+      Height = 26
       Top = 40
       Width = 80
       TabOrder = 1
@@ -210,14 +219,14 @@ object Form1: TForm1
     end
     object Label11: TLabel
       Left = 8
-      Height = 15
+      Height = 16
       Top = 72
-      Width = 94
-      Caption = 'Akkusize in [kWh]'
+      Width = 97
+      Caption = 'Akkusize in kWh'
     end
     object Edit11: TEdit
       Left = 208
-      Height = 23
+      Height = 26
       Top = 72
       Width = 80
       TabOrder = 2
@@ -226,9 +235,9 @@ object Form1: TForm1
   end
   object Label3: TLabel
     Left = 312
-    Height = 15
+    Height = 16
     Top = 276
-    Width = 119
+    Width = 134
     Caption = 'based on above values'
   end
 end

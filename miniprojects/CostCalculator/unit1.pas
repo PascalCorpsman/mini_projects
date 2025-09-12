@@ -58,6 +58,7 @@ Type
     GroupBox2: TGroupBox;
     GroupBox3: TGroupBox;
     Label1: TLabel;
+    Label10: TLabel;
     Label11: TLabel;
     Label12: TLabel;
     Label2: TLabel;
@@ -71,6 +72,8 @@ Type
     Memo1: TMemo;
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
+    Procedure Edit6Change(Sender: TObject);
+    Procedure Edit9Change(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
   private
 
@@ -115,9 +118,20 @@ Begin
   close;
 End;
 
+Procedure TForm1.Edit6Change(Sender: TObject);
+Begin
+  edit9.text := edit6.text;
+End;
+
+Procedure TForm1.Edit9Change(Sender: TObject);
+Begin
+  edit6.text := edit9.text;
+End;
+
 Procedure TForm1.Button1Click(Sender: TObject);
 Const
   cur = '€';
+  Epsilon = 0.001;
 Var
   AkkuScale, akkuist, akkusoll,
     vNetz, vAkku, vSonne,
@@ -138,6 +152,11 @@ Begin
   eNetz := StrToFloatdef(edit7.text, 0);
   eAkku := StrToFloatdef(edit8.text, 0);
   eSonne := StrToFloatdef(edit9.text, 0);
+
+  If abs(vSonne - eSonne) > Epsilon Then Begin
+    Showmessage('Error, "Sun->House" from consumption is different to generation..');
+    exit;
+  End;
 
   // Ohne Akku, muss alles was durch den Akku ging, durchs Netz
   akkuist := StrToFloatdef(edit11.text, 0);
