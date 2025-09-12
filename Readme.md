@@ -25,6 +25,7 @@ Following is a short description of all listed projects
 | [Bridge Builder](miniprojects/Bridge_Builder)| Game inspired by the famoues Bridge Builder game ideas |
 | [Clickomania](miniprojects/Clickomania) | Linux / OpenGL Version of Clickomania |
 | [Color Test](miniprojects/Color_Test) | Color capturing tool |
+| [Cost Calculator](miniprojects/CostCalculator) | Aplication to evaluate efficiency of photovoltaic systems |
 | [CPU Load](miniprojects/CPU_Load) | Application to create a defined CPU-Load |
 | [CRC Calculator](miniprojects/CRC_Calculator) | Calculate CRC checksums of arbiture data |
 | [Einstein](miniprojects/Einstein) | Solver for Einstein puzzles |
