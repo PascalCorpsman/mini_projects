@@ -53,6 +53,7 @@ Following is a short description of all listed projects
 | [Screenreader](miniprojects/Screenreader) | Application to take multiple partly screenshots |
 | [Sequoia](miniprojects/Sequoia) | Application to easy find large files in a folder structure |
 | [PNG Editor](miniprojects/PNG_Editor) | Split and merge alpha channel of .png images |
+| [Pong Wars](miniprojects/PongWars) | the pongwars demo ;) |
 | [Prime factorizer](miniprojects/Prime_factorizer/) | Calc the primefactors of a given number |
 | [Parken](miniprojects/Parken) | Demo for trectric curves |
 | [Pentago](miniprojects/Pentago) | Implementation of the board game Pentago |
