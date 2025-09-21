@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Pongwars                                                        21.09.2025 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - show points on right sides                            *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -217,10 +218,12 @@ Begin
   glPopMatrix;
   // Die Lebenspunkte
   glBindTexture(GL_TEXTURE_2D, 0);
+  // Show the darks points (which are the bright fields) on the left
   OpenGL_ASCII_Font.ColorV3 := PongWars.Dark.Color;
-  OpenGL_ASCII_Font.Textout(10, 10, inttostr(dark));
+  OpenGL_ASCII_Font.Textout(10, 10, inttostr(bright));
+  // Show the brights points (which are the dark fields) on the right
   OpenGL_ASCII_Font.ColorV3 := PongWars.Bright.Color;
-  s := inttostr(bright);
+  s := inttostr(dark);
   OpenGL_ASCII_Font.Textout(Width - 10 - length(s) * 10, 10, s);
   exit2d;
   OpenGLControl1.SwapBuffers;
@@ -244,7 +247,7 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
-  caption := 'Pongwars 0.01, by Corpsman';
+  caption := 'Pongwars 0.02, by Corpsman';
   Randomize;
   OpenGLControl1.Align := alClient;
   (*
@@ -301,12 +304,15 @@ Procedure TForm1.ReadParameters;
 Var
   i, j: Integer;
   b: Boolean;
+  newWidth, newheight: LongInt;
 Begin
   Reset;
   (*
    * ggf. überschreiben der Defaults durch Parameter
    *)
   i := 1;
+  newWidth := 24;
+  newheight := 24;
   While i <= ParamCount Do Begin
     Case lowercase(ParamStr(i)) Of
       'jitter': Begin
@@ -317,10 +323,19 @@ Begin
           inc(i);
           PongWars.Paused := lowercase(ParamStr(i)) = 'true';
         End;
+      'width': Begin
+          inc(i);
+          newWidth := strtointdef(ParamStr(i), newWidth);
+        End;
+      'height': Begin
+          inc(i);
+          newheight := strtointdef(ParamStr(i), newheight);
+        End;
       // TODO: mehr parametrisierbar machen ;)
     End;
     inc(i);
   End;
+  setlength(PongWars.Field, newWidth, newheight);
   Width := BlockDim * length(PongWars.Field);
   Height := BlockDim * length(PongWars.Field[0]);
   CenterFormOnScreen;
@@ -364,12 +379,12 @@ Begin
   (*
    * Alle Defaults setzen
    *)
+  PongWars.Field := Nil;
   PongWars.JitterDirectionAndSpeed := true;
   PongWars.MinSpeed := 5;
   PongWars.MaxSpeed := 15;
   DefaultSpeed := (PongWars.MaxSpeed + PongWars.MinSpeed) / 2;
   PongWars.Paused := false;
-  setlength(PongWars.Field, 24, 24);
   PongWars.Bright.Color := v3(
     (BrightCol And $FF) / 255,
     ((BrightCol Shr 8) And $FF) / 255,

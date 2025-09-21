@@ -8,6 +8,8 @@ This miniproject is more a simulation than a real application, anyway you can us
 | --- | --- |
 | jitter | <true> / <false>, enables / disables the angle / speed jittering (default is <true>) |
 | pause | <true> / <false>, starts in pause mode or not (use "space" to toggle pause) |
+| width | <integer>, number of rects per row |
+| height | <integer>, number of rects per col |
 
 ![](preview.png)
 
