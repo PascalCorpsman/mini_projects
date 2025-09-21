@@ -336,15 +336,17 @@ Begin
     inc(i);
   End;
   setlength(PongWars.Field, newWidth, newheight);
-  Width := BlockDim * length(PongWars.Field);
-  Height := BlockDim * length(PongWars.Field[0]);
+  Width := BlockDim * newWidth;
+  Height := BlockDim * newheight;
+  PongWars.Dark.Position := v2(newWidth Div 4, newheight Div 2);
+  PongWars.Bright.Position := v2((newWidth * 3) Div 4, newheight Div 2);
   CenterFormOnScreen;
   (*
    * Erzeugen des "Spiels"
    *)
-  For i := 0 To high(PongWars.Field) Do Begin
-    b := i <= high(PongWars.Field) Div 2;
-    For j := 0 To high(PongWars.Field[0]) Do Begin
+  For i := 0 To newWidth - 1 Do Begin
+    b := i <= (newWidth Div 2) - 1;
+    For j := 0 To newheight - 1 Do Begin
       PongWars.Field[i, j] := b;
     End;
   End;
@@ -390,7 +392,7 @@ Begin
     ((BrightCol Shr 8) And $FF) / 255,
     ((BrightCol Shr 16) And $FF) / 255
     );
-  PongWars.Bright.Position := v2(18, 12);
+
   PongWars.Bright.Velocity := getRandomDirection * DefaultSpeed;
   PongWars.Bright.Velocity.x := abs(PongWars.Bright.Velocity.x); // Sicherstellen, dass der Ball nach Rechts geht ;)
   PongWars.Dark.Color := v3(
@@ -398,7 +400,7 @@ Begin
     ((DarkCol Shr 8) And $FF) / 255,
     ((DarkCol Shr 16) And $FF) / 255
     );
-  PongWars.Dark.Position := v2(6, 12);
+
   PongWars.Dark.Velocity := getRandomDirection * DefaultSpeed;
   PongWars.Dark.Velocity.x := -abs(PongWars.Dark.Velocity.x); // Sicherstellen, dass der Ball nach Links geht ;)
 End;
