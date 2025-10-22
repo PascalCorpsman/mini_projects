@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Simple Search                                                   ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.12                                                         *)
+(* Version     : 0.13                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -48,6 +48,7 @@
 (*               0.10 - Copy Filefolder                                       *)
 (*               0.11 - Anzeigen Löschen                                      *)
 (*               0.12 - Copy selected to                                      *)
+(*               0.13 - do not follow symlinks                                *)
 (*                                                                            *)
 (* Missing Features: Exclude beim Suchen                                      *)
 (*                                                                            *)
@@ -171,9 +172,9 @@ Begin
     If Not CaseSensitive Then Begin
       s := LowerCase(s);
     End;
-    sb := nil;
+    sb := Nil;
     setlength(sb, Length(s));
-    searchptrs := nil;
+    searchptrs := Nil;
     For i := 0 To high(sb) Do Begin
       sb[i] := ord(s[i + 1]);
     End;
@@ -231,6 +232,7 @@ Procedure TForm1.GetFilesInDirectory(ADirectory: String;
 Var
   sr: TSearchRec;
   t: String;
+  s: RawByteString;
   dummy1, dummy2, i: integer;
   b: Boolean;
 Begin
@@ -269,8 +271,17 @@ Begin
        * Rekursiver Abstieg
        *)
       If ARekursiv Then Begin
-        If (SR.Name <> '.') And (SR.Name <> '..') And (SR.Attr And FaDirectory = FaDirectory) Then
-          GetFilesInDirectory(ADirectory + SR.Name, AMask, True);
+        If (SR.Name <> '.') And (SR.Name <> '..') And (SR.Attr And FaDirectory = FaDirectory) Then Begin
+{$IFDEF LiNux}
+          s := '';
+          FileGetSymLinkTarget(ADirectory + SR.Name, s);
+          If s = '' Then Begin // Kein Symlink gefunden
+{$ENDIF}
+            GetFilesInDirectory(ADirectory + SR.Name, AMask, True);
+{$IFDEF LINux}
+          End;
+{$ENDIF}
+        End;
       End;
     Until (FindNextUTF8(SR) <> 0) Or panik;
   End;
@@ -479,7 +490,7 @@ Procedure TForm1.FormCreate(Sender: TObject);
 Var
   param: String;
 Begin
-  caption := 'Simple scan ver 0.12, by Corpsman, www.Corpsman.de';
+  caption := 'Simple scan ver 0.13, by Corpsman, www.Corpsman.de';
   Constraints.MinWidth := Width;
   Constraints.MinHeight := Height;
   Application.Title := caption;
