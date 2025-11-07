@@ -40,10 +40,11 @@ Const
    *          0.07 = FIX: calculations of selected files when using the filter shortcuts
    *          0.08 = ADD: "edit .gitignore" Button
    *          0.09 = ADD: ability to edit sshCommand
+   *          0.10 = ADD: "Reload view" in context menu
    *
    * Icons geladen von: https://peacocksoftware.com/silk
    *)
-  DefCaption = ' - Commit - CorpsmanGit ver. 0.09';
+  DefCaption = ' - Commit - CorpsmanGit ver. 0.10';
   CommitText = 'Commit               | ▼';
   ReCommitText = 'ReCommit           | ▼';
   CommitAndPushText = 'Commit && Push | ▼';
@@ -101,6 +102,7 @@ Type
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
@@ -116,6 +118,7 @@ Type
     PopupMenu2: TPopupMenu;
     PopupMenu3: TPopupMenu;
     Separator1: TMenuItem;
+    Separator2: TMenuItem;
     StringGrid1: TStringGrid;
     Procedure Button1Click(Sender: TObject);
     Procedure Button1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -144,6 +147,7 @@ Type
     Procedure MenuItem14Click(Sender: TObject);
     Procedure MenuItem15Click(Sender: TObject);
     Procedure MenuItem16Click(Sender: TObject);
+    Procedure MenuItem17Click(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
@@ -406,6 +410,11 @@ Begin
     End;
     UpdateInfo();
   End;
+End;
+
+Procedure TForm1.MenuItem17Click(Sender: TObject);
+Begin
+  ReloadStringgridContent;
 End;
 
 Procedure TForm1.MenuItem1Click(Sender: TObject);
