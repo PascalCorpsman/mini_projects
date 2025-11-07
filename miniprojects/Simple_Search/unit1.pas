@@ -232,12 +232,17 @@ Procedure TForm1.GetFilesInDirectory(ADirectory: String;
 Var
   sr: TSearchRec;
   t: String;
+{$IFDEF Linux}
   s: RawByteString;
+{$ENDIF}
   dummy1, dummy2, i: integer;
   b: Boolean;
 Begin
   If panik Then exit;
   Application.ProcessMessages;
+{$IFDEF Linux}
+  s := '';
+{$ENDIF}
   // Include Trailing Backslash
   ADirectory := IncludeTrailingPathDelimiter(ADirectory);
   // Suchen der Dateien im Ordner
@@ -272,13 +277,11 @@ Begin
        *)
       If ARekursiv Then Begin
         If (SR.Name <> '.') And (SR.Name <> '..') And (SR.Attr And FaDirectory = FaDirectory) Then Begin
-{$IFDEF LiNux}
-          s := '';
-          FileGetSymLinkTarget(ADirectory + SR.Name, s);
-          If s = '' Then Begin // Kein Symlink gefunden
+{$IFDEF Linux}
+          If Not FileGetSymLinkTarget(ADirectory + SR.Name, s) Then Begin // Kein Symlink gefunden
 {$ENDIF}
             GetFilesInDirectory(ADirectory + SR.Name, AMask, True);
-{$IFDEF LINux}
+{$IFDEF Linux}
           End;
 {$ENDIF}
         End;
