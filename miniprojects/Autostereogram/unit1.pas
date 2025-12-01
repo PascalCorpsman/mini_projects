@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Autostereogram                                                  30.11.2025 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,8 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Load "finished" images for testing via contextmenu    *)
+(*                      ADD: ability to tweak depth image before converting   *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -48,6 +50,9 @@ Type
     Image2: TImage;
     Image3: TImage;
     Label1: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label12: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -55,22 +60,31 @@ Type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
+    Label9: TLabel;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     OpenDialog1: TOpenDialog;
     PopupMenu1: TPopupMenu;
     SaveDialog1: TSaveDialog;
     ScrollBar1: TScrollBar;
     ScrollBar2: TScrollBar;
+    ScrollBar3: TScrollBar;
+    ScrollBar4: TScrollBar;
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
+    Procedure MenuItem2Click(Sender: TObject);
     Procedure ScrollBar1Change(Sender: TObject);
     Procedure ScrollBar2Change(Sender: TObject);
+    Procedure ScrollBar3Change(Sender: TObject);
+    Procedure ScrollBar4Change(Sender: TObject);
   private
-    Raw: Array Of Array Of Byte;
+    Raw: TRawData;
     initialized: Boolean;
+
+    Function BitmapToRawData(Const BM: TBitmap): TRawData;
   public
 
   End;
@@ -84,12 +98,21 @@ Implementation
 
 Uses math, FPImage;
 
+Function Map(vmin, vmax, v: Single; rmin, rmax: Single): Single;
+Begin
+  If (vmax - vmin = 0) Then Begin
+    result := rmin;
+    exit;
+  End
+  Else Begin
+    result := ((((v - vmin) * (rmax - rmin)) / (vmax - vmin)) + rmin);
+  End;
+End;
+
 { TForm1 }
 
 Procedure TForm1.Button1Click(Sender: TObject);
 Begin
-  //  OpenDialog1.FileName := 'Logo_depth.bmp';
-    //  OpenDialog1.FileName := 'Sphere.bmp';
   If OpenDialog1.Execute Then Begin
     initialized := true;
     Image1.Picture.LoadFromFile(OpenDialog1.FileName);
@@ -115,24 +138,31 @@ Var
   i, j, shift: Integer;
   pattern_width, pattern_div, idx: integer;
 
+  minDepth, maxDepth: byte;
 Begin
   If Not initialized Then exit;
 
+  minDepth := ScrollBar3.Position;
+  maxDepth := 255 - (100 - ScrollBar4.Position);
   // 1. Tiefenbild extrahieren
   tmp_bm := TBitmap.Create;
   tmp_bm.Assign(Image1.Picture);
 
-  depth_data := Nil;
-  SetLength(depth_data, tmp_bm.Width, tmp_bm.Height);
-  tmp_img := tmp_bm.CreateIntfImage;
-  For i := 0 To tmp_bm.Width - 1 Do
-    For j := 0 To tmp_bm.Height - 1 Do
-      depth_data[i, j] := (tmp_img.Colors[i, j].Red Shr 8) And $FF;
-  tmp_img.Free;
+  depth_data := BitmapToRawData(tmp_bm);
 
   // 2. Zielbild daten bestimmen
   Image_Width := tmp_bm.Width;
   Image_Height := tmp_bm.Height;
+
+  // Optionales Nachträgliches "verbiegen" des eingeladenen Tiefenbildes ;)
+  If (minDepth <> 1) Or (maxDepth <> 255) Then Begin
+    For i := 0 To Image_Width - 1 Do
+      For j := 0 To Image_Height - 1 Do Begin
+        If depth_data[i, j] <> 0 Then Begin
+          depth_data[i, j] := round(Map(1, 255, depth_data[i, j], minDepth, maxDepth));
+        End;
+      End;
+  End;
 
   // 3. Pattern erstellen
   tmp_bm.Free;
@@ -158,6 +188,7 @@ Begin
       End
       Else Begin
         // Verschieben der Pixel entsprechend der Tiefeninformationen ;)
+//        shift := trunc(map(0, 255, depth_data[i, j], minDepth, maxDepth) / pattern_div);
         shift := trunc(depth_data[i, j] / pattern_div);
         idx := i - pattern_width + shift;
         idx := max(0, min(idx, Image_Width - 1));
@@ -240,11 +271,13 @@ Begin
   (*
    * Magic eye texture generation inspired by: https://github.com/synesthesiam/magicpy
    *)
-  caption := 'Magic eye image creator ver. 0.01, by Corpsman, www.Corpsman.de';
+  caption := 'Magic eye image creator ver. 0.02, by Corpsman, www.Corpsman.de';
   Randomize;
   Raw := Nil;
   initialized := false;
   ScrollBar2Change(Nil);
+  ScrollBar3Change(Nil);
+  ScrollBar4Change(Nil);
 End;
 
 Procedure TForm1.MenuItem1Click(Sender: TObject);
@@ -256,6 +289,36 @@ Begin
     b.assign(Image2.Picture);
     b.SaveToFile(SaveDialog1.FileName);
     b.free;
+  End;
+End;
+
+Procedure TForm1.MenuItem2Click(Sender: TObject);
+Var
+  bm: TBitmap;
+  pattern_width: integer;
+Begin
+  If OpenDialog1.Execute Then Begin
+    bm := TBitmap.Create;
+    bm.LoadFromFile(OpenDialog1.FileName);
+    Image2.Picture.Assign(bm);
+
+    image3.Left := Image2.Left + image2.Width + 15;
+    image3.Picture.Assign(bm);
+    ScrollBar1.Left := image3.Left;
+    ScrollBar1.Width := image2.Width;
+    ScrollBar1.Max := image2.Width;
+    label4.left := ScrollBar1.Left;
+    label5.left := label4.left + label4.Width + 5;
+    raw := BitmapToRawData(bm);
+    // TODO: mittels Koinzidenztest die Patternwith direkt bestimmen!
+    pattern_width := bm.Width Div 10;
+    If ScrollBar1.Position = pattern_width Then Begin
+      ScrollBar1Change(Nil);
+    End
+    Else Begin
+      ScrollBar1.Position := pattern_width;
+    End;
+    bm.Free;
   End;
 End;
 
@@ -297,6 +360,33 @@ Procedure TForm1.ScrollBar2Change(Sender: TObject);
 Begin
   Label6.Caption := inttostr(ScrollBar2.Position);
   Button2.Click;
+End;
+
+Procedure TForm1.ScrollBar3Change(Sender: TObject);
+Begin
+  Label11.Caption := inttostr(ScrollBar3.Position);
+  Button2.Click;
+End;
+
+Procedure TForm1.ScrollBar4Change(Sender: TObject);
+Begin
+  Label12.Caption := inttostr(255 - (100 - ScrollBar4.Position));
+  Button2.Click;
+End;
+
+Function TForm1.BitmapToRawData(Const BM: TBitmap): TRawData;
+Var
+  i, j: Integer;
+  tmp_img: TLazIntfImage;
+Begin
+  Result := Nil;
+  SetLength(Result, bm.Width, bm.Height);
+  tmp_img := bm.CreateIntfImage;
+  For i := 0 To bm.Width - 1 Do
+    For j := 0 To bm.Height - 1 Do
+      Result[i, j] := (tmp_img.Colors[i, j].Red Shr 8) And $FF;
+  tmp_img.Free;
+
 End;
 
 End.

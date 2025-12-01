@@ -50,7 +50,7 @@ object Form1: TForm1
   object Button2: TButton
     Left = 272
     Height = 25
-    Top = 32
+    Top = 88
     Width = 240
     Caption = 'Create Image'
     TabOrder = 1
@@ -59,7 +59,7 @@ object Form1: TForm1
   object Image2: TImage
     Left = 272
     Height = 90
-    Top = 64
+    Top = 120
     Width = 90
     AutoSize = True
     PopupMenu = PopupMenu1
@@ -76,7 +76,7 @@ object Form1: TForm1
   object Image3: TImage
     Left = 376
     Height = 90
-    Top = 64
+    Top = 120
     Width = 90
     AutoSize = True
     PopupMenu = PopupMenu1
@@ -137,6 +137,55 @@ object Form1: TForm1
     Width = 192
     Caption = 'If you do not have a depthmap'#10'to load at hand click this button:'
   end
+  object ScrollBar3: TScrollBar
+    Left = 336
+    Height = 14
+    Top = 40
+    Width = 121
+    Min = 1
+    PageSize = 0
+    Position = 1
+    TabOrder = 5
+    OnChange = ScrollBar3Change
+  end
+  object ScrollBar4: TScrollBar
+    Left = 336
+    Height = 14
+    Top = 67
+    Width = 121
+    PageSize = 0
+    Position = 100
+    TabOrder = 6
+    OnChange = ScrollBar4Change
+  end
+  object Label9: TLabel
+    Left = 272
+    Height = 16
+    Top = 38
+    Width = 59
+    Caption = 'Mindepth'
+  end
+  object Label10: TLabel
+    Left = 272
+    Height = 16
+    Top = 64
+    Width = 62
+    Caption = 'Maxdepth'
+  end
+  object Label11: TLabel
+    Left = 472
+    Height = 16
+    Top = 38
+    Width = 48
+    Caption = 'Label11'
+  end
+  object Label12: TLabel
+    Left = 472
+    Height = 16
+    Top = 64
+    Width = 48
+    Caption = 'Label12'
+  end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.bmp'
     Filter = 'Bitmap|*.bmp|All|*.*'
@@ -145,16 +194,20 @@ object Form1: TForm1
   end
   object PopupMenu1: TPopupMenu
     Left = 280
-    Top = 112
+    Top = 168
     object MenuItem1: TMenuItem
       Caption = 'Save Image'
       OnClick = MenuItem1Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Load Image'
+      OnClick = MenuItem2Click
     end
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.bmp'
     Filter = 'Bitmap|*.bmp|All|*.*'
     Left = 280
-    Top = 176
+    Top = 232
   end
 end
