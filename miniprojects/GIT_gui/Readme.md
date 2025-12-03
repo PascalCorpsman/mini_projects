@@ -1,6 +1,7 @@
 # GIT gui
 
 This is plattform independand GIT gui that tries to look as close as possible to the Tortoise GIT toolchain.
+Precomiled executables for Windows and Linux can be downloaded from the latest [release](https://github.com/PascalCorpsman/mini_projects/releases/tag/latest), don't forget to rename appropriately.
 
 ## ! Attention !
 * This is a work in Progress project

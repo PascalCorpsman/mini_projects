@@ -15,7 +15,7 @@ Needed Lazarus packages:
 - none
 
 # What needs to be done to use it
-Copy the binary from the corresponding [bin](bin) folder for your operating system.
+Copy the binary from [release](https://github.com/PascalCorpsman/mini_projects/releases/tag/latest) for your operating system and rename it appropriately.
 
 - Start the application
 - Load Image (it should wider than taler)

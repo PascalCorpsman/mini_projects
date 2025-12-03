@@ -22,6 +22,10 @@ This is a work in Progress project
 
 ### How to install
 
+Download the tool from the latest [release](https://github.com/PascalCorpsman/mini_projects/releases/tag/latest) and rename it appropriately.
+
+### How to compile
+
 Dependencies:
 
 - Bass ( https://www.un4seen.com/ )

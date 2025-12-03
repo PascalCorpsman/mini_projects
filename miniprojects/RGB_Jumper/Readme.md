@@ -13,7 +13,8 @@ Features:
 - Jump and run game
 
 ## whats needed to play the game
-- download the corresponding bin file and the subfolder "GFX" / "Levels" and store it in the same directory
+- download the corresponding file from [release](https://github.com/PascalCorpsman/mini_projects/releases/tag/latest) and rename it appropriately.
+- download the subfolder "GFX" / "Levels" and store it in the same directory
   
   or
 

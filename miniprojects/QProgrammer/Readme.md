@@ -11,6 +11,8 @@ In my opinion a good coder need to have some characteristics like:
 
 In order to get the answer you only need to read the [Tutorial](tasks/tutorial_de.pdf) (attention its in german). And then try to solve the "Point_in_rect_*" task. At the end its not that important that you pass all tests (beside it would be nice). Furthermore after you ran through all that you proofed that you have all it need to get into it.
 
+Download the tool from the latest [release](https://github.com/PascalCorpsman/mini_projects/releases/tag/latest) and rename it appropriately.
+
 ![](preview.png)
 
 Features:

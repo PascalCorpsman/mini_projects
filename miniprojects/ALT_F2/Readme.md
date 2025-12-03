@@ -27,6 +27,8 @@ Needed Lazarus packages:
 
 # What needs to be done to use it
 
+Download the tool from the latest [release](https://github.com/PascalCorpsman/mini_projects/releases/tag/latest) and rename it appropriately.
+
 - Windows user: 
   - copy a shortcut to the programm into your "autostart" folder and you are ready to use it.
 - Linux user: 

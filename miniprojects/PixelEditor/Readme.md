@@ -22,6 +22,6 @@ Needed Lazarus packages:
 LazOpenGLContext
 
 ## How to install / use this application
-- copy the executable according to your operation system from the [bin](bin) folder in a folder of your choise
-- copy the GFX folder an all its content as subfolder into your folder of choise
+- copy the executable according to your operation system from the [release](https://github.com/PascalCorpsman/mini_projects/releases/tag/latest) folder in a folder of your choise and rename it appropriately.
+- copy the GFX folder an all its content as subfolder into your folder of choise.
 - read the [manual](manual.md) to find out all the hidden secrets ;) and enjoy.
