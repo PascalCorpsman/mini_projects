@@ -47,10 +47,12 @@ When the application is closed edit the ALT_F2.ini file, in the general section 
 > 
 > OpenWhereMouseIs=0<br>
 > SkipIcons=0<br>
-> ShowDetailedIntValues=1
+> ShowDetailedIntValues=1<br>
+> MonitorApp=mate-system-monitor
 
 | Option | Description |
 | --- | --- |
 | OpenWhereMouseIs | if set to 1 the application will popup on the screen where the mouse is located |
 | SkipIcons | if set to 1, no icons will be loaded (deprecated) |
 | ShowDetailedIntValues | if set to 1, when using the calculater the result will also display as HEX and binary number if it is a integer value (and small enough) |
+| MonitorApp | App to call to show the system load, on Windows this is the taskmgr, on Linux the Mint Mate default is used, if you use a different Window manager, edit this value. |

@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* ALT_F2                                                          ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.53                                                         *)
+(* Version     : 0.55                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -102,7 +102,8 @@
 (* - Released -  0.53 - Fix AV on icon parsing                                *)
 (*                      Fix high dpi scaling graphical glitch                 *)
 (*                      ADD support for .png graphics                         *)
-(*               0.54 -                                                       *)
+(* - Released -  0.54 - Nichts :(                                             *)
+(*               0.55 - ADD MonitorApp "Einstellbar"                          *)
 (*                                                                            *)
 (* Feature Request:     Ein "freifeld" mit dem man Infos zur Anwendung mit    *)
 (*                      ablegen kann ??                                       *)
@@ -128,7 +129,7 @@ Uses
   umathsolver, UniqueInstance, math, Clipbrd;
 
 Const
-  ALT_F2_Version = '0.54';
+  ALT_F2_Version = '0.55';
 
 Type
 
@@ -218,6 +219,7 @@ Type
     Apps: TApps;
     Internal_ShowState: Boolean;
     Rechner: Boolean;
+    MonitorApp: String;
 {$IFDEF Windows}
     id1: integer;
     Procedure WMHotKey(Var Msg: TMessage); message WM_HOTKEY;
@@ -308,6 +310,7 @@ Begin
   Ini_File.WriteBool('General', 'OpenWhereMouseIs', Ini_File.ReadBool('General', 'OpenWhereMouseIs', false));
   Ini_File.WriteBool('General', 'SkipIcons', Ini_File.ReadBool('General', 'SkipIcons', false));
   Ini_File.WriteBool('General', 'ShowDetailedIntValues', Ini_File.ReadBool('General', 'ShowDetailedIntValues', false));
+  Ini_File.WriteString('General', 'MonitorApp', MonitorApp);
 End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
@@ -323,7 +326,7 @@ Begin
   Color := Back_Color;
   ListBox1.Color := Back_Color;
   ImageList1.DrawingStyle := dsTransparent;
-  ListBox1.ScrollWidth := 0;//ListBox1.Width - Scale96ToForm(50); // Definitiv Deaktivieren des Horizontalen Scrollbalkens
+  ListBox1.ScrollWidth := 0; //ListBox1.Width - Scale96ToForm(50); // Definitiv Deaktivieren des Horizontalen Scrollbalkens
   height := Scale96ToForm(38);
 {$IFDEF Windows}
   // Register Hotkey ALT + F2
@@ -744,12 +747,7 @@ End;
 
 Procedure TForm1.SpeedButton2Click(Sender: TObject);
 Begin
-{$IFDEF Windows}
-  OpenURL('taskmgr');
-{$ENDIF}
-{$IFDEF Unix}
-  OpenApp('mate-system-monitor');
-{$ENDIF}
+  OpenApp(MonitorApp);
   Hide_App();
 End;
 
@@ -871,6 +869,13 @@ Var
 Begin
   Ini_File := TIniFile.Create(extractfilepath(ParamStrUTF8(0)) + 'ALT_F2.ini');
   Ini_File.CacheUpdates := true;
+{$IFDEF Windows}
+  MonitorApp := Ini_File.ReadString('General', 'MonitorApp', 'taskmgr');
+{$ENDIF}
+{$IFDEF Unix}
+  // Default für Linux Mint Mate, bei Gnome heist der aber wieder anders ..
+  MonitorApp := Ini_File.ReadString('General', 'MonitorApp', 'mate-system-monitor');
+{$ENDIF}
   WriteAllAvailableOptionsToIni();
   Mixfile := TMixfile.create(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStrUTF8(0))) + 'Icons.mix');
   i := Ini_File.ReadInteger('General', 'AppCount', 0);
