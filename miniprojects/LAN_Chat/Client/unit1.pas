@@ -307,7 +307,7 @@ Begin
     showmessage('Unable to init the device, Error code :' + inttostr(BASS_ErrorGetCode));
     halt;
   End;
-  NM_Sound := BASS_StreamCreateFile(false, pchar(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'nm.wav'), 0, 0, 0);
+  NM_Sound := BASS_StreamCreateFile(0, pchar(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'nm.wav'), 0, 0, 0);
   If NM_Sound = 0 Then Begin
     showmessage('Error unable to load : nm.wav' + LineEnding + 'Error code :' + inttostr(BASS_ErrorGetCode));
   End;
