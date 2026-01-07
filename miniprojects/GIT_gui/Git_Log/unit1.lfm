@@ -14,7 +14,7 @@ object Form1: TForm1
     Left = 8
     Height = 16
     Top = 16
-    Width = 92
+    Width = 89
     Caption = '<All Branches>'
     Font.Color = clBlue
     ParentFont = False
@@ -23,7 +23,7 @@ object Form1: TForm1
     Left = 152
     Height = 16
     Top = 16
-    Width = 34
+    Width = 35
     Caption = 'From:'
   end
   object DateEdit1: TDateEdit
@@ -215,7 +215,7 @@ object Form1: TForm1
     Left = 8
     Height = 16
     Top = 440
-    Width = 41
+    Width = 40
     Caption = 'Label4'
   end
   object Button1: TButton
@@ -241,7 +241,7 @@ object Form1: TForm1
     Left = 8
     Height = 22
     Top = 545
-    Width = 144
+    Width = 143
     Anchors = [akLeft, akBottom]
     Caption = 'Show Whole Project'
     Enabled = False
@@ -251,7 +251,7 @@ object Form1: TForm1
     Left = 8
     Height = 22
     Top = 564
-    Width = 100
+    Width = 97
     Anchors = [akLeft, akBottom]
     Caption = 'All Branches'
     Checked = True
@@ -515,6 +515,7 @@ object Form1: TForm1
     end
     object MenuItem22: TMenuItem
       Caption = 'Switch/Checkout to this...'
+      OnClick = MenuItem22Click
     end
     object MenuItem24: TMenuItem
       Caption = 'Create Branch at this version...'

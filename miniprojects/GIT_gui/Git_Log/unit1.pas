@@ -34,6 +34,8 @@ Uses
   *          0.05 = FIX: Git graph sometimes merged the wrong branches
   *          0.06 = ADD: show Branch locations (Red / Green / Brown text in front of commit message)
   *                 ADD: Ability to create branches / tags
+  *                 ADD: Bold font for current Head branch
+  *                 ADD: Switch/Checkout dialog
   *
   * Icons geladen von: https://peacocksoftware.com/silk
   *)
@@ -184,6 +186,7 @@ Type
     Graph: TGraph;
     Additionals: Array Of TAdditional;
     FirstLoadLCL: Boolean;
+    HeadHash: String;
   public
     Procedure LoadLCL;
   End;
@@ -198,6 +201,7 @@ Implementation
 
 Uses
   unit2 // Create Branch Dialog
+  , unit3 // Switch to Branch Dialog
   , LCLType
   , uGITOptions, ugit_common, LazFileUtils, LazUTF8, math, DateUtils, LCLIntf;
 
@@ -303,8 +307,21 @@ Begin
 End;
 
 Procedure TForm1.MenuItem22Click(Sender: TObject);
+Var
+  li: Integer;
 Begin
-  showmessage('todo.');
+  // Switch Checkout to this
+  li := StringGrid1.Selection.Top;
+  If li <= 0 Then exit; // Keine Ahnung nichts ausgewählt
+  If Assigned(Additionals[li].Branchs) Then Begin
+    form3.Init(ProjectRoot, Additionals[li].Branchs[0].Name, 'Branch');
+  End
+  Else Begin
+    form3.Init(ProjectRoot, StringGrid1.Cells[5, li], 'Commit');
+  End;
+  If form3.showmodal = mrOK Then Begin
+    LoadLCL;
+  End;
 End;
 
 Procedure TForm1.MenuItem23Click(Sender: TObject);
@@ -473,14 +490,20 @@ Begin
     DrawGraphRow(StringGrid1.Canvas, Graph[aRow - 1], aRect);
   End;
   If (aCol = 2) Then Begin
+    If StringGrid1.cells[5, aRow] = HeadHash Then Begin
+      StringGrid1.canvas.Font.Style := [fsBold];
+    End
+    Else Begin
+      StringGrid1.canvas.Font.Style := [];
+    End;
+    // ggf Branch Infos mit rein malen
     offset := 0;
-    //  // Die Zelle "Löschen"
+    bc := StringGrid1.canvas.Brush.Color;
+    fc := StringGrid1.canvas.Font.Color;
+    StringGrid1.canvas.Pen.Color := StringGrid1.canvas.Brush.Color;
+    StringGrid1.canvas.Rectangle(aRect.Left + 1, aRect.Top + 1, aRect.Right - 1, aRect.Bottom - 1);
     If assigned(Additionals[aRow].tags) Or Assigned(Additionals[aRow].Branchs) Then Begin
-      bc := StringGrid1.canvas.Brush.Color;
-      fc := StringGrid1.canvas.Font.Color;
-      StringGrid1.canvas.Pen.Color := StringGrid1.canvas.Brush.Color;
-      StringGrid1.canvas.Rectangle(aRect.Left + 1, aRect.Top + 1, aRect.Right - 1, aRect.Bottom - 1);
-      offset := 0;
+      // Die Zelle "Löschen"
       If assigned(Additionals[aRow].Branchs) Then Begin
         For j := 0 To high(Additionals[aRow].Branchs) Do Begin
           StringGrid1.canvas.Brush.Color := Additionals[aRow].Branchs[j].Color;
@@ -497,11 +520,11 @@ Begin
           offset := offset + StringGrid1.canvas.TextWidth(Additionals[aRow].tags[j]) + Scale96ToForm(2);
         End;
       End;
-      // Den eigentlichen Text der Zelle anfügen
-      StringGrid1.canvas.Brush.Color := bc;
-      StringGrid1.canvas.Font.Color := fc;
-      StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, StringGrid1.Cells[aCol, aRow]);
     End;
+    // Den eigentlichen Text der Zelle anfügen
+    StringGrid1.canvas.Brush.Color := bc;
+    StringGrid1.canvas.Font.Color := fc;
+    StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, StringGrid1.Cells[aCol, aRow]);
   End;
 End;
 
@@ -633,6 +656,7 @@ Begin
   Else Begin
     caption := ProjectRoot + DefCaption;
   End;
+  HeadHash := GetActualHeadHash(ProjectRoot);
   edit1.text := '';
   StringGrid1.RowCount := 2;
   StringGrid1.Cells[2, 1] := 'Working tree changes';

@@ -144,6 +144,11 @@ Procedure Nop(); // Debugging only
  *)
 Function IsValidBranchName(aBranchName: String): Boolean;
 
+(*
+ * Liest den Git Hash des Head aus ;)
+ *)
+Function GetActualHeadHash(Const aDir: String): String;
+
 Implementation
 
 Uses UTF8Process, process
@@ -535,6 +540,16 @@ Begin
   For i := 0 To res.Count - 1 Do Begin
     result.Remotes[i] := trim(res[i]);
   End;
+  res.free;
+End;
+
+Function GetActualHeadHash(Const aDir: String): String;
+Var
+  res: TStringList;
+Begin
+  res := RunCommand(aDir, 'git', ['rev-parse', 'HEAD']);
+  result := '';
+  If res.Count > 0 Then Result := res[0];
   res.free;
 End;
 
