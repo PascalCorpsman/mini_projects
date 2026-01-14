@@ -40,9 +40,20 @@ Unit Unit1;
 Interface
 
 Uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, uspectrum_analyzer;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
+  bass, uspectrum_analyzer;
+
+Const
+  DefaultSampleRate = 44100;
 
 Type
+
+  TPreviewData = Record
+    SampleRate: Integer;
+    Stream: HSTREAM;
+    Data: Array Of Single;
+    aPos: integer;
+  End;
 
   { TForm1 }
 
@@ -52,6 +63,7 @@ Type
     Button3: TButton;
     Button4: TButton;
     Button5: TButton;
+    Button6: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
@@ -71,6 +83,7 @@ Type
     Procedure Button3Click(Sender: TObject);
     Procedure Button4Click(Sender: TObject);
     Procedure Button5Click(Sender: TObject);
+    Procedure Button6Click(Sender: TObject);
     Procedure CheckBox1Change(Sender: TObject);
     Procedure CheckBox3Click(Sender: TObject);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -87,9 +100,11 @@ Type
     SpectrumPreview: TBitmap;
     MaxVisHz: Integer;
     GradientColors: Array[0..255] Of TColor;
+
     Function CursorToFPoint(x, y: integer): TFPoint;
     Procedure RefreshPreview;
     Function GetMaxAmplitude(): Single;
+    Procedure stftToPreview(Const stft: TStftResult);
   public
 
   End;
@@ -106,6 +121,32 @@ Uses math
   , Unit2
   , Unit3
   ;
+
+Var
+  PreviewData: TPreviewData;
+
+Function GetPreviewData(handle: HSTREAM; buffer: Pointer; length: DWORD; user: Pointer): DWORD;
+{$IFDEF MSWINDOWS} stdcall{$ELSE} cdecl{$ENDIF};
+Var
+  buf: PSingle;
+  len, i: Integer;
+Begin
+  buf := buffer;
+  len := length Div 4; // 4- Byte Pro Wert
+  len := min(len, system.length(PreviewData.Data) - PreviewData.aPos);
+  If len <= 0 Then Begin
+    BASS_ChannelStop(PreviewData.Stream);
+    result := 0;
+    exit;
+  End;
+  For i := 0 To len - 1 Do Begin
+    buf^ := PreviewData.Data[PreviewData.aPos + i];
+    inc(buf);
+  End;
+  PreviewData.aPos := PreviewData.aPos + len;
+
+  result := len * 4;
+End;
 
 { TForm1 }
 
@@ -130,6 +171,14 @@ Begin
   End;
   G.free;
   WaveLoaded := false;
+  If (BASS_GetVersion() Shr 16) <> Bassversion Then Begin
+    showmessage('Unable to init the Bass Library ver. :' + BASSVERSIONTEXT);
+    halt;
+  End;
+  If (Not Bass_init(-1, DefaultSampleRate, 0, Nil, Nil)) Then Begin
+    showmessage('Unable to init sound device.');
+    halt;
+  End;
 End;
 
 Procedure TForm1.Image1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -190,6 +239,9 @@ End;
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
 Begin
   SpectrumPreview.free;
+  If PreviewData.Stream <> 0 Then
+    BASS_StreamFree(PreviewData.Stream);
+  PreviewData.Stream := 0;
 End;
 
 Procedure TForm1.Button1Click(Sender: TObject);
@@ -304,6 +356,28 @@ Begin
   End;
 End;
 
+Procedure TForm1.Button6Click(Sender: TObject);
+Begin
+  // Preview
+  If Not WaveLoaded Then Begin
+    ShowMessage('Error, nothing loaded.');
+    exit;
+  End;
+  // Alle Daten Vorbereiten
+  If CheckBox3.Checked Then Begin
+    stftToPreview(OverlayStft);
+  End
+  Else Begin
+    stftToPreview(WaveStft);
+  End;
+  // Den Eigentlichen Stream erstellen
+  PreviewData.Stream := BASS_StreamCreate(PreviewData.SampleRate, 1, BASS_SAMPLE_FLOAT, @GetPreviewData, Nil);
+  If Not BASS_ChannelPlay(PreviewData.Stream, false) Then Begin
+    showmessage('Could not start stream playback');
+    exit;
+  End;
+End;
+
 Procedure TForm1.CheckBox1Change(Sender: TObject);
 Begin
   RefreshPreview;
@@ -318,8 +392,9 @@ Begin
     exit;
   End;
   If CheckBox3.Checked Then Begin
-    showmessage('Overlay will be created, image will be grayscale, overlay in colors.' + LineEnding +
-      'save .wav button will only use overlay.');
+    showmessage(
+      'Overlay will be created, image will be grayscale, overlay in colors.' + LineEnding +
+      'Save and preview button will only use overlay.');
     CheckBox1.Checked := false;
     CheckBox2.Checked := true;
     // Clone WaveStft to OverlayStft, but "empty"
@@ -359,7 +434,7 @@ Begin
   label4.caption := format('%0.2fs', [WaveStft.SampleCount / WaveStft.SampleRate]);
 End;
 
-Function TForm1.GetMaxAmplitude(): Single;
+Function TForm1.GetMaxAmplitude: Single;
 Var
   i, j: Integer;
 Begin
@@ -369,6 +444,24 @@ Begin
       Result := max(Result, WaveStft.Segments[i].Spectrum[j].Amplitude);
     End;
   End;
+End;
+
+Procedure TForm1.stftToPreview(Const stft: TStftResult);
+Var
+  sig: TSignal;
+  i: Integer;
+Begin
+  PreviewData.SampleRate := stft.SampleRate;
+  If PreviewData.Stream <> 0 Then
+    BASS_StreamFree(PreviewData.Stream);
+  PreviewData.Stream := 0;
+  sig := ReconstructSignal(stft);
+  NormalizeSignal(sig, 0);
+  setlength(PreviewData.Data, sig.NumSamples);
+  For i := 0 To sig.NumSamples - 1 Do Begin
+    PreviewData.Data[i] := sig.Samples[i].re;
+  End;
+  PreviewData.aPos := 0;
 End;
 
 End.

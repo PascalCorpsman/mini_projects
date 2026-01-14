@@ -7,7 +7,7 @@ Inspired by this youtube [video](https://youtu.be/08mmKNLQVHU?si=awNvvyid7AtpUwz
 Features:
 - Open and show frequency over time spectrum
 - "Draw" own frequencies
-- Preview Loaded sound -- Not implemented yet
+- Preview Loaded sound
 - Store own drawn frecuences
 
 
