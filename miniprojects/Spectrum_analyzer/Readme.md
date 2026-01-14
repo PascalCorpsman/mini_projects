@@ -10,6 +10,11 @@ Features:
 - Preview Loaded sound -- Not implemented yet
 - Store own drawn frecuences
 
+
+Following you can see the "custom" created of the tschirp.wav
+![](tschirp_preview.png)
+
+
 If you want to validate the correct representation of the results you can use [this](https://academo.org/demos/spectrum-analyzer/) website.
 
 ## What needs to be done to compile the application
