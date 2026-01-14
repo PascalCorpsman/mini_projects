@@ -25,6 +25,7 @@ object Form1: TForm1
     Top = 96
     Width = 640
     Stretch = True
+    OnMouseDown = Image1MouseDown
     OnMouseMove = Image1MouseMove
   end
   object Label1: TLabel
@@ -60,13 +61,13 @@ object Form1: TForm1
     Caption = 'Label4'
   end
   object Button2: TButton
-    Left = 557
+    Left = 136
     Height = 25
     Top = 8
     Width = 155
-    Caption = 'Create From Scratch'
+    Caption = 'Create empty board'
     TabOrder = 1
-    Visible = False
+    OnClick = Button2Click
   end
   object Button3: TButton
     Left = 16
@@ -94,9 +95,9 @@ object Form1: TForm1
     Caption = 'Label5'
   end
   object CheckBox1: TCheckBox
-    Left = 8
+    Left = 632
     Height = 22
-    Top = 609
+    Top = 67
     Width = 80
     Caption = 'Colorized'
     TabOrder = 4
@@ -112,14 +113,62 @@ object Form1: TForm1
     Caption = 'Label6'
   end
   object Label7: TLabel
-    Left = 256
-    Height = 16
-    Top = 320
-    Width = 246
-    Caption = 'Please Load a .wav file to show spectrum.'
+    Left = 328
+    Height = 64
+    Top = 296
+    Width = 139
+    Caption = 'Please '#10'- Load a .wav file '#10'- Create a empty board '#10'to show spectrum.'
+  end
+  object CheckBox2: TCheckBox
+    Left = 72
+    Height = 22
+    Hint = 'Left = inc amplitude'#10'Right = dec amplitude'
+    Top = 603
+    Width = 47
+    Caption = 'Edit'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 5
+  end
+  object ScrollBar1: TScrollBar
+    Left = 144
+    Height = 14
+    Top = 608
+    Width = 121
+    Max = 10
+    Min = 2
+    PageSize = 0
+    Position = 2
+    TabOrder = 6
+  end
+  object Button5: TButton
+    Left = 637
+    Height = 25
+    Top = 8
+    Width = 75
+    Caption = 'Save .wav'
+    TabOrder = 7
+    OnClick = Button5Click
+  end
+  object CheckBox3: TCheckBox
+    Left = 293
+    Height = 22
+    Top = 603
+    Width = 109
+    Caption = 'Edit as overlay'
+    TabOrder = 8
+    OnClick = CheckBox3Click
   end
   object OpenDialog1: TOpenDialog
-    Left = 161
-    Top = 100
+    DefaultExt = '.wav'
+    Filter = 'Wave files|*.wav|All files|*'
+    Left = 128
+    Top = 120
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.wav'
+    Filter = 'Wave files|*.wav|All files|*'
+    Left = 648
+    Top = 120
   end
 end

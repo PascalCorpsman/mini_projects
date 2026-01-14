@@ -27,6 +27,10 @@ Type
     FrequencyScaling: Single;
   End;
 
+  TFPoint = Record
+    x, y: Single;
+  End;
+
   { Short-Time Fourier Transform (STFT) }
 
   Tcomplex_singleArray = Array Of complex_single; // This way we are directly Byte compatible to fftw ;)
@@ -66,17 +70,47 @@ Function ComputeSTFT(Const signal: TSignal; segmentSize, hopSize: Integer; smoot
 (*
  * Wenn Gradient Definiert ist, dann muss Gradient 256 elemente enthalten !, sonst graustufen
  *)
-Function StftToBmp(Const Stft: TStftResult; Const bmp: TBitmap; MaxFrequency: Integer; Gradient: pTColor): TScaling;
+Function StftToBmp(Const Stft: TStftResult; Const bmp: TBitmap; MaxFrequency: Integer; Gradient: pTColor; IgnoreZeroElements: Boolean): TScaling;
+
+(*
+ * malt auf gegebenen Pixelkoordinaten im Spektrum, alles sehr Spooky aber geht ;)
+ *)
+Procedure PaintIntoStft(Var stft: TStftResult;
+  x, y: Integer;
+  radius: Integer;
+  intensity: Single;
+  MaxFrequency: integer
+  );
+
+Function ReconstructSignal(Const stft: TStftResult): TSignal;
+
+(*
+ * Kürzt Signal wieder so ein, dass seine Samples.re in [-1..1] passen
+ * MaxVal = 0 => Automatisches Scaling, sonst wird mit 1/MaxVal scalliert
+ *)
+Procedure NormalizeSignal(Var aSignal: TSignal; MaxVal: Single = 0);
 
 Implementation
 
 Uses math;
 
-Type
-  TSpectrogramMap =
-    Array Of // Dim 1 = segments (timeslices)
-  Array Of // Dim 2 = frequences
-  Single;
+Procedure NormalizeSignal(Var aSignal: TSignal; MaxVal: Single);
+Var
+  i: Integer;
+Begin
+  // Maximum der Samples bestimmen
+  If maxVal = 0 Then Begin
+    For i := 0 To aSignal.NumSamples - 1 Do Begin
+      If Abs(aSignal.Samples[i].re) > maxVal Then Begin
+        maxVal := Abs(aSignal.Samples[i].re);
+      End;
+    End;
+  End;
+  If maxVal = 0 Then maxVal := 1;
+  For i := 0 To aSignal.NumSamples - 1 Do Begin
+    aSignal.Samples[i].re := aSignal.Samples[i].re / maxVal;
+  End;
+End;
 
 Function DFT_Compute(Const aSignals: Tcomplex_singleArray; aSampleRate: integer): TFrequencyData;
 Var
@@ -122,6 +156,52 @@ Begin
   End;
   result.SampleRate := Wave.SampleRate;
   result.NumSamples := Wave.SampleCount;
+End;
+
+(* C# source https://youtu.be/08mmKNLQVHU?si=awNvvyid7AtpUwza 1:59
+
+public static Signal GenerateSignal(FrequencyData[] spectrum, int sampleRate, int sampleCount)
+{
+  float[] samples = new float[sampeCount];
+  float duration = sampleCount / (float)sampleRate;
+
+  for (int i = 0; i < sampleCount; i++)
+  {
+    float timeNorm = i / (float)(samplecount); // [0, 1)
+    float time = timeNorm * duration;
+
+    foreach (FrequencyData wave in spectrum)
+    {
+      samples[i] += cos(time * TAU * wave.Frequency * wave.Phase) * wave.Amplitude;
+    }
+  }
+  return new Signal(samples, sampleRate);
+}
+*)
+
+Function GenerateSignal(Const spectrum: TFrequencyData; sampleRate, sampleCount: Integer): TSignal;
+Var
+  duration, time, timeNorm: Single;
+  i, j: Integer;
+Begin
+  result.Samples := Nil;
+  result.SampleRate := sampleRate;
+  result.NumSamples := sampleCount;
+  SetLength(result.samples, sampleCount);
+  duration := sampleCount / sampleRate;
+
+  For i := 0 To sampleCount - 1 Do Begin
+    timeNorm := i / sampleCount;
+    time := timeNorm * duration;
+    result.samples[i].re := 0;
+    result.samples[i].im := 0;
+    For j := 0 To High(spectrum) Do Begin
+      // Try to reduce cos calculations as much as possible ;)
+      If abs(spectrum[j].Amplitude) > 1 Then Begin
+        result.samples[i].re := result.samples[i].re + Cos(time * 2 * Pi * spectrum[j].Frequency + spectrum[j].Phase) * spectrum[j].Amplitude;
+      End;
+    End;
+  End;
 End;
 
 //(* C# source https://youtu.be/08mmKNLQVHU?si=awNvvyid7AtpUwza 13:10
@@ -242,14 +322,15 @@ End;
  *)
 
 Function StftToBmp(Const Stft: TStftResult; Const bmp: TBitmap;
-  MaxFrequency: Integer; Gradient: pTColor): TScaling;
+  MaxFrequency: Integer; Gradient: pTColor; IgnoreZeroElements: Boolean
+  ): TScaling;
 Const
   decibelsDisplayMin = -80; // z.B. -80 dB als untere Grenze
   decibelsDisplayMax = 0; // 0 dB als obere Grenze
 Var
   AmplitudeMax: Single;
 
-  Function GetColorAt(time, freq: single): TColor;
+  Function GetNormalizedAmplitudeAt(time, freq: single): Byte;
   Var
     decibelsi, timei, freqi, timeip, freqip: Integer;
     decibels, Amplitude, a1, a2, times, freqs: Single;
@@ -278,14 +359,7 @@ Var
     decibelsi := round(255 * (decibels - decibelsDisplayMin) / (decibelsDisplayMax - decibelsDisplayMin));
     If decibelsi < 0 Then decibelsi := 0;
     If decibelsi > 255 Then decibelsi := 255;
-    // Umrechnen des Skallierten DB Wertes in eine Farbe
-    If assigned(Gradient) Then Begin
-      result := Gradient[decibelsi];
-    End
-    Else Begin
-      decibelsi := 255 - decibelsi;
-      result := decibelsi * $010101;
-    End;
+    result := 255 - decibelsi;
   End;
 
 Var
@@ -294,6 +368,7 @@ Var
   ii, jj: Float; // Koordinate in stft
   c: TColor;
   intf: TLazIntfImage;
+  ci: byte;
 Begin
   width := Length(stft.Segments);
   If width = 0 Then exit;
@@ -307,7 +382,6 @@ Begin
     End;
   End;
   If height = -1 Then exit;
-
   // Maximalwert der Amplitude berechnen
   amplitudeMax := 0;
   For i := 0 To width - 1 Do Begin
@@ -315,7 +389,6 @@ Begin
       amplitudeMax := max(amplitudeMax, stft.Segments[i].Spectrum[j].Amplitude);
     End;
   End;
-
   // Das Rechteck Width, height wird nun auf bmp "aufgezogen"
   // Wir tasten im BMP-Raum ab ;)
   intf := bmp.CreateIntfImage;
@@ -323,8 +396,17 @@ Begin
     ii := i * width / (bmp.Width - 1);
     For j := 0 To bmp.Height - 1 Do Begin
       jj := (bmp.Height - 1 - j) * height / (bmp.Height - 1); // y-Achse ist invertiert ..
-      c := GetColorAt(ii, jj);
-      intf.Colors[i, j] := TColorToFPColor(c);
+      ci := GetNormalizedAmplitudeAt(ii, jj);
+      If (ci < 255) Or (Not IgnoreZeroElements) Then Begin
+        // Umrechnen des Skallierten DB Wertes in eine Farbe
+        If assigned(Gradient) Then Begin
+          c := Gradient[255 - ci];
+        End
+        Else Begin
+          c := ci * $010101;
+        End;
+        intf.Colors[i, j] := TColorToFPColor(c);
+      End;
     End;
   End;
   bmp.LoadFromIntfImage(intf);
@@ -332,6 +414,109 @@ Begin
   result.TimeScaling := width / (bmp.Width - 1);
   result.FrequencyScaling := height / (bmp.Height - 1);
 End;
+
+Procedure PaintIntoStft(Var stft: TStftResult; x, y: Integer; radius: Integer;
+  intensity: Single; MaxFrequency: integer);
+Var
+  i, j: Integer;
+  sqrdist, width, height, ii, jj, sqr_Radius: integer;
+  amplitude: Single;
+Begin
+  width := Length(stft.Segments);
+  If width = 0 Then exit;
+  height := -1;
+  For i := 0 To high(stft.Segments[0].Spectrum) Do Begin
+    If stft.Segments[0].Spectrum[i].Frequency <= MaxFrequency Then Begin
+      height := i;
+    End
+    Else Begin
+      break;
+    End;
+  End;
+  If height = -1 Then exit;
+  sqr_Radius := radius * radius;
+  For i := -radius To radius Do Begin
+    ii := (x + i) * width Div 640;
+    For j := -radius To radius Do Begin
+      jj := (y + j) * height Div 480;
+      sqrdist := Sqr(i) + Sqr(j);
+      If sqrdist <= sqr_Radius Then Begin
+        amplitude := intensity * (1 - sqrt(sqrdist / sqr_radius));
+        stft.Segments[ii].Spectrum[jj].Amplitude := max(0,
+          stft.Segments[ii].Spectrum[jj].Amplitude + amplitude);
+      End;
+    End;
+  End;
+End;
+
+(* C# source https://youtu.be/08mmKNLQVHU?si=awNvvyid7AtpUwza 16:00
+public static Signal ReconstructSignal(StftResult stft)
+{
+  float[] allSamples = new float[stft.SampleCount];
+  forech (StftSegment segment in stft.Segments)
+  {
+    float[] segmentSamples = Generate(segment.Spectrum, stft.SampleRate, segment.SampleCount);
+
+    // Add reconstructed segment into full reconstruction
+    for (int i = 0; i < segment.SampleCount; i++)
+    {
+      allSamples[i + segment.SampleOffset] += segmentSamples[i];
+    }
+
+  return new Signal(allSamples, stft.SampleRate);
+}
+*)
+
+Function ReconstructSignal(Const stft: TStftResult): TSignal;
+Var
+  allSamples: Array Of Single;
+  segmentSamples: TSignal;
+  segment: TStftSegment;
+  i, segIndex: Integer;
+Begin
+  (*
+   * !! Achtung !!, dieser Code nimmt bei der Summierung das Hann Fenster nicht
+   * Nicht richtig in betracht, es funktioniert nur, weil wir bei der Generierung
+   * das Hann Fenster exakt um die hälfte verschoben haben !
+   *)
+
+  // Gesamtsamplepuffer
+  allSamples := Nil;
+  SetLength(allSamples, stft.SampleCount);
+
+  // Initialisieren (wichtig bei Additionen)
+  For i := 0 To High(allSamples) Do
+    allSamples[i] := 0.0;
+
+  // Alle Segmente überlagert addieren
+  For segIndex := 0 To High(stft.Segments) Do Begin
+    segment := stft.Segments[segIndex];
+
+    segmentSamples := GenerateSignal(
+      segment.Spectrum,
+      stft.SampleRate,
+      segment.SampleCount
+      );
+
+    For i := 0 To segment.SampleCount - 1 Do Begin
+      If (i + segment.StartIndex) < Length(allSamples) Then
+        allSamples[i + segment.StartIndex] := allSamples[i + segment.StartIndex] + segmentSamples.Samples[i].re;
+    End;
+  End;
+
+  // Signal zusammenbauen
+  Result.Samples := Nil;
+  SetLength(Result.Samples, stft.SampleCount);
+  For i := 0 To High(allSamples) Do Begin
+    Result.Samples[i].re := allSamples[i];
+    Result.Samples[i].im := 0.0;
+  End;
+
+  Result.SampleRate := stft.SampleRate;
+  Result.NumSamples := stft.SampleCount;
+
+End;
+
 
 End.
 

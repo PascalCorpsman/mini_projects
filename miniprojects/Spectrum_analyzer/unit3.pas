@@ -12,38 +12,63 @@
 (*               source file of the project.                                  *)
 (*                                                                            *)
 (******************************************************************************)
-Program project1;
+Unit Unit3;
 
-{$MODE objfpc}{$H+}
+{$MODE ObjFPC}{$H+}
+
+Interface
 
 Uses
-{$IFDEF UNIX}
-  cthreads,
-{$ENDIF}
-{$IFDEF HASAMIGA}
-  athreads,
-{$ENDIF}
-  Interfaces, // this includes the LCL widgetset
-  Forms, Unit1, uspectrum_analyzer, uwave, Unit2, Unit3
-  { you can add units after this };
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls;
 
-{$R *.res}
+Type
 
+  { TForm3 }
+
+  TForm3 = Class(TForm)
+    Button1: TButton;
+    Button2: TButton;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
+    Procedure FormCreate(Sender: TObject);
+  private
+    Function getDurationInMs: integer;
+    Function getSampleRate: Integer;
+
+  public
+    Property SampleRate: Integer read getSampleRate;
+    Property DurationInMs: integer read getDurationInMs;
+
+  End;
+
+Var
+  Form3: TForm3;
+
+Implementation
+
+{$R *.lfm}
+
+{ TForm3 }
+
+Procedure TForm3.FormCreate(Sender: TObject);
 Begin
-{$IFDEF Windows}
-{$IF declared(UseHeapTrace)}
-  GlobalSkipIfNoLeaks := True; // supported as of debugger version 3.2.0
-{$ENDIF}
-{$ENDIF}
-  RequireDerivedFormResource := True;
-  Application.Scaled := True;
-{$PUSH}{$WARN 5044 OFF}
-  Application.MainFormOnTaskbar := True;
-{$POP}
-  Application.Initialize;
-  Application.CreateForm(TForm1, Form1);
-  Application.CreateForm(TForm2, Form2);
-  Application.CreateForm(TForm3, Form3);
-  Application.Run;
+  caption := 'Create empty board';
+  edit1.text := '1000';
+  edit2.text := '44100';
+
+End;
+
+Function TForm3.getDurationInMs: integer;
+Begin
+  result := strtointdef(edit1.text, 1000);
+End;
+
+Function TForm3.getSampleRate: Integer;
+Begin
+  result := strtointdef(edit2.text, 44100);
+End;
+
 End.
 

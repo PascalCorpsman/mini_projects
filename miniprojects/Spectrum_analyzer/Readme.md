@@ -6,9 +6,9 @@ Inspired by this youtube [video](https://youtu.be/08mmKNLQVHU?si=awNvvyid7AtpUwz
 
 Features:
 - Open and show frequency over time spectrum
-- "Draw" own frequencies -- Not implemented yet
+- "Draw" own frequencies
 - Preview Loaded sound -- Not implemented yet
-- Store own drawn frecuences -- Not implemented yet
+- Store own drawn frecuences
 
 If you want to validate the correct representation of the results you can use [this](https://academo.org/demos/spectrum-analyzer/) website.
 
