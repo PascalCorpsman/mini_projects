@@ -10,6 +10,8 @@ Features:
 - Preview Loaded sound -- Not implemented yet
 - Store own drawn frecuences -- Not implemented yet
 
+If you want to validate the correct representation of the results you can use [this](https://academo.org/demos/spectrum-analyzer/) website.
+
 ## What needs to be done to compile the application
 - Download and install FFTW from (https://www.fftw.org/)
 - Download and instll Bass from (https://www.un4seen.com/)
