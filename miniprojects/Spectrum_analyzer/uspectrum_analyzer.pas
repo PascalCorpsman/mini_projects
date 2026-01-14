@@ -437,8 +437,10 @@ Begin
   sqr_Radius := radius * radius;
   For i := -radius To radius Do Begin
     ii := (x + i) * width Div 640;
+    If (ii < 0) Or (ii > high(stft.Segments)) Then Continue;
     For j := -radius To radius Do Begin
       jj := (y + j) * height Div 480;
+      If (jj < 0) Or (jj > high(stft.Segments[ii].Spectrum)) Then Continue;
       sqrdist := Sqr(i) + Sqr(j);
       If sqrdist <= sqr_Radius Then Begin
         amplitude := intensity * (1 - sqrt(sqrdist / sqr_radius));
