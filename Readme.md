@@ -62,6 +62,7 @@ Following is a short description of all listed projects
 | [Pixeleditor](miniprojects/PixelEditor) | tool to create pixelart images |
 | [SFXR](miniprojects/SFXR) | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
 | [Simple Search](miniprojects/Simple_Search) | Win98 style search dialog |
+| [Spectrum_analyzer](miniprojects/Spectrum_analyzer) | Tool to visualize and edit .wav files audiospectrum |
 | [Spirograph](miniprojects/Spirograph) | Demo to paint funny rotational graphics |
 | [Sudoku](miniprojects/Sudoku) | Sudoku puzzle creator |
 | [Superdom](miniprojects/Superdom) | FPC-Port of the Super domination game which is part of [Rockbox](https://www.rockbox.org/) |

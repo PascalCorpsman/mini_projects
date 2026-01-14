@@ -1,0 +1,152 @@
+object Form2: TForm2
+  Left = 324
+  Height = 241
+  Top = 107
+  Width = 363
+  Caption = 'Form2'
+  ClientHeight = 241
+  ClientWidth = 363
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 8
+    Width = 68
+    Caption = 'Samplerate'
+  end
+  object Label2: TLabel
+    Left = 112
+    Height = 16
+    Top = 8
+    Width = 40
+    Caption = 'Label2'
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 16
+    Top = 32
+    Width = 50
+    Caption = 'Sampels'
+  end
+  object Label4: TLabel
+    Left = 112
+    Height = 16
+    Top = 32
+    Width = 40
+    Caption = 'Label4'
+  end
+  object Label5: TLabel
+    Left = 8
+    Height = 16
+    Top = 80
+    Width = 53
+    Caption = 'Duration'
+  end
+  object Label6: TLabel
+    Left = 112
+    Height = 16
+    Top = 80
+    Width = 40
+    Caption = 'Label6'
+  end
+  object Label7: TLabel
+    Left = 8
+    Height = 16
+    Top = 56
+    Width = 55
+    Caption = 'Channels'
+  end
+  object Label8: TLabel
+    Left = 112
+    Height = 16
+    Top = 56
+    Width = 40
+    Caption = 'Label8'
+  end
+  object Label9: TLabel
+    Left = 8
+    Height = 32
+    Top = 104
+    Width = 89
+    Caption = 'suggested'#10'ms per column'
+  end
+  object Edit1: TEdit
+    Left = 112
+    Height = 26
+    Top = 112
+    Width = 80
+    TabOrder = 0
+    Text = 'Edit1'
+    OnChange = Edit1Change
+  end
+  object Label10: TLabel
+    Left = 8
+    Height = 32
+    Top = 152
+    Width = 82
+    Caption = 'suggested'#10'cut frequency'
+  end
+  object Edit2: TEdit
+    Left = 112
+    Height = 26
+    Top = 158
+    Width = 80
+    TabOrder = 1
+    Text = 'Edit2'
+  end
+  object Label11: TLabel
+    Left = 200
+    Height = 16
+    Top = 120
+    Width = 12
+    Caption = '->'
+  end
+  object Label12: TLabel
+    Left = 224
+    Height = 32
+    Top = 88
+    Width = 63
+    Caption = 'samples '#10'per colum:'
+  end
+  object Label13: TLabel
+    Left = 296
+    Height = 16
+    Top = 104
+    Width = 48
+    Caption = 'Label13'
+  end
+  object Button1: TButton
+    Left = 48
+    Height = 25
+    Top = 200
+    Width = 75
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 2
+  end
+  object Button2: TButton
+    Left = 248
+    Height = 25
+    Top = 200
+    Width = 75
+    Caption = 'OK'
+    ModalResult = 1
+    TabOrder = 3
+  end
+  object Label15: TLabel
+    Left = 224
+    Height = 16
+    Top = 122
+    Width = 67
+    Caption = 'Hz per row:'
+  end
+  object Label16: TLabel
+    Left = 296
+    Height = 16
+    Top = 122
+    Width = 48
+    Caption = 'Label16'
+  end
+end

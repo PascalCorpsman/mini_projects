@@ -1,0 +1,125 @@
+object Form1: TForm1
+  Left = 324
+  Height = 637
+  Top = 108
+  Width = 760
+  Caption = 'Form1'
+  ClientHeight = 637
+  ClientWidth = 760
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 8
+    Width = 104
+    Caption = 'Load .wav'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object Image1: TImage
+    Left = 72
+    Height = 480
+    Top = 96
+    Width = 640
+    Stretch = True
+    OnMouseMove = Image1MouseMove
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 560
+    Width = 56
+    Alignment = taRightJustify
+    AutoSize = False
+    Caption = '0 hz'
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 16
+    Top = 96
+    Width = 56
+    Alignment = taRightJustify
+    AutoSize = False
+    Caption = '3000 hz'
+  end
+  object Label3: TLabel
+    Left = 72
+    Height = 16
+    Top = 584
+    Width = 26
+    Caption = '0ms'
+  end
+  object Label4: TLabel
+    Left = 712
+    Height = 16
+    Top = 584
+    Width = 40
+    Caption = 'Label4'
+  end
+  object Button2: TButton
+    Left = 557
+    Height = 25
+    Top = 8
+    Width = 155
+    Caption = 'Create From Scratch'
+    TabOrder = 1
+    Visible = False
+  end
+  object Button3: TButton
+    Left = 16
+    Height = 25
+    Top = 64
+    Width = 49
+    Caption = '/\'
+    TabOrder = 2
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    Left = 16
+    Height = 25
+    Top = 120
+    Width = 49
+    Caption = '\/'
+    TabOrder = 3
+    OnClick = Button4Click
+  end
+  object Label5: TLabel
+    Left = 344
+    Height = 16
+    Top = 73
+    Width = 40
+    Caption = 'Label5'
+  end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Height = 22
+    Top = 609
+    Width = 80
+    Caption = 'Colorized'
+    TabOrder = 4
+    OnChange = CheckBox1Change
+  end
+  object Label6: TLabel
+    Left = 576
+    Height = 16
+    Top = 609
+    Width = 136
+    Alignment = taRightJustify
+    AutoSize = False
+    Caption = 'Label6'
+  end
+  object Label7: TLabel
+    Left = 256
+    Height = 16
+    Top = 320
+    Width = 246
+    Caption = 'Please Load a .wav file to show spectrum.'
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 161
+    Top = 100
+  end
+end

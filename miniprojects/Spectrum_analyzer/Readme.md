@@ -1,0 +1,15 @@
+# Spectrum anayzer
+
+Inspired by this youtube [video](https://youtu.be/08mmKNLQVHU?si=awNvvyid7AtpUwza) i wanted to have my own version in FreePascal ;).
+
+![](preview.png)
+
+Features:
+- Open and show frequency over time spectrum
+- "Draw" own frequencies -- Not implemented yet
+- Preview Loaded sound -- Not implemented yet
+- Store own drawn frecuences -- Not implemented yet
+
+## What needs to be done to compile the application
+- Download and install FFTW from (https://www.fftw.org/)
+- Download and instll Bass from (https://www.un4seen.com/)
