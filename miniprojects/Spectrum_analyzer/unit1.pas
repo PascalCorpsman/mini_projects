@@ -273,11 +273,11 @@ Begin
     WaveStft := ComputeSTFT(WaveToSignal(wave), SegmentSize, SegmentSize Div 2, true);
     WaveLoaded := true;
     // 2. das Spektrum Visualisieren ;)
-    RefreshPreview;
-    wave.free;
     CheckBox2.Checked := false; // do not Edit by default
     CheckBox3.Checked := false; // no overlay mode
     MaxAmplitude := GetMaxAmplitude();
+    RefreshPreview;
+    wave.free;
   End;
 End;
 
@@ -308,11 +308,11 @@ Begin
   WaveStft := ComputeSTFT(WaveToSignal(wave), SegmentSize, SegmentSize Div 2, true);
   WaveLoaded := true;
   // 2. das Spektrum Visualisieren ;)
-  RefreshPreview;
-  wave.free;
   CheckBox2.Checked := true;
   CheckBox3.Checked := false; // no overlay mode
-  MaxAmplitude := 2000; // Was auch immer hier der beste wert ist ... ?
+  MaxAmplitude := 2000; // Was auch immer hier der beste wert ist , wo ist 0.05 davon genau 100 ;)
+  RefreshPreview;
+  wave.free;
 End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
