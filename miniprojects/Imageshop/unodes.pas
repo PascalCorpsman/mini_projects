@@ -44,7 +44,7 @@ Type
     fdirection: TDirection;
   protected
   public
-    Constructor Create(Owner: TPaintBox; Direction: TDirection); virtual reintroduce;
+    Constructor Create(aOwner: TPaintBox; Direction: TDirection); virtual reintroduce;
     Procedure Render;
   End;
 
@@ -58,7 +58,7 @@ Type
   protected
   public
     Property Caption: String read fCaption write SetCaption;
-    Constructor Create(Owner: TPaintBox); override;
+    Constructor Create(aOwner: TPaintBox); override;
     Procedure Render;
   End;
 
@@ -78,7 +78,7 @@ Type
   public
     OnChange: TNotifyEvent;
     Property Position: Single read GetPosition write SetPosition;
-    Constructor Create(Owner: TPaintBox); override;
+    Constructor Create(aOwner: TPaintBox); override;
     Procedure Render;
   End;
 
@@ -500,10 +500,10 @@ Begin
   fMouseMode := 0;
 End;
 
-Constructor TCSlider.Create(Owner: TPaintBox);
+Constructor TCSlider.Create(aOwner: TPaintBox);
 Begin
-  Inherited create(Owner);
-  fCanvas := Owner.Canvas;
+  Inherited create(aOwner);
+  fCanvas := aOwner.Canvas;
   OnChange := Nil;
   width := 75;
   Height := 25;
@@ -683,10 +683,10 @@ Begin
   Render;
 End;
 
-Constructor TCButton.Create(Owner: TPaintBox);
+Constructor TCButton.Create(aOwner: TPaintBox);
 Begin
-  Inherited create(Owner);
-  fCanvas := Owner.Canvas;
+  Inherited create(aOwner);
+  fCanvas := aOwner.Canvas;
   Top := 0;
   Height := 0;
   width := 75;
@@ -1050,9 +1050,9 @@ End;
 
 { TConnector }
 
-Constructor TConnector.Create(Owner: TPaintBox; Direction: TDirection);
+Constructor TConnector.Create(aOwner: TPaintBox; Direction: TDirection);
 Begin
-  Inherited create(Owner);
+  Inherited create(aOwner);
   fcanvas := owner.Canvas;
   fdirection := Direction;
   left := 0;

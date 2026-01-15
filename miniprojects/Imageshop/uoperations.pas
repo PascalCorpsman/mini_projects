@@ -540,10 +540,10 @@ Function TSubtraction.DoTheSliderPixelOperation(Const Pixel1, Pixel2: TPixel;
 Var
   P: TPixel;
 Begin
-  P.B := clamp(Pixel2.B - Pixel1.B);
-  P.G := clamp(Pixel2.G - Pixel1.G);
-  P.R := clamp(Pixel2.R - Pixel1.R);
-  P.A := clamp(Pixel2.A - Pixel1.A);
+  P.B := clamp(abs(Pixel2.B - Pixel1.B));
+  P.G := clamp(abs(Pixel2.G - Pixel1.G));
+  P.R := clamp(abs(Pixel2.R - Pixel1.R));
+  P.A := clamp(abs(Pixel2.A - Pixel1.A));
   result := Mix(Pixel2, P, SliderValue);
 End;
 
