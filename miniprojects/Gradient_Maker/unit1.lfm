@@ -1,10 +1,10 @@
 object Form1: TForm1
   Left = 324
-  Height = 420
+  Height = 434
   Top = 107
   Width = 797
   Caption = 'Form1'
-  ClientHeight = 420
+  ClientHeight = 434
   ClientWidth = 797
   Position = poScreenCenter
   LCLVersion = '4.99.0.0'
@@ -27,12 +27,11 @@ object Form1: TForm1
     Caption = 'Left mouse = add new, right mouse = delete'
   end
   object GroupBox1: TGroupBox
-    Left = 8
-    Height = 64
-    Top = 146
+    Left = 9
+    Height = 80
+    Top = 144
     Width = 512
-    Caption = 'GroupBox1'
-    ClientHeight = 47
+    ClientHeight = 78
     ClientWidth = 510
     TabOrder = 0
     object ColorButton1: TColorButton
@@ -86,6 +85,37 @@ object Form1: TForm1
       TabOrder = 2
       Text = 'Edit5'
       OnKeyPress = Edit5KeyPress
+    end
+    object ScrollBar3: TScrollBar
+      Left = 296
+      Height = 14
+      Top = 50
+      Width = 153
+      Max = 2500
+      Min = 1
+      PageSize = 0
+      Position = 10
+      TabOrder = 3
+      Visible = False
+      OnScroll = ScrollBar3Scroll
+    end
+    object Label4: TLabel
+      Left = 232
+      Height = 16
+      Top = 48
+      Width = 37
+      Caption = 'Sigma'
+      Visible = False
+    end
+    object Edit6: TEdit
+      Left = 456
+      Height = 26
+      Top = 38
+      Width = 48
+      TabOrder = 4
+      Text = 'Edit6'
+      Visible = False
+      OnKeyPress = Edit6KeyPress
     end
   end
   object PaintBox2: TPaintBox
@@ -150,7 +180,7 @@ object Form1: TForm1
   object Button1: TButton
     Left = 8
     Height = 25
-    Top = 384
+    Top = 400
     Width = 179
     Caption = 'Load configuration'
     TabOrder = 2
@@ -159,32 +189,32 @@ object Form1: TForm1
   object Button2: TButton
     Left = 341
     Height = 25
-    Top = 384
+    Top = 400
     Width = 179
     Caption = 'Save configuration'
     TabOrder = 3
     OnClick = Button2Click
   end
   object Edit2: TEdit
-    Left = 72
+    Left = 73
     Height = 26
-    Top = 286
+    Top = 296
     Width = 56
     TabOrder = 4
     Text = 'Edit2'
     OnKeyPress = Edit2KeyPress
   end
   object Label5: TLabel
-    Left = 8
+    Left = 9
     Height = 16
-    Top = 296
+    Top = 306
     Width = 52
     Caption = 'Rotation'
   end
   object RadioGroup1: TRadioGroup
     Left = 8
     Height = 49
-    Top = 232
+    Top = 240
     Width = 512
     AutoFill = True
     Caption = ' Type '
@@ -207,16 +237,16 @@ object Form1: TForm1
     OnClick = RadioGroup1Click
   end
   object Label6: TLabel
-    Left = 136
+    Left = 137
     Height = 16
-    Top = 296
+    Top = 306
     Width = 7
     Caption = '° '
   end
   object RadioGroup2: TRadioGroup
     Left = 8
     Height = 49
-    Top = 328
+    Top = 336
     Width = 512
     AutoFill = True
     Caption = ' Interpolation '
@@ -226,22 +256,23 @@ object Form1: TForm1
     ChildSizing.ShrinkHorizontal = crsScaleChilds
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 2
+    ChildSizing.ControlsPerLine = 3
     ClientHeight = 32
     ClientWidth = 510
-    Columns = 2
+    Columns = 3
     ItemIndex = 0
     Items.Strings = (
       'Linear'
       'Cosine'
+      'Gauss'
     )
     TabOrder = 6
     OnClick = RadioGroup2Click
   end
   object ScrollBar2: TScrollBar
-    Left = 160
+    Left = 161
     Height = 14
-    Top = 296
+    Top = 306
     Width = 359
     Max = 359
     PageSize = 0
@@ -279,13 +310,13 @@ object Form1: TForm1
   object OpenDialog1: TOpenDialog
     DefaultExt = '.gradient'
     Filter = 'Gradient|*.gradient|All|*'
-    Left = 160
-    Top = 352
+    Left = 576
+    Top = 336
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = '.gradient'
     Filter = 'Gradient|*.gradient|All|*'
-    Left = 376
-    Top = 352
+    Left = 680
+    Top = 336
   end
 end

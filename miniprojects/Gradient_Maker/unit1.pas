@@ -50,6 +50,7 @@ Type
   public
     Color: TColor;
     Selected: Boolean; // Wird via PaintBox1.Paint bestimmt
+    Sigma: Single;
     Property Percent: Single read fPercent write setPercent; // Wird aus X berechnet
     Property X: Integer read getX write setX; // Reale Position im Panel, wird via PaintBox1.MouseMove bestimmt
 
@@ -73,11 +74,13 @@ Type
     Edit3: TEdit;
     Edit4: TEdit;
     Edit5: TEdit;
+    Edit6: TEdit;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     Label7: TLabel;
@@ -93,6 +96,7 @@ Type
     SaveDialog2: TSaveDialog;
     ScrollBar1: TScrollBar;
     ScrollBar2: TScrollBar;
+    ScrollBar3: TScrollBar;
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
@@ -102,6 +106,7 @@ Type
     Procedure Edit2KeyPress(Sender: TObject; Var Key: char);
     Procedure Edit4KeyPress(Sender: TObject; Var Key: char);
     Procedure Edit5KeyPress(Sender: TObject; Var Key: char);
+    Procedure Edit6KeyPress(Sender: TObject; Var Key: char);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
@@ -116,6 +121,8 @@ Type
     Procedure ScrollBar1Scroll(Sender: TObject; ScrollCode: TScrollCode;
       Var ScrollPos: Integer);
     Procedure ScrollBar2Change(Sender: TObject);
+    Procedure ScrollBar3Scroll(Sender: TObject; ScrollCode: TScrollCode;
+      Var ScrollPos: Integer);
   private
     Buffer: Array[-5..105] Of TColor; // Relevant sind nur 0..100, aber der Slider schiest minimal drüber raus ;)
     SliderMask: Array Of Array Of Boolean;
@@ -126,7 +133,9 @@ Type
     Procedure DrawSlider();
     Procedure DrawPreview();
     Procedure KnobIndexToLCL();
+
     // X in [0..100] , außerhalb wird geclampt
+    Function GetExpGradientColor(Percent: Single): TColor;
     Function GetGradientColor(Percent: Single): TColor;
     Function InterpolateColors(c1, c2: TColor; Scale: Single): TColor;
     Function PixelToPercent(i, j: integer; Dir: TVector2): Single;
@@ -171,6 +180,7 @@ End;
 Constructor TKnob.Create;
 Begin
   Inherited Create;
+  Sigma := 10.0;
   img := TBitmap.Create;
   img.width := PanelBorder_m_2;
   img.Height := PanelBorder_m_2;
@@ -220,6 +230,11 @@ Begin
   result := (x >= aX - PanelBorder) And (x <= aX + PanelBorder);
 End;
 
+Function gauss(x, Center, sigma: Double): Double;
+Begin
+  result := exp(-sqr(x - Center) / (2 * sqr(sigma)));
+End;
+
 { TForm1 }
 
 Procedure TForm1.FormCreate(Sender: TObject);
@@ -234,11 +249,13 @@ Begin
   setlength(Knobs, 2);
   Knobs[0] := TKnob.Create();
   Knobs[0].X := PanelBorder;
+  Knobs[0].Sigma := 10;
   Knobs[0].Color := clBlack;
   Knobs[0].Color := clLime;
   Knobs[1] := TKnob.Create();
   Knobs[1].X := PaintBox1.Width - PanelBorder;
   Knobs[1].Color := clRed;
+  Knobs[1].Sigma := 10;
   SliderBmp.Width := PaintBox1.Width - PanelBorder;
   SliderBmp.Height := PanelBorder;
   SliderBmp.Canvas.Brush.Color := clFuchsia;
@@ -313,6 +330,7 @@ Begin
       KnobIndex := high(Knobs);
       Knobs[KnobIndex].X := x;
       Knobs[KnobIndex].Color := clBlack;
+      Knobs[KnobIndex].Sigma := 10.0;
       DrawSlider();
       DrawPreview();
     End;
@@ -371,7 +389,7 @@ Var
   ini: TIniFile;
   i: Integer;
 Begin
-  // Save Gradient
+  // Save Configuration
   If SaveDialog2.Execute Then Begin
     ini := TIniFile.Create(SaveDialog2.FileName);
     ini.WriteString('General', 'Width', edit3.text);
@@ -382,7 +400,8 @@ Begin
     ini.WriteInteger('Knobs', 'Count', length(Knobs));
     For i := 0 To high(Knobs) Do Begin
       ini.WriteInteger('Knobs', 'Color' + inttostr(i), Knobs[i].Color);
-      ini.WriteInteger('Knobs', 'Percent' + inttostr(i), round(Knobs[i].Percent));
+      ini.WriteInteger('Knobs', 'Percent' + inttostr(i), round(Knobs[i].Percent * 10));
+      ini.WriteInteger('Knobs', 'Sigma' + inttostr(i), round(Knobs[i].Sigma * 100));
     End;
     ini.free;
   End;
@@ -394,6 +413,7 @@ Var
   i: Integer;
   s: String;
 Begin
+  // Load Configuration
   If OpenDialog1.Execute Then Begin
     ini := TIniFile.Create(OpenDialog1.FileName);
     edit3.text := ini.ReadString('General', 'Width', edit3.text);
@@ -415,12 +435,15 @@ Begin
     For i := 0 To high(Knobs) Do Begin
       Knobs[i] := TKnob.Create();
       Knobs[i].Color := ini.ReadInteger('Knobs', 'Color' + inttostr(i), clblack);
-      Knobs[i].Percent := ini.ReadInteger('Knobs', 'Percent' + inttostr(i), 0);
+      Knobs[i].Percent := ini.ReadInteger('Knobs', 'Percent' + inttostr(i), 0) / 10;
+      Knobs[i].Sigma := ini.ReadInteger('Knobs', 'Sigma' + inttostr(i), 1000) / 100;
     End;
     ini.free;
+    KnobIndex := 0;
+    KnobIndexToLCL();
+    DrawSlider();
+    DrawPreview();
   End;
-  DrawSlider();
-  DrawPreview();
 End;
 
 Procedure TForm1.ColorButton1ColorChanged(Sender: TObject);
@@ -495,6 +518,19 @@ Begin
   End;
 End;
 
+Procedure TForm1.Edit6KeyPress(Sender: TObject; Var Key: char);
+Var
+  f: Single;
+  dummy: Integer;
+Begin
+  If key = chr(vk_Return) Then Begin
+    f := StrToFloatDef(edit6.text, 0);
+    ScrollBar3.Position := round(f * 100);
+    dummy := ScrollBar3.Position;
+    ScrollBar3.OnScroll(ScrollBar3, scPosition, dummy);
+  End;
+End;
+
 Procedure TForm1.RadioGroup1Click(Sender: TObject);
 Begin
   Case RadioGroup1.ItemIndex Of
@@ -515,7 +551,14 @@ Begin
 End;
 
 Procedure TForm1.RadioGroup2Click(Sender: TObject);
+Var
+  b: Boolean;
 Begin
+  b := RadioGroup2.ItemIndex = 2;
+  label4.visible := b;
+  ScrollBar3.Visible := b;
+  Edit6.Visible := b;
+  DrawSlider();
   DrawPreview;
 End;
 
@@ -532,6 +575,16 @@ End;
 Procedure TForm1.ScrollBar2Change(Sender: TObject);
 Begin
   edit2.text := inttostr(ScrollBar2.Position);
+  DrawPreview();
+End;
+
+Procedure TForm1.ScrollBar3Scroll(Sender: TObject; ScrollCode: TScrollCode;
+  Var ScrollPos: Integer);
+Begin
+  If KnobIndex < 0 Then exit;
+  Knobs[KnobIndex].Sigma := ScrollBar3.Position / 100;
+  edit6.text := format('%0.2f', [ScrollBar3.Position / 100]);
+  DrawSlider();
   DrawPreview();
 End;
 
@@ -608,8 +661,11 @@ Begin
     edit1.text := '#000000';
     ColorButton1.Color := clBlack;
     ScrollBar1.Position := 0;
+    Edit5.text := '0.0';
     RadioGroup1.ItemIndex := 0;
     Edit2.Text := '90';
+    ScrollBar3.Position := 100;
+    Edit6.Text := '1.00';
   End
   Else Begin
     c := Knobs[KnobIndex].Color;
@@ -617,7 +673,33 @@ Begin
     ColorButton1.ButtonColor := c;
     ScrollBar1.Position := round(Knobs[KnobIndex].Percent * 10);
     Edit5.text := format('%0.1f', [Knobs[KnobIndex].Percent]);
+    ScrollBar3.Position := round(Knobs[KnobIndex].Sigma * 100);
+    Edit6.text := format('%0.2f', [Knobs[KnobIndex].Sigma]);
   End;
+End;
+
+Function TForm1.GetExpGradientColor(Percent: Single): TColor;
+Var
+  i: Integer;
+  s, r, g, b: Single;
+  cr, cg, cb, ri, gi, bi: Integer;
+Begin
+  r := 0;
+  g := 0;
+  b := 0;
+  For i := 0 To high(Knobs) Do Begin
+    cr := (Knobs[i].Color) And $FF;
+    cg := (Knobs[i].Color Shr 8) And $FF;
+    cb := (Knobs[i].Color Shr 16) And $FF;
+    s := gauss(Percent, Knobs[i].Percent, Knobs[i].Sigma);
+    r := r + s * cr;
+    g := g + s * cg;
+    b := b + s * cb;
+  End;
+  ri := min(255, max(0, round(r)));
+  gi := min(255, max(0, round(g)));
+  bi := min(255, max(0, round(b)));
+  result := (bi Shl 16) Or (gi Shl 8) Or ri;
 End;
 
 Function TForm1.GetGradientColor(Percent: Single): TColor;
@@ -627,6 +709,11 @@ Var
 Begin
   If (percent > 0) And (buffer[round(Percent)] <> -1) And (CheckBox1.Checked) Then Begin
     result := buffer[round(Percent)];
+    exit;
+  End;
+  If RadioGroup2.ItemIndex = 2 Then Begin
+    result := GetExpGradientColor(Percent);
+    buffer[round(Percent)] := result;
     exit;
   End;
   // 1. das Offensichtliche Clamping ;)
@@ -745,7 +832,7 @@ Begin
   End;
 End;
 
-Function TForm1.GetDir(): TVector2;
+Function TForm1.GetDir: TVector2;
 Var
   adeg, f, scale, a, s, c: Single;
 Begin
