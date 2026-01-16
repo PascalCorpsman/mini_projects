@@ -439,6 +439,7 @@ Begin
       Knobs[i].Sigma := ini.ReadInteger('Knobs', 'Sigma' + inttostr(i), 1000) / 100;
     End;
     ini.free;
+    button3.Click;
     KnobIndex := 0;
     KnobIndexToLCL();
     DrawSlider();
