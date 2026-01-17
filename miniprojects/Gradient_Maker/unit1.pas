@@ -125,7 +125,6 @@ Type
       Var ScrollPos: Integer);
   private
     Buffer: Array[-5..105] Of TColor; // Relevant sind nur 0..100, aber der Slider schiest minimal drüber raus ;)
-    SliderMask: Array Of Array Of Boolean;
     SliderBmp, TargetBmp: TBitmap;
     KnobDx: integer;
     Knobs: Array Of TKnob;
@@ -265,11 +264,7 @@ Begin
   SliderBmp.Canvas.Rectangle(PanelBorder_d_2, 0, SliderBmp.Width - PanelBorder_d_2, SliderBmp.Height);
   SliderBmp.Canvas.Ellipse(0, 0, PanelBorder, SliderBmp.Height);
   SliderBmp.Canvas.Ellipse(SliderBmp.Width - PanelBorder, 0, SliderBmp.Width, SliderBmp.Height);
-  setlength(SliderMask, SliderBmp.Width, SliderBmp.Height);
-  For i := 0 To SliderBmp.Width - 1 Do
-    For j := 0 To SliderBmp.Height - 1 Do Begin
-      SliderMask[i, j] := SliderBmp.Canvas.Pixels[i, j] = clFuchsia;
-    End;
+  SliderBmp.Mask(clFuchsia);
   edit2.text := '0';
   edit3.text := '256';
   edit4.text := '256';
@@ -595,13 +590,11 @@ Var
   x, y: Integer;
   p: Single;
   c: TColor;
-  empty, fpc: TFPColor;
+  fpc: TFPColor;
+  bmpHandle, maskHandle: HBitmap;
 Begin
   // 1. Den Preview Gradienten Malen
   intf := SliderBmp.CreateIntfImage;
-  // TODO: Wie die exakte Hintergrundfarbe ermittelm das alles geht nicht :(
-  //  empty := TColorToFPColor(clBackground);
-  empty := TColorToFPColor($D6 * $010101); //TColorToFPColor(form1.GetDefaultColor(dctBrush));
   // Flush the buffer;)
   For x := low(Buffer) To high(Buffer) Do Begin
     buffer[x] := -1;
@@ -611,15 +604,12 @@ Begin
     c := GetGradientColor(p);
     fpc := TColorToFPColor(c);
     For y := 0 To SliderBmp.Height - 1 Do Begin
-      If SliderMask[x, y] Then Begin
-        intf.Colors[x, y] := empty;
-      End
-      Else Begin
-        intf.Colors[x, y] := fpc;
-      End;
+      intf.Colors[x, y] := fpc;
     End;
   End;
-  SliderBmp.LoadFromIntfImage(intf);
+  //  SliderBmp.LoadFromIntfImage(intf); -- This "kills" the mask, so we do it the "old" way
+  intf.CreateBitmaps(bmpHandle, maskHandle);
+  SliderBmp.SetHandles(bmpHandle, maskHandle);
   intf.free;
   PaintBox1.Invalidate;
 End;
