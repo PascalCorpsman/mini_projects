@@ -19,7 +19,7 @@ Unit Unit2;
 Interface
 
 Uses
-  SysUtils, Classes, Forms, StdCtrls, CheckLst;
+  SysUtils, Classes, Forms, StdCtrls, CheckLst, Dialogs, Controls;
 
 Type
 
@@ -33,9 +33,9 @@ Type
     Button5: TButton;
     CheckListBox1: TCheckListBox;
     Label1: TLabel;
+    Procedure CheckListBox1DblClick(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure Button5Click(Sender: TObject);
-    Procedure FormResize(Sender: TObject);
     Procedure Button4Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
     Procedure Button1Click(Sender: TObject);
@@ -44,6 +44,7 @@ Type
     { Private-Deklarationen }
   public
     { Public-Deklarationen }
+    Procedure DBToLCL;
   End;
 
 Var
@@ -53,34 +54,42 @@ Implementation
 
 {$R *.lfm}
 
-Uses Unit1;
+Uses
+  Unit1
+  , unit5
+  , uepisodenmanager;
 
 Procedure TForm2.FormCreate(Sender: TObject);
 Begin
   caption := 'Found entries';
+  Constraints.MinWidth := 500;
+  Constraints.MinHeight := 220;
+End;
+
+Procedure TForm2.CheckListBox1DblClick(Sender: TObject);
+Var
+  s: String;
+  d, nd: TDatensatz;
+  r, t: Integer;
+Begin
+  s := CheckListBox1.Items[CheckListBox1.ItemIndex];
+  d := TDatabase.PrettyToDatensatz(s);
+  form5.Init(d);
+  If form5.ShowModal = mrOK Then Begin
+    nd := form5.lclToDatensatz;
+    Database.ReplaceWith(d, nd);
+    t := CheckListBox1.ItemIndex;
+    r := CheckListBox1.TopIndex;
+    DBToLCL;
+    CheckListBox1.ItemIndex := t;
+    CheckListBox1.TopIndex := r;
+  End;
 End;
 
 Procedure TForm2.Button5Click(Sender: TObject);
 Begin
   close;
 End;
-
-Procedure TForm2.FormResize(Sender: TObject);
-Begin
-  If Form2.width < 500 Then Form2.width := 500;
-  If Form2.height < 220 Then Form2.height := 220;
-  {  Button5.top := form2.height - 63;
-    button5.width := form2.width - 28;
-    Button1.top := form2.height - 101;
-    Button2.top := form2.height - 101;
-    Button3.top := form2.height - 101;
-    Button4.top := form2.height - 101;
-    button4.left := Form2.width - 181;
-    button3.left := Form2.width - 93;
-    Checklistbox1.width := Form2.width - 28;
-    checklistbox1.height := Form2.height - 124;
-    label1.top := form2.Height - 100;
-}End;
 
 Procedure TForm2.Button4Click(Sender: TObject);
 Var
@@ -101,12 +110,10 @@ End;
 Procedure TForm2.Button1Click(Sender: TObject);
 Var
   l: Tstringlist;
-  r, g, t, i, j, k: integer;
+  r, t, i: integer;
 Begin
-  g := 0;
   t := CheckListBox1.ItemIndex;
   r := CheckListBox1.TopIndex;
-  CheckListBox1.Items.BeginUpdate;
   l := TStringList.create;
   l.clear;
   For i := 0 To Checklistbox1.items.count - 1 Do
@@ -114,36 +121,18 @@ Begin
       l.add(Checklistbox1.Items[i]);
   Database.MarkWithValue(l, true);
   l.free;
-  // Neu Laden
-  form2.CheckListBox1.clear;
-  For i := 0 To form1.Checklistbox1.Items.count - 1 Do
-    If form1.Checklistbox1.Checked[i] Then
-      For j := 0 To form1.Checklistbox2.Items.count - 1 Do
-        If form1.Checklistbox2.Checked[j] Then Begin
-          l := Database.gebeAlleDatensaetzemit(form1.Checklistbox1.Items[i], form1.Checklistbox2.Items[j], true);
-          For k := 0 To l.count - 1 Do Begin
-            // Extrahieren des Zählers für Gesehen
-            If pos('yes', copy(l[k], pos('|', l[k]) - 6, 6)) <> 0 Then inc(g);
-            form2.CheckListBox1.items.add(l[k]);
-            form2.CheckListBox1.checked[form2.CheckListBox1.items.count - 1] := false;
-          End;
-          l.free;
-        End;
-  CheckListBox1.Items.EndUpdate;
+  DBToLCL;
   CheckListBox1.ItemIndex := t;
   CheckListBox1.TopIndex := r;
-  form2.label1.caption := inttostr(Form2.checklistbox1.items.count) + ' found entries. ' + inttostr(g) + ' seen.';
 End;
 
 Procedure TForm2.Button2Click(Sender: TObject);
 Var
   l: Tstringlist;
-  r, g, t, i, j, k: integer;
+  r, t, i: integer;
 Begin
-  g := 0;
   t := CheckListBox1.ItemIndex;
   r := CheckListBox1.TopIndex;
-  CheckListBox1.Items.BeginUpdate;
   l := TStringList.create;
   l.clear;
   For i := 0 To Checklistbox1.items.count - 1 Do
@@ -151,8 +140,20 @@ Begin
       l.add(Checklistbox1.Items[i]);
   Database.MarkWithValue(l, false);
   l.free;
+  DBToLCL;
+  CheckListBox1.ItemIndex := t;
+  CheckListBox1.TopIndex := r;
+End;
+
+Procedure TForm2.DBToLCL;
+Var
+  g, i, j, k: Integer;
+  l: TStringList;
+Begin
   // Neu Laden
-  form2.CheckListBox1.clear;
+  g := 0;
+  CheckListBox1.Items.BeginUpdate;
+  CheckListBox1.clear;
   For i := 0 To form1.Checklistbox1.Items.count - 1 Do
     If form1.Checklistbox1.Checked[i] Then
       For j := 0 To form1.Checklistbox2.Items.count - 1 Do
@@ -161,16 +162,13 @@ Begin
           For k := 0 To l.count - 1 Do Begin
             // Extrahieren des Zählers für Gesehen
             If pos('yes', copy(l[k], pos('|', l[k]) - 6, 6)) <> 0 Then inc(g);
-            form2.CheckListBox1.items.add(l[k]);
-            form2.CheckListBox1.checked[form2.CheckListBox1.items.count - 1] := false;
+            CheckListBox1.items.add(l[k]);
+            CheckListBox1.checked[CheckListBox1.items.count - 1] := false;
           End;
           l.free;
         End;
   CheckListBox1.Items.EndUpdate;
-  CheckListBox1.ItemIndex := t;
-  CheckListBox1.TopIndex := r;
-  form2.label1.caption := inttostr(Form2.checklistbox1.items.count) + ' found entries. ' + inttostr(g) + ' seen.';
-
+  label1.caption := inttostr(checklistbox1.items.count) + ' found entries. ' + inttostr(g) + ' seen.';
 End;
 
 End.

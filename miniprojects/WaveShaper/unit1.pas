@@ -38,7 +38,7 @@ Unit Unit1;
 (*
  * Enable if you have installed bass.pas and corresponding sound lib
  *)
-{$DEFINE UseBassSound}
+{.$DEFINE UseBassSound}
 
 Interface
 

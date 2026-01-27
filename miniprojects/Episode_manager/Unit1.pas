@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Episode manager                                                 ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.03                                                         *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -25,6 +25,9 @@
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - ??                                                    *)
 (*               0.03 - translation into english                              *)
+(*               0.04 - connect to fileserver server API                      *)
+(*                      switch to real .ini fileformat                        *)
+(*                      add ability to edit datasets                          *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -35,7 +38,7 @@ Interface
 
 Uses
   SysUtils, Classes, Controls, Forms, Dialogs,
-  StdCtrls, CheckLst, lcltype;
+  StdCtrls, CheckLst, lcltype, Buttons, IniFiles, uepisodenmanager;
 
 Type
 
@@ -45,6 +48,7 @@ Type
     Button1: TButton;
     Button10: TButton;
     Button11: TButton;
+    ImageList1: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     GroupBox1: TGroupBox;
@@ -74,6 +78,9 @@ Type
     CheckListBox2: TCheckListBox;
     Button13: TButton;
     Button14: TButton;
+    SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
     Procedure Button1Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -92,95 +99,52 @@ Type
     Procedure Button11Click(Sender: TObject);
     Procedure Button13Click(Sender: TObject);
     Procedure Button14Click(Sender: TObject);
+    Procedure SpeedButton1Click(Sender: TObject);
+    Procedure SpeedButton2Click(Sender: TObject);
+    Procedure SpeedButton3Click(Sender: TObject);
   private
     { Private-Deklarationen }
   public
     { Public-Deklarationen }
   End;
 
-  TDatensatz = Record
-    Gesehen: Boolean;
-    Serie: String;
-    Staffel: String;
-    Episodenname: String;
-  End;
-
-  TDatabase = Class
-  private
-    Fdata: Array Of TDatensatz;
-    Fchanged: Boolean;
-    Function Encode(Value: TDatensatz): String;
-    Function Decode(Value: String): TDatensatz;
-    Function pretty(Value: TDatensatz): String;
-    Function PrettyToDatensatz(Value: String): TDatensatz;
-  public
-    Constructor create;
-    Destructor Destroy; override;
-    Function SavetoFile(filename: String): Boolean;
-    Function LoadFromFile(filename: String): Boolean;
-    Function Changed: Boolean;
-    Function GebeAlleSerien: Tstringlist;
-    Function GebeAlleStaffeln: Tstringlist;
-    Function GebeAlleDatensaetzeMit(Serie: String; Staffel: String; IgnoriereGesehen: Boolean): Tstringlist;
-    Procedure Sort;
-    Procedure Clear;
-    Procedure AddItem(Serie: String; Staffel: String; Episodenname: String);
-    Procedure MarkWithValue(Const List: TStringlist; Value: Boolean);
-  End;
 
 Const
-  Version = '0.03';
-  // Trenner = chr(195) + chr(166); das "æ" zeichen
-  Trenner = '~';
+  Version = '0.04';
 
 Var
   Form1: TForm1;
   Database: TDatabase;
   LoadedDatabase: String;
+  Ini: TIniFile = Nil;
 
 Implementation
 
 {$R *.lfm}
 
-Uses Unit2;
+Uses
+  Unit2 // Show selected
+  , unit3 // Settings dialog
+  //, unit4 -- Diff view
+  //, unit5 --TDatensatz Detailed view
+  , usslconnector
+  ;
 
 Procedure Readini;
 Var
-  f: Textfile;
-  fs, s: String;
+  fs: String;
 Begin
-  fs := IncludeTrailingBackslash(ExtractFilePath(paramstr(0))) + 'user.cfg';
-  If Fileexists(fs) Then Begin
-    assignfile(f, fs);
-    reset(f);
-    Readln(f, s);
-    If Version = s Then Begin
-      Readln(f, s);
-      LoadedDatabase := s;
-    End
-    Else Begin
-      closefile(f);
-      Showmessage('Error, invalid config file version (' + s + ') skip loading.');
-      exit;
-    End;
-    readln(f, s);
-    form1.button14.Visible := odd(Strtoint(s));
-    closefile(f);
-  End;
+  fs := IncludeTrailingBackslash(ExtractFilePath(paramstr(0))) + 'user.ini';
+  ini := TIniFile.Create(fs);
+  LoadedDatabase := ini.ReadString('General', 'LastLoadedDB', '');
 End;
 
 Procedure WriteIni;
-Var
-  f: Textfile;
-  fs: String;
 Begin
-  fs := IncludeTrailingBackslash(ExtractFilePath(paramstr(0))) + 'user.cfg';
-  assignfile(f, fs);
-  rewrite(f);
-  writeln(f, version);
-  writeln(f, LoadedDatabase);
-  writeln(f, inttostr(ord(form1.button14.Visible)));
-  closefile(f);
+  If Not assigned(ini) Then exit;
+  ini.WriteString('General', 'LastLoadedDB', LoadedDatabase);
+  ini.free;
+  ini := Nil;
 End;
 
 Procedure AktualisiereCheckListboxen;
@@ -301,6 +265,8 @@ End;
 Procedure TForm1.Edit1KeyPress(Sender: TObject; Var Key: Char);
 Begin
   If Key = Trenner Then key := #0;
+  If Key = PrettyTrenner Then key := #0;
+  If key = #13 Then Button5.Click;
 End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
@@ -367,31 +333,8 @@ Begin
 End;
 
 Procedure TForm1.Button12Click(Sender: TObject);
-Var
-  l: Tstringlist;
-  g, i, j, k: integer;
-  s: String;
 Begin
-  form2.CheckListBox1.clear;
-  g := 0;
-  For i := 0 To Checklistbox1.Items.count - 1 Do
-    If Checklistbox1.Checked[i] Then
-      For j := 0 To Checklistbox2.Items.count - 1 Do
-        If Checklistbox2.Checked[j] Then Begin
-          l := Database.gebeAlleDatensaetzemit(Checklistbox1.Items[i], Checklistbox2.Items[j], true);
-          For k := 0 To l.count - 1 Do Begin
-            // Extrahieren des Zählers für Gesehen
-            If pos('yes', copy(l[k], pos('|', l[k]) - 6, 6)) <> 0 Then inc(g);
-            s := l[k];
-            form2.CheckListBox1.items.
-              add(
-              s
-              );
-            form2.CheckListBox1.checked[form2.CheckListBox1.items.count - 1] := false;
-          End;
-          l.free;
-        End;
-  form2.label1.caption := inttostr(Form2.checklistbox1.items.count) + ' found entries. ' + inttostr(g) + ' already seen.';
+  Form2.DBToLCL;
   form2.showmodal;
 End;
 
@@ -471,235 +414,80 @@ Begin
     Checklistbox2.checked[i] := false;
 End;
 
-{ TDatabase }
-
-Procedure TDatabase.AddItem(Serie, Staffel, Episodenname: String);
-Begin
-  Fchanged := true;
-  setlength(Fdata, high(Fdata) + 2);
-  Fdata[high(Fdata)].Gesehen := false;
-  Fdata[high(Fdata)].Serie := serie;
-  Fdata[high(Fdata)].Staffel := Staffel;
-  Fdata[high(Fdata)].Episodenname := Episodenname;
-  sort;
-End;
-
-Constructor TDatabase.create;
-Begin
-  Inherited;
-  Fchanged := false;
-  setlength(Fdata, 0);
-End;
-
-Destructor TDatabase.Destroy;
-Begin
-  setlength(Fdata, 0);
-End;
-
-Function TDatabase.Changed: Boolean;
-Begin
-  result := Fchanged;
-End;
-
-Procedure TDatabase.Clear;
-Begin
-  setlength(Fdata, 0);
-End;
-
-Function TDatabase.Decode(Value: String): TDatensatz;
-Begin
-  // Ein Typischer Datensatz
-  // Serie Trenner Staffel Trenner Episodenname Trenner 1
-  result.Serie := copy(Value, 1, pos(Trenner, value) - 1);
-  Delete(Value, 1, pos(Trenner, value) + Length(Trenner) - 1);
-  result.Staffel := copy(Value, 1, pos(Trenner, value) - 1);
-  Delete(Value, 1, pos(Trenner, value) + Length(Trenner) - 1);
-  result.Episodenname := copy(Value, 1, pos(Trenner, value) - 1);
-  Delete(Value, 1, pos(Trenner, value) + Length(Trenner) - 1);
-  If Length(value) = 1 Then
-    result.Gesehen := odd(strtoint(Value))
-  Else
-    result.Gesehen := false;
-End;
-
-Function TDatabase.Encode(Value: TDatensatz): String;
-Begin
-  result := Value.serie + Trenner + Value.Staffel + Trenner + value.Episodenname + Trenner + inttostr(ord(value.Gesehen));
-  //  result := Value.serie + '~' + Value.Staffel + '~' + value.Episodenname + '~' + inttostr(ord(value.Gesehen));
-End;
-
-Function TDatabase.LoadFromFile(filename: String): Boolean;
-Var
-  l: Tstringlist;
-  i: Integer;
-Begin
-  If FileExists(Filename) Then Begin
-    Fchanged := false;
-    l := TStringlist.create;
-    result := True;
-    Try
-      l.LoadFromFile(Filename);
-      setlength(Fdata, l.count);
-      For i := 0 To l.count - 1 Do
-        If Length(l[i]) <> 0 Then
-          Fdata[i] := Decode(l[i]);
-    Except
-      result := false;
-      Fchanged := true;
-    End;
-    l.free;
-  End
-  Else
-    Result := false;
-End;
-
-Function TDatabase.SavetoFile(filename: String): Boolean;
-Var
-  f: Textfile;
-  i: Integer;
-Begin
-  Fchanged := false;
-  Try
-    assignfile(f, filename);
-    rewrite(f);
-    For i := 0 To High(Fdata) Do
-      writeln(f, encode(Fdata[i]));
-    closefile(f);
-    result := true;
-  Except
-    result := false;
-    Fchanged := true;
-  End;
-End;
-
-Procedure TDatabase.Sort;
-  Procedure Quick(li, re: integer);
-  Var
-    l, r, p: Integer;
-    h: TDatensatz;
-  Begin
-    If Li < Re Then Begin
-      p := {Data[} Trunc((li + re) / 2) {]}; // Auslesen des Pivo Elementes
-      l := Li;
-      r := re;
-      While l < r Do Begin
-        While CompareStr(encode(Fdata[l]), encode(Fdata[p])) < 0 Do
-          //        While Fdata[l] < p Do
-          inc(l);
-        While CompareStr(encode(Fdata[r]), encode(Fdata[p])) > 0 Do
-          //        While Fdata[r] > p Do
-          dec(r);
-        If L <= R Then Begin
-          h := Fdata[l];
-          fdata[l] := FData[r];
-          fdata[r] := h;
-          inc(l);
-          dec(r);
-        End;
-      End;
-      quick(li, r);
-      quick(l, re);
-    End;
-  End;
-Begin
-  Quick(0, high(Fdata));
-End;
-
-Function TDatabase.GebeAlleSerien: Tstringlist;
-Var
-  i: Integer;
-Begin
-  result := TStringList.create;
-  result.Duplicates := dupIgnore;
-  result.Sorted := true;
-  For i := 0 To High(fdata) Do
-    result.add(fdata[i].Serie);
-End;
-
-Function TDatabase.GebeAlleStaffeln: Tstringlist;
-Var
-  i: Integer;
-Begin
-  result := TStringList.create;
-  result.Duplicates := dupIgnore;
-  result.Sorted := true;
-  For i := 0 To High(fdata) Do
-    result.add(fdata[i].Staffel);
-End;
-
-Function TDatabase.GebeAlleDatensaetzeMit(Serie,
-  Staffel: String; IgnoriereGesehen: Boolean): Tstringlist;
-Var
-  i: Integer;
-Begin
-  result := TStringList.create;
-  For i := 0 To High(Fdata) Do
-    If (Fdata[i].Serie = Serie) And (Fdata[i].Staffel = Staffel) Then Begin
-      If IgnoriereGesehen Then
-        result.add(pretty(Fdata[i]))
-      Else If Not Fdata[i].Gesehen Then
-        result.add(pretty(Fdata[i]));
-    End;
-End;
-
-Function TDatabase.pretty(Value: TDatensatz): String;
-Begin
-  If Value.Gesehen Then
-    result := 'Seen = yes | '
-  Else
-    result := 'Seen =  no | ';
-  result := result + 'Series : ' + Value.Serie +
-    ' | Season : ' + Value.Staffel +
-    ' | Episode : ' + Value.Episodenname;
-End;
-
-Function TDatabase.PrettyToDatensatz(Value: String): TDatensatz;
-Var
-  s: String;
-Begin
-  s := Copy(value, 1, pos('|', value));
-  delete(value, 1, pos('|', value) + 1);
-  result.Gesehen := pos('yes', s) <> 0;
-  s := Copy(value, 1, pos('|', value) - 2);
-  delete(value, 1, pos('|', value) + 1);
-  result.Serie := copy(s, pos(':', s) + 2, length(s));
-  s := Copy(value, 1, pos('|', value) - 2);
-  delete(value, 1, pos('|', value) + 1);
-  result.Staffel := copy(s, pos(':', s) + 2, length(s));
-  s := value;
-  result.Episodenname := copy(s, pos(':', s) + 2, length(s));
-End;
-
-Procedure TDatabase.MarkWithValue(Const List: TStringlist; Value: Boolean);
-Var
-  a, i: Integer;
-  dt: TDatensatz;
-Begin
-  If list.count <> 0 Then Begin
-    a := 0;
-    dt := PrettyToDatensatz(list[a]);
-    For i := 0 To High(fdata) Do
-      If (Fdata[i].Serie = dt.Serie) And
-        (Fdata[i].Staffel = dt.Staffel) And
-        (Fdata[i].Episodenname = dt.Episodenname) Then Begin
-        Fchanged := True;
-        Fdata[i].Gesehen := Value;
-        inc(a);
-        If a = list.count Then
-          exit
-        Else Begin
-          dt := PrettyToDatensatz(list[a]);
-        End;
-      End;
-    If length(LoadedDatabase) <> 0 Then Begin
-      Database.SavetoFile(LoadedDatabase);
-    End;
-  End;
-End;
 
 Procedure TForm1.Button14Click(Sender: TObject);
 Begin
   Database.Sort;
+End;
+
+Procedure TForm1.SpeedButton1Click(Sender: TObject);
+Var
+  m: TMemoryStream;
+Begin
+  If Database.Changed Then Begin
+    showmessage('Error, save Database first.');
+    exit;
+  End;
+  // Upload Database
+  If Not Login(
+    Ini.ReadString('Filechecker', 'URL', 'https://127.0.0.1')
+    , Ini.ReadString('Filechecker', 'Port', '8443')
+    , ClientID
+    , Ini.ReadString('Filechecker', 'User', 'Username')
+    , Ini.ReadString('Filechecker', 'Password', '')) Then Begin
+    showmessage('Failed to log in.');
+    exit;
+  End;
+  m := TMemoryStream.Create;
+  m.LoadFromFile(LoadedDatabase);
+  If Not SendDB(m) Then Begin
+    showmessage('Error, unable to send database.');
+    m.free;
+    logout;
+    exit;
+  End;
+  m.free;
+  logout;
+  showmessage('Done.');
+End;
+
+Procedure TForm1.SpeedButton2Click(Sender: TObject);
+Begin
+  // Settings
+  form3.init(ini);
+  If form3.ShowModal = mrOK Then Begin
+    form3.StoreSettings(Ini);
+  End;
+End;
+
+Procedure TForm1.SpeedButton3Click(Sender: TObject);
+Var
+  m: TMemoryStream;
+  other: TDatabase;
+Begin
+  // Upload Database
+  If Not Login(
+    Ini.ReadString('Filechecker', 'URL', 'https://127.0.0.1')
+    , Ini.ReadString('Filechecker', 'Port', '8443')
+    , ClientID
+    , Ini.ReadString('Filechecker', 'User', 'Username')
+    , Ini.ReadString('Filechecker', 'Password', '')) Then Begin
+    showmessage('Failed to log in.');
+    exit;
+  End;
+  m := RequestaDBAndDownloadIt();
+  Logout;
+  If Not assigned(m) Then Begin
+    showmessage('Error, failed to download.');
+    exit;
+  End;
+  // Als nächsted DB-Mergen ;)
+  other := TDatabase.create;
+  other.LoadFromStream(m);
+  m.free;
+  Database.MergeOtherIn(other);
+  other.free;
+  AktualisiereCheckListboxen;
 End;
 
 End.

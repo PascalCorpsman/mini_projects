@@ -1,0 +1,100 @@
+object Form3: TForm3
+  Left = 324
+  Height = 240
+  Top = 107
+  Width = 320
+  Caption = 'Form3'
+  ClientHeight = 240
+  ClientWidth = 320
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 144
+    Width = 75
+    Caption = 'Testlogin'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 18
+    Width = 24
+    Caption = 'URL'
+  end
+  object Edit1: TEdit
+    Left = 96
+    Height = 26
+    Top = 8
+    Width = 152
+    TabOrder = 1
+    Text = 'Edit1'
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 16
+    Top = 48
+    Width = 26
+    Caption = 'Port'
+  end
+  object Edit2: TEdit
+    Left = 96
+    Height = 26
+    Top = 38
+    Width = 152
+    TabOrder = 2
+    Text = 'Edit2'
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 16
+    Top = 80
+    Width = 61
+    Caption = 'Username'
+  end
+  object Edit3: TEdit
+    Left = 96
+    Height = 26
+    Top = 70
+    Width = 152
+    TabOrder = 3
+    Text = 'Edit3'
+  end
+  object Label4: TLabel
+    Left = 8
+    Height = 16
+    Top = 112
+    Width = 58
+    Caption = 'Password'
+  end
+  object Edit4: TEdit
+    Left = 96
+    Height = 26
+    Top = 102
+    Width = 152
+    EchoMode = emPassword
+    PasswordChar = '*'
+    TabOrder = 4
+    Text = 'Edit4'
+  end
+  object Button2: TButton
+    Left = 232
+    Height = 25
+    Top = 208
+    Width = 75
+    Caption = 'OK'
+    ModalResult = 1
+    TabOrder = 5
+  end
+  object Button3: TButton
+    Left = 8
+    Height = 25
+    Top = 208
+    Width = 75
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 6
+  end
+end

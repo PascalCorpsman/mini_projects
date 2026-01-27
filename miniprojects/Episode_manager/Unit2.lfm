@@ -10,14 +10,13 @@ object Form2: TForm2
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
-  OnResize = FormResize
   object Label1: TLabel
     Left = 16
-    Height = 14
-    Top = 403
-    Width = 37
+    Height = 16
+    Top = 401
+    Width = 34
     Anchors = [akLeft, akBottom]
     Caption = 'Label1'
     ParentColor = False
@@ -86,5 +85,6 @@ object Form2: TForm2
     ParentFont = False
     TabOrder = 5
     TopIndex = -1
+    OnDblClick = CheckListBox1DblClick
   end
 end
