@@ -87,4 +87,13 @@ object Form5: TForm5
     TabOrder = 5
     Text = 'Edit3'
   end
+  object Button3: TButton
+    Left = 112
+    Height = 25
+    Top = 136
+    Width = 75
+    Caption = 'Delete'
+    ModalResult = 7
+    TabOrder = 6
+  end
 end

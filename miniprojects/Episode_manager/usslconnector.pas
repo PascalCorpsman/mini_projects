@@ -57,7 +57,7 @@ Function addUser(Username, Password: String; Rights: integer): Boolean;
 // - Popups a dialog which DB to download
 // - Downloads the selected DB and returns it as stream
 // Nil -> Abort or error
-Function RequestaDBAndDownloadIt(): TMemoryStream;
+Function RequestaDBAndDownloadIt(Out SelectedDataBase: String): TMemoryStream;
 
 Implementation
 
@@ -407,12 +407,13 @@ Begin
   result := true;
 End;
 
-Function RequestaDBAndDownloadIt(): TMemoryStream;
+Function RequestaDBAndDownloadIt(Out SelectedDataBase: String): TMemoryStream;
 Var
   sl: TStringList;
   f: TDBListQuestionForm;
 Begin
   result := Nil;
+  SelectedDataBase := '';
   If Not LoggedIn Then Begin
     showmessage('Error, not logged in.');
     exit;
@@ -438,6 +439,8 @@ Begin
     exit;
   End;
   result := DownloadDB(f.RadioGroup1.Items[f.RadioGroup1.ItemIndex]);
+  If assigned(result) Then
+    SelectedDataBase := f.RadioGroup1.Items[f.RadioGroup1.ItemIndex];
   f.free;
 End;
 

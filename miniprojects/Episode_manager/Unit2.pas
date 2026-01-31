@@ -19,7 +19,7 @@ Unit Unit2;
 Interface
 
 Uses
-  SysUtils, Classes, Forms, StdCtrls, CheckLst, Dialogs, Controls;
+  SysUtils, Classes, Forms, StdCtrls, CheckLst, Dialogs, Controls, Menus;
 
 Type
 
@@ -75,14 +75,28 @@ Begin
   s := CheckListBox1.Items[CheckListBox1.ItemIndex];
   d := TDatabase.PrettyToDatensatz(s);
   form5.Init(d);
-  If form5.ShowModal = mrOK Then Begin
-    nd := form5.lclToDatensatz;
-    Database.ReplaceWith(d, nd);
-    t := CheckListBox1.ItemIndex;
-    r := CheckListBox1.TopIndex;
-    DBToLCL;
-    CheckListBox1.ItemIndex := t;
-    CheckListBox1.TopIndex := r;
+  Case form5.ShowModal Of
+    mrOK: Begin
+        nd := form5.lclToDatensatz;
+        Database.ReplaceWith(d, nd);
+        t := CheckListBox1.ItemIndex;
+        r := CheckListBox1.TopIndex;
+        DBToLCL;
+        CheckListBox1.ItemIndex := t;
+        CheckListBox1.TopIndex := r;
+      End;
+    mrNo: Begin // Wird zweckentfremdet für "delete"
+        nd := form5.lclToDatensatz;
+        If Not Database.DeleteDataset(nd) Then Begin
+          showmessage('Error, unable to delete dataset.');
+          exit;
+        End;
+        t := CheckListBox1.ItemIndex;
+        r := CheckListBox1.TopIndex;
+        DBToLCL;
+        CheckListBox1.ItemIndex := t;
+        CheckListBox1.TopIndex := r;
+      End;
   End;
 End;
 

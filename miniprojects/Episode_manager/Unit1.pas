@@ -28,6 +28,7 @@
 (*               0.04 - connect to fileserver server API                      *)
 (*                      switch to real .ini fileformat                        *)
 (*                      add ability to edit datasets                          *)
+(*                      add ability to delete a dataset                       *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -464,6 +465,7 @@ Procedure TForm1.SpeedButton3Click(Sender: TObject);
 Var
   m: TMemoryStream;
   other: TDatabase;
+  dummy: String;
 Begin
   // Upload Database
   If Not Login(
@@ -475,7 +477,7 @@ Begin
     showmessage('Failed to log in.');
     exit;
   End;
-  m := RequestaDBAndDownloadIt();
+  m := RequestaDBAndDownloadIt(dummy);
   Logout;
   If Not assigned(m) Then Begin
     showmessage('Error, failed to download.');

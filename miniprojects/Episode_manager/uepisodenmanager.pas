@@ -67,7 +67,7 @@ Type
     Class Function Decode(Value: String): TDatensatz;
 
     Function ReplaceWith(Const aSource, aDest: TDatensatz): Boolean;
-    Procedure DeleteDataset(Const aDataset: TDatensatz);
+    Function DeleteDataset(Const aDataset: TDatensatz): Boolean;
 
   End;
 
@@ -314,10 +314,11 @@ Begin
   End;
 End;
 
-Procedure TDatabase.DeleteDataset(Const aDataset: TDatensatz);
+Function TDatabase.DeleteDataset(Const aDataset: TDatensatz): Boolean;
 Var
   i, j: Integer;
 Begin
+  result := false;
   For i := 0 To high(Fdata) Do Begin
     If Fdata[i] = aDataset Then Begin
       For j := i To high(Fdata) - 1 Do Begin
@@ -325,6 +326,7 @@ Begin
       End;
       setlength(Fdata, high(Fdata));
       Fchanged := true;
+      result := true;
       exit;
     End;
   End;

@@ -29,6 +29,7 @@ Type
   TForm5 = Class(TForm)
     Button1: TButton;
     Button2: TButton;
+    Button3: TButton;
     CheckBox1: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
