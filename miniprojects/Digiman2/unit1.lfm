@@ -1,0 +1,57 @@
+object Form1: TForm1
+  Left = 324
+  Height = 677
+  Top = 108
+  Width = 959
+  Caption = 'Form1'
+  ClientHeight = 677
+  ClientWidth = 959
+  LCLVersion = '4.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  object PaintBox1: TPaintBox
+    Left = 8
+    Height = 480
+    Top = 8
+    Width = 640
+    OnMouseDown = PaintBox1MouseDown
+    OnMouseMove = PaintBox1MouseMove
+    OnMouseUp = PaintBox1MouseUp
+    OnPaint = PaintBox1Paint
+  end
+  object ScrollBar1: TScrollBar
+    Left = 8
+    Height = 14
+    Top = 496
+    Width = 640
+    PageSize = 0
+    TabOrder = 0
+  end
+  object ScrollBar2: TScrollBar
+    Left = 656
+    Height = 480
+    Top = 8
+    Width = 14
+    Kind = sbVertical
+    PageSize = 0
+    TabOrder = 1
+  end
+  object CheckBox1: TCheckBox
+    Left = 656
+    Height = 22
+    Top = 496
+    Width = 22
+    Checked = True
+    State = cbChecked
+    TabOrder = 2
+    OnClick = CheckBox1Click
+  end
+  object PaintBox2: TPaintBox
+    Left = 8
+    Height = 64
+    Top = 520
+    Width = 640
+    OnMouseDown = PaintBox2MouseDown
+    OnPaint = PaintBox2Paint
+  end
+end
