@@ -78,7 +78,6 @@
       <Unit4>
         <Filename Value="/home/corpsman/lazarus/components/images/lazpng.pas"/>
         <UsageCount Value="86"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit4>
       <Unit5>
         <Filename Value="../../Graphik/ugraphics.pas"/>
@@ -90,7 +89,6 @@
       <Unit6>
         <Filename Value="../../DatenSteuerung/uvectormath.ppu"/>
         <UsageCount Value="19"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit6>
       <Unit7>
         <Filename Value="../../DatenSteuerung/uvectormath.pas"/>
@@ -198,7 +196,6 @@
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit18>
       <Unit19>
         <Filename Value="/usr/share/fpcsrc/2.4.4/rtl/linux/system.pp"/>
@@ -215,7 +212,6 @@
       </Unit20>
       <Unit21>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
         <UsageCount Value="21"/>
@@ -241,7 +237,6 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="21"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit24>
       <Unit25>
         <Filename Value="../uopengl_graphikengine.pas"/>
@@ -383,7 +378,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL;/home/corpsman/lazarus/components/images;../../Graphik;../../DatenSteuerung;.."/>
+      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;/home/corpsman/lazarus/components/images/;../../Graphik;../../DatenSteuerung;.."/>
     </SearchPaths>
     <Linking>
       <Options>

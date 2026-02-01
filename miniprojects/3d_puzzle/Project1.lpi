@@ -45,11 +45,9 @@
       <Unit0>
         <Filename Value="Project1.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="2"/>
-        <CursorPos X="9" Y="22"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="32" Y="24"/>
         <UsageCount Value="22"/>
-        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="Unit1.pas"/>
@@ -57,6 +55,7 @@
         <ComponentName Value="Form1"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+        <IsVisibleTab Value="True"/>
         <CursorPos Y="29"/>
         <UsageCount Value="22"/>
         <Bookmarks Count="2">
@@ -80,11 +79,9 @@
       </Unit3>
       <Unit4>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
         <UsageCount Value="21"/>
-        <Loaded Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="/home/corpsman/lazarus/lcl/include/control.inc"/>

@@ -79,7 +79,6 @@
       <Unit3>
         <Filename Value="/home/corpsman/lazarus/components/images/lazpng.pas"/>
         <UsageCount Value="41"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit3>
       <Unit4>
         <Filename Value="../../Graphik/ugraphics.pas"/>
@@ -89,7 +88,6 @@
       <Unit5>
         <Filename Value="../../DatenSteuerung/uvectormath.ppu"/>
         <UsageCount Value="18"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit5>
       <Unit6>
         <Filename Value="opengl_numberfont.pas"/>
@@ -170,11 +168,9 @@
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit16>
       <Unit17>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>

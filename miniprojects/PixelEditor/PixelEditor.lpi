@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="31">
+    <Units Count="30">
       <Unit0>
         <Filename Value="PixelEditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -98,113 +98,109 @@
         <IsPartOfProject Value="True"/>
       </Unit11>
       <Unit12>
-        <Filename Value="uvectormath.inc"/>
+        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit12>
       <Unit13>
-        <Filename Value="../Sample/Graphik/ugraphics.pas"/>
+        <Filename Value="upixeleditor_constructor.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit13>
       <Unit14>
-        <Filename Value="upixeleditor_constructor.inc"/>
+        <Filename Value="upixeleditorlcl.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit14>
       <Unit15>
-        <Filename Value="upixeleditorlcl.pas"/>
+        <Filename Value="upixelimage.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit15>
       <Unit16>
-        <Filename Value="upixelimage.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit16>
-      <Unit17>
         <Filename Value="unit2.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form2"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
-      </Unit17>
-      <Unit18>
+      </Unit16>
+      <Unit17>
         <Filename Value="unit3.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form3"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit3"/>
-      </Unit18>
-      <Unit19>
+      </Unit17>
+      <Unit18>
         <Filename Value="unit4.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form4"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit4"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../Sample/DatenSteuerung/ufifo.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit19>
       <Unit20>
-        <Filename Value="../Sample/DatenSteuerung/ufifo.pas"/>
+        <Filename Value="upixeleditor_types.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit20>
       <Unit21>
-        <Filename Value="upixeleditor_types.pas"/>
+        <Filename Value="uundo.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit21>
       <Unit22>
-        <Filename Value="uundo.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit22>
-      <Unit23>
         <Filename Value="unit5.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form5"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit5"/>
-      </Unit23>
-      <Unit24>
+      </Unit22>
+      <Unit23>
         <Filename Value="unit6.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form6"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit6"/>
-      </Unit24>
-      <Unit25>
+      </Unit23>
+      <Unit24>
         <Filename Value="unit7.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form7"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit7"/>
-      </Unit25>
-      <Unit26>
+      </Unit24>
+      <Unit25>
         <Filename Value="unit8.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form8"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit8"/>
-      </Unit26>
-      <Unit27>
+      </Unit25>
+      <Unit26>
         <Filename Value="../Sample/Graphik/ulineedit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uLineEdit"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="convmatr.def"/>
+        <IsPartOfProject Value="True"/>
       </Unit27>
       <Unit28>
-        <Filename Value="convmatr.def"/>
+        <Filename Value="uconvolute.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit28>
       <Unit29>
-        <Filename Value="uconvolute.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit29>
-      <Unit30>
         <Filename Value="unit9.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form9"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit9"/>
-      </Unit30>
+      </Unit29>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

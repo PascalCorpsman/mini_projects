@@ -77,7 +77,6 @@
       <Unit2>
         <Filename Value="/home/corpsman/lazarus/components/images/lazpng.pas"/>
         <UsageCount Value="67"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit2>
       <Unit3>
         <Filename Value="uclickomania.pas"/>
@@ -123,7 +122,6 @@
         <CursorPos X="3" Y="709"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit5>
       <Unit6>
         <Filename Value="/home/corpsman/lazarus/components/opengl/openglcontext.pas"/>
@@ -132,7 +130,6 @@
         <CursorPos X="15" Y="116"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit6>
       <Unit7>
         <Filename Value="../../Sample/OpenGL/dglopengl.pas"/>
@@ -141,7 +138,6 @@
         <CursorPos X="3" Y="5321"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit7>
       <Unit8>
         <Filename Value="clickomania.inc"/>
@@ -149,21 +145,18 @@
         <CursorPos X="41" Y="4"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit8>
       <Unit9>
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/objpas/sysutils/finah.inc"/>
         <CursorPos X="10" Y="28"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit9>
       <Unit10>
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/unix/sysutils.pp"/>
         <TopLine Value="243"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit10>
       <Unit11>
         <Filename Value="../../Sample/OpenGL/opengl_graphikengine.pas"/>
@@ -175,7 +168,6 @@
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/linux/i386/syscallh.inc"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="9"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit12>
       <Unit13>
         <Filename Value="/usr/share/fpcsrc/2.4.0/rtl/objpas/sysutils/filutilh.inc"/>
@@ -183,7 +175,6 @@
         <CursorPos Y="89"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit13>
       <Unit14>
         <Filename Value="unit3.pas"/>
@@ -214,7 +205,6 @@
         <CursorPos Y="3344"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="9"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit16>
       <Unit17>
         <Filename Value="../../Sample/OpenGL/opengl_spriteengine.pas"/>
@@ -228,7 +218,6 @@
           <SyntaxHighlighter Value="FreePascal"/>
         </ExtraEditor1>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit17>
       <Unit18>
         <Filename Value="/home/corpsman/lazarus/lcl/forms.pp"/>
@@ -237,7 +226,6 @@
         <CursorPos X="14" Y="1312"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit18>
       <Unit19>
         <Filename Value="unit5.pas"/>
@@ -268,7 +256,6 @@
         <CursorPos X="20" Y="50"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit21>
       <Unit22>
         <Filename Value="/home/corpsman/lazarus/lcl/graphtype.pp"/>
@@ -277,7 +264,6 @@
         <CursorPos X="3" Y="39"/>
         <SyntaxHighlighter Value="FreePascal"/>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit22>
       <Unit23>
         <Filename Value="unit7.pas"/>
@@ -308,7 +294,6 @@
       </Unit25>
       <Unit26>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
         <UsageCount Value="23"/>

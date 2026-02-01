@@ -202,7 +202,6 @@
       </Unit18>
       <Unit19>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
         <UsageCount Value="20"/>

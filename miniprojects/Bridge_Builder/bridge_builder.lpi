@@ -73,12 +73,10 @@
       <Unit3>
         <Filename Value="/home/corpsman/lazarus/components/images/lazpng.pas"/>
         <UsageCount Value="19"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit3>
       <Unit4>
         <Filename Value="../../DatenSteuerung/uvectormath.ppu"/>
         <UsageCount Value="19"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit4>
       <Unit5>
         <Filename Value="../Sample/OpenGL/dglopengl.pas"/>
@@ -98,7 +96,6 @@
       </Unit6>
       <Unit7>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="15"/>
         <UsageCount Value="51"/>
@@ -198,7 +195,6 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="49"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit17>
       <Unit18>
         <Filename Value="../Sample/DatenSteuerung/ufifo.pas"/>
@@ -248,9 +244,8 @@
         <CursorPos X="38" Y="344"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <IsVisibleTab Value="True"/>
           <EditorIndex Value="-1"/>
-          <WindowIndex Value="1"/>
+          <WindowIndex Value="-1"/>
           <TopLine Value="328"/>
           <CursorPos X="16" Y="361"/>
         </ExtraEditor1>

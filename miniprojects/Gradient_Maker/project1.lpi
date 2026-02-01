@@ -41,10 +41,6 @@
         <Filename Value="../../DatenSteuerung/uvectormath.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
-      <Unit>
-        <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

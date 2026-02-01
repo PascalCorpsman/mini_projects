@@ -31,7 +31,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="13">
+    <Units Count="12">
       <Unit0>
         <Filename Value="superdom.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -104,10 +104,6 @@
         <Filename Value="../Sample/DatenSteuerung/ufifo.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit11>
-      <Unit12>
-        <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit12>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

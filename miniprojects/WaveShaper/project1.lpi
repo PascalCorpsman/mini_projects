@@ -49,10 +49,6 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
         <Filename Value="../uwave.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>

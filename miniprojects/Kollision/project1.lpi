@@ -44,7 +44,7 @@
       <Unit0>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="1"/>
         <CursorPos X="56" Y="14"/>
         <UsageCount Value="37"/>
@@ -92,7 +92,7 @@
       <Unit5>
         <Filename Value="elements.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="1"/>
         <CursorPos Y="15"/>
         <UsageCount Value="20"/>
@@ -139,7 +139,6 @@
         <TopLine Value="123"/>
         <CursorPos X="2" Y="127"/>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit11>
       <Unit12>
         <Filename Value="/home/corpsman/lazarus/lcl/lcltype.pp"/>
@@ -150,7 +149,7 @@
       <Unit13>
         <Filename Value="../Sample/DatenSteuerung/uvectormath.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="1"/>
         <UsageCount Value="25"/>
         <Loaded Value="True"/>
@@ -168,12 +167,10 @@
       </Unit14>
       <Unit15>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos Y="15"/>
         <UsageCount Value="21"/>
-        <Loaded Value="True"/>
       </Unit15>
       <Unit16>
         <Filename Value="/home/corpsman/lazarus/components/lazutils/laztracer.pas"/>
@@ -187,7 +184,7 @@
       <Unit17>
         <Filename Value="../Sample/DatenSteuerung/uHighscoreEngine.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="1"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>

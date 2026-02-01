@@ -73,7 +73,6 @@
       <Unit4>
         <Filename Value="../../DatenSteuerung/uvectormath.ppu"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit4>
       <Unit5>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.pas"/>
@@ -108,7 +107,6 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit8>
       <Unit9>
         <Filename Value="../../lazarus/lcl/controls.pp"/>
@@ -125,7 +123,6 @@
       </Unit10>
       <Unit11>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="43" Y="7"/>
         <UsageCount Value="20"/>
@@ -147,7 +144,6 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit14>
       <Unit15>
         <Filename Value="../Sample/DatenSteuerung/uvectormath.pas"/>

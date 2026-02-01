@@ -45,7 +45,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="13">
+    <Units Count="12">
       <Unit0>
         <Filename Value="rgb_jumper.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -71,38 +71,34 @@
         <IsPartOfProject Value="True"/>
       </Unit4>
       <Unit5>
-        <Filename Value="uvectormath.inc"/>
+        <Filename Value="../Sample/OpenGL/uopengl_widgetset.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit5>
       <Unit6>
-        <Filename Value="../Sample/OpenGL/uopengl_widgetset.pas"/>
+        <Filename Value="ueventer.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit6>
       <Unit7>
-        <Filename Value="ueventer.inc"/>
+        <Filename Value="urgb_level.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit7>
       <Unit8>
-        <Filename Value="urgb_level.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit8>
-      <Unit9>
         <Filename Value="../Sample/OpenGL/uopengl_ascii_font.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uOpenGL_ASCII_Font"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../Sample/OpenGL/uopengl_ascii_font.ressource"/>
+        <IsPartOfProject Value="True"/>
       </Unit9>
       <Unit10>
-        <Filename Value="../Sample/OpenGL/uopengl_ascii_font.ressource"/>
+        <Filename Value="urgb_player.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit10>
       <Unit11>
-        <Filename Value="urgb_player.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit11>
-      <Unit12>
         <Filename Value="urgb_physics.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit12>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

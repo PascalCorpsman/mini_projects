@@ -84,7 +84,6 @@
       <Unit4>
         <Filename Value="/home/corpsman/lazarus/components/images/lazpng.pas"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="Text"/>
       </Unit4>
       <Unit5>
         <Filename Value="../../Graphik/ugraphics.pas"/>
@@ -94,7 +93,6 @@
       <Unit6>
         <Filename Value="../../DatenSteuerung/uvectormath.ppu"/>
         <UsageCount Value="20"/>
-        <DefaultSyntaxHighlighter Value="None"/>
       </Unit6>
       <Unit7>
         <Filename Value="../../DatenSteuerung/uvectormath.pas"/>
@@ -233,7 +231,6 @@
       </Unit24>
       <Unit25>
         <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>

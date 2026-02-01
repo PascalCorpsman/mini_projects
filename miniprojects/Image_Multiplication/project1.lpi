@@ -41,10 +41,6 @@
         <UnitName Value="Unit1"/>
       </Unit>
       <Unit>
-        <Filename Value="uvectormath.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
         <Filename Value="../ugraphics.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
