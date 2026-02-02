@@ -23,12 +23,41 @@ Uses
 
 Const
   Grid = 4;
+  FileVersion: Integer = 1;
 
 Type
 
   TState = (sOff, sOn, sOffToOn, sOnToOff, sUndefined);
 
-  TDigiman = Class;
+  TDigimanElement = Class;
+
+  (*
+   * Der Eigentliche Emulator
+   *)
+
+  { TDigiman }
+
+  TDigiman = Class
+  private
+    fElements: Array Of TDigimanElement;
+  public
+    ShowPegel: Boolean;
+    ShowConnectionPoints: Boolean;
+
+    Constructor Create(); virtual;
+    Destructor Destroy(); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+
+    Procedure AddElement(Const aElement: TDigimanElement);
+    Procedure DelElement(Const aElement: TDigimanElement);
+    Procedure Clear();
+
+    Function GetElementAtPos(x, y: integer): TDigimanElement;
+
+    Procedure SaveToFile(Const aFilename: String);
+    Procedure LoadFromFile(Const aFilename: String);
+  End;
 
   (*
    * Ein Element welches in TDigiman verwaltet wird
@@ -54,30 +83,39 @@ Type
     Destructor Destroy(); override;
 
     Procedure setPosition(aX, aY: Integer);
-    Procedure RenderTo(Const Canvas: TCanvas); virtual; // Abstract
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); virtual; // Abstract
 
     Procedure Click; virtual;
     Function Clone: TDigimanElement; virtual abstract;
   End;
 
-  (*
-   * Der Eigentliche Emulator
-   *)
-  TDigiman = Class
+  { TTool }
+
+  TTool = Class(TDigimanElement) // Kein Eigentliches Element, aber es hilft in der Gui Steuerung
   private
-    fElements: Array Of TDigimanElement;
-
+    fImage: TBitmap;
+  protected
+    Function getHeight: integer; override;
+    Function getWidth: integer; override;
   public
-    ShowPegel: Boolean;
-
-    Constructor Create(); virtual;
+    Constructor Create(); override;
     Destructor Destroy(); override;
 
-    Procedure RenderTo(Const Canvas: TCanvas);
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+  End;
 
-    Procedure AddElement(Const aElement: TDigimanElement);
+  { TEraser }
 
-    Function GetElementAtPos(x, y: integer): TDigimanElement;
+  TEraser = Class(TTool)
+  public
+    Constructor Create(); override;
+  End;
+
+  { TLineTool }
+
+  TLineTool = Class(TTool)
+  public
+    Constructor Create(); override;
   End;
 
   { TUserInput }
@@ -94,7 +132,7 @@ Type
     Constructor Create(); override;
     Destructor Destroy(); override;
 
-    Procedure RenderTo(Const Canvas: TCanvas); override;
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
 
     Procedure Click; override;
 
@@ -114,14 +152,14 @@ Type
     Constructor Create(); override;
     Destructor Destroy(); override;
 
-    Procedure RenderTo(Const Canvas: TCanvas); override;
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
 
     Function Clone: TDigimanElement; override;
   End;
 
-  { TNot }
+  { TOneInOneOut }
 
-  TNot = Class(TDigimanElement)
+  TOneInOneOut = Class(TDigimanElement)
   private
     fImage: TBitmap;
   protected
@@ -131,31 +169,46 @@ Type
     Constructor Create(); override;
     Destructor Destroy(); override;
 
-    Procedure RenderTo(Const Canvas: TCanvas); override;
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+  End;
+
+  { TTwoInOneOut }
+
+  TTwoInOneOut = Class(TDigimanElement)
+  private
+    fImage: TBitmap;
+  protected
+    Function getHeight: integer; override;
+    Function getWidth: integer; override;
+  public
+    Constructor Create(); override;
+    Destructor Destroy(); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+  End;
+
+  { TNot }
+
+  TNot = Class(TOneInOneOut)
+  public
+    Constructor Create(); override;
 
     Function Clone: TDigimanElement; override;
   End;
 
   { TAnd }
 
-  TAnd = Class(TDigimanElement)
-  private
-    fImage: TBitmap;
+  TAnd = Class(TTwoInOneOut)
   protected
-    Function getHeight: integer; override;
-    Function getWidth: integer; override;
   public
     Constructor Create(); override;
-    Destructor Destroy(); override;
-
-    Procedure RenderTo(Const Canvas: TCanvas); override;
 
     Function Clone: TDigimanElement; override;
   End;
 
   { TOr }
 
-  TOr = Class(TAnd)
+  TOr = Class(TTwoInOneOut)
   public
     Constructor Create(); override;
 
@@ -164,7 +217,7 @@ Type
 
   { TNor }
 
-  TNOr = Class(TAnd)
+  TNOr = Class(TTwoInOneOut)
   public
     Constructor Create(); override;
 
@@ -173,7 +226,7 @@ Type
 
   { TNand }
 
-  TNand = Class(TAnd)
+  TNand = Class(TTwoInOneOut)
   public
     Constructor Create(); override;
 
@@ -243,7 +296,7 @@ Begin
   Top := Top - Top Mod Grid;
 End;
 
-Procedure TDigimanElement.RenderTo(Const Canvas: TCanvas);
+Procedure TDigimanElement.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Begin
   Raise exception.Create(ClassName + '.Render not implemented.');
 End;
@@ -253,29 +306,72 @@ Begin
   // Nichts, ..
 End;
 
+{ TTool }
+
+Function TTool.getHeight: integer;
+Begin
+  Result := fImage.Height;
+End;
+
+Function TTool.getWidth: integer;
+Begin
+  Result := fImage.Width;
+End;
+
+Constructor TTool.Create();
+Begin
+  Inherited Create();
+  fImage := Nil;
+End;
+
+Destructor TTool.Destroy();
+Begin
+  fImage.Free;
+  fImage := Nil;
+  Inherited Destroy();
+End;
+
+Procedure TTool.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Begin
+  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+End;
+
+{ TEraser }
+
+Constructor TEraser.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('Eraser.bmp');
+End;
+
+{ TLineTool }
+
+Constructor TLineTool.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('Linetool.bmp');
+End;
+
 Constructor TDigiman.Create;
 Begin
   Inherited Create();
   fElements := Nil;
   ShowPegel := true;
+  ShowConnectionPoints := false;
 End;
 
 Destructor TDigiman.Destroy;
-Var
-  i: Integer;
 Begin
-  For i := 0 To high(fElements) Do
-    fElements[i].Free;
+  Clear;
 End;
 
-Procedure TDigiman.RenderTo(Const Canvas: TCanvas);
+Procedure TDigiman.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Var
   i: Integer;
 Begin
   For i := 0 To high(fElements) Do Begin
-    fElements[i].RenderTo(Canvas);
+    fElements[i].RenderTo(aCanvas, aOffset);
   End;
-
 End;
 
 Procedure TDigiman.AddElement(Const aElement: TDigimanElement);
@@ -284,6 +380,34 @@ Begin
 
   setlength(fElements, high(fElements) + 2);
   fElements[high(fElements)] := aElement;
+End;
+
+Procedure TDigiman.DelElement(Const aElement: TDigimanElement);
+Var
+  i, j: Integer;
+Begin
+  For i := 0 To high(fElements) Do Begin
+    If fElements[i] = aElement Then Begin
+      // TODO: löschen aller Linien die mit aElement zu tun haben
+
+      fElements[i].Free;
+      For j := i To high(fElements) - 1 Do Begin
+        fElements[j] := fElements[j + 1];
+      End;
+      SetLength(fElements, high(fElements));
+      exit;
+    End;
+  End;
+End;
+
+Procedure TDigiman.Clear;
+Var
+  i: Integer;
+Begin
+  For i := 0 To high(fElements) Do Begin
+    fElements[i].Free;
+  End;
+  setlength(fElements, 0);
 End;
 
 Function TDigiman.GetElementAtPos(x, y: integer): TDigimanElement;
@@ -298,6 +422,36 @@ Begin
       exit;
     End;
   End;
+End;
+
+Procedure TDigiman.SaveToFile(Const aFilename: String);
+Var
+  m: TMemoryStream;
+Begin
+  m := TMemoryStream.Create;
+  m.Write(FileVersion, sizeof(FileVersion));
+
+  // TODO: Implementieren
+
+  m.SaveToFile(aFilename);
+  m.free;
+End;
+
+Procedure TDigiman.LoadFromFile(Const aFilename: String);
+Var
+  m: TMemoryStream;
+  FV: integer;
+Begin
+  Clear();
+  m := TMemoryStream.Create;
+  m.LoadFromFile(aFilename);
+  FV := 0;
+  m.Read(FV, sizeof(FileVersion));
+  // TODO: differ by Fileversion
+
+  // Todo: Implementieren
+
+  m.free;
 End;
 
 { TUserInput }
@@ -328,14 +482,14 @@ Begin
   Inherited Destroy();
 End;
 
-Procedure TUserInput.RenderTo(Const Canvas: TCanvas);
+Procedure TUserInput.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Begin
   Case fState Of
-    sOff: canvas.Draw(Left, Top, fUpImage);
-    sOn: canvas.Draw(Left, Top, fDownImage);
+    sOff: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fUpImage);
+    sOn: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fDownImage);
   End;
   If fOwner.ShowPegel Then Begin
-    LineStateToCanvas(Canvas, point(left + 26, top + 7), fState);
+    LineStateToCanvas(aCanvas, point(left + 26, top + 7) - aOffset, fState);
   End;
 End;
 
@@ -385,12 +539,12 @@ Begin
   Inherited Destroy();
 End;
 
-Procedure TProbe.RenderTo(Const Canvas: TCanvas);
+Procedure TProbe.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Begin
   Case fState Of
-    sOff, sOnToOff: canvas.Draw(Left, Top, fOffImage);
-    sOn, sOffToOn: canvas.Draw(Left, Top, fOnImage);
-    sUndefined: canvas.Draw(Left, Top, fUnknownImage);
+    sOff, sOnToOff: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOffImage);
+    sOn, sOffToOn: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOnImage);
+    sUndefined: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fUnknownImage);
   End;
 End;
 
@@ -399,34 +553,73 @@ Begin
   result := TProbe.Create();
 End;
 
-{ TNot }
+{ TOneInOneOut }
 
-Function TNot.getHeight: integer;
+Function TOneInOneOut.getHeight: integer;
 Begin
   Result := fImage.Height;
 End;
 
-Function TNot.getWidth: integer;
+Function TOneInOneOut.getWidth: integer;
 Begin
   Result := fImage.Width;
 End;
 
-Constructor TNot.Create();
+Constructor TOneInOneOut.Create;
 Begin
   Inherited Create();
-  fImage := LoadImage('Not.bmp');
+  fImage := Nil;
 End;
 
-Destructor TNot.Destroy();
+Destructor TOneInOneOut.Destroy;
 Begin
   fImage.Free;
   fImage := Nil;
   Inherited Destroy();
 End;
 
-Procedure TNot.RenderTo(Const Canvas: TCanvas);
+Procedure TOneInOneOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Begin
-  canvas.Draw(Left, Top, fImage);
+  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+End;
+
+{ TTwoInOneOut }
+
+Function TTwoInOneOut.getHeight: integer;
+Begin
+  Result := fImage.Height;
+End;
+
+Function TTwoInOneOut.getWidth: integer;
+Begin
+  Result := fImage.Width;
+End;
+
+Constructor TTwoInOneOut.Create();
+Begin
+  Inherited Create();
+  fImage := Nil;
+End;
+
+Destructor TTwoInOneOut.Destroy();
+Begin
+  fImage.free;
+  fImage := Nil;
+
+  Inherited Destroy();
+End;
+
+Procedure TTwoInOneOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Begin
+  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+End;
+
+{ TNot }
+
+Constructor TNot.Create;
+Begin
+  Inherited Create();
+  fImage := LoadImage('Not.bmp');
 End;
 
 Function TNot.Clone: TDigimanElement;
@@ -436,33 +629,10 @@ End;
 
 { TAnd }
 
-Constructor TAnd.Create();
+Constructor TAnd.Create;
 Begin
   Inherited Create();
   fImage := LoadImage('And.bmp');
-End;
-
-Destructor TAnd.Destroy();
-Begin
-  fImage.free;
-  fImage := Nil;
-  Inherited Destroy();
-End;
-
-
-Function TAnd.getHeight: integer;
-Begin
-  Result := fImage.Height;
-End;
-
-Function TAnd.getWidth: integer;
-Begin
-  Result := fImage.Width;
-End;
-
-Procedure TAnd.RenderTo(Const Canvas: TCanvas);
-Begin
-  canvas.Draw(Left, Top, fImage);
 End;
 
 Function TAnd.Clone: TDigimanElement;

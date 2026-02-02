@@ -1,11 +1,12 @@
 object Form1: TForm1
   Left = 324
-  Height = 677
+  Height = 610
   Top = 108
-  Width = 959
+  Width = 683
   Caption = 'Form1'
-  ClientHeight = 677
-  ClientWidth = 959
+  ClientHeight = 610
+  ClientWidth = 683
+  Position = poScreenCenter
   LCLVersion = '4.99.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -50,8 +51,59 @@ object Form1: TForm1
     Left = 8
     Height = 64
     Top = 520
-    Width = 640
+    Width = 616
     OnMouseDown = PaintBox2MouseDown
     OnPaint = PaintBox2Paint
+  end
+  object Button1: TButton
+    Left = 653
+    Height = 25
+    Top = 520
+    Width = 25
+    Caption = 'L'
+    TabOrder = 3
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 653
+    Height = 25
+    Top = 548
+    Width = 25
+    Caption = 'S'
+    TabOrder = 4
+    OnClick = Button2Click
+  end
+  object Button3: TButton
+    Left = 653
+    Height = 25
+    Hint = 'Clear, erases everything'
+    Top = 576
+    Width = 25
+    Caption = 'C'
+    TabOrder = 5
+    OnClick = Button3Click
+  end
+  object ScrollBar3: TScrollBar
+    Left = 634
+    Height = 65
+    Top = 520
+    Width = 14
+    Kind = sbVertical
+    Max = 2
+    PageSize = 0
+    TabOrder = 6
+    OnChange = ScrollBar3Change
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.ckt'
+    Filter = 'Circuit|*.ckt|All|*'
+    Left = 160
+    Top = 120
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.ckt'
+    Filter = 'Circuit|*.ckt|All|*'
+    Left = 320
+    Top = 120
   end
 end

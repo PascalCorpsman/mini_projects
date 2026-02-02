@@ -40,11 +40,20 @@ Type
   { TForm1 }
 
   TForm1 = Class(TForm)
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
     CheckBox1: TCheckBox;
+    OpenDialog1: TOpenDialog;
     PaintBox1: TPaintBox;
     PaintBox2: TPaintBox;
+    SaveDialog1: TSaveDialog;
     ScrollBar1: TScrollBar;
     ScrollBar2: TScrollBar;
+    ScrollBar3: TScrollBar;
+    Procedure Button1Click(Sender: TObject);
+    Procedure Button2Click(Sender: TObject);
+    Procedure Button3Click(Sender: TObject);
     Procedure CheckBox1Click(Sender: TObject);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
@@ -58,6 +67,7 @@ Type
     Procedure PaintBox2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     Procedure PaintBox2Paint(Sender: TObject);
+    Procedure ScrollBar3Change(Sender: TObject);
   private
     fSelector, fEngine: TDigiman;
     fMouseDownPos, fMouseMovePos: TPoint;
@@ -78,24 +88,36 @@ Implementation
 
 Procedure TForm1.FormCreate(Sender: TObject);
 
-  Procedure AddElementToSelector(Element: TDigimanElement; x: integer);
+  Procedure AddElementToSelector(Element: TDigimanElement; x, y: integer);
   Begin
-    Element.setPosition(x, 32);
+    Element.setPosition(x, 32 + y);
     fSelector.AddElement(Element);
   End;
 
+Var
+  i: Integer;
 Begin
   caption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
   fEngine := TDigiman.Create;
   // Init Selector
   fSelector := TDigiman.Create;
-  AddElementToSelector(TUserInput.Create(), 32);
-  AddElementToSelector(TProbe.Create(), 32 + 50);
-  AddElementToSelector(TNot.Create(), 32 + 100);
-  AddElementToSelector(TOr.Create(), 32 + 150);
-  AddElementToSelector(TAnd.Create(), 32 + 200);
-  AddElementToSelector(TNOr.Create(), 32 + 250);
-  AddElementToSelector(TNAnd.Create(), 32 + 300);
+  // Die Basik Elemente
+  AddElementToSelector(TUserInput.Create(), 32, 0);
+  AddElementToSelector(TProbe.Create(), 32 + 50, 0);
+  AddElementToSelector(TNot.Create(), 32 + 100, 0);
+  AddElementToSelector(TOr.Create(), 32 + 150, 0);
+  AddElementToSelector(TAnd.Create(), 32 + 200, 0);
+  AddElementToSelector(TNOr.Create(), 32 + 250, 0);
+  AddElementToSelector(TNAnd.Create(), 32 + 300, 0);
+  // Flip Flops
+
+  // Halfadder, Fulladder, decoder ...
+
+  // Die Controlls die immer da sind
+  For i := 0 To ScrollBar3.Max Do Begin
+    AddElementToSelector(TLineTool.Create(), PaintBox2.Width - 32 - 8, PaintBox2.Height * i - 16);
+    AddElementToSelector(TEraser.Create(), PaintBox2.Width - 16, PaintBox2.Height * i - 16);
+  End;
 
   fAdderElement := Nil;
 
@@ -121,8 +143,30 @@ Begin
   fSelectedElement := Nil;
   If ssleft In shift Then Begin
     fSelectedElement := fEngine.GetElementAtPos(x, y);
+
+    If assigned(fAdderElement) And (fAdderElement Is TTool) Then Begin
+      // Das "Lösch" Tool
+      If (fAdderElement Is TEraser) And (assigned(fSelectedElement)) Then Begin
+        fEngine.DelElement(fSelectedElement);
+        PaintBox1.Invalidate;
+      End;
+      // Das Linientool
+      If (fAdderElement Is TLineTool) And (assigned(fSelectedElement)) Then Begin
+        // TODO: Implementieren
+
+        hier gehts weiter !
+
+        PaintBox1.Invalidate;
+      End;
+      fSelectedElement := Nil;
+      exit;
+    End;
+
+    // Wir haben auf ein Existierendes Element geklickt, dieses aber nicht mit den Tools
+    // Bearbeitet -> raus hier
     If assigned(fSelectedElement) Then exit;
 
+    // Wir haben ins Leere geklickt und wollen ein neues Element einfügen
     If assigned(fAdderElement) Then Begin
       e := fAdderElement.Clone;
       e.setPosition(x, y);
@@ -132,6 +176,7 @@ Begin
   End;
 
   If ssright In shift Then Begin
+    // Abwahl des aktuellen Elementes
     fAdderElement := Nil;
   End;
 End;
@@ -169,12 +214,19 @@ Var
 Begin
   PaintBox1.Canvas.brush.color := clWhite;
   PaintBox1.Canvas.Rectangle(-1, -1, PaintBox1.Width + 1, PaintBox1.Height + 1);
-  fEngine.RenderTo(PaintBox1.Canvas);
+  fEngine.RenderTo(PaintBox1.Canvas, point(0, 0));
+  // Preview des hinzu zu fügenden Elementes
   If Assigned(fAdderElement) Then Begin
     al := fAdderElement.Left;
     at := fAdderElement.Top;
-    fAdderElement.setPosition(fMouseMovePos.X, fMouseMovePos.y);
-    fAdderElement.RenderTo(PaintBox1.Canvas);
+    // Das Linientool wird "geschiftet" gezeichnet, so dass Links Unten des Bildes = Mouseposition ist.
+    If fAdderElement Is TLineTool Then Begin
+      fAdderElement.setPosition(fMouseMovePos.X + fAdderElement.Width Div 2, fMouseMovePos.y - fAdderElement.Height Div 2);
+    End
+    Else Begin
+      fAdderElement.setPosition(fMouseMovePos.X, fMouseMovePos.y);
+    End;
+    fAdderElement.RenderTo(PaintBox1.Canvas, point(0, 0));
     fAdderElement.Left := al;
     fAdderElement.Top := at;
   End;
@@ -183,20 +235,48 @@ End;
 Procedure TForm1.PaintBox2MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Begin
-  fAdderElement := fSelector.GetElementAtPos(x, y);
+  fAdderElement := fSelector.GetElementAtPos(x, y + ScrollBar3.Position * PaintBox2.Height);
 End;
 
 Procedure TForm1.PaintBox2Paint(Sender: TObject);
 Begin
   PaintBox2.Canvas.brush.color := clWhite;
   PaintBox2.Canvas.Rectangle(-1, -1, PaintBox2.Width + 1, PaintBox2.Height + 1);
-  fSelector.RenderTo(PaintBox2.Canvas);
+  fSelector.RenderTo(PaintBox2.Canvas, point(0, ScrollBar3.Position * PaintBox2.Height));
+End;
+
+Procedure TForm1.ScrollBar3Change(Sender: TObject);
+Begin
+  PaintBox2.Invalidate;
 End;
 
 Procedure TForm1.CheckBox1Click(Sender: TObject);
 Begin
   fEngine.ShowPegel := CheckBox1.Checked;
   PaintBox1.Invalidate;
+End;
+
+Procedure TForm1.Button3Click(Sender: TObject);
+Begin
+  ScrollBar1.Position := 0;
+  ScrollBar2.Position := 0;
+  fEngine.clear;
+  PaintBox1.Invalidate;
+End;
+
+Procedure TForm1.Button2Click(Sender: TObject);
+Begin
+  If SaveDialog1.Execute Then Begin
+    fEngine.SaveToFile(SaveDialog1.FileName);
+  End;
+End;
+
+Procedure TForm1.Button1Click(Sender: TObject);
+Begin
+  If OpenDialog1.Execute Then Begin
+    fEngine.LoadFromFile(OpenDialog1.FileName);
+    PaintBox1.Invalidate;
+  End;
 End;
 
 End.
