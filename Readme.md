@@ -29,6 +29,7 @@ Following is a short description of all listed projects
 | [Cost Calculator](miniprojects/CostCalculator) | Aplication to evaluate efficiency of photovoltaic systems |
 | [CPU Load](miniprojects/CPU_Load) | Application to create a defined CPU-Load |
 | [CRC Calculator](miniprojects/CRC_Calculator) | Calculate CRC checksums of arbiture data |
+| [Digiman2](miniprojects/Digiman2) | Tool to simulate digital circuits |
 | [Einstein](miniprojects/Einstein) | Solver for Einstein puzzles |
 | [Episode manager](miniprojects/Episode_manager) | Database to store and organise movies / TV-series |
 | [FIR IIR](miniprojects/FIR_IIR) | Demo to apply FIR and IIR Filter onto arbiture data |
