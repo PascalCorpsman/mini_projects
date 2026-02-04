@@ -76,6 +76,9 @@ Type
     Top: integer;
     Left: integer;
 
+    InPoints: Array Of Tpoint; // Relativ zu top / Left
+    OutPoints: Array Of Tpoint; // Relativ zu top / Left
+
     Property Width: integer read getWidth;
     Property Height: integer read getHeight;
 
@@ -255,12 +258,21 @@ Begin
   End;
 End;
 
+Procedure ConnectionPointToCanvas(Const aCanvas: TCanvas; aPos: Tpoint);
+Begin
+  aCanvas.Brush.Color := clGreen;
+  aCanvas.Pen.Color := clGreen;
+  aCanvas.Rectangle(aPos.x - 2, aPos.Y - 2, aPos.x + 3, aPos.Y + 3);
+End;
+
 { TDigimanElement }
 
 Constructor TDigimanElement.Create;
 Begin
   Inherited create;
   fOwner := Nil;
+  InPoints := Nil;
+  OutPoints := Nil;
 End;
 
 Destructor TDigimanElement.Destroy;
@@ -471,6 +483,8 @@ Begin
   fUpImage := LoadImage('Userinput_up.bmp');
   fDownImage := LoadImage('Userinput_down.bmp');
   fState := sOff;
+  setlength(OutPoints, 1);
+  OutPoints[0] := point(26, 8);
 End;
 
 Destructor TUserInput.Destroy;
@@ -490,6 +504,9 @@ Begin
   End;
   If fOwner.ShowPegel Then Begin
     LineStateToCanvas(aCanvas, point(left + 26, top + 7) - aOffset, fState);
+  End;
+  If fOwner.ShowConnectionPoints Then Begin
+    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0]);
   End;
 End;
 
@@ -525,6 +542,8 @@ Begin
   fOffImage := LoadImage('Probe_off.bmp');
   fUnknownImage := LoadImage('Probe_undef.bmp');
   fState := sUndefined;
+  setlength(InPoints, 1);
+  InPoints[0] := point(1, 8);
 End;
 
 Destructor TProbe.Destroy;
@@ -545,6 +564,12 @@ Begin
     sOff, sOnToOff: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOffImage);
     sOn, sOffToOn: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOnImage);
     sUndefined: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fUnknownImage);
+  End;
+  If fOwner.ShowPegel Then Begin
+    LineStateToCanvas(aCanvas, point(left + 1, top + 7) - aOffset, fState);
+  End;
+  If fOwner.ShowConnectionPoints Then Begin
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0]);
   End;
 End;
 

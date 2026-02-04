@@ -101,6 +101,8 @@ Begin
   fEngine := TDigiman.Create;
   // Init Selector
   fSelector := TDigiman.Create;
+  fSelector.ShowPegel := false;
+  fSelector.ShowConnectionPoints := false;
   // Die Basik Elemente
   AddElementToSelector(TUserInput.Create(), 32, 0);
   AddElementToSelector(TProbe.Create(), 32 + 50, 0);
@@ -154,7 +156,7 @@ Begin
       If (fAdderElement Is TLineTool) And (assigned(fSelectedElement)) Then Begin
         // TODO: Implementieren
 
-        hier gehts weiter !
+        //hier gehts weiter !
 
         PaintBox1.Invalidate;
       End;
@@ -178,6 +180,9 @@ Begin
   If ssright In shift Then Begin
     // Abwahl des aktuellen Elementes
     fAdderElement := Nil;
+    fEngine.ShowConnectionPoints := false;
+
+    PaintBox1.Invalidate;
   End;
 End;
 
@@ -221,7 +226,13 @@ Begin
     at := fAdderElement.Top;
     // Das Linientool wird "geschiftet" gezeichnet, so dass Links Unten des Bildes = Mouseposition ist.
     If fAdderElement Is TLineTool Then Begin
-      fAdderElement.setPosition(fMouseMovePos.X + fAdderElement.Width Div 2, fMouseMovePos.y - fAdderElement.Height Div 2);
+      // Das Linetool soll explizit nicht über die Rasterung Gerendert werden !!
+      //fAdderElement.setPosition(fMouseMovePos.X + fAdderElement.Width Div 2, fMouseMovePos.y - fAdderElement.Height Div 2);
+      // Also machen wir das hier von "Hand"
+      fAdderElement.left := fMouseMovePos.X;
+      fAdderElement.Top := fMouseMovePos.y - fAdderElement.Height;
+
+      hier gehts weiter
     End
     Else Begin
       fAdderElement.setPosition(fMouseMovePos.X, fMouseMovePos.y);
@@ -236,6 +247,16 @@ Procedure TForm1.PaintBox2MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Begin
   fAdderElement := fSelector.GetElementAtPos(x, y + ScrollBar3.Position * PaintBox2.Height);
+  If fAdderElement Is TLineTool Then Begin
+    fEngine.ShowConnectionPoints := true;
+    PaintBox1.Invalidate;
+  End
+  Else Begin
+    If fEngine.ShowConnectionPoints Then Begin
+      fEngine.ShowConnectionPoints := false;
+      PaintBox1.Invalidate;
+    End;
+  End;
 End;
 
 Procedure TForm1.PaintBox2Paint(Sender: TObject);
