@@ -59,6 +59,8 @@ Type
     Procedure FormCreate(Sender: TObject);
     Procedure PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    Procedure PaintBox1MouseEnter(Sender: TObject);
+    Procedure PaintBox1MouseLeave(Sender: TObject);
     Procedure PaintBox1MouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     Procedure PaintBox1MouseUp(Sender: TObject; Button: TMouseButton;
@@ -70,6 +72,7 @@ Type
     Procedure ScrollBar3Change(Sender: TObject);
   private
     fSelector, fEngine: TDigiman;
+    fMouseIsIn: Boolean;
     fMouseDownPos, fMouseMovePos: TPoint;
     fSelectedElement: TDigimanElement;
     fAdderElement: TDigimanElement;
@@ -186,6 +189,18 @@ Begin
   End;
 End;
 
+Procedure TForm1.PaintBox1MouseEnter(Sender: TObject);
+Begin
+  fMouseIsIn := true;
+  PaintBox1.Invalidate;
+End;
+
+Procedure TForm1.PaintBox1MouseLeave(Sender: TObject);
+Begin
+  fMouseIsIn := false;
+  PaintBox1.Invalidate;
+End;
+
 Procedure TForm1.PaintBox1MouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 Begin
@@ -221,7 +236,7 @@ Begin
   PaintBox1.Canvas.Rectangle(-1, -1, PaintBox1.Width + 1, PaintBox1.Height + 1);
   fEngine.RenderTo(PaintBox1.Canvas, point(0, 0));
   // Preview des hinzu zu fügenden Elementes
-  If Assigned(fAdderElement) Then Begin
+  If Assigned(fAdderElement) And (fMouseIsIn) Then Begin
     al := fAdderElement.Left;
     at := fAdderElement.Top;
     // Das Linientool wird "geschiftet" gezeichnet, so dass Links Unten des Bildes = Mouseposition ist.
@@ -247,6 +262,12 @@ Procedure TForm1.PaintBox2MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Begin
   fAdderElement := fSelector.GetElementAtPos(x, y + ScrollBar3.Position * PaintBox2.Height);
+  If assigned(fAdderElement) Then Begin
+    PaintBox1.Cursor := crNone;
+  End
+  Else Begin
+    PaintBox1.Cursor := crDefault;
+  End;
   If fAdderElement Is TLineTool Then Begin
     fEngine.ShowConnectionPoints := true;
     PaintBox1.Invalidate;
