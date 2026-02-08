@@ -9,7 +9,7 @@ This is the cleanup from my [digiman](https://corpsman.de/index.php?doc=beispiel
 ![](preview.png)
 
 Features:
-- Load/ save (not yet implemented)
+- Load / save
 - Simulate in realtime (not yet implemented)
 - Basic logic elements (or, and, not..)
 - High level logic elements (flipflops, adder, decoder ..) (not yet implemented)
