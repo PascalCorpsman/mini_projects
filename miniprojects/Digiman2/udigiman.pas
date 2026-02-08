@@ -40,6 +40,7 @@ Type
   TDigiman = Class
   private
     fElements: Array Of TDigimanElement;
+    Procedure initElementsIndexWithElement(Const aElement: TDigimanElement; aIndex: integer);
   public
     ShowPegel: Boolean;
     ShowConnectionPoints: Boolean;
@@ -84,6 +85,9 @@ Type
 
     Constructor Create(); virtual;
     Destructor Destroy(); override;
+
+    Procedure SaveToStream(Const aStream: TStream); virtual;
+    Procedure LoadFromStream(Const aStream: TStream); virtual;
 
     Procedure setPosition(aX, aY: Integer);
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); virtual; // Abstract
@@ -134,6 +138,9 @@ Type
   public
     Constructor Create(); override;
     Destructor Destroy(); override;
+
+    Procedure SaveToStream(Const aStream: TStream); override;
+    Procedure LoadFromStream(Const aStream: TStream); override;
 
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
 
@@ -220,7 +227,7 @@ Type
 
   { TNor }
 
-  TNOr = Class(TTwoInOneOut)
+  TNor = Class(TTwoInOneOut)
   public
     Constructor Create(); override;
 
@@ -237,6 +244,26 @@ Type
   End;
 
 Implementation
+
+Function CreateDigimanElemenFromString(Const ClassName: String): TDigimanElement;
+Begin
+  result := Nil;
+  (*
+   * Hier sind nicht alle klassen gelistet, nur die die geladen und gespeichert werden können..
+   *)
+  Case lowercase(ClassName) Of
+    'tnand': result := TNand.Create();
+    'tnor': result := TNor.Create();
+    'tor': result := Tor.Create();
+    'tand': result := Tand.Create();
+    'tnot': result := TNot.Create();
+    'tprobe': result := TProbe.Create();
+    'tuserinput': result := TUserInput.Create();
+  Else Begin
+      Raise exception.create('Error: ' + ClassName + ' not implemented in CreateDigimanElemenFromString');
+    End;
+  End;
+End;
 
 Procedure LineStateToCanvas(Const aCanvas: TCanvas; aPos: Tpoint; aState: TState);
 Begin
@@ -278,6 +305,18 @@ End;
 Destructor TDigimanElement.Destroy;
 Begin
 
+End;
+
+Procedure TDigimanElement.SaveToStream(Const aStream: TStream);
+Begin
+  aStream.Write(top, SizeOf(Top));
+  aStream.Write(Left, SizeOf(Left));
+End;
+
+Procedure TDigimanElement.LoadFromStream(Const aStream: TStream);
+Begin
+  aStream.Read(top, SizeOf(Top));
+  aStream.Read(Left, SizeOf(Left));
 End;
 
 Function TDigimanElement.getHeight: integer;
@@ -364,6 +403,13 @@ Begin
   fImage := LoadImage('Linetool.bmp');
 End;
 
+Procedure TDigiman.initElementsIndexWithElement(
+  Const aElement: TDigimanElement; aIndex: integer);
+Begin
+  aElement.fOwner := self;
+  fElements[aIndex] := aElement;
+End;
+
 Constructor TDigiman.Create;
 Begin
   Inherited Create();
@@ -388,10 +434,8 @@ End;
 
 Procedure TDigiman.AddElement(Const aElement: TDigimanElement);
 Begin
-  aElement.fOwner := self;
-
   setlength(fElements, high(fElements) + 2);
-  fElements[high(fElements)] := aElement;
+  initElementsIndexWithElement(aElement, high(fElements));
 End;
 
 Procedure TDigiman.DelElement(Const aElement: TDigimanElement);
@@ -439,9 +483,16 @@ End;
 Procedure TDigiman.SaveToFile(Const aFilename: String);
 Var
   m: TMemoryStream;
+  i: Integer;
 Begin
   m := TMemoryStream.Create;
   m.Write(FileVersion, sizeof(FileVersion));
+  i := length(fElements);
+  m.Write(i, SizeOf(i));
+  For i := 0 To high(fElements) Do Begin
+    m.WriteAnsiString(fElements[i].ClassName);
+    fElements[i].saveToStream(m);
+  End;
 
   // TODO: Implementieren
 
@@ -452,7 +503,8 @@ End;
 Procedure TDigiman.LoadFromFile(Const aFilename: String);
 Var
   m: TMemoryStream;
-  FV: integer;
+  i, FV: integer;
+  e: TDigimanElement;
 Begin
   Clear();
   m := TMemoryStream.Create;
@@ -460,6 +512,15 @@ Begin
   FV := 0;
   m.Read(FV, sizeof(FileVersion));
   // TODO: differ by Fileversion
+
+  i := 0;
+  m.Read(i, SizeOf(i));
+  setlength(fElements, i);
+  For i := 0 To high(fElements) Do Begin
+    e := CreateDigimanElemenFromString(m.ReadAnsiString);
+    e.LoadFromStream(m);
+    initElementsIndexWithElement(e, i);
+  End;
 
   // Todo: Implementieren
 
@@ -494,6 +555,18 @@ Begin
   fUpImage := Nil;
   fDownImage := Nil;
   Inherited Destroy();
+End;
+
+Procedure TUserInput.SaveToStream(Const aStream: TStream);
+Begin
+  Inherited SaveToStream(aStream);
+  aStream.Write(fState, SizeOf(fState));
+End;
+
+Procedure TUserInput.LoadFromStream(Const aStream: TStream);
+Begin
+  Inherited LoadFromStream(aStream);
+  aStream.Read(fState, SizeOf(fState));
 End;
 
 Procedure TUserInput.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
