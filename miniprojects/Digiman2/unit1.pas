@@ -57,6 +57,7 @@ Type
     Procedure CheckBox1Click(Sender: TObject);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormShow(Sender: TObject);
     Procedure PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     Procedure PaintBox1MouseEnter(Sender: TObject);
@@ -69,8 +70,10 @@ Type
     Procedure PaintBox2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     Procedure PaintBox2Paint(Sender: TObject);
+    Procedure ScrollBar2Change(Sender: TObject);
     Procedure ScrollBar3Change(Sender: TObject);
   private
+    fFormShowOnce: Boolean;
     fSelector, fEngine: TDigiman;
     fMouseIsIn: Boolean;
     fMouseDownPos, fMouseMovePos: TPoint;
@@ -101,6 +104,7 @@ Var
   i: Integer;
 Begin
   caption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
+  fFormShowOnce := true;
   fEngine := TDigiman.Create;
   // Init Selector
   fSelector := TDigiman.Create;
@@ -128,6 +132,18 @@ Begin
 
   CheckBox1Click(Nil);
   PaintBox2.Invalidate;
+End;
+
+Procedure TForm1.FormShow(Sender: TObject);
+Begin
+  If Not fFormShowOnce Then exit;
+  fFormShowOnce := false;
+  // Debug "remove"
+  If FileExists('First_save.ckt') Then Begin
+    fEngine.LoadFromFile('First_save.ckt');
+    PaintBox1.Invalidate;
+  End;
+  // End -- Debug
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -234,7 +250,7 @@ Var
 Begin
   PaintBox1.Canvas.brush.color := clWhite;
   PaintBox1.Canvas.Rectangle(-1, -1, PaintBox1.Width + 1, PaintBox1.Height + 1);
-  fEngine.RenderTo(PaintBox1.Canvas, point(0, 0));
+  fEngine.RenderTo(PaintBox1.Canvas, point(ScrollBar1.Position, ScrollBar2.Position));
   // Preview des hinzu zu fügenden Elementes
   If Assigned(fAdderElement) And (fMouseIsIn) Then Begin
     al := fAdderElement.Left;
@@ -247,7 +263,7 @@ Begin
       fAdderElement.left := fMouseMovePos.X;
       fAdderElement.Top := fMouseMovePos.y - fAdderElement.Height;
 
-      hier gehts weiter
+      //hier gehts weiter
     End
     Else Begin
       fAdderElement.setPosition(fMouseMovePos.X, fMouseMovePos.y);
@@ -285,6 +301,11 @@ Begin
   PaintBox2.Canvas.brush.color := clWhite;
   PaintBox2.Canvas.Rectangle(-1, -1, PaintBox2.Width + 1, PaintBox2.Height + 1);
   fSelector.RenderTo(PaintBox2.Canvas, point(0, ScrollBar3.Position * PaintBox2.Height));
+End;
+
+Procedure TForm1.ScrollBar2Change(Sender: TObject);
+Begin
+  PaintBox1.Invalidate;
 End;
 
 Procedure TForm1.ScrollBar3Change(Sender: TObject);

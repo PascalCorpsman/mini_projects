@@ -171,6 +171,7 @@ Type
 
   TOneInOneOut = Class(TDigimanElement)
   private
+    fState: TState; // TODO: dass muss mittels eine getter Methode gemacht werden!
     fImage: TBitmap;
   protected
     Function getHeight: integer; override;
@@ -186,6 +187,7 @@ Type
 
   TTwoInOneOut = Class(TDigimanElement)
   private
+    fState: TState; // TODO: dass muss mittels eine getter Methode gemacht werden!
     fImage: TBitmap;
   protected
     Function getHeight: integer; override;
@@ -579,7 +581,7 @@ Begin
     LineStateToCanvas(aCanvas, point(left + 26, top + 7) - aOffset, fState);
   End;
   If fOwner.ShowConnectionPoints Then Begin
-    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0]);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
   End;
 End;
 
@@ -642,7 +644,7 @@ Begin
     LineStateToCanvas(aCanvas, point(left + 1, top + 7) - aOffset, fState);
   End;
   If fOwner.ShowConnectionPoints Then Begin
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0]);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
   End;
 End;
 
@@ -667,6 +669,11 @@ Constructor TOneInOneOut.Create;
 Begin
   Inherited Create();
   fImage := Nil;
+  setlength(InPoints, 1);
+  InPoints[0] := point(1, 8);
+  setlength(OutPoints, 1);
+  OutPoints[0] := point(30, 8);
+  fState := sUndefined;
 End;
 
 Destructor TOneInOneOut.Destroy;
@@ -679,6 +686,15 @@ End;
 Procedure TOneInOneOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Begin
   acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+
+  If fOwner.ShowPegel Then Begin
+    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, fState);
+  End;
+
+  If fOwner.ShowConnectionPoints Then Begin
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
+  End;
 End;
 
 { TTwoInOneOut }
@@ -697,6 +713,12 @@ Constructor TTwoInOneOut.Create();
 Begin
   Inherited Create();
   fImage := Nil;
+  setlength(InPoints, 2);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  setlength(OutPoints, 1);
+  OutPoints[0] := point(26, 12);
+  fState := sUndefined;
 End;
 
 Destructor TTwoInOneOut.Destroy();
@@ -710,6 +732,16 @@ End;
 Procedure TTwoInOneOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Begin
   acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+
+  If fOwner.ShowPegel Then Begin
+    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, fState);
+  End;
+
+  If fOwner.ShowConnectionPoints Then Begin
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[1] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
+  End;
 End;
 
 { TNot }
@@ -759,6 +791,7 @@ Begin
   Inherited Create();
   fImage.free;
   fImage := LoadImage('Nor.bmp');
+  OutPoints[0] := point(30, 12);
 End;
 
 Function TNOr.Clone: TDigimanElement;
@@ -773,6 +806,7 @@ Begin
   Inherited Create();
   fImage.free;
   fImage := LoadImage('Nand.bmp');
+  OutPoints[0] := point(30, 12);
 End;
 
 Function TNand.Clone: TDigimanElement;
