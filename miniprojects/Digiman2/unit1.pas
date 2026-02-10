@@ -193,17 +193,17 @@ Begin
         PaintBox1.Invalidate;
         exit;
       End;
+      // Eine Linie wird erstellt und gerade "gezogen"
+      If fLineCreateHelper.Mode <> lcmIdle Then Begin
+        fLineCreateHelper.AddCorner(x + ScrollBar1.Position, y + ScrollBar2.Position);
+        PaintBox1.Invalidate;
+      End;
+      exit;
     End;
+
     // Wir haben auf ein Existierendes Element geklickt, dieses aber nicht mit den Tools
     // Bearbeitet -> raus hier
     If assigned(fSelectedElement) Then exit;
-
-    // Eine Linie wird erstellt und gerade "gezogen"
-    If fLineCreateHelper.Mode <> lcmIdle Then Begin
-      fLineCreateHelper.AddCorner(x + ScrollBar1.Position, y + ScrollBar2.Position);
-      PaintBox1.Invalidate;
-      exit;
-    End;
 
     // Wir haben ins Leere geklickt und wollen ein neues Element einfügen
     If assigned(fAdderElement) Then Begin

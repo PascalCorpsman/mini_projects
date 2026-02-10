@@ -902,13 +902,16 @@ End;
 Procedure TLineCreateHelper.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Var
   i: Integer;
+  tmp: Tpoint;
 Begin
   If (mode = lcmIdle) Or (Not Assigned(fPoints)) Then exit;
   aCanvas.Pen.Color := clBlack;
   For i := 0 To high(fPoints) - 1 Do Begin
     DrawSegment(aCanvas, aOffset, fPoints[i], fPoints[i + 1]);
   End;
-  DrawSegment(aCanvas, aOffset, fPoints[high(fPoints)], fAktualMousePos);
+  tmp.x := fAktualMousePos.x - fAktualMousePos.x Mod Grid;
+  tmp.Y := fAktualMousePos.Y - fAktualMousePos.Y Mod Grid;
+  DrawSegment(aCanvas, aOffset, fPoints[high(fPoints)], tmp);
 End;
 
 Procedure TLineCreateHelper.SetActualMousePosition(aX, aY: integer);
@@ -934,6 +937,9 @@ End;
 
 Procedure TLineCreateHelper.AddCorner(aX, aY: integer);
 Begin
+  // Allign to grid
+  aX := aX - aX Mod Grid;
+  aY := aY - aY Mod Grid;
   setlength(fPoints, high(fPoints) + 2);
   fPoints[high(fPoints)] := point(aX, aY);
 End;
