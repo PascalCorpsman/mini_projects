@@ -79,6 +79,7 @@ Type
     fMouseDownPos, fMouseMovePos: TPoint;
     fSelectedElement: TDigimanElement;
     fAdderElement: TDigimanElement;
+    fLineCreateHelper: TLineCreateHelper;
   public
 
   End;
@@ -129,7 +130,7 @@ Begin
   End;
 
   fAdderElement := Nil;
-
+  fLineCreateHelper := TLineCreateHelper.Create;
   CheckBox1Click(Nil);
   PaintBox2.Invalidate;
 End;
@@ -152,18 +153,20 @@ Begin
   fEngine := Nil;
   fSelector.free;
   fSelector := Nil;
+  fLineCreateHelper.free;
 End;
 
 Procedure TForm1.PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Var
   e: TDigimanElement;
+  InIndex, OutIndex: integer;
 Begin
   fMouseDownPos := Point(x, y);
   fMouseMovePos := Point(x, y);
   fSelectedElement := Nil;
   If ssleft In shift Then Begin
-    fSelectedElement := fEngine.GetElementAtPos(x, y);
+    fSelectedElement := fEngine.GetElementAtPos(x + ScrollBar1.Position, y + ScrollBar2.Position);
 
     If assigned(fAdderElement) And (fAdderElement Is TTool) Then Begin
       // Das "Lösch" Tool
@@ -173,24 +176,39 @@ Begin
       End;
       // Das Linientool
       If (fAdderElement Is TLineTool) And (assigned(fSelectedElement)) Then Begin
-        // TODO: Implementieren
-
-        //hier gehts weiter !
-
+        If fSelectedElement.InOutPointHit(x + ScrollBar1.Position, y + ScrollBar2.Position, InIndex, OutIndex) Then Begin
+          // Die Linie Startet oder endet
+          If fLineCreateHelper.Mode = lcmIdle Then Begin
+            // Eine Neue Linie wird erstellt
+            fLineCreateHelper.StartNewLine(fSelectedElement, InIndex, OutIndex);
+          End
+          Else Begin
+            // Eine Linie wird Beendet
+            If Not fLineCreateHelper.EndLine(fSelectedElement, InIndex, OutIndex) Then Begin
+              showmessage('Error, connection not allowed.');
+            End;
+          End;
+        End;
+        fSelectedElement := Nil;
         PaintBox1.Invalidate;
+        exit;
       End;
-      fSelectedElement := Nil;
-      exit;
     End;
-
     // Wir haben auf ein Existierendes Element geklickt, dieses aber nicht mit den Tools
     // Bearbeitet -> raus hier
     If assigned(fSelectedElement) Then exit;
 
+    // Eine Linie wird erstellt und gerade "gezogen"
+    If fLineCreateHelper.Mode <> lcmIdle Then Begin
+      fLineCreateHelper.AddCorner(x + ScrollBar1.Position, y + ScrollBar2.Position);
+      PaintBox1.Invalidate;
+      exit;
+    End;
+
     // Wir haben ins Leere geklickt und wollen ein neues Element einfügen
     If assigned(fAdderElement) Then Begin
       e := fAdderElement.Clone;
-      e.setPosition(x, y);
+      e.setPosition(x + ScrollBar1.Position, y + ScrollBar2.Position);
       fEngine.AddElement(e);
       PaintBox1.Invalidate;
     End;
@@ -198,6 +216,13 @@ Begin
 
   If ssright In shift Then Begin
     // Abwahl des aktuellen Elementes
+    If fAdderElement Is TLineTool Then Begin
+      // ggf. Revert des letzten Liniensegmentes
+      fLineCreateHelper.DelLastCorner;
+      PaintBox1.Invalidate;
+      exit;
+    End;
+    // Löschen des Aktuellen Tools
     fAdderElement := Nil;
     fEngine.ShowConnectionPoints := false;
 
@@ -228,6 +253,10 @@ Begin
   End;
   fMouseMovePos := Point(x, y);
   If assigned(fAdderElement) Then Begin
+    PaintBox1.Invalidate;
+  End;
+  If fLineCreateHelper.Mode <> lcmIdle Then Begin
+    fLineCreateHelper.SetActualMousePosition(x + ScrollBar1.Position, y + ScrollBar2.Position);
     PaintBox1.Invalidate;
   End;
 End;
@@ -271,6 +300,9 @@ Begin
     fAdderElement.RenderTo(PaintBox1.Canvas, point(0, 0));
     fAdderElement.Left := al;
     fAdderElement.Top := at;
+  End;
+  If fLineCreateHelper.Mode <> lcmIdle Then Begin
+    fLineCreateHelper.RenderTo(PaintBox1.Canvas, point(ScrollBar1.Position, ScrollBar2.Position));
   End;
 End;
 

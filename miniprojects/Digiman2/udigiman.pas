@@ -77,8 +77,8 @@ Type
     Top: integer;
     Left: integer;
 
-    InPoints: Array Of Tpoint; // Relativ zu top / Left
-    OutPoints: Array Of Tpoint; // Relativ zu top / Left
+    InPoints: Array Of Tpoint; // Relativ zu Top / Left
+    OutPoints: Array Of Tpoint; // Relativ zu Top / Left
 
     Property Width: integer read getWidth;
     Property Height: integer read getHeight;
@@ -94,6 +94,12 @@ Type
 
     Procedure Click; virtual;
     Function Clone: TDigimanElement; virtual abstract;
+
+    (*
+     * True, wenn die Koordinate aX, aY einen der InPoints / OutPoints getroffen hat.
+     * *Index = -1 => Kein Hit, sonst index im jeweiligen array
+     *)
+    Function InOutPointHit(aX, aY: integer; Out InIndex, OutIndex: integer): Boolean;
   End;
 
   { TTool }
@@ -245,6 +251,30 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
+  TLineCreateMode = (lcmIdle, lcmAddCorners);
+
+  { TLineCreateHelper }
+
+  TLineCreateHelper = Class
+  private
+    fPoints: Array Of TPoint;
+    fStartElement: TDigimanElement;
+    fAktualMousePos: TPoint;
+    Procedure DrawSegment(Const aCanvas: TCanvas; aOffset: TPoint; aFrom, aTo: Tpoint);
+  public
+    Mode: TLineCreateMode;
+    Constructor Create;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+
+    Procedure SetActualMousePosition(aX, aY: integer);
+
+    Procedure StartNewLine(StartElement: TDigimanElement; InIndex, OutIndex: integer);
+    Procedure AddCorner(aX, aY: integer);
+    Function EndLine(StartElement: TDigimanElement; InIndex, OutIndex: integer): boolean;
+    Procedure DelLastCorner;
+  End;
+
 Implementation
 
 Function CreateDigimanElemenFromString(Const ClassName: String): TDigimanElement;
@@ -285,6 +315,13 @@ Begin
     acanvas.Pixels[aPos.x, apos.y - 3] := clRed;
     acanvas.Pixels[aPos.x + 1, apos.y - 3] := clRed;
   End;
+End;
+
+Function PointInPointCollider(aX, aY: integer; Const aPoint: Tpoint): Boolean;
+Begin
+  result :=
+    (aPoint.x - 2 <= ax) And (aPoint.x + 3 >= aX) And
+    (aPoint.Y - 2 <= ay) And (aPoint.Y + 3 >= ay);
 End;
 
 Procedure ConnectionPointToCanvas(Const aCanvas: TCanvas; aPos: Tpoint);
@@ -357,6 +394,32 @@ End;
 Procedure TDigimanElement.Click;
 Begin
   // Nichts, ..
+End;
+
+Function TDigimanElement.InOutPointHit(aX, aY: integer; Out InIndex,
+  OutIndex: integer): Boolean;
+Var
+  i: Integer;
+Begin
+  result := false;
+  ax := ax - Left;
+  ay := ay - Top;
+  InIndex := -1;
+  OutIndex := -1;
+  For i := 0 To high(InPoints) Do Begin
+    If PointInPointCollider(ax, ay, InPoints[i]) Then Begin
+      InIndex := i;
+      result := true;
+      exit;
+    End;
+  End;
+  For i := 0 To high(OutPoints) Do Begin
+    If PointInPointCollider(ax, ay, OutPoints[i]) Then Begin
+      OutIndex := i;
+      result := true;
+      exit;
+    End;
+  End;
 End;
 
 { TTool }
@@ -812,6 +875,84 @@ End;
 Function TNand.Clone: TDigimanElement;
 Begin
   Result := TNand.Create();
+End;
+
+{ TLineCreateHelper }
+
+Procedure TLineCreateHelper.DrawSegment(Const aCanvas: TCanvas;
+  aOffset: TPoint; aFrom, aTo: Tpoint);
+Var
+  dx: integer;
+Begin
+  aFrom := aFrom + aOffset;
+  aTo := aTo + aOffset;
+  dx := ato.X - aFrom.X;
+  // First Horizontal
+  aCanvas.Line(aFrom.X, aFrom.Y, aFrom.X + dx, aFrom.Y);
+  // Second Vertical
+  aCanvas.Line(aFrom.X + dx, aFrom.Y, aTo.X, aTo.Y);
+End;
+
+Constructor TLineCreateHelper.Create;
+Begin
+  Mode := lcmIdle;
+  fPoints := Nil;
+End;
+
+Procedure TLineCreateHelper.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Var
+  i: Integer;
+Begin
+  If (mode = lcmIdle) Or (Not Assigned(fPoints)) Then exit;
+  aCanvas.Pen.Color := clBlack;
+  For i := 0 To high(fPoints) - 1 Do Begin
+    DrawSegment(aCanvas, aOffset, fPoints[i], fPoints[i + 1]);
+  End;
+  DrawSegment(aCanvas, aOffset, fPoints[high(fPoints)], fAktualMousePos);
+End;
+
+Procedure TLineCreateHelper.SetActualMousePosition(aX, aY: integer);
+Begin
+  fAktualMousePos := Point(ax, ay);
+End;
+
+Procedure TLineCreateHelper.StartNewLine(StartElement: TDigimanElement;
+  InIndex, OutIndex: integer);
+Begin
+  setlength(fPoints, 1);
+  fPoints[0] := point(StartElement.Left, StartElement.Top);
+  If InIndex <> -1 Then Begin
+    fPoints[0] := fPoints[0] + StartElement.InPoints[InIndex];
+  End;
+  If OutIndex <> -1 Then Begin
+    fPoints[0] := fPoints[0] + StartElement.OutPoints[OutIndex];
+  End;
+  fStartElement := StartElement;
+  Mode := lcmAddCorners;
+  SetActualMousePosition(fPoints[0].x, fPoints[0].y);
+End;
+
+Procedure TLineCreateHelper.AddCorner(aX, aY: integer);
+Begin
+  setlength(fPoints, high(fPoints) + 2);
+  fPoints[high(fPoints)] := point(aX, aY);
+End;
+
+Function TLineCreateHelper.EndLine(StartElement: TDigimanElement; InIndex,
+  OutIndex: integer): boolean;
+Begin
+  result := false;
+
+  Hier weiter
+
+End;
+
+Procedure TLineCreateHelper.DelLastCorner;
+Begin
+  If assigned(fPoints) Then Begin
+    setlength(fPoints, high(fPoints));
+  End;
+  If Not Assigned(fPoints) Then Mode := lcmIdle;
 End;
 
 End.
