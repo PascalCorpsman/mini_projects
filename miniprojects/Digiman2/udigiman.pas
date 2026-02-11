@@ -40,7 +40,9 @@ Type
   TDigiman = Class
   private
     fElements: Array Of TDigimanElement;
+    fLines: Array Of TDigimanElement; //Macht das handling leichter, müsste aber nicht Extra sein ..
     Procedure initElementsIndexWithElement(Const aElement: TDigimanElement; aIndex: integer);
+    Procedure initLinesIndexWithElement(Const aElement: TDigimanElement; aIndex: integer);
   public
     ShowPegel: Boolean;
     ShowConnectionPoints: Boolean;
@@ -95,6 +97,8 @@ Type
     Procedure Click; virtual;
     Function Clone: TDigimanElement; virtual abstract;
 
+    Function GetState(aindex: integer): Tstate; virtual; // Abstract
+
     (*
      * True, wenn die Koordinate aX, aY einen der InPoints / OutPoints getroffen hat.
      * *Index = -1 => Kein Hit, sonst index im jeweiligen array
@@ -131,6 +135,16 @@ Type
     Constructor Create(); override;
   End;
 
+  TLine = Class(TDigimanElement)
+  private
+    fPoints: Array Of TPoint;
+  public
+    Constructor Create(); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+
+  End;
+
   { TUserInput }
 
   TUserInput = Class(TDigimanElement)
@@ -151,6 +165,8 @@ Type
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
 
     Procedure Click; override;
+
+    Function GetState(aindex: Integer): Tstate; override;
 
     Function Clone: TDigimanElement; override;
   End;
@@ -177,7 +193,6 @@ Type
 
   TOneInOneOut = Class(TDigimanElement)
   private
-    fState: TState; // TODO: dass muss mittels eine getter Methode gemacht werden!
     fImage: TBitmap;
   protected
     Function getHeight: integer; override;
@@ -193,7 +208,6 @@ Type
 
   TTwoInOneOut = Class(TDigimanElement)
   private
-    fState: TState; // TODO: dass muss mittels eine getter Methode gemacht werden!
     fImage: TBitmap;
   protected
     Function getHeight: integer; override;
@@ -260,7 +274,6 @@ Type
     fPoints: Array Of TPoint;
     fStartElement: TDigimanElement;
     fAktualMousePos: TPoint;
-    Procedure DrawSegment(Const aCanvas: TCanvas; aOffset: TPoint; aFrom, aTo: Tpoint);
   public
     Mode: TLineCreateMode;
     Constructor Create;
@@ -271,7 +284,7 @@ Type
 
     Procedure StartNewLine(StartElement: TDigimanElement; InIndex, OutIndex: integer);
     Procedure AddCorner(aX, aY: integer);
-    Function EndLine(StartElement: TDigimanElement; InIndex, OutIndex: integer): boolean;
+    Function EndLine(EndElement: TDigimanElement; InIndex, OutIndex: integer): boolean;
     Procedure DelLastCorner;
   End;
 
@@ -329,6 +342,19 @@ Begin
   aCanvas.Brush.Color := clGreen;
   aCanvas.Pen.Color := clGreen;
   aCanvas.Rectangle(aPos.x - 2, aPos.Y - 2, aPos.x + 3, aPos.Y + 3);
+End;
+
+Procedure DrawSegment(Const aCanvas: TCanvas; aOffset: TPoint; aFrom, aTo: Tpoint);
+Var
+  dx: integer;
+Begin
+  aFrom := aFrom + aOffset;
+  aTo := aTo + aOffset;
+  dx := ato.X - aFrom.X;
+  // First Horizontal
+  aCanvas.Line(aFrom.X, aFrom.Y, aFrom.X + dx, aFrom.Y);
+  // Second Vertical
+  aCanvas.Line(aFrom.X + dx, aFrom.Y, aTo.X, aTo.Y);
 End;
 
 { TDigimanElement }
@@ -394,6 +420,11 @@ End;
 Procedure TDigimanElement.Click;
 Begin
   // Nichts, ..
+End;
+
+Function TDigimanElement.GetState(aindex: integer): Tstate;
+Begin
+  result := sUndefined;
 End;
 
 Function TDigimanElement.InOutPointHit(aX, aY: integer; Out InIndex,
@@ -468,6 +499,22 @@ Begin
   fImage := LoadImage('Linetool.bmp');
 End;
 
+Constructor TLine.Create;
+Begin
+  Inherited Create();
+  fPoints := Nil;
+End;
+
+Procedure TLine.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Var
+  i: Integer;
+Begin
+  aCanvas.Pen.Color := clBlack;
+  For i := 0 To high(fPoints) - 1 Do Begin
+    DrawSegment(aCanvas, aOffset, fPoints[i], fPoints[i + 1]);
+  End;
+End;
+
 Procedure TDigiman.initElementsIndexWithElement(
   Const aElement: TDigimanElement; aIndex: integer);
 Begin
@@ -475,10 +522,18 @@ Begin
   fElements[aIndex] := aElement;
 End;
 
+Procedure TDigiman.initLinesIndexWithElement(Const aElement: TDigimanElement;
+  aIndex: integer);
+Begin
+  aElement.fOwner := self;
+  fLines[aIndex] := aElement;
+End;
+
 Constructor TDigiman.Create;
 Begin
   Inherited Create();
   fElements := Nil;
+  fLines := Nil;
   ShowPegel := true;
   ShowConnectionPoints := false;
 End;
@@ -492,6 +547,9 @@ Procedure TDigiman.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Var
   i: Integer;
 Begin
+  For i := 0 To high(fLines) Do Begin
+    fLines[i].RenderTo(aCanvas, aOffset);
+  End;
   For i := 0 To high(fElements) Do Begin
     fElements[i].RenderTo(aCanvas, aOffset);
   End;
@@ -499,24 +557,46 @@ End;
 
 Procedure TDigiman.AddElement(Const aElement: TDigimanElement);
 Begin
-  setlength(fElements, high(fElements) + 2);
-  initElementsIndexWithElement(aElement, high(fElements));
+  If aElement Is TLine Then Begin
+    setlength(fLines, high(fLines) + 2);
+    initLinesIndexWithElement(aElement, high(fLines));
+  End
+  Else Begin
+    setlength(fElements, high(fElements) + 2);
+    initElementsIndexWithElement(aElement, high(fElements));
+  End;
 End;
 
 Procedure TDigiman.DelElement(Const aElement: TDigimanElement);
 Var
   i, j: Integer;
 Begin
-  For i := 0 To high(fElements) Do Begin
-    If fElements[i] = aElement Then Begin
-      // TODO: löschen aller Linien die mit aElement zu tun haben
+  If aElement Is TLine Then Begin
+    For i := 0 To high(fLines) Do Begin
+      If fLines[i] = aElement Then Begin
+        // TODO: löschen aller Linien die mit aElement zu tun haben
 
-      fElements[i].Free;
-      For j := i To high(fElements) - 1 Do Begin
-        fElements[j] := fElements[j + 1];
+        fLines[i].Free;
+        For j := i To high(fLines) - 1 Do Begin
+          fLines[j] := fLines[j + 1];
+        End;
+        SetLength(fLines, high(fLines));
+        exit;
       End;
-      SetLength(fElements, high(fElements));
-      exit;
+    End;
+  End
+  Else Begin
+    For i := 0 To high(fElements) Do Begin
+      If fElements[i] = aElement Then Begin
+        // TODO: löschen aller Linien die mit aElement zu tun haben
+
+        fElements[i].Free;
+        For j := i To high(fElements) - 1 Do Begin
+          fElements[j] := fElements[j + 1];
+        End;
+        SetLength(fElements, high(fElements));
+        exit;
+      End;
     End;
   End;
 End;
@@ -529,6 +609,10 @@ Begin
     fElements[i].Free;
   End;
   setlength(fElements, 0);
+  For i := 0 To high(fLines) Do Begin
+    fLines[i].Free;
+  End;
+  setlength(fLines, 0);
 End;
 
 Function TDigiman.GetElementAtPos(x, y: integer): TDigimanElement;
@@ -656,6 +740,11 @@ Begin
   End;
 End;
 
+Function TUserInput.GetState(aindex: Integer): Tstate;
+Begin
+  Result := fState;
+End;
+
 Function TUserInput.Clone: TDigimanElement;
 Begin
   result := TUserInput.Create();
@@ -736,7 +825,6 @@ Begin
   InPoints[0] := point(1, 8);
   setlength(OutPoints, 1);
   OutPoints[0] := point(30, 8);
-  fState := sUndefined;
 End;
 
 Destructor TOneInOneOut.Destroy;
@@ -751,7 +839,7 @@ Begin
   acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
 
   If fOwner.ShowPegel Then Begin
-    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, fState);
+    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, GetState(0));
   End;
 
   If fOwner.ShowConnectionPoints Then Begin
@@ -781,7 +869,6 @@ Begin
   InPoints[1] := point(1, 20);
   setlength(OutPoints, 1);
   OutPoints[0] := point(26, 12);
-  fState := sUndefined;
 End;
 
 Destructor TTwoInOneOut.Destroy();
@@ -797,7 +884,7 @@ Begin
   acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
 
   If fOwner.ShowPegel Then Begin
-    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, fState);
+    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, GetState(0));
   End;
 
   If fOwner.ShowConnectionPoints Then Begin
@@ -879,20 +966,6 @@ End;
 
 { TLineCreateHelper }
 
-Procedure TLineCreateHelper.DrawSegment(Const aCanvas: TCanvas;
-  aOffset: TPoint; aFrom, aTo: Tpoint);
-Var
-  dx: integer;
-Begin
-  aFrom := aFrom + aOffset;
-  aTo := aTo + aOffset;
-  dx := ato.X - aFrom.X;
-  // First Horizontal
-  aCanvas.Line(aFrom.X, aFrom.Y, aFrom.X + dx, aFrom.Y);
-  // Second Vertical
-  aCanvas.Line(aFrom.X + dx, aFrom.Y, aTo.X, aTo.Y);
-End;
-
 Constructor TLineCreateHelper.Create;
 Begin
   Mode := lcmIdle;
@@ -944,13 +1017,32 @@ Begin
   fPoints[high(fPoints)] := point(aX, aY);
 End;
 
-Function TLineCreateHelper.EndLine(StartElement: TDigimanElement; InIndex,
+Function TLineCreateHelper.EndLine(EndElement: TDigimanElement; InIndex,
   OutIndex: integer): boolean;
+Var
+  aLine: TLine;
+  p: TPoint;
+  i: Integer;
 Begin
   result := false;
+  aLine := TLine.Create();
+  setlength(aLine.fPoints, length(fPoints) + 1);
+  For i := 0 To high(fPoints) Do Begin
+    aLine.fPoints[i] := fPoints[i];
+  End;
+  If InIndex <> -1 Then Begin
+    p := EndElement.InPoints[InIndex] + point(EndElement.Top, EndElement.Left);
+  End;
+  If OutIndex <> -1 Then Begin
+    p := EndElement.OutPoints[OutIndex] + point(EndElement.Top, EndElement.Left);
+  End;
+  aLine.fPoints[High(aLine.fPoints)] := P;
 
-  Hier weiter
+  weiter mit Speichern, des fStartElements und EndElements in der Linie !
 
+  fStartElement.fOwner.AddElement(aLine);
+  result := true;
+  Mode := lcmIdle;
 End;
 
 Procedure TLineCreateHelper.DelLastCorner;
