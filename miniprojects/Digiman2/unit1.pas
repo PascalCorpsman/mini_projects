@@ -218,12 +218,15 @@ Begin
     // Abwahl des aktuellen Elementes
     If fAdderElement Is TLineTool Then Begin
       // ggf. Revert des letzten Liniensegmentes
-      fLineCreateHelper.DelLastCorner;
-      PaintBox1.Invalidate;
-      exit;
+      If fLineCreateHelper.Mode <> lcmIdle Then Begin
+        fLineCreateHelper.DelLastCorner;
+        PaintBox1.Invalidate;
+        exit;
+      End;
     End;
     // Löschen des Aktuellen Tools
     fAdderElement := Nil;
+    PaintBox1.Cursor := crDefault;
     fEngine.ShowConnectionPoints := false;
 
     PaintBox1.Invalidate;
