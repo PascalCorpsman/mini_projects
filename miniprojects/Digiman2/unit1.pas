@@ -172,6 +172,7 @@ Begin
       // Das "Lösch" Tool
       If (fAdderElement Is TEraser) And (assigned(fSelectedElement)) Then Begin
         fEngine.DelElement(fSelectedElement);
+        fSelectedElement := Nil; // Das Element gibt es nun ja nicht mehr ..
         PaintBox1.Invalidate;
       End;
       // Das Linientool

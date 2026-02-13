@@ -638,8 +638,7 @@ Begin
   Else Begin
     For i := 0 To high(fElements) Do Begin
       If fElements[i] = aElement Then Begin
-        // TODO: löschen aller Linien die mit aElement zu tun haben
-
+        RemoveAllConnectionsTo(aElement);
         fElements[i].Free;
         For j := i To high(fElements) - 1 Do Begin
           fElements[j] := fElements[j + 1];
@@ -677,6 +676,8 @@ Begin
       exit;
     End;
   End;
+
+  Hier müssen Linien auch gefunden werden -> Damit sie löschbar werden !
 End;
 
 Procedure TDigiman.SaveToFile(Const aFilename: String);
