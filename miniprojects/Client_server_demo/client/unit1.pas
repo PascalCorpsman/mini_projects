@@ -87,6 +87,7 @@ Uses LCLType;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
+  caption := 'Client server demo, Client ver. 0.01 by Corpsman www.Corpsman.de';
   edit1.text := '127.0.0.1';
   edit2.text := '9876';
   fChunkManager := TChunkManager.create;
