@@ -1,0 +1,40 @@
+''Eval Image with http://plantuml.sourceforge.net/
+''---------- Messages.png ---------- 
+@startuml
+
+title Client server demo messages
+
+participant Client_n
+participant Server
+
+rnote over Server
+  start application
+end rnote
+
+rnote over Server
+  listen on port 9876
+end rnote
+
+rnote over Client_n
+  start application
+end rnote
+
+Client_n -> Server : connect
+Server -> Client_n : msgSetPlayerID <ID>
+rnote over Client_n
+  choose random position
+end rnote
+
+Client_n -> Server : msgPlayerPosition <x,y>
+
+== Every 40ms ==
+Server -> Client_n : msgAktualGameData
+
+== Every 25ms ==
+Client_n -> Server : msgPlayerPosition <x,y>
+
+== On key event "F" ==
+Client_n -> Server : msgPLayerPlacedItem <x,y>
+
+
+@enduml
