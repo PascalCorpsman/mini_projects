@@ -27,10 +27,12 @@ Const
 
 Type
 
-  TState = (sOff, sOn, sOffToOn, sOnToOff, sUndefined);
+  TState = (sOff, sOn, {sOffToOn, sOnToOff,} sUndefined);
 
   TDigimanElement = Class;
   Tline = Class;
+
+  TPointArray = Array Of TPoint;
 
   (*
    * Der Eigentliche Emulator
@@ -42,10 +44,15 @@ Type
   private
     fElements: Array Of TDigimanElement;
     fLines: Array Of Tline; //Macht das handling leichter, müsste aber nicht Extra sein ..
+    fBridges: TPointArray;
+    fBridgeImage: TBitmap;
     Procedure initElementsIndexWithElement(Const aElement: TDigimanElement; aIndex: integer);
     Procedure initLinesIndexWithElement(Const aElement: Tline; aIndex: integer);
   protected
     Procedure RemoveAllConnectionsTo(aElement: TDigimanElement);
+    Function ElementToElementIndex(Const aElement: TDigimanElement): integer;
+    Procedure CalculateAndAddIntersectionPoints(Const aLine1, aLine2: Tline);
+    Procedure CalculateLineBridges;
   public
     ShowPegel: Boolean;
     ShowConnectionPoints: Boolean;
@@ -69,21 +76,30 @@ Type
    * Ein Element welches in TDigiman verwaltet wird
    *)
 
+  TIndexElement = Record
+    Element: TDigimanElement;
+    Index: integer;
+  End;
+
   { TDigimanElement }
 
   TDigimanElement = Class
   private
     fOwner: TDigiman;
   protected
+    fEvaluated: Boolean;
+    fEvaluatedState: TState;
+    InElements: Array Of TIndexElement; //Jeder In Point hat ein InElement
+
     Function getHeight: integer; virtual; // Abstract
     Function getWidth: integer; virtual; // Abstract
     Function LoadImage(aFilename: String): TBitmap; // Helper function for constructors
     Procedure RemoveAllConnectionsTo(aElement: TDigimanElement); virtual;
+    Function _In(index: Integer): TState;
   public
     Top: integer;
     Left: integer;
 
-    InElements: Array Of TDigimanElement; //Jeder In Point hat ein InElement
     InPoints: Array Of Tpoint; // Relativ zu Top / Left
     OutPoints: Array Of Tpoint; // Relativ zu Top / Left
 
@@ -102,7 +118,14 @@ Type
     Procedure Click; virtual;
     Function Clone: TDigimanElement; virtual abstract;
 
-    Function GetState(aindex: integer): Tstate; virtual; // Abstract
+    Function GetState(aOutindex: integer): Tstate; virtual; // Abstract
+    Procedure ResetEvalState;
+
+    Procedure SetInElement(
+      aInIndex: integer; // Der Eingang an dem aOutElement angeschlossen ist
+      aOutElement: TDigimanElement; // das Element, welches wir lesen
+      aOutIndex: integer // Der Ausgang des Elementes welches wir lesen
+      );
 
     (*
      * True, wenn die Koordinate aX, aY einen der InPoints / OutPoints getroffen hat.
@@ -124,6 +147,8 @@ Type
     Destructor Destroy(); override;
 
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+
+    Function Clone: TDigimanElement; override;
   End;
 
   { TEraser }
@@ -143,15 +168,43 @@ Type
   TLine = Class(TDigimanElement)
   private
     fPoints: Array Of TPoint;
-    fOutIndex: integer; // The Out Index of the inElement
     fInElement: TDigimanElement;
+    fInIndex: integer;
     fOutElement: TDigimanElement;
+    fOutIndex: integer;
   public
     Constructor Create(); override;
 
+    Procedure SaveToStream(Const aStream: TStream); override;
+    Procedure LoadFromStream(Const aStream: TStream); override;
+
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
 
+    Function Clone: TDigimanElement; override;
+
     Function GetState(aindex: integer): Tstate; override;
+    Function PointCollideWithLine(Const aPoint: TPoint): Boolean;
+  End;
+
+  { TUserText }
+
+  TUserText = Class(TDigimanElement)
+  private
+    fWidth, fHeight: integer;
+  protected
+    Function getHeight: integer; override;
+    Function getWidth: integer; override;
+
+  public
+    Text: String;
+    Constructor Create(); override;
+
+    Procedure SaveToStream(Const aStream: TStream); override;
+    Procedure LoadFromStream(Const aStream: TStream); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+
+    Function Clone: TDigimanElement; override;
   End;
 
   { TUserInput }
@@ -184,7 +237,6 @@ Type
 
   TProbe = Class(TDigimanElement)
   private
-    fState: TState;
     fOnImage, fOffImage, fUnknownImage: TBitmap;
   protected
     Function getHeight: integer; override;
@@ -235,6 +287,8 @@ Type
     Constructor Create(); override;
 
     Function Clone: TDigimanElement; override;
+
+    Function GetState(aindex: Integer): Tstate; override;
   End;
 
   { TAnd }
@@ -243,6 +297,8 @@ Type
   protected
   public
     Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
 
     Function Clone: TDigimanElement; override;
   End;
@@ -253,6 +309,8 @@ Type
   public
     Constructor Create(); override;
 
+    Function GetState(aOutindex: integer): Tstate; override;
+
     Function Clone: TDigimanElement; override;
   End;
 
@@ -262,6 +320,8 @@ Type
   public
     Constructor Create(); override;
 
+    Function GetState(aOutindex: integer): Tstate; override;
+
     Function Clone: TDigimanElement; override;
   End;
 
@@ -270,6 +330,8 @@ Type
   TNand = Class(TTwoInOneOut)
   public
     Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
 
     Function Clone: TDigimanElement; override;
   End;
@@ -281,7 +343,8 @@ Type
   TLineCreateHelper = Class
   private
     fPoints: Array Of TPoint;
-    fOutIndex: integer; // The Out Index of the inElement
+    fInIndex: integer;
+    fOutIndex: integer;
     fInElement: TDigimanElement;
     fOutElement: TDigimanElement;
     fAktualMousePos: TPoint;
@@ -301,6 +364,45 @@ Type
 
 Implementation
 
+Uses Dialogs;
+
+Function _Not(aState: TState): TState;
+Begin
+  result := sUndefined;
+  Case aState Of
+    sOff: result := sOn;
+    sOn: Result := sOff;
+    //    sOffToOn: Result := sOnToOff;
+    //    sOnToOff: Result := sOffToOn;
+  End;
+End;
+
+Function _or(aS1, aS2: TState): TState;
+Begin
+  Result := sUndefined;
+  If (as1 = sOn) Or (as2 = sOn) Then Begin
+    Result := sOn;
+  End
+  Else Begin
+    If (as1 = sOff) Or (as2 = sOff) Then Begin
+      Result := sOff
+    End;
+  End;
+End;
+
+Function _and(aS1, aS2: TState): TState;
+Begin
+  Result := sUndefined;
+  If (aS1 = sOn) And (aS2 = sOn) Then
+    Result := sOn
+  Else Begin
+    If (aS1 = sOff) Or (aS2 = sOff) Then
+      Result := sOff
+    Else If (aS1 = sOn) Or (aS2 = sOn) Then
+      Result := sOn
+  End;
+End;
+
 Function CreateDigimanElemenFromString(Const ClassName: String): TDigimanElement;
 Begin
   result := Nil;
@@ -315,6 +417,7 @@ Begin
     'tnot': result := TNot.Create();
     'tprobe': result := TProbe.Create();
     'tuserinput': result := TUserInput.Create();
+    'tusertext': result := TUserText.Create();
   Else Begin
       Raise exception.create('Error: ' + ClassName + ' not implemented in CreateDigimanElemenFromString');
     End;
@@ -323,7 +426,7 @@ End;
 
 Procedure LineStateToCanvas(Const aCanvas: TCanvas; aPos: Tpoint; aState: TState);
 Begin
-  If aState In [sOffToOn, sUndefined, sOn] Then Begin
+  If aState In [{sOffToOn,} sUndefined, sOn] Then Begin
     acanvas.Pixels[aPos.x, apos.y] := clRed;
     acanvas.Pixels[aPos.x + 1, apos.y] := clRed;
     acanvas.Pixels[aPos.x, apos.y - 1] := clRed;
@@ -333,7 +436,7 @@ Begin
     acanvas.Pixels[aPos.x, apos.y - 5] := clRed;
     acanvas.Pixels[aPos.x + 1, apos.y - 5] := clRed;
   End;
-  If aState In [sOffToOn, sOn] Then Begin
+  If aState In [{sOffToOn,} sOn] Then Begin
     acanvas.Pixels[aPos.x, apos.y - 2] := clRed;
     acanvas.Pixels[aPos.x + 1, apos.y - 2] := clRed;
     acanvas.Pixels[aPos.x, apos.y - 3] := clRed;
@@ -355,12 +458,30 @@ Begin
   aCanvas.Rectangle(aPos.x - 2, aPos.Y - 2, aPos.x + 3, aPos.Y + 3);
 End;
 
+Function PointCollideWithSegment(Const aCollider, aFrom, aTo: Tpoint): boolean;
+Var
+  dx: Integer;
+Begin
+  result := false;
+  dx := ato.X - aFrom.X;
+  // First Horizontal
+  If (aCollider.Y >= aFrom.Y - 2) And
+    (aCollider.Y <= aFrom.Y + 3) And
+    (aCollider.x >= aFrom.X) And
+    (aCollider.x <= aFrom.X + dx) Then result := true;
+  // Second Vertical
+  If (aCollider.x >= aTo.X - 2) And
+    (aCollider.x <= aTo.x + 3) And
+    (aCollider.Y >= aFrom.Y) And
+    (aCollider.Y <= aTo.Y) Then result := true;
+End;
+
 Procedure DrawSegment(Const aCanvas: TCanvas; aOffset: TPoint; aFrom, aTo: Tpoint);
 Var
   dx: integer;
 Begin
-  aFrom := aFrom + aOffset;
-  aTo := aTo + aOffset;
+  aFrom := aFrom - aOffset;
+  aTo := aTo - aOffset;
   dx := ato.X - aFrom.X;
   // First Horizontal
   aCanvas.Line(aFrom.X, aFrom.Y, aFrom.X + dx, aFrom.Y);
@@ -368,11 +489,129 @@ Begin
   aCanvas.Line(aFrom.X + dx, aFrom.Y, aTo.X, aTo.Y);
 End;
 
+// -- Start content created using ChatGPT
+
+Function Between(Value, A, B: Integer): Boolean;
+Begin
+  If A > B Then
+    Result := (Value >= B) And (Value <= A)
+  Else
+    Result := (Value >= A) And (Value <= B);
+End;
+
+Function IntersectHorzVert(hFrom, hTo, vFrom, vTo: TPoint; Out p: TPoint): Boolean;
+Begin
+  // hFrom/hTo = horizontales Segment
+  // vFrom/vTo = vertikales Segment
+
+  Result :=
+    Between(vFrom.x, hFrom.x, hTo.x) And
+    Between(hFrom.y, vFrom.y, vTo.y);
+
+  If Result Then Begin
+    p.x := vFrom.x;
+    p.y := hFrom.y;
+  End;
+End;
+
+Function IntersectHorzHorz(a1, a2, b1, b2: TPoint; Out p: TPoint): Boolean;
+Begin
+  Result := False;
+
+  // gleiche Y-Linie?
+  If a1.y <> b1.y Then Exit;
+
+  // Überlappung prüfen
+  If Between(a1.x, b1.x, b2.x) Then Begin
+    p := a1;
+    Exit(True);
+  End;
+
+  If Between(a2.x, b1.x, b2.x) Then Begin
+    p := a2;
+    Exit(True);
+  End;
+
+  If Between(b1.x, a1.x, a2.x) Then Begin
+    p := b1;
+    Exit(True);
+  End;
+End;
+
+Function IntersectVertVert(a1, a2, b1, b2: TPoint; Out p: TPoint): Boolean;
+Begin
+  Result := False;
+
+  // gleiche X-Linie?
+  If a1.x <> b1.x Then Exit;
+
+  // Überlappung prüfen
+  If Between(a1.y, b1.y, b2.y) Then Begin
+    p := a1;
+    Exit(True);
+  End;
+
+  If Between(a2.y, b1.y, b2.y) Then Begin
+    p := a2;
+    Exit(True);
+  End;
+
+  If Between(b1.y, a1.y, a2.y) Then Begin
+    p := b1;
+    Exit(True);
+  End;
+End;
+
+Function SegmentCollide(Const aFrom1, aTo1, aFrom2, aTo2: TPoint; Out p: TPoint): Boolean;
+Var
+  h1From, h1To, v1From, v1To: TPoint;
+  h2From, h2To, v2From, v2To: TPoint;
+  k1, k2: TPoint; // Knickpunkte
+Begin
+  // Segment 1 zerlegen
+  h1From := aFrom1;
+  h1To.x := aTo1.x;
+  h1To.y := aFrom1.y;
+
+  v1From := h1To;
+  v1To := aTo1;
+  k1 := h1To; // Knickpunkt 1
+
+  // Segment 2 zerlegen
+  h2From := aFrom2;
+  h2To.x := aTo2.x;
+  h2To.y := aFrom2.y;
+
+  v2From := h2To;
+  v2To := aTo2;
+  k2 := h2To; // Knickpunkt 2
+
+  // Kombinationen prüfen
+  Result :=
+    IntersectHorzVert(h1From, h1To, v2From, v2To, p) Or
+    IntersectHorzVert(h2From, h2To, v1From, v1To, p) Or
+    IntersectHorzHorz(h1From, h1To, h2From, h2To, p) Or
+    IntersectVertVert(v1From, v1To, v2From, v2To, p);
+
+  // Endpunkte UND Knickpunkte ignorieren
+  If Result Then Begin
+    If (p = aFrom1) Or
+      (p = aTo1) Or
+      (p = aFrom2) Or
+      (p = aTo2) Or
+      (p = k1) Or
+      (p = k2) Then
+      Result := False;
+  End;
+End;
+// -- End content created using ChatGPT
+
 { TDigimanElement }
 
 Constructor TDigimanElement.Create;
 Begin
   Inherited create;
+  fEvaluated := false;
   fOwner := Nil;
   InPoints := Nil;
   InElements := Nil;
@@ -421,7 +660,18 @@ Var
   i: Integer;
 Begin
   For i := 0 To high(InElements) Do Begin
-    If InElements[i] = aElement Then InElements[i] := Nil;
+    If InElements[i].Element = aElement Then Begin
+      InElements[i].Element := Nil;
+      InElements[i].Index := -1;
+    End;
+  End;
+End;
+
+Function TDigimanElement._In(index: Integer): TState;
+Begin
+  result := sUndefined;
+  If (index >= 0) And (index <= high(InElements)) And assigned(InElements[index].Element) Then Begin
+    result := InElements[index].Element.GetState(InElements[index].Index);
   End;
 End;
 
@@ -445,9 +695,21 @@ Begin
   // Nichts, ..
 End;
 
-Function TDigimanElement.GetState(aindex: integer): Tstate;
+Function TDigimanElement.GetState(aOutindex: integer): Tstate;
 Begin
   result := sUndefined;
+End;
+
+Procedure TDigimanElement.ResetEvalState;
+Begin
+  fEvaluated := False;
+End;
+
+Procedure TDigimanElement.SetInElement(aInIndex: integer;
+  aOutElement: TDigimanElement; aOutIndex: integer);
+Begin
+  InElements[aInIndex].Element := aOutElement;
+  InElements[aInIndex].Index := aOutIndex;
 End;
 
 Function TDigimanElement.InOutPointHit(aX, aY: integer; Out InIndex,
@@ -488,13 +750,13 @@ Begin
   Result := fImage.Width;
 End;
 
-Constructor TTool.Create();
+Constructor TTool.Create;
 Begin
   Inherited Create();
   fImage := Nil;
 End;
 
-Destructor TTool.Destroy();
+Destructor TTool.Destroy;
 Begin
   fImage.Free;
   fImage := Nil;
@@ -504,6 +766,12 @@ End;
 Procedure TTool.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Begin
   acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+End;
+
+Function TTool.Clone: TDigimanElement;
+Begin
+  result := Nil;
+  Raise exception.create(ClassName + ' can not be cloned.');
 End;
 
 { TEraser }
@@ -530,6 +798,29 @@ Begin
   fOutIndex := -1;
 End;
 
+Procedure TLine.SaveToStream(Const aStream: TStream);
+Var
+  i: integer;
+Begin
+  i := Length(fPoints);
+  aStream.Write(i, SizeOf(i));
+  For i := 0 To high(fPoints) Do Begin
+    aStream.Write(fPoints[i], sizeof(fPoints[i]));
+  End;
+End;
+
+Procedure TLine.LoadFromStream(Const aStream: TStream);
+Var
+  i: integer;
+Begin
+  i := 0;
+  aStream.Read(i, SizeOf(i));
+  setlength(fPoints, i);
+  For i := 0 To high(fPoints) Do Begin
+    aStream.Read(fPoints[i], SizeOf(fPoints[i]));
+  End;
+End;
+
 Procedure TLine.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Var
   i: Integer;
@@ -540,9 +831,80 @@ Begin
   End;
 End;
 
+Function TLine.Clone: TDigimanElement;
+Begin
+  result := Nil;
+  Raise exception.create('TLine can not be cloned !');
+End;
+
 Function TLine.GetState(aindex: integer): Tstate;
 Begin
   Result := fInElement.GetState(fOutIndex);
+End;
+
+Function TLine.PointCollideWithLine(Const aPoint: TPoint): Boolean;
+Var
+  i: Integer;
+Begin
+  result := false;
+  For i := 0 To high(fPoints) - 1 Do Begin
+    If PointCollideWithSegment(aPoint, fPoints[i], fPoints[i + 1]) Then Begin
+      result := true;
+      exit;
+    End;
+  End;
+End;
+
+{ TUserText }
+
+Function TUserText.getHeight: integer;
+Begin
+  Result := fHeight;
+End;
+
+Function TUserText.getWidth: integer;
+Begin
+  Result := fWidth;
+End;
+
+Constructor TUserText.Create;
+Begin
+  Inherited Create();
+  Text := '';
+  fWidth := 0;
+  fHeight := 0;
+End;
+
+Procedure TUserText.SaveToStream(Const aStream: TStream);
+Begin
+  Inherited SaveToStream(aStream);
+  aStream.WriteAnsiString(Text);
+End;
+
+Procedure TUserText.LoadFromStream(Const aStream: TStream);
+Begin
+  Inherited LoadFromStream(aStream);
+  Text := aStream.ReadAnsiString;
+End;
+
+Procedure TUserText.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Begin
+  aCanvas.Brush.Color := clWhite;
+  aCanvas.TextOut(Left - aOffset.x, Top - aOffset.Y, Text);
+  If fWidth = 0 Then Begin
+    fWidth := aCanvas.TextWidth(text);
+    fHeight := aCanvas.TextHeight(text);
+  End;
+End;
+
+Function TUserText.Clone: TDigimanElement;
+Var
+  s: String;
+Begin
+  result := TUserText.Create();
+  s := InputBox('Please enter a text:', '', 'Text');
+  If trim(s) = '' Then s := 'Text';
+  TUserText(result).Text := s;
 End;
 
 Procedure TDigiman.initElementsIndexWithElement(
@@ -552,11 +914,18 @@ Begin
   fElements[aIndex] := aElement;
 End;
 
-Procedure TDigiman.initLinesIndexWithElement(Const aElement: TLine;
+Procedure TDigiman.initLinesIndexWithElement(Const aElement: Tline;
   aIndex: integer);
 Begin
   aElement.fOwner := self;
   fLines[aIndex] := aElement;
+
+  // Die "Elemente" müssen nun auch verbunden werden
+  fLines[aIndex].fOutElement.SetInElement(
+    fLines[aIndex].fOutIndex,
+    fLines[aIndex].fInElement,
+    fLines[aIndex].finIndex
+    );
 End;
 
 Procedure TDigiman.RemoveAllConnectionsTo(aElement: TDigimanElement);
@@ -579,26 +948,87 @@ Begin
   End;
 End;
 
+Function TDigiman.ElementToElementIndex(Const aElement: TDigimanElement
+  ): integer;
+Var
+  i: Integer;
+Begin
+  result := -1;
+  For i := 0 To high(fElements) Do Begin
+    If aElement = fElements[i] Then Begin
+      result := i;
+      exit;
+    End;
+  End;
+End;
+
+Procedure TDigiman.CalculateAndAddIntersectionPoints(Const aLine1, aLine2: Tline
+  );
+Var
+  i, j: Integer;
+  p: Tpoint;
+Begin
+  // Jedes Segment von Linie 1 muss mit jedem Segment von Linie 2 verglichen werden
+  // Schneiden sich 2 Segmente -> Schnittpunkt Berechnen und Hinzufügen
+  For i := 0 To high(aLine1.fPoints) - 1 Do Begin
+    For j := 0 To high(aLine2.fPoints) - 1 Do Begin
+      If SegmentCollide(aLine1.fPoints[i], aLine1.fPoints[i + 1],
+        aLine2.fPoints[j], aLine2.fPoints[j + 1], p) Then Begin
+        setlength(fBridges, high(fBridges) + 2);
+        fBridges[high(fBridges)] := p;
+      End;
+    End;
+  End;
+End;
+
+Procedure TDigiman.CalculateLineBridges;
+Var
+  i, j: Integer;
+Begin
+  setlength(fBridges, 0);
+  (*
+   * Berechnet Schnittpunkte von Linien, an jeden Schnittpunkt werden "Brücken"
+   * Gezeichnet
+   *)
+  For i := 0 To high(fLines) - 1 Do Begin
+    For j := i + 1 To high(fLines) Do Begin
+      CalculateAndAddIntersectionPoints(fLines[i], fLines[j]);
+    End;
+  End;
+End;
+
 Constructor TDigiman.Create;
 Begin
   Inherited Create();
   fElements := Nil;
   fLines := Nil;
+  fBridges := Nil;
   ShowPegel := true;
   ShowConnectionPoints := false;
+  fBridgeImage := TBitmap.Create;
+  fBridgeImage.LoadFromFile('GFX' + PathDelim + 'Bridge.bmp');
 End;
 
 Destructor TDigiman.Destroy;
 Begin
   Clear;
+  fBridgeImage.free;
+  fBridgeImage := Nil;
 End;
 
 Procedure TDigiman.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Var
   i: Integer;
 Begin
+  For i := 0 To high(fElements) Do Begin
+    fElements[i].ResetEvalState;
+  End;
   For i := 0 To high(fLines) Do Begin
     fLines[i].RenderTo(aCanvas, aOffset);
+  End;
+  For i := 0 To high(fBridges) Do Begin
+    aCanvas.Draw(fBridges[i].X - fBridgeImage.Width Div 2,
+      fBridges[i].Y - fBridgeImage.Height + 1, fBridgeImage);
   End;
   For i := 0 To high(fElements) Do Begin
     fElements[i].RenderTo(aCanvas, aOffset);
@@ -606,10 +1036,14 @@ Begin
 End;
 
 Procedure TDigiman.AddElement(Const aElement: TDigimanElement);
+Var
+  aLine: TLine;
 Begin
   If aElement Is TLine Then Begin
+    aLine := aElement As TLine;
     setlength(fLines, high(fLines) + 2);
-    initLinesIndexWithElement(aElement As TLine, high(fLines));
+    initLinesIndexWithElement(aLine, high(fLines));
+    CalculateLineBridges;
   End
   Else Begin
     setlength(fElements, high(fElements) + 2);
@@ -624,13 +1058,17 @@ Begin
   If aElement Is TLine Then Begin
     For i := 0 To high(fLines) Do Begin
       If fLines[i] = aElement Then Begin
-        // TODO: löschen aller Linien die mit aElement zu tun haben
-
+        // Aushängen
+        fLines[i].fOutElement.SetInElement(
+          fLines[i].fOutIndex,
+          Nil, -1);
+        // Löschen der Linie
         fLines[i].Free;
         For j := i To high(fLines) - 1 Do Begin
           fLines[j] := fLines[j + 1];
         End;
         SetLength(fLines, high(fLines));
+        CalculateLineBridges;
         exit;
       End;
     End;
@@ -662,6 +1100,7 @@ Begin
     fLines[i].Free;
   End;
   setlength(fLines, 0);
+  setlength(fBridges, 0);
 End;
 
 Function TDigiman.GetElementAtPos(x, y: integer): TDigimanElement;
@@ -676,22 +1115,43 @@ Begin
       exit;
     End;
   End;
-
-  Hier müssen Linien auch gefunden werden -> Damit sie löschbar werden !
+  For i := 0 To high(fLines) Do Begin
+    If fLines[i].PointCollideWithLine(point(x, y)) Then Begin
+      result := fLines[i];
+      exit;
+    End;
+  End;
 End;
 
 Procedure TDigiman.SaveToFile(Const aFilename: String);
 Var
   m: TMemoryStream;
-  i: Integer;
+  i, j: Integer;
 Begin
   m := TMemoryStream.Create;
   m.Write(FileVersion, sizeof(FileVersion));
   i := length(fElements);
   m.Write(i, SizeOf(i));
+  // Die Elemente
   For i := 0 To high(fElements) Do Begin
     m.WriteAnsiString(fElements[i].ClassName);
     fElements[i].saveToStream(m);
+  End;
+  // Die Linien sind ein wenig "Kniffliger"
+  i := length(fLines);
+  m.Write(i, SizeOf(i));
+  For i := 0 To high(fLines) Do Begin
+    // Die "internen" Linien Daten
+    fLines[i].SaveToStream(m);
+    // Die Connections
+    j := ElementToElementIndex(fLines[i].fInElement);
+    m.Write(j, SizeOf(j));
+    j := fLines[i].fInIndex;
+    m.Write(j, SizeOf(j));
+    j := ElementToElementIndex(fLines[i].fOutElement);
+    m.Write(j, SizeOf(j));
+    j := fLines[i].fOutIndex;
+    m.Write(j, SizeOf(j));
   End;
 
   // TODO: Implementieren
@@ -703,8 +1163,9 @@ End;
 Procedure TDigiman.LoadFromFile(Const aFilename: String);
 Var
   m: TMemoryStream;
-  i, FV: integer;
+  j, i, FV: integer;
   e: TDigimanElement;
+  l: TLine;
 Begin
   Clear();
   m := TMemoryStream.Create;
@@ -722,9 +1183,28 @@ Begin
     initElementsIndexWithElement(e, i);
   End;
 
+  i := 0;
+  j := 0;
+  m.Read(i, SizeOf(i));
+  setlength(fLines, i);
+  For i := 0 To high(fLines) Do Begin
+    l := TLine.Create();
+    l.LoadFromStream(m);
+    m.Read(j, SizeOf(j));
+    l.fInElement := fElements[j];
+    m.Read(j, SizeOf(j));
+    l.fInIndex := j;
+    m.Read(j, SizeOf(j));
+    l.fOutElement := fElements[j];
+    m.Read(j, SizeOf(j));
+    l.fOutIndex := j;
+    initLinesIndexWithElement(l, i);
+  End;
+
   // Todo: Implementieren
 
   m.free;
+  CalculateLineBridges;
 End;
 
 { TUserInput }
@@ -819,11 +1299,11 @@ Begin
   fOnImage := LoadImage('Probe_on.bmp');
   fOffImage := LoadImage('Probe_off.bmp');
   fUnknownImage := LoadImage('Probe_undef.bmp');
-  fState := sUndefined;
   setlength(InPoints, 1);
   InPoints[0] := point(1, 8);
   setlength(InElements, 1);
-  InElements[0] := Nil;
+  InElements[0].Element := Nil;
+  InElements[0].Index := -1;
 End;
 
 Destructor TProbe.Destroy;
@@ -839,15 +1319,23 @@ Begin
 End;
 
 Procedure TProbe.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Var
+  state: TState;
 Begin
-  Case fState Of
-    sOff, sOnToOff: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOffImage);
-    sOn, sOffToOn: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOnImage);
+  If assigned(InElements[0].Element) Then Begin
+    state := InElements[0].Element.GetState(InElements[0].Index);
+  End
+  Else Begin
+    state := sUndefined;
+  End;
+  Case State Of
+    sOff {, sOnToOff}: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOffImage);
+    sOn {, sOffToOn}: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOnImage);
     sUndefined: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fUnknownImage);
   End;
-  If fOwner.ShowPegel Then Begin
-    LineStateToCanvas(aCanvas, point(left + 1, top + 7) - aOffset, fState);
-  End;
+  //  If fOwner.ShowPegel Then Begin
+  //    LineStateToCanvas(aCanvas, point(left + 1, top + 7) - aOffset, State);
+  //  End;
   If fOwner.ShowConnectionPoints Then Begin
     ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
   End;
@@ -877,7 +1365,8 @@ Begin
   setlength(InPoints, 1);
   InPoints[0] := point(1, 8);
   setlength(InElements, 1);
-  InElements[0] := Nil;
+  InElements[0].Element := Nil;
+  InElements[0].Index := -1;
   setlength(OutPoints, 1);
   OutPoints[0] := point(30, 8);
 End;
@@ -923,8 +1412,10 @@ Begin
   InPoints[0] := point(1, 4);
   InPoints[1] := point(1, 20);
   setlength(InElements, 2);
-  InElements[0] := Nil;
-  InElements[1] := Nil;
+  InElements[0].Element := Nil;
+  InElements[0].Index := -1;
+  InElements[1].Element := Nil;
+  InElements[1].Index := -1;
   setlength(OutPoints, 1);
   OutPoints[0] := point(26, 12);
 End;
@@ -965,12 +1456,37 @@ Begin
   result := TNot.Create();
 End;
 
+Function TNot.GetState(aindex: Integer): Tstate;
+Begin
+  If fEvaluated Then Begin
+    result := fEvaluatedState;
+  End
+  Else Begin
+    fEvaluated := true;
+    Result := _Not(_in(0));
+    fEvaluatedState := result;
+  End;
+End;
+
 { TAnd }
 
 Constructor TAnd.Create;
 Begin
   Inherited Create();
   fImage := LoadImage('And.bmp');
+End;
+
+Function TAnd.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated Then Begin
+    result := fEvaluatedState;
+  End
+  Else Begin
+    fEvaluated := true;
+    Result := sUndefined;
+    result := _and(_In(0), _in(1));
+    fEvaluatedState := result;
+  End;
 End;
 
 Function TAnd.Clone: TDigimanElement;
@@ -980,11 +1496,24 @@ End;
 
 { TOr }
 
-Constructor TOr.Create();
+Constructor TOr.Create;
 Begin
   Inherited Create();
   fImage.free;
   fImage := LoadImage('Or.bmp');
+End;
+
+Function TOr.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated Then Begin
+    result := fEvaluatedState;
+  End
+  Else Begin
+    fEvaluated := true;
+    Result := sUndefined;
+    result := _or(_In(0), _in(1));
+    fEvaluatedState := result;
+  End;
 End;
 
 Function TOr.Clone: TDigimanElement;
@@ -994,7 +1523,7 @@ End;
 
 { TNOr }
 
-Constructor TNOr.Create();
+Constructor TNor.Create;
 Begin
   Inherited Create();
   fImage.free;
@@ -1002,19 +1531,45 @@ Begin
   OutPoints[0] := point(30, 12);
 End;
 
-Function TNOr.Clone: TDigimanElement;
+Function TNor.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated Then Begin
+    result := fEvaluatedState;
+  End
+  Else Begin
+    fEvaluated := true;
+    Result := sUndefined;
+    result := _not(_or(_In(0), _in(1)));
+    fEvaluatedState := result;
+  End;
+End;
+
+Function TNor.Clone: TDigimanElement;
 Begin
   Result := TNor.Create();
 End;
 
 { TNand }
 
-Constructor TNand.Create();
+Constructor TNand.Create;
 Begin
   Inherited Create();
   fImage.free;
   fImage := LoadImage('Nand.bmp');
   OutPoints[0] := point(30, 12);
+End;
+
+Function TNand.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated Then Begin
+    result := fEvaluatedState;
+  End
+  Else Begin
+    fEvaluated := true;
+    Result := sUndefined;
+    result := _not(_and(_In(0), _in(1)));
+    fEvaluatedState := result;
+  End;
 End;
 
 Function TNand.Clone: TDigimanElement;
@@ -1056,16 +1611,18 @@ Begin
   setlength(fPoints, 1);
   fPoints[0] := point(StartElement.Left, StartElement.Top);
   fInElement := Nil;
+  fInIndex := -1;
   fOutElement := Nil;
   fOutIndex := -1;
   If InIndex <> -1 Then Begin
     fPoints[0] := fPoints[0] + StartElement.InPoints[InIndex];
     fOutElement := StartElement;
+    fOutIndex := InIndex;
   End;
   If OutIndex <> -1 Then Begin
     fPoints[0] := fPoints[0] + StartElement.OutPoints[OutIndex];
     fInElement := StartElement;
-    fOutIndex := OutIndex;
+    fInIndex := OutIndex;
   End;
   Mode := lcmAddCorners;
   SetActualMousePosition(fPoints[0].x, fPoints[0].y);
@@ -1092,12 +1649,13 @@ Begin
     p := EndElement.InPoints[InIndex] + point(EndElement.Left, EndElement.Top);
     If assigned(fOutElement) Then exit; // Line with 2 Out Elements
     fOutElement := EndElement;
+    fOutIndex := InIndex;
   End;
   If OutIndex <> -1 Then Begin
     p := EndElement.OutPoints[OutIndex] + point(EndElement.Left, EndElement.Top);
     If assigned(fInElement) Then exit; // Line with 2 In Elements
     fInElement := EndElement;
-    fOutIndex := InIndex;
+    fInIndex := OutIndex;
   End;
   aLine := TLine.Create();
   setlength(aLine.fPoints, length(fPoints) + 1);
@@ -1106,8 +1664,9 @@ Begin
   End;
   aLine.fPoints[High(aLine.fPoints)] := P;
   aLine.fInElement := fInElement;
-  aLine.fOutIndex := fOutIndex;
+  aLine.fInIndex := fInIndex;
   aLine.fOutElement := fOutElement;
+  aLine.fOutIndex := fOutIndex;
   fInElement.fOwner.AddElement(aLine);
   result := true;
   Mode := lcmIdle;

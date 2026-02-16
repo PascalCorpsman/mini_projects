@@ -73,6 +73,7 @@ Type
     Procedure ScrollBar2Change(Sender: TObject);
     Procedure ScrollBar3Change(Sender: TObject);
   private
+    defcaption: String;
     fFormShowOnce: Boolean;
     fSelector, fEngine: TDigiman;
     fMouseIsIn: Boolean;
@@ -103,8 +104,10 @@ Procedure TForm1.FormCreate(Sender: TObject);
 
 Var
   i: Integer;
+  ut: TUserText;
 Begin
-  caption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
+  defcaption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
+  caption := defcaption;
   fFormShowOnce := true;
   fEngine := TDigiman.Create;
   // Init Selector
@@ -119,9 +122,15 @@ Begin
   AddElementToSelector(TAnd.Create(), 32 + 200, 0);
   AddElementToSelector(TNOr.Create(), 32 + 250, 0);
   AddElementToSelector(TNAnd.Create(), 32 + 300, 0);
-  // Flip Flops
+  ut := TUserText.Create();
+  ut.Text := 'Text';
+  AddElementToSelector(ut, 32 + 350, -8);
+  // TODO: Flip Flops
 
-  // Halfadder, Fulladder, decoder ...
+  // TODO: Halfadder, Fulladder, Decoder ...
+
+  - Der HalfAdder ist dran (Klasse 2in2out nicht vergessen)
+  - Sonderfall, wenn ein Element In direkt auf einem Element Out generiert wird erkennen und am besten eine Linie der Länge "0" einfügen.
 
   // Die Controlls die immer da sind
   For i := 0 To ScrollBar3.Max Do Begin
@@ -139,12 +148,12 @@ Procedure TForm1.FormShow(Sender: TObject);
 Begin
   If Not fFormShowOnce Then exit;
   fFormShowOnce := false;
-  // Debug "remove"
+  (*// Debug "remove"
   If FileExists('First_save.ckt') Then Begin
     fEngine.LoadFromFile('First_save.ckt');
     PaintBox1.Invalidate;
   End;
-  // End -- Debug
+  // End -- Debug *)
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -283,6 +292,10 @@ Var
 Begin
   PaintBox1.Canvas.brush.color := clWhite;
   PaintBox1.Canvas.Rectangle(-1, -1, PaintBox1.Width + 1, PaintBox1.Height + 1);
+  // Manchmal brauchen die Signale ein bisschen biss sie "durchgerechnet" sind
+  // Lässt man die Engine 2 mal hinter einander rechnen scheint das das ganze zu beheben
+  // Sauber fühlt sich das aber nicht an ...
+  fEngine.RenderTo(PaintBox1.Canvas, point(ScrollBar1.Position, ScrollBar2.Position));
   fEngine.RenderTo(PaintBox1.Canvas, point(ScrollBar1.Position, ScrollBar2.Position));
   // Preview des hinzu zu fügenden Elementes
   If Assigned(fAdderElement) And (fMouseIsIn) Then Begin
@@ -295,8 +308,6 @@ Begin
       // Also machen wir das hier von "Hand"
       fAdderElement.left := fMouseMovePos.X;
       fAdderElement.Top := fMouseMovePos.y - fAdderElement.Height;
-
-      //hier gehts weiter
     End
     Else Begin
       fAdderElement.setPosition(fMouseMovePos.X, fMouseMovePos.y);
@@ -357,22 +368,26 @@ End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
 Begin
+  // Clear
   ScrollBar1.Position := 0;
   ScrollBar2.Position := 0;
   fEngine.clear;
   PaintBox1.Invalidate;
+  caption := defcaption;
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
 Begin
   If SaveDialog1.Execute Then Begin
     fEngine.SaveToFile(SaveDialog1.FileName);
+    caption := ExtractFileName(SaveDialog1.FileName);
   End;
 End;
 
 Procedure TForm1.Button1Click(Sender: TObject);
 Begin
   If OpenDialog1.Execute Then Begin
+    caption := ExtractFileName(OpenDialog1.FileName);
     fEngine.LoadFromFile(OpenDialog1.FileName);
     PaintBox1.Invalidate;
   End;
