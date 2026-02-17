@@ -127,10 +127,12 @@ Begin
   AddElementToSelector(ut, 32 + 350, -8);
   // TODO: Flip Flops
 
-  // TODO: Halfadder, Fulladder, Decoder ...
+  // TODO: Decoder ...
+  AddElementToSelector(THalfAdder.Create(), 32, PaintBox2.Height * 2);
+  AddElementToSelector(TFullAdder.Create(), 32 + 50, PaintBox2.Height * 2);
 
-  - Der HalfAdder ist dran (Klasse 2in2out nicht vergessen)
   - Sonderfall, wenn ein Element In direkt auf einem Element Out generiert wird erkennen und am besten eine Linie der Länge "0" einfügen.
+  - RS-Flipflop
 
   // Die Controlls die immer da sind
   For i := 0 To ScrollBar3.Max Do Begin
@@ -150,7 +152,7 @@ Begin
   fFormShowOnce := false;
   (*// Debug "remove"
   If FileExists('First_save.ckt') Then Begin
-    fEngine.LoadFromFile('First_save.ckt');
+    fEngine.LoadFromFile('Circuits/FullAdder.ckt');
     PaintBox1.Invalidate;
   End;
   // End -- Debug *)

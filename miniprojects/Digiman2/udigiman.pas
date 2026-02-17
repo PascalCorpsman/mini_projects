@@ -81,14 +81,18 @@ Type
     Index: integer;
   End;
 
+  TEvaluated = Record
+    Flag: Boolean;
+    State: TState;
+  End;
+
   { TDigimanElement }
 
   TDigimanElement = Class
   private
     fOwner: TDigiman;
   protected
-    fEvaluated: Boolean;
-    fEvaluatedState: TState;
+    fEvaluated: Array Of TEvaluated;
     InElements: Array Of TIndexElement; //Jeder In Point hat ein InElement
 
     Function getHeight: integer; virtual; // Abstract
@@ -182,7 +186,6 @@ Type
 
     Function Clone: TDigimanElement; override;
 
-    Function GetState(aindex: integer): Tstate; override;
     Function PointCollideWithLine(Const aPoint: TPoint): Boolean;
   End;
 
@@ -228,7 +231,7 @@ Type
 
     Procedure Click; override;
 
-    Function GetState(aindex: Integer): Tstate; override;
+    Function GetState(aOutindex: Integer): Tstate; override;
 
     Function Clone: TDigimanElement; override;
   End;
@@ -280,6 +283,37 @@ Type
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
   End;
 
+  { TTwoInTwoOut }
+
+  TTwoInTwoOut = Class(TDigimanElement)
+  private
+    fImage: TBitmap;
+  protected
+    Function getHeight: integer; override;
+    Function getWidth: integer; override;
+  public
+    Constructor Create(); override;
+    Destructor Destroy(); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+  End;
+
+  { TThreeInTwoOut }
+
+  TThreeInTwoOut = Class(TDigimanElement)
+  private
+    fImage: TBitmap;
+  protected
+    Function getHeight: integer; override;
+    Function getWidth: integer; override;
+  public
+    Constructor Create(); override;
+    Destructor Destroy(); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+  End;
+
+
   { TNot }
 
   TNot = Class(TOneInOneOut)
@@ -288,7 +322,7 @@ Type
 
     Function Clone: TDigimanElement; override;
 
-    Function GetState(aindex: Integer): Tstate; override;
+    Function GetState(aOutindex: Integer): Tstate; override;
   End;
 
   { TAnd }
@@ -335,6 +369,31 @@ Type
 
     Function Clone: TDigimanElement; override;
   End;
+
+  { THalfAdder }
+
+  THalfAdder = Class(TTwoInTwoOut)
+  protected
+  public
+    Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
+  { TFullAdder }
+
+  TFullAdder = Class(TThreeInTwoOut)
+  protected
+  public
+    Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
 
   TLineCreateMode = (lcmIdle, lcmAddCorners);
 
@@ -403,11 +462,20 @@ Begin
   End;
 End;
 
+Function _xor(aS1, aS2: TState): TState;
+Begin
+  result :=
+    _or(
+    _and(_not(aS1), aS2),
+    _and(aS1, _not(aS2))
+    );
+End;
+
 Function CreateDigimanElemenFromString(Const ClassName: String): TDigimanElement;
 Begin
   result := Nil;
   (*
-   * Hier sind nicht alle klassen gelistet, nur die die geladen und gespeichert werden können..
+   * Hier sind nicht alle Klassen gelistet, nur die die geladen und gespeichert werden können..
    *)
   Case lowercase(ClassName) Of
     'tnand': result := TNand.Create();
@@ -418,6 +486,8 @@ Begin
     'tprobe': result := TProbe.Create();
     'tuserinput': result := TUserInput.Create();
     'tusertext': result := TUserText.Create();
+    'thalfadder': result := THalfAdder.Create();
+    'tfulladder': result := TFullAdder.Create();
   Else Begin
       Raise exception.create('Error: ' + ClassName + ' not implemented in CreateDigimanElemenFromString');
     End;
@@ -611,7 +681,7 @@ End;
 Constructor TDigimanElement.Create;
 Begin
   Inherited create;
-  fEvaluated := false;
+  fEvaluated := Nil;
   fOwner := Nil;
   InPoints := Nil;
   InElements := Nil;
@@ -701,8 +771,11 @@ Begin
 End;
 
 Procedure TDigimanElement.ResetEvalState;
+Var
+  i: Integer;
 Begin
-  fEvaluated := False;
+  For i := 0 To high(fEvaluated) Do
+    fEvaluated[i].Flag := False;
 End;
 
 Procedure TDigimanElement.SetInElement(aInIndex: integer;
@@ -837,11 +910,6 @@ Begin
   Raise exception.create('TLine can not be cloned !');
 End;
 
-Function TLine.GetState(aindex: integer): Tstate;
-Begin
-  Result := fInElement.GetState(fOutIndex);
-End;
-
 Function TLine.PointCollideWithLine(Const aPoint: TPoint): Boolean;
 Var
   i: Integer;
@@ -946,6 +1014,7 @@ Begin
       setlength(fLines, high(fLines));
     End;
   End;
+  CalculateLineBridges;
 End;
 
 Function TDigiman.ElementToElementIndex(Const aElement: TDigimanElement
@@ -1271,7 +1340,7 @@ Begin
   End;
 End;
 
-Function TUserInput.GetState(aindex: Integer): Tstate;
+Function TUserInput.GetState(aOutindex: Integer): Tstate;
 Begin
   Result := fState;
 End;
@@ -1369,6 +1438,8 @@ Begin
   InElements[0].Index := -1;
   setlength(OutPoints, 1);
   OutPoints[0] := point(30, 8);
+  setlength(fEvaluated, 1);
+  fEvaluated[0].Flag := false;
 End;
 
 Destructor TOneInOneOut.Destroy;
@@ -1418,6 +1489,8 @@ Begin
   InElements[1].Index := -1;
   setlength(OutPoints, 1);
   OutPoints[0] := point(26, 12);
+  setlength(fEvaluated, 1);
+  fEvaluated[0].Flag := false;
 End;
 
 Destructor TTwoInOneOut.Destroy();
@@ -1443,6 +1516,123 @@ Begin
   End;
 End;
 
+{ TTwoInTwoOut }
+
+Function TTwoInTwoOut.getHeight: integer;
+Begin
+  Result := fImage.Height;
+End;
+
+Function TTwoInTwoOut.getWidth: integer;
+Begin
+  Result := fImage.Width;
+End;
+
+Constructor TTwoInTwoOut.Create();
+Begin
+  Inherited Create();
+  fImage := Nil;
+  setlength(InPoints, 2);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  setlength(InElements, 2);
+  InElements[0].Element := Nil;
+  InElements[0].Index := -1;
+  InElements[1].Element := Nil;
+  InElements[1].Index := -1;
+  setlength(OutPoints, 2);
+  OutPoints[0] := point(26, 4);
+  OutPoints[1] := point(26, 20);
+  setlength(fEvaluated, 2);
+  fEvaluated[0].Flag := false;
+  fEvaluated[1].Flag := false;
+End;
+
+Destructor TTwoInTwoOut.Destroy();
+Begin
+  fImage.free;
+  fImage := Nil;
+
+  Inherited Destroy();
+End;
+
+Procedure TTwoInTwoOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Begin
+  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+
+  If fOwner.ShowPegel Then Begin
+    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, GetState(0));
+    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[1] - aOffset, GetState(1));
+  End;
+
+  If fOwner.ShowConnectionPoints Then Begin
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[1] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[1] - aOffset);
+  End;
+End;
+
+{ TThreeInTwoOut }
+
+Function TThreeInTwoOut.getHeight: integer;
+Begin
+  Result := fImage.Height;
+End;
+
+Function TThreeInTwoOut.getWidth: integer;
+Begin
+  Result := fImage.Width;
+End;
+
+Constructor TThreeInTwoOut.Create();
+Begin
+  Inherited Create();
+  fImage := Nil;
+  setlength(InPoints, 3);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  InPoints[2] := point(1, 36);
+  setlength(InElements, 3);
+  InElements[0].Element := Nil;
+  InElements[0].Index := -1;
+  InElements[1].Element := Nil;
+  InElements[1].Index := -1;
+  InElements[2].Element := Nil;
+  InElements[2].Index := -1;
+  setlength(OutPoints, 2);
+  OutPoints[0] := point(26, 4);
+  OutPoints[1] := point(26, 20);
+  setlength(fEvaluated, 2);
+  fEvaluated[0].Flag := false;
+  fEvaluated[1].Flag := false;
+End;
+
+Destructor TThreeInTwoOut.Destroy();
+Begin
+  fImage.free;
+  fImage := Nil;
+  Inherited Destroy();
+End;
+
+Procedure TThreeInTwoOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Begin
+  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+
+  If fOwner.ShowPegel Then Begin
+    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, GetState(0));
+    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[1] - aOffset, GetState(1));
+  End;
+
+  If fOwner.ShowConnectionPoints Then Begin
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[1] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[2] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
+    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[1] - aOffset);
+  End;
+End;
+
 { TNot }
 
 Constructor TNot.Create;
@@ -1456,15 +1646,15 @@ Begin
   result := TNot.Create();
 End;
 
-Function TNot.GetState(aindex: Integer): Tstate;
+Function TNot.GetState(aOutindex: Integer): Tstate;
 Begin
-  If fEvaluated Then Begin
-    result := fEvaluatedState;
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
   End
   Else Begin
-    fEvaluated := true;
+    fEvaluated[aOutindex].Flag := true;
     Result := _Not(_in(0));
-    fEvaluatedState := result;
+    fEvaluated[aOutindex].State := result;
   End;
 End;
 
@@ -1478,14 +1668,14 @@ End;
 
 Function TAnd.GetState(aOutindex: integer): Tstate;
 Begin
-  If fEvaluated Then Begin
-    result := fEvaluatedState;
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
   End
   Else Begin
-    fEvaluated := true;
+    fEvaluated[aOutindex].Flag := true;
     Result := sUndefined;
     result := _and(_In(0), _in(1));
-    fEvaluatedState := result;
+    fEvaluated[aOutindex].State := result;
   End;
 End;
 
@@ -1505,14 +1695,14 @@ End;
 
 Function TOr.GetState(aOutindex: integer): Tstate;
 Begin
-  If fEvaluated Then Begin
-    result := fEvaluatedState;
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
   End
   Else Begin
-    fEvaluated := true;
+    fEvaluated[aOutindex].Flag := true;
     Result := sUndefined;
     result := _or(_In(0), _in(1));
-    fEvaluatedState := result;
+    fEvaluated[aOutindex].State := result;
   End;
 End;
 
@@ -1533,14 +1723,14 @@ End;
 
 Function TNor.GetState(aOutindex: integer): Tstate;
 Begin
-  If fEvaluated Then Begin
-    result := fEvaluatedState;
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
   End
   Else Begin
-    fEvaluated := true;
+    fEvaluated[aOutindex].Flag := true;
     Result := sUndefined;
     result := _not(_or(_In(0), _in(1)));
-    fEvaluatedState := result;
+    fEvaluated[aOutindex].State := result;
   End;
 End;
 
@@ -1561,20 +1751,82 @@ End;
 
 Function TNand.GetState(aOutindex: integer): Tstate;
 Begin
-  If fEvaluated Then Begin
-    result := fEvaluatedState;
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
   End
   Else Begin
-    fEvaluated := true;
+    fEvaluated[aOutindex].Flag := true;
     Result := sUndefined;
     result := _not(_and(_In(0), _in(1)));
-    fEvaluatedState := result;
+    fEvaluated[aOutindex].State := result;
   End;
 End;
 
 Function TNand.Clone: TDigimanElement;
 Begin
   Result := TNand.Create();
+End;
+
+{ THalfAdder }
+
+Constructor THalfAdder.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('Halfadder.bmp');
+End;
+
+Function THalfAdder.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    fEvaluated[aOutindex].Flag := true;
+    Result := sUndefined;
+    Case aOutindex Of
+      0: result := _xor(_In(0), _In(1)); // Sum
+      1: result := _and(_In(0), _In(1)); // Carry
+    End;
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function THalfAdder.Clone: TDigimanElement;
+Begin
+  result := THalfAdder.Create();
+End;
+
+{ TFullAdder }
+
+Constructor TFullAdder.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('Fulladder.bmp');
+End;
+
+Function TFullAdder.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    fEvaluated[aOutindex].Flag := true;
+    Result := sUndefined;
+    Case aOutindex Of
+      0: result := _xor(_xor(_In(0), _In(1)), _In(2)); // Sum
+      1: result := _or(_or(
+          _and(_In(0), _In(1)),
+          _and(_In(0), _In(2))),
+          _and(_In(2), _In(1)
+          )); // Carry
+    End;
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function TFullAdder.Clone: TDigimanElement;
+Begin
+  result := TFullAdder.Create();
 End;
 
 { TLineCreateHelper }
