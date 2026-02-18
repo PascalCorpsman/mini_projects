@@ -64,6 +64,7 @@ Type
 
     Procedure AddElement(Const aElement: TDigimanElement);
     Procedure DelElement(Const aElement: TDigimanElement);
+    Procedure RecalculateShortConnections;
     Procedure Clear();
 
     Function GetElementAtPos(x, y: integer): TDigimanElement;
@@ -421,9 +422,16 @@ Type
     Procedure DelLastCorner;
   End;
 
+Procedure Nop();
+
 Implementation
 
 Uses Dialogs;
+
+Procedure Nop();
+Begin
+
+End;
 
 Function _Not(aState: TState): TState;
 Begin
@@ -999,7 +1007,9 @@ End;
 Procedure TDigiman.RemoveAllConnectionsTo(aElement: TDigimanElement);
 Var
   i, j: Integer;
+  elem: TDigimanElement;
 Begin
+  If Not assigned(aElement) Then exit;
   For i := 0 To high(fElements) Do Begin
     fElements[i].RemoveAllConnectionsTo(aElement);
   End;
@@ -1007,11 +1017,15 @@ Begin
   For i := high(fLines) Downto 0 Do Begin
     If (fLines[i].fOutElement = aElement) Or
       (fLines[i].fInElement = aElement) Then Begin
+      elem := fLines[i].fInElement;
       fLines[i].Free;
       For j := i To high(fLines) - 1 Do Begin
         fLines[j] := fLines[j + 1];
       End;
       setlength(fLines, high(fLines));
+      // Das In Element muss wieder getrennt werden, aber nach dem löschen der
+      // Linie sonst haben wir eine Endlos Rekursion..
+      RemoveAllConnectionsTo(elem);
     End;
   End;
   CalculateLineBridges;
@@ -1117,6 +1131,7 @@ Begin
   Else Begin
     setlength(fElements, high(fElements) + 2);
     initElementsIndexWithElement(aElement, high(fElements));
+    RecalculateShortConnections;
   End;
 End;
 
@@ -1152,6 +1167,41 @@ Begin
         End;
         SetLength(fElements, high(fElements));
         exit;
+      End;
+    End;
+  End;
+End;
+
+Procedure TDigiman.RecalculateShortConnections;
+Var
+  aLine: TLine;
+  i, j, k, InIndex, OutIndex: Integer;
+  p: TPoint;
+Begin
+  (*
+   * Erkennt ob 2 Elemente so nah beieinander sind, dass sich deren In / Out Points direkt berühren
+   * Wenn ja werden sie mit eine "Tline" verbunden, die man eigentlich nicht sehen kann.
+   *)
+  For i := 0 To high(fElements) Do Begin
+    For j := 0 To high(fElements[i].InElements) Do Begin
+      If fElements[i].InElements[j].Element = Nil Then Begin
+        p := point(fElements[i].Left, fElements[i].Top) + fElements[i].InPoints[j];
+        For k := 0 To high(fElements) Do Begin
+          If k = i Then Continue;
+          If fElements[k].InOutPointHit(p.x, p.y, InIndex, OutIndex) Then Begin
+            If OutIndex <> -1 Then Begin
+              aLine := TLine.Create();
+              setlength(aLine.fPoints, 2);
+              aLine.fPoints[0] := p;
+              aLine.fPoints[1] := p;
+              aLine.fInElement := fElements[k];
+              aLine.fInIndex := OutIndex;
+              aLine.fOutElement := fElements[i];
+              aLine.fOutIndex := j;
+              AddElement(aLine);
+            End;
+          End;
+        End;
       End;
     End;
   End;

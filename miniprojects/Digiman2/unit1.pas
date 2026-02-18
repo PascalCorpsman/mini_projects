@@ -115,6 +115,7 @@ Begin
   fSelector.ShowPegel := false;
   fSelector.ShowConnectionPoints := false;
   // Die Basik Elemente
+  // TODO: Dauer "0", Dauer "1"
   AddElementToSelector(TUserInput.Create(), 32, 0);
   AddElementToSelector(TProbe.Create(), 32 + 50, 0);
   AddElementToSelector(TNot.Create(), 32 + 100, 0);
@@ -125,14 +126,13 @@ Begin
   ut := TUserText.Create();
   ut.Text := 'Text';
   AddElementToSelector(ut, 32 + 350, -8);
-  // TODO: Flip Flops
+  // TODO: Flip Flops (RS, T, D ..)
 
-  // TODO: Decoder ...
+  // TODO: Multiplexer, 7-Segment anzeige
   AddElementToSelector(THalfAdder.Create(), 32, PaintBox2.Height * 2);
   AddElementToSelector(TFullAdder.Create(), 32 + 50, PaintBox2.Height * 2);
 
-  - Sonderfall, wenn ein Element In direkt auf einem Element Out generiert wird erkennen und am besten eine Linie der Länge "0" einfügen.
-  - RS-Flipflop
+  // TODO: Taktgenerator
 
   // Die Controlls die immer da sind
   For i := 0 To ScrollBar3.Max Do Begin
@@ -152,7 +152,7 @@ Begin
   fFormShowOnce := false;
   (*// Debug "remove"
   If FileExists('First_save.ckt') Then Begin
-    fEngine.LoadFromFile('Circuits/FullAdder.ckt');
+    fEngine.LoadFromFile('First_save.ckt');
     PaintBox1.Invalidate;
   End;
   // End -- Debug *)
@@ -279,11 +279,14 @@ End;
 Procedure TForm1.PaintBox1MouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Begin
-  If fMouseMovePos = fMouseDownPos Then Begin
-    If Assigned(fSelectedElement) Then Begin
+  If Assigned(fSelectedElement) Then Begin
+    If fMouseMovePos = fMouseDownPos Then Begin
       fSelectedElement.Click;
-      PaintBox1.Invalidate;
+    End
+    Else Begin
+      fEngine.RecalculateShortConnections;
     End;
+    PaintBox1.Invalidate;
   End;
   fSelectedElement := Nil;
 End;
