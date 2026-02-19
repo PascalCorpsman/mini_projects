@@ -62,9 +62,9 @@ Type
 
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 
-    Procedure AddElement(Const aElement: TDigimanElement);
+    Function AddElement(Const aElement: TDigimanElement): Boolean;
     Procedure DelElement(Const aElement: TDigimanElement);
-    Procedure RecalculateShortConnections;
+    Function RecalculateShortConnections: Boolean;
     Procedure Clear();
 
     Function GetElementAtPos(x, y: integer): TDigimanElement;
@@ -254,66 +254,53 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
-  { TOneInOneOut }
+  { TImagedElement }
 
-  TOneInOneOut = Class(TDigimanElement)
-  private
-    fImage: TBitmap;
+  TImagedElement = Class(TDigimanElement)
   protected
+    fImage: TBitmap;
     Function getHeight: integer; override;
     Function getWidth: integer; override;
   public
     Constructor Create(); override;
     Destructor Destroy(); override;
-
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+  End;
+
+  { TOneInOneOut }
+
+  TOneInOneOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
   End;
 
   { TTwoInOneOut }
 
-  TTwoInOneOut = Class(TDigimanElement)
-  private
-    fImage: TBitmap;
-  protected
-    Function getHeight: integer; override;
-    Function getWidth: integer; override;
+  TTwoInOneOut = Class(TImagedElement)
   public
     Constructor Create(); override;
-    Destructor Destroy(); override;
-
-    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
   End;
 
   { TTwoInTwoOut }
 
-  TTwoInTwoOut = Class(TDigimanElement)
-  private
-    fImage: TBitmap;
-  protected
-    Function getHeight: integer; override;
-    Function getWidth: integer; override;
+  TTwoInTwoOut = Class(TImagedElement)
   public
     Constructor Create(); override;
-    Destructor Destroy(); override;
-
-    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
   End;
 
   { TThreeInTwoOut }
 
-  TThreeInTwoOut = Class(TDigimanElement)
-  private
-    fImage: TBitmap;
-  protected
-    Function getHeight: integer; override;
-    Function getWidth: integer; override;
+  TThreeInTwoOut = Class(TImagedElement)
   public
     Constructor Create(); override;
-    Destructor Destroy(); override;
-
-    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
   End;
 
+  { TEightInZeroOut }
+
+  TEightInZeroOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
+  End;
 
   { TNot }
 
@@ -329,7 +316,6 @@ Type
   { TAnd }
 
   TAnd = Class(TTwoInOneOut)
-  protected
   public
     Constructor Create(); override;
 
@@ -374,7 +360,6 @@ Type
   { THalfAdder }
 
   THalfAdder = Class(TTwoInTwoOut)
-  protected
   public
     Constructor Create(); override;
 
@@ -386,11 +371,24 @@ Type
   { TFullAdder }
 
   TFullAdder = Class(TThreeInTwoOut)
-  protected
   public
     Constructor Create(); override;
 
     Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
+  { T7Segment }
+
+  T7Segment = Class(TEightInZeroOut)
+  private
+    fSegments: Array[0..7] Of TBitmap;
+  public
+    Constructor Create(); override;
+    Destructor Destroy(); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
 
     Function Clone: TDigimanElement; override;
   End;
@@ -496,6 +494,7 @@ Begin
     'tusertext': result := TUserText.Create();
     'thalfadder': result := THalfAdder.Create();
     'tfulladder': result := TFullAdder.Create();
+    't7segment': result := T7Segment.Create();
   Else Begin
       Raise exception.create('Error: ' + ClassName + ' not implemented in CreateDigimanElemenFromString');
     End;
@@ -1118,10 +1117,11 @@ Begin
   End;
 End;
 
-Procedure TDigiman.AddElement(Const aElement: TDigimanElement);
+Function TDigiman.AddElement(Const aElement: TDigimanElement): Boolean;
 Var
   aLine: TLine;
 Begin
+  result := true;
   If aElement Is TLine Then Begin
     aLine := aElement As TLine;
     setlength(fLines, high(fLines) + 2);
@@ -1131,7 +1131,7 @@ Begin
   Else Begin
     setlength(fElements, high(fElements) + 2);
     initElementsIndexWithElement(aElement, high(fElements));
-    RecalculateShortConnections;
+    result := RecalculateShortConnections;
   End;
 End;
 
@@ -1172,12 +1172,13 @@ Begin
   End;
 End;
 
-Procedure TDigiman.RecalculateShortConnections;
+Function TDigiman.RecalculateShortConnections: Boolean;
 Var
   aLine: TLine;
   i, j, k, InIndex, OutIndex: Integer;
   p: TPoint;
 Begin
+  result := true;
   (*
    * Erkennt ob 2 Elemente so nah beieinander sind, dass sich deren In / Out Points direkt berühren
    * Wenn ja werden sie mit eine "Tline" verbunden, die man eigentlich nicht sehen kann.
@@ -1200,6 +1201,7 @@ Begin
               aLine.fOutIndex := j;
               AddElement(aLine);
             End;
+            If InIndex <> -1 Then result := false;
           End;
         End;
       End;
@@ -1465,22 +1467,63 @@ Begin
   result := TProbe.Create();
 End;
 
-{ TOneInOneOut }
+{ TImagedElement }
 
-Function TOneInOneOut.getHeight: integer;
+Function TImagedElement.getHeight: integer;
 Begin
   Result := fImage.Height;
 End;
 
-Function TOneInOneOut.getWidth: integer;
+Function TImagedElement.getWidth: integer;
 Begin
   Result := fImage.Width;
 End;
 
-Constructor TOneInOneOut.Create;
+Constructor TImagedElement.Create();
 Begin
   Inherited Create();
   fImage := Nil;
+End;
+
+Destructor TImagedElement.Destroy();
+Begin
+  If assigned(fImage) Then fImage.free;
+  fImage := Nil;
+  Inherited Destroy();
+End;
+
+Procedure TImagedElement.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Var
+  i: Integer;
+Begin
+  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
+
+  If fOwner.ShowPegel Then Begin
+    // Preview Eingänge
+    For i := 0 To high(InPoints) Do Begin
+      LineStateToCanvas(aCanvas, point(left - 1, top - 1) + InPoints[i] - aOffset, _In(i));
+    End;
+    // Preview Ausgänge
+    For i := 0 To high(OutPoints) Do Begin
+      LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[i] - aOffset, GetState(i));
+    End;
+  End;
+
+  If fOwner.ShowConnectionPoints Then Begin
+    For i := 0 To high(InPoints) Do Begin
+      ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[i] - aOffset);
+    End;
+    For i := 0 To high(OutPoints) Do Begin
+      ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[i] - aOffset);
+    End;
+  End;
+End;
+
+{ TOneInOneOut }
+
+Constructor TOneInOneOut.Create;
+Begin
+  Inherited Create();
   setlength(InPoints, 1);
   InPoints[0] := point(1, 8);
   setlength(InElements, 1);
@@ -1492,43 +1535,11 @@ Begin
   fEvaluated[0].Flag := false;
 End;
 
-Destructor TOneInOneOut.Destroy;
-Begin
-  fImage.Free;
-  fImage := Nil;
-  Inherited Destroy();
-End;
-
-Procedure TOneInOneOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
-Begin
-  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
-
-  If fOwner.ShowPegel Then Begin
-    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, GetState(0));
-  End;
-
-  If fOwner.ShowConnectionPoints Then Begin
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
-  End;
-End;
-
 { TTwoInOneOut }
-
-Function TTwoInOneOut.getHeight: integer;
-Begin
-  Result := fImage.Height;
-End;
-
-Function TTwoInOneOut.getWidth: integer;
-Begin
-  Result := fImage.Width;
-End;
 
 Constructor TTwoInOneOut.Create();
 Begin
   Inherited Create();
-  fImage := Nil;
   setlength(InPoints, 2);
   InPoints[0] := point(1, 4);
   InPoints[1] := point(1, 20);
@@ -1543,45 +1554,11 @@ Begin
   fEvaluated[0].Flag := false;
 End;
 
-Destructor TTwoInOneOut.Destroy();
-Begin
-  fImage.free;
-  fImage := Nil;
-
-  Inherited Destroy();
-End;
-
-Procedure TTwoInOneOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
-Begin
-  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
-
-  If fOwner.ShowPegel Then Begin
-    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, GetState(0));
-  End;
-
-  If fOwner.ShowConnectionPoints Then Begin
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[1] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
-  End;
-End;
-
 { TTwoInTwoOut }
-
-Function TTwoInTwoOut.getHeight: integer;
-Begin
-  Result := fImage.Height;
-End;
-
-Function TTwoInTwoOut.getWidth: integer;
-Begin
-  Result := fImage.Width;
-End;
 
 Constructor TTwoInTwoOut.Create();
 Begin
   Inherited Create();
-  fImage := Nil;
   setlength(InPoints, 2);
   InPoints[0] := point(1, 4);
   InPoints[1] := point(1, 20);
@@ -1598,47 +1575,11 @@ Begin
   fEvaluated[1].Flag := false;
 End;
 
-Destructor TTwoInTwoOut.Destroy();
-Begin
-  fImage.free;
-  fImage := Nil;
-
-  Inherited Destroy();
-End;
-
-Procedure TTwoInTwoOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
-Begin
-  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
-
-  If fOwner.ShowPegel Then Begin
-    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, GetState(0));
-    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[1] - aOffset, GetState(1));
-  End;
-
-  If fOwner.ShowConnectionPoints Then Begin
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[1] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[1] - aOffset);
-  End;
-End;
-
 { TThreeInTwoOut }
-
-Function TThreeInTwoOut.getHeight: integer;
-Begin
-  Result := fImage.Height;
-End;
-
-Function TThreeInTwoOut.getWidth: integer;
-Begin
-  Result := fImage.Width;
-End;
 
 Constructor TThreeInTwoOut.Create();
 Begin
   Inherited Create();
-  fImage := Nil;
   setlength(InPoints, 3);
   InPoints[0] := point(1, 4);
   InPoints[1] := point(1, 20);
@@ -1658,28 +1599,26 @@ Begin
   fEvaluated[1].Flag := false;
 End;
 
-Destructor TThreeInTwoOut.Destroy();
+{ TEightInZeroOut }
+
+Constructor TEightInZeroOut.Create();
+Var
+  i: Integer;
 Begin
-  fImage.free;
-  fImage := Nil;
-  Inherited Destroy();
-End;
-
-Procedure TThreeInTwoOut.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
-Begin
-  acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fImage);
-
-  If fOwner.ShowPegel Then Begin
-    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[0] - aOffset, GetState(0));
-    LineStateToCanvas(aCanvas, point(left - 1, top - 1) + OutPoints[1] - aOffset, GetState(1));
-  End;
-
-  If fOwner.ShowConnectionPoints Then Begin
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[0] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[1] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + InPoints[2] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[0] - aOffset);
-    ConnectionPointToCanvas(aCanvas, point(left, top) + OutPoints[1] - aOffset);
+  Inherited Create();
+  setlength(InPoints, 8);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  InPoints[2] := point(1, 36);
+  InPoints[3] := point(1, 52);
+  InPoints[4] := point(39, 4);
+  InPoints[5] := point(39, 20);
+  InPoints[6] := point(39, 36);
+  InPoints[7] := point(39, 52);
+  setlength(InElements, 8);
+  For i := 0 To 7 Do Begin
+    InElements[i].Element := Nil;
+    InElements[i].Index := -1;
   End;
 End;
 
@@ -1877,6 +1816,48 @@ End;
 Function TFullAdder.Clone: TDigimanElement;
 Begin
   result := TFullAdder.Create();
+End;
+
+{ T7Segment }
+
+Constructor T7Segment.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('7_segment.bmp');
+  fSegments[0] := LoadImage('7_segment_g.bmp');
+  fSegments[1] := LoadImage('7_segment_f.bmp');
+  fSegments[2] := LoadImage('7_segment_e.bmp');
+  fSegments[3] := LoadImage('7_segment_d.bmp');
+  fSegments[4] := LoadImage('7_segment_a.bmp');
+  fSegments[5] := LoadImage('7_segment_b.bmp');
+  fSegments[6] := LoadImage('7_segment_c.bmp');
+  fSegments[7] := LoadImage('7_segment_dot.bmp');
+End;
+
+Destructor T7Segment.Destroy();
+Var
+  i: Integer;
+Begin
+  For i := 0 To high(fSegments) Do
+    fSegments[i].free;
+  Inherited Destroy();
+End;
+
+Procedure T7Segment.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Var
+  i: Integer;
+Begin
+  Inherited RenderTo(aCanvas, aOffset);
+  For i := 0 To 7 Do Begin
+    If (_In(i) In [sOn {, sOnToOff}]) Then Begin
+      acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fSegments[i]);
+    End;
+  End;
+End;
+
+Function T7Segment.Clone: TDigimanElement;
+Begin
+  result := T7Segment.Create();
 End;
 
 { TLineCreateHelper }

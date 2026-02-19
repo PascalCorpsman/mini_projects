@@ -106,6 +106,9 @@ Var
   i: Integer;
   ut: TUserText;
 Begin
+  (*
+   * Goal is to simulate a 7-Segment counter from 0 to 15 using flipflops ;)
+   *)
   defcaption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
   caption := defcaption;
   fFormShowOnce := true;
@@ -114,25 +117,33 @@ Begin
   fSelector := TDigiman.Create;
   fSelector.ShowPegel := false;
   fSelector.ShowConnectionPoints := false;
-  // Die Basik Elemente
-  // TODO: Dauer "0", Dauer "1"
-  AddElementToSelector(TUserInput.Create(), 32, 0);
-  AddElementToSelector(TProbe.Create(), 32 + 50, 0);
-  AddElementToSelector(TNot.Create(), 32 + 100, 0);
-  AddElementToSelector(TOr.Create(), 32 + 150, 0);
-  AddElementToSelector(TAnd.Create(), 32 + 200, 0);
-  AddElementToSelector(TNOr.Create(), 32 + 250, 0);
-  AddElementToSelector(TNAnd.Create(), 32 + 300, 0);
+  // Seite 1: Die Basik Elemente
+  // TODO: Dauer "0" = GND
+  // TODO: Dauer "1" = VCC
+  AddElementToSelector(TUserInput.Create(), 32 + 100, 0);
+  // TODO: Wechsler, zwischen 2 in zu 1 out
+  // TODO: Taktgenerator
+  AddElementToSelector(TProbe.Create(), 32 + 250, 0);
+  AddElementToSelector(TNot.Create(), 32 + 300, 0);
+  AddElementToSelector(TOr.Create(), 32 + 350, 0);
+  AddElementToSelector(TAnd.Create(), 32 + 400, 0);
+  AddElementToSelector(TNOr.Create(), 32 + 450, 0);
+  AddElementToSelector(TNAnd.Create(), 32 + 500, 0);
   ut := TUserText.Create();
   ut.Text := 'Text';
-  AddElementToSelector(ut, 32 + 350, -8);
-  // TODO: Flip Flops (RS, T, D ..)
+  AddElementToSelector(ut, 32 + 550, 0);
 
-  // TODO: Multiplexer, 7-Segment anzeige
+  // Seite 2: Speicher Elemente
+  // TODO: RS-Flip FLop
+  // TODO: D-Flip FLop
+  // TODO: JK-Flip FLop
+  // TODO: T-Flip FLop
+
+  // Seite 3: Higher Level Logig elemente
   AddElementToSelector(THalfAdder.Create(), 32, PaintBox2.Height * 2);
   AddElementToSelector(TFullAdder.Create(), 32 + 50, PaintBox2.Height * 2);
-
-  // TODO: Taktgenerator
+  // TODO: Binary to 7 Segment decoder
+  AddElementToSelector(T7Segment.Create(), 32 + 150, PaintBox2.Height * 2);
 
   // Die Controlls die immer da sind
   For i := 0 To ScrollBar3.Max Do Begin
@@ -221,7 +232,7 @@ Begin
     If assigned(fAdderElement) Then Begin
       e := fAdderElement.Clone;
       e.setPosition(x + ScrollBar1.Position, y + ScrollBar2.Position);
-      fEngine.AddElement(e);
+      If Not fEngine.AddElement(e) Then showmessage('Error, connection not allowed.');
       PaintBox1.Invalidate;
     End;
   End;
@@ -284,7 +295,8 @@ Begin
       fSelectedElement.Click;
     End
     Else Begin
-      fEngine.RecalculateShortConnections;
+      If Not fEngine.RecalculateShortConnections Then
+        showmessage('Error, connection not allowed.');
     End;
     PaintBox1.Invalidate;
   End;
