@@ -264,7 +264,15 @@ Type
   public
     Constructor Create(); override;
     Destructor Destroy(); override;
+
     Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+  End;
+
+  { TZeroInOneOut }
+
+  TZeroInOneOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
   End;
 
   { TOneInOneOut }
@@ -288,6 +296,13 @@ Type
     Constructor Create(); override;
   End;
 
+  { TThreeInOneOut }
+
+  TThreeInOneOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
+  End;
+
   { TThreeInTwoOut }
 
   TThreeInTwoOut = Class(TImagedElement)
@@ -300,6 +315,28 @@ Type
   TEightInZeroOut = Class(TImagedElement)
   public
     Constructor Create(); override;
+  End;
+
+  { TOn }
+
+  TOn = Class(TZeroInOneOut)
+  public
+    Constructor Create(); override;
+
+    Function Clone: TDigimanElement; override;
+
+    Function GetState(aOutindex: Integer): Tstate; override;
+  End;
+
+  { TOff }
+
+  TOff = Class(TZeroInOneOut)
+  public
+    Constructor Create(); override;
+
+    Function Clone: TDigimanElement; override;
+
+    Function GetState(aOutindex: Integer): Tstate; override;
   End;
 
   { TNot }
@@ -362,6 +399,25 @@ Type
   THalfAdder = Class(TTwoInTwoOut)
   public
     Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
+  { TRelais }
+
+  TRelais = Class(TThreeInOneOut)
+  private
+    fOnImage, FOffImage: TBitmap;
+  protected
+    Function getHeight: integer; override;
+    Function getWidth: integer; override;
+  public
+    Constructor Create(); override;
+    Destructor Destroy(); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
 
     Function GetState(aOutindex: integer): Tstate; override;
 
@@ -491,7 +547,10 @@ Begin
     'tnot': result := TNot.Create();
     'tprobe': result := TProbe.Create();
     'tuserinput': result := TUserInput.Create();
+    'ton': result := TOn.Create();
+    'toff': result := TOff.Create();
     'tusertext': result := TUserText.Create();
+    'trelais': result := TRelais.Create();
     'thalfadder': result := THalfAdder.Create();
     'tfulladder': result := TFullAdder.Create();
     't7segment': result := T7Segment.Create();
@@ -1519,6 +1578,17 @@ Begin
   End;
 End;
 
+{ TZeroInOneOut }
+
+Constructor TZeroInOneOut.Create();
+Begin
+  Inherited Create();
+  setlength(OutPoints, 1);
+  OutPoints[0] := point(26, 8);
+  setlength(fEvaluated, 1);
+  fEvaluated[0].Flag := false;
+End;
+
 { TOneInOneOut }
 
 Constructor TOneInOneOut.Create;
@@ -1575,6 +1645,28 @@ Begin
   fEvaluated[1].Flag := false;
 End;
 
+{ TThreeInOneOut }
+
+Constructor TThreeInOneOut.Create();
+Begin
+  Inherited Create();
+  setlength(InPoints, 3);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  InPoints[2] := point(1, 36);
+  setlength(InElements, 3);
+  InElements[0].Element := Nil;
+  InElements[0].Index := -1;
+  InElements[1].Element := Nil;
+  InElements[1].Index := -1;
+  InElements[2].Element := Nil;
+  InElements[2].Index := -1;
+  setlength(OutPoints, 1);
+  OutPoints[0] := point(26, 4);
+  setlength(fEvaluated, 1);
+  fEvaluated[0].Flag := false;
+End;
+
 { TThreeInTwoOut }
 
 Constructor TThreeInTwoOut.Create();
@@ -1620,6 +1712,40 @@ Begin
     InElements[i].Element := Nil;
     InElements[i].Index := -1;
   End;
+End;
+
+Constructor TOn.Create;
+Begin
+  Inherited Create();
+  fImage := LoadImage('On.bmp');
+End;
+
+Function TOn.Clone: TDigimanElement;
+Begin
+  result := TOn.Create();
+End;
+
+Function TOn.GetState(aOutindex: Integer): Tstate;
+Begin
+  Result := sOn;
+End;
+
+{ TOff }
+
+Constructor TOff.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('Off.bmp');
+End;
+
+Function TOff.Clone: TDigimanElement;
+Begin
+  result := TOff.Create;
+End;
+
+Function TOff.GetState(aOutindex: Integer): Tstate;
+Begin
+  Result := sOff;
 End;
 
 { TNot }
@@ -1783,6 +1909,61 @@ End;
 Function THalfAdder.Clone: TDigimanElement;
 Begin
   result := THalfAdder.Create();
+End;
+
+{ TRelais }
+
+Function TRelais.getHeight: integer;
+Begin
+  Result := fOffImage.Height;
+End;
+
+Function TRelais.getWidth: integer;
+Begin
+  Result := fOffImage.Width;
+End;
+
+Constructor TRelais.Create;
+Begin
+  Inherited Create();
+  fOnImage := LoadImage('Relais1.bmp');
+  fOffImage := LoadImage('Relais0.bmp');
+End;
+
+Destructor TRelais.Destroy;
+Begin
+  fOnImage.free;
+  fOnImage := Nil;
+  FOffImage.Free;
+  fOffImage := Nil;
+  Inherited Destroy();
+End;
+
+Procedure TRelais.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Begin
+  If _in(2) In [sOn {, sOnToOff}] Then Begin
+    fImage := fOnImage;
+  End
+  Else Begin
+    fImage := fOffImage;
+  End;
+  Inherited RenderTo(aCanvas, aOffset);
+  fImage := Nil;
+End;
+
+Function TRelais.GetState(aOutindex: integer): Tstate;
+Begin
+  If _in(2) In [sOn {, sOnToOff}] Then Begin
+    result := _in(1);
+  End
+  Else Begin
+    result := _in(0);
+  End;
+End;
+
+Function TRelais.Clone: TDigimanElement;
+Begin
+  result := TRelais.Create();
 End;
 
 { TFullAdder }

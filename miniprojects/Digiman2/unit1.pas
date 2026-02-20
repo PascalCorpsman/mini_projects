@@ -118,10 +118,10 @@ Begin
   fSelector.ShowPegel := false;
   fSelector.ShowConnectionPoints := false;
   // Seite 1: Die Basik Elemente
-  // TODO: Dauer "0" = GND
-  // TODO: Dauer "1" = VCC
+  AddElementToSelector(Toff.Create(), 32 + 0, 0);
+  AddElementToSelector(Ton.Create(), 32 + 50, 0);
   AddElementToSelector(TUserInput.Create(), 32 + 100, 0);
-  // TODO: Wechsler, zwischen 2 in zu 1 out
+  AddElementToSelector(TRelais.Create(), 32 + 150, 0);
   // TODO: Taktgenerator
   AddElementToSelector(TProbe.Create(), 32 + 250, 0);
   AddElementToSelector(TNot.Create(), 32 + 300, 0);
@@ -161,7 +161,7 @@ Procedure TForm1.FormShow(Sender: TObject);
 Begin
   If Not fFormShowOnce Then exit;
   fFormShowOnce := false;
-  (*// Debug "remove"
+  //(*// Debug "remove"
   If FileExists('First_save.ckt') Then Begin
     fEngine.LoadFromFile('First_save.ckt');
     PaintBox1.Invalidate;
