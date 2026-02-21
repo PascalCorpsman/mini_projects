@@ -41,6 +41,13 @@
         <Filename Value="udigiman.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="uclockform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ClockForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

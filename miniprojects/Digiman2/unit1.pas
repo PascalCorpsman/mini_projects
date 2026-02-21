@@ -122,7 +122,7 @@ Begin
   AddElementToSelector(Ton.Create(), 32 + 50, 0);
   AddElementToSelector(TUserInput.Create(), 32 + 100, 0);
   AddElementToSelector(TRelais.Create(), 32 + 150, 0);
-  // TODO: Taktgenerator
+  AddElementToSelector(TClock.Create(), 32 + 200, 0);
   AddElementToSelector(TProbe.Create(), 32 + 250, 0);
   AddElementToSelector(TNot.Create(), 32 + 300, 0);
   AddElementToSelector(TOr.Create(), 32 + 350, 0);
@@ -163,7 +163,7 @@ Begin
   fFormShowOnce := false;
   //(*// Debug "remove"
   If FileExists('First_save.ckt') Then Begin
-    fEngine.LoadFromFile('First_save.ckt');
+    fEngine.LoadFromFile('First_save.ckt', PaintBox1);
     PaintBox1.Invalidate;
   End;
   // End -- Debug *)
@@ -189,7 +189,6 @@ Begin
   fSelectedElement := Nil;
   If ssleft In shift Then Begin
     fSelectedElement := fEngine.GetElementAtPos(x + ScrollBar1.Position, y + ScrollBar2.Position);
-
     If assigned(fAdderElement) And (fAdderElement Is TTool) Then Begin
       // Das "Lösch" Tool
       If (fAdderElement Is TEraser) And (assigned(fSelectedElement)) Then Begin
@@ -198,7 +197,7 @@ Begin
         PaintBox1.Invalidate;
       End;
       // Das Linientool
-      If (fAdderElement Is TLineTool) And (assigned(fSelectedElement)) Then Begin
+      If (fAdderElement Is TLineTool) And (assigned(fSelectedElement)) And (Not (fSelectedElement Is TLine)) Then Begin
         If fSelectedElement.InOutPointHit(x + ScrollBar1.Position, y + ScrollBar2.Position, InIndex, OutIndex) Then Begin
           // Die Linie Startet oder endet
           If fLineCreateHelper.Mode = lcmIdle Then Begin
@@ -233,6 +232,9 @@ Begin
       e := fAdderElement.Clone;
       e.setPosition(x + ScrollBar1.Position, y + ScrollBar2.Position);
       If Not fEngine.AddElement(e) Then showmessage('Error, connection not allowed.');
+      If e Is TClock Then Begin
+        (e As TClock).LclOwner := Paintbox1;
+      End;
       PaintBox1.Invalidate;
     End;
   End;
@@ -405,7 +407,7 @@ Procedure TForm1.Button1Click(Sender: TObject);
 Begin
   If OpenDialog1.Execute Then Begin
     caption := ExtractFileName(OpenDialog1.FileName);
-    fEngine.LoadFromFile(OpenDialog1.FileName);
+    fEngine.LoadFromFile(OpenDialog1.FileName, PaintBox1);
     PaintBox1.Invalidate;
   End;
 End;

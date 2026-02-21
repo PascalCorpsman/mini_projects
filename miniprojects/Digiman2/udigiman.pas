@@ -19,7 +19,7 @@ Unit udigiman;
 Interface
 
 Uses
-  Classes, SysUtils, Graphics;
+  extctrls, controls, Classes, SysUtils, Graphics;
 
 Const
   Grid = 4;
@@ -49,6 +49,7 @@ Type
     Procedure initElementsIndexWithElement(Const aElement: TDigimanElement; aIndex: integer);
     Procedure initLinesIndexWithElement(Const aElement: Tline; aIndex: integer);
   protected
+    Procedure RemoveConnection(aFrom: TDigimanElement; aFromIndex: integer; aTo: TDigimanElement);
     Procedure RemoveAllConnectionsTo(aElement: TDigimanElement);
     Function ElementToElementIndex(Const aElement: TDigimanElement): integer;
     Procedure CalculateAndAddIntersectionPoints(Const aLine1, aLine2: Tline);
@@ -70,7 +71,7 @@ Type
     Function GetElementAtPos(x, y: integer): TDigimanElement;
 
     Procedure SaveToFile(Const aFilename: String);
-    Procedure LoadFromFile(Const aFilename: String);
+    Procedure LoadFromFile(Const aFilename: String; aLCLOwner: TControl);
   End;
 
   (*
@@ -203,6 +204,8 @@ Type
     Text: String;
     Constructor Create(); override;
 
+    Procedure Click; override;
+
     Procedure SaveToStream(Const aStream: TStream); override;
     Procedure LoadFromStream(Const aStream: TStream); override;
 
@@ -333,6 +336,31 @@ Type
   TOff = Class(TZeroInOneOut)
   public
     Constructor Create(); override;
+
+    Function Clone: TDigimanElement; override;
+
+    Function GetState(aOutindex: Integer): Tstate; override;
+  End;
+
+  { TClock }
+
+  TClock = Class(TZeroInOneOut)
+  private
+    fTimer: TTimer;
+    fState: TState;
+    Procedure OnTimer(Sender: TObject);
+    Procedure PromptInterval;
+  public
+    LCLOwner: TControl;
+
+    Constructor Create(); override;
+    Destructor Destroy(); override;
+
+    Procedure Click; override;
+
+    Procedure SaveToStream(Const aStream: TStream); override;
+    Procedure LoadFromStream(Const aStream: TStream); override;
+
 
     Function Clone: TDigimanElement; override;
 
@@ -480,7 +508,7 @@ Procedure Nop();
 
 Implementation
 
-Uses Dialogs;
+Uses math, Dialogs, uclockform;
 
 Procedure Nop();
 Begin
@@ -540,20 +568,21 @@ Begin
    * Hier sind nicht alle Klassen gelistet, nur die die geladen und gespeichert werden können..
    *)
   Case lowercase(ClassName) Of
+    't7segment': result := T7Segment.Create();
+    'tand': result := Tand.Create();
+    'tclock': result := TClock.Create();
+    'tfulladder': result := TFullAdder.Create();
+    'thalfadder': result := THalfAdder.Create();
     'tnand': result := TNand.Create();
     'tnor': result := TNor.Create();
-    'tor': result := Tor.Create();
-    'tand': result := Tand.Create();
     'tnot': result := TNot.Create();
-    'tprobe': result := TProbe.Create();
-    'tuserinput': result := TUserInput.Create();
-    'ton': result := TOn.Create();
     'toff': result := TOff.Create();
-    'tusertext': result := TUserText.Create();
+    'ton': result := TOn.Create();
+    'tor': result := Tor.Create();
+    'tprobe': result := TProbe.Create();
     'trelais': result := TRelais.Create();
-    'thalfadder': result := THalfAdder.Create();
-    'tfulladder': result := TFullAdder.Create();
-    't7segment': result := T7Segment.Create();
+    'tuserinput': result := TUserInput.Create();
+    'tusertext': result := TUserText.Create();
   Else Begin
       Raise exception.create('Error: ' + ClassName + ' not implemented in CreateDigimanElemenFromString');
     End;
@@ -581,10 +610,12 @@ Begin
 End;
 
 Function PointInPointCollider(aX, aY: integer; Const aPoint: Tpoint): Boolean;
+Const
+  Tolerance = 3; // TODO: Was ist hier "optimal" ?
 Begin
   result :=
-    (aPoint.x - 2 <= ax) And (aPoint.x + 3 >= aX) And
-    (aPoint.Y - 2 <= ay) And (aPoint.Y + 3 >= ay);
+    (aPoint.x - Tolerance <= ax) And (aPoint.x + 1 + Tolerance >= aX) And
+    (aPoint.Y - Tolerance <= ay) And (aPoint.Y + 1 + Tolerance >= ay);
 End;
 
 Procedure ConnectionPointToCanvas(Const aCanvas: TCanvas; aPos: Tpoint);
@@ -592,24 +623,6 @@ Begin
   aCanvas.Brush.Color := clGreen;
   aCanvas.Pen.Color := clGreen;
   aCanvas.Rectangle(aPos.x - 2, aPos.Y - 2, aPos.x + 3, aPos.Y + 3);
-End;
-
-Function PointCollideWithSegment(Const aCollider, aFrom, aTo: Tpoint): boolean;
-Var
-  dx: Integer;
-Begin
-  result := false;
-  dx := ato.X - aFrom.X;
-  // First Horizontal
-  If (aCollider.Y >= aFrom.Y - 2) And
-    (aCollider.Y <= aFrom.Y + 3) And
-    (aCollider.x >= aFrom.X) And
-    (aCollider.x <= aFrom.X + dx) Then result := true;
-  // Second Vertical
-  If (aCollider.x >= aTo.X - 2) And
-    (aCollider.x <= aTo.x + 3) And
-    (aCollider.Y >= aFrom.Y) And
-    (aCollider.Y <= aTo.Y) Then result := true;
 End;
 
 Procedure DrawSegment(Const aCanvas: TCanvas; aOffset: TPoint; aFrom, aTo: Tpoint);
@@ -740,6 +753,41 @@ Begin
       Result := False;
   End;
 End;
+
+Function PointCollideWithSegment(Const aCollider, aFrom, aTo: TPoint): Boolean;
+Const
+  tolerance = 3;
+Var
+  dx: Integer;
+  minX, maxX: Integer;
+  minY, maxY: Integer;
+Begin
+  Result := False;
+  dx := aTo.X - aFrom.X;
+
+  // ---------- First Horizontal ----------
+  minX := Min(aFrom.X, aFrom.X + dx);
+  maxX := Max(aFrom.X, aFrom.X + dx);
+
+  If (aCollider.Y >= aFrom.Y - tolerance) And
+    (aCollider.Y <= aFrom.Y + tolerance) And
+    (aCollider.X >= minX) And
+    (aCollider.X <= maxX) Then Begin
+    Result := true;
+  End;
+
+  // ---------- Second Vertical ----------
+  minY := Min(aFrom.Y, aTo.Y);
+  maxY := Max(aFrom.Y, aTo.Y);
+
+  If (aCollider.X >= aTo.X - tolerance) And
+    (aCollider.X <= aTo.X + tolerance) And
+    (aCollider.Y >= minY) And
+    (aCollider.Y <= maxY) Then Begin
+    Result := true;
+  End;
+End;
+
 // -- End content created using ChatGPT
 
 { TDigimanElement }
@@ -847,6 +895,13 @@ End;
 Procedure TDigimanElement.SetInElement(aInIndex: integer;
   aOutElement: TDigimanElement; aOutIndex: integer);
 Begin
+  // Eine Bestehende eingehende Verbindung muss "vernichtet" werden
+  If assigned(InElements[aInIndex].Element) Then Begin
+    fowner.RemoveConnection(
+      InElements[aInIndex].Element, aInIndex,
+      Self
+      );
+  End;
   InElements[aInIndex].Element := aOutElement;
   InElements[aInIndex].Index := aOutIndex;
 End;
@@ -1009,6 +1064,15 @@ Begin
   fHeight := 0;
 End;
 
+Procedure TUserText.Click;
+Var
+  s: String;
+Begin
+  s := InputBox('Please enter a text:', '', Text);
+  If trim(s) = '' Then s := 'Text';
+  Text := s;
+End;
+
 Procedure TUserText.SaveToStream(Const aStream: TStream);
 Begin
   Inherited SaveToStream(aStream);
@@ -1062,6 +1126,26 @@ Begin
     );
 End;
 
+Procedure TDigiman.RemoveConnection(aFrom: TDigimanElement; aFromIndex: integer;
+  aTo: TDigimanElement);
+Var
+  i, j: Integer;
+Begin
+  For i := high(fLines) Downto 0 Do Begin
+    If (fLines[i].fInElement = aFrom) And
+      (fLines[i].fInIndex = aFromIndex) And
+      (fLines[i].fOutElement = aTo) Then Begin
+      fLines[i].Free;
+      For j := i To high(fLines) - 1 Do Begin
+        fLines[j] := fLines[j + 1];
+      End;
+      setlength(fLines, high(fLines));
+      break;
+    End;
+  End;
+  CalculateLineBridges;
+End;
+
 Procedure TDigiman.RemoveAllConnectionsTo(aElement: TDigimanElement);
 Var
   i, j: Integer;
@@ -1073,8 +1157,10 @@ Begin
   End;
   // ggf. Löschen von Linien..
   For i := high(fLines) Downto 0 Do Begin
-    If (fLines[i].fOutElement = aElement) Or
-      (fLines[i].fInElement = aElement) Then Begin
+    // da siche RemoveAllConnectionsTo rekursiv aufruft, muss zusätzlich
+    // Noch geprüft werden, ob es das i-te elemen noch gibt, sonst knallts ;)
+    If (i <= high(fLines)) And ((fLines[i].fOutElement = aElement) Or
+      (fLines[i].fInElement = aElement)) Then Begin
       elem := fLines[i].fInElement;
       fLines[i].Free;
       For j := i To high(fLines) - 1 Do Begin
@@ -1201,10 +1287,9 @@ Begin
   If aElement Is TLine Then Begin
     For i := 0 To high(fLines) Do Begin
       If fLines[i] = aElement Then Begin
-        // Aushängen
-        fLines[i].fOutElement.SetInElement(
-          fLines[i].fOutIndex,
-          Nil, -1);
+        // Aushängen (nicht via SetInElement, da das sonst wieder ein Remove aufruft..)
+        fLines[i].fOutElement.InElements[fLines[i].fOutIndex].Element := Nil;
+        fLines[i].fOutElement.InElements[fLines[i].fOutIndex].Index := -1;
         // Löschen der Linie
         fLines[i].Free;
         For j := i To high(fLines) - 1 Do Begin
@@ -1340,7 +1425,7 @@ Begin
   m.free;
 End;
 
-Procedure TDigiman.LoadFromFile(Const aFilename: String);
+Procedure TDigiman.LoadFromFile(Const aFilename: String; aLCLOwner: TControl);
 Var
   m: TMemoryStream;
   j, i, FV: integer;
@@ -1361,6 +1446,9 @@ Begin
     e := CreateDigimanElemenFromString(m.ReadAnsiString);
     e.LoadFromStream(m);
     initElementsIndexWithElement(e, i);
+    If e Is TClock Then Begin
+      (e As TClock).LCLOwner := aLCLOwner;
+    End;
   End;
 
   i := 0;
@@ -1746,6 +1834,87 @@ End;
 Function TOff.GetState(aOutindex: Integer): Tstate;
 Begin
   Result := sOff;
+End;
+
+{ TClock }
+
+Procedure TClock.OnTimer(Sender: TObject);
+Begin
+  If Not assigned(LCLOwner) Then exit;
+  If fState = sOff Then Begin
+    fState := sOn;
+  End
+  Else Begin
+    fState := sOff;
+  End;
+  LCLOwner.Invalidate;
+End;
+
+Procedure TClock.PromptInterval;
+Var
+  f: TClockForm;
+Begin
+  f := TClockForm.Create(Nil);
+  f.SetInterval(ftimer.Interval);
+  If f.ShowModal = mrOK Then Begin
+    fTimer.Interval := f.GetIntervalms();
+  End;
+  f.free;
+End;
+
+Constructor TClock.Create;
+Begin
+  Inherited Create();
+  fImage := LoadImage('Clock.bmp');
+  LCLOwner := Nil;
+  fTimer := TTimer.Create(Nil);
+  fTimer.Interval := 1000;
+  fTimer.OnTimer := @OnTimer;
+  fTimer.Enabled := true;
+  fState := sOff;
+End;
+
+Destructor TClock.Destroy;
+Begin
+  LCLOwner := Nil;
+  fTimer.Free;
+  fTimer := Nil;
+  Inherited Destroy();
+End;
+
+Procedure TClock.Click;
+Begin
+  PromptInterval;
+End;
+
+Procedure TClock.SaveToStream(Const aStream: TStream);
+Var
+  i: integer;
+Begin
+  Inherited SaveToStream(aStream);
+  i := fTimer.Interval;
+  aStream.Write(i, sizeof(i));
+End;
+
+Procedure TClock.LoadFromStream(Const aStream: TStream);
+Var
+  i: integer;
+Begin
+  Inherited LoadFromStream(aStream);
+  i := 1000;
+  aStream.Read(i, sizeof(i));
+  fTimer.Interval := i;
+End;
+
+Function TClock.Clone: TDigimanElement;
+Begin
+  result := TClock.Create();
+  (result As TClock).PromptInterval;
+End;
+
+Function TClock.GetState(aOutindex: Integer): Tstate;
+Begin
+  Result := fState;
 End;
 
 { TNot }
