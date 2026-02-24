@@ -108,6 +108,9 @@ Var
 Begin
   (*
    * Goal is to simulate a 7-Segment counter from 0 to 15 using flipflops ;)
+   *
+   * Additional Feature: Tastpunkt und Oszi für Logik ;)
+   *
    *)
   defcaption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
   caption := defcaption;
@@ -121,29 +124,34 @@ Begin
   AddElementToSelector(Toff.Create(), 32 + 0, 0);
   AddElementToSelector(Ton.Create(), 32 + 50, 0);
   AddElementToSelector(TUserInput.Create(), 32 + 100, 0);
-  AddElementToSelector(TRelais.Create(), 32 + 150, 0);
-  AddElementToSelector(TClock.Create(), 32 + 200, 0);
-  AddElementToSelector(TProbe.Create(), 32 + 250, 0);
-  AddElementToSelector(TNot.Create(), 32 + 300, 0);
-  AddElementToSelector(TOr.Create(), 32 + 350, 0);
-  AddElementToSelector(TAnd.Create(), 32 + 400, 0);
-  AddElementToSelector(TNOr.Create(), 32 + 450, 0);
-  AddElementToSelector(TNAnd.Create(), 32 + 500, 0);
+  AddElementToSelector(TClock.Create(), 32 + 150, 0);
+  AddElementToSelector(TProbe.Create(), 32 + 200, 0);
+  AddElementToSelector(TNot.Create(), 32 + 250, 0);
+  AddElementToSelector(TOr.Create(), 32 + 300, 0);
+  AddElementToSelector(TAnd.Create(), 32 + 350, 0);
+  AddElementToSelector(TNOr.Create(), 32 + 400, 0);
+  AddElementToSelector(TNAnd.Create(), 32 + 450, 0);
+  AddElementToSelector(TXor.Create(), 32 + 500, 0);
   ut := TUserText.Create();
   ut.Text := 'Text';
   AddElementToSelector(ut, 32 + 550, 0);
 
-  // Seite 2: Speicher Elemente
-  // TODO: RS-Flip FLop
+  // Seite 2: Higher Level Logig elemente
+  AddElementToSelector(TRelais.Create(), 32 + 0, PaintBox2.Height * 1);
+  AddElementToSelector(THalfAdder.Create(), 32 + 50, PaintBox2.Height * 1);
+  AddElementToSelector(TFullAdder.Create(), 32 + 100, PaintBox2.Height * 1);
+  // TODO: Binary to 7 Segment decoder
+  AddElementToSelector(T7Segment.Create(), 32 + 200, PaintBox2.Height * 1);
+  // Nand mit 3 Eingängen ?
+  // Nand mit 4 Eingängen ?
+
+  // Seite 3: Speicher Elemente
+  AddElementToSelector(TRs.Create(), 32 + 0, PaintBox2.Height * 2);
   // TODO: D-Flip FLop
   // TODO: JK-Flip FLop
-  // TODO: T-Flip FLop
-
-  // Seite 3: Higher Level Logig elemente
-  AddElementToSelector(THalfAdder.Create(), 32, PaintBox2.Height * 2);
-  AddElementToSelector(TFullAdder.Create(), 32 + 50, PaintBox2.Height * 2);
-  // TODO: Binary to 7 Segment decoder
-  AddElementToSelector(T7Segment.Create(), 32 + 150, PaintBox2.Height * 2);
+  // TODO: T-Flip FLop ?
+  // TODO: Schieberegister
+  // TODO: 4-Bit Zähler
 
   // Die Controlls die immer da sind
   For i := 0 To ScrollBar3.Max Do Begin

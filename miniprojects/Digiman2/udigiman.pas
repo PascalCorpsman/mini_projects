@@ -361,7 +361,6 @@ Type
     Procedure SaveToStream(Const aStream: TStream); override;
     Procedure LoadFromStream(Const aStream: TStream); override;
 
-
     Function Clone: TDigimanElement; override;
 
     Function GetState(aOutindex: Integer): Tstate; override;
@@ -422,11 +421,38 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
+  { TXor }
+
+  TXor = Class(TTwoInOneOut)
+  public
+    Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
   { THalfAdder }
 
   THalfAdder = Class(TTwoInTwoOut)
   public
     Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
+  { TRS }
+
+  TRS = Class(TTwoInTwoOut)
+  private
+    fState: TState;
+  public
+    Constructor Create(); override;
+
+    Procedure SaveToStream(Const aStream: TStream); override;
+    Procedure LoadFromStream(Const aStream: TStream); override;
 
     Function GetState(aOutindex: integer): Tstate; override;
 
@@ -581,8 +607,10 @@ Begin
     'tor': result := Tor.Create();
     'tprobe': result := TProbe.Create();
     'trelais': result := TRelais.Create();
+    'trs': result := TRS.Create();
     'tuserinput': result := TUserInput.Create();
     'tusertext': result := TUserText.Create();
+    'txor': result := TXor.Create();
   Else Begin
       Raise exception.create('Error: ' + ClassName + ' not implemented in CreateDigimanElemenFromString');
     End;
@@ -2051,6 +2079,32 @@ Begin
   Result := TNand.Create();
 End;
 
+{ TXor }
+
+Constructor TXor.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('Xor.bmp');
+End;
+
+Function TXor.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    fEvaluated[aOutindex].Flag := true;
+    Result := sUndefined;
+    Result := _xor(_In(0), _In(1));
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function TXor.Clone: TDigimanElement;
+Begin
+  result := TXor.Create();
+End;
+
 { THalfAdder }
 
 Constructor THalfAdder.Create();
@@ -2078,6 +2132,61 @@ End;
 Function THalfAdder.Clone: TDigimanElement;
 Begin
   result := THalfAdder.Create();
+End;
+
+{ TRS }
+
+Constructor TRS.Create;
+Begin
+  Inherited Create();
+  fState := sUndefined;
+  fImage := LoadImage('RS.bmp');
+  OutPoints[0].X := OutPoints[0].X + 4;
+  OutPoints[1].X := OutPoints[1].X + 4;
+End;
+
+Procedure TRS.SaveToStream(Const aStream: TStream);
+Begin
+  Inherited SaveToStream(aStream);
+  aStream.Write(fState, SizeOf(fState));
+End;
+
+Procedure TRS.LoadFromStream(Const aStream: TStream);
+Begin
+  Inherited LoadFromStream(aStream);
+  aStream.Read(fState, SizeOf(fState));
+End;
+
+Function TRS.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    If _In(1) = sOn Then Begin
+      If _In(0) = sOn Then Begin
+        fState := sUndefined;
+      End
+      Else Begin
+        fState := sOn;
+      End;
+    End
+    Else Begin
+      If _In(0) = sOn Then Begin
+        fState := sOff;
+      End;
+    End;
+    Case aOutindex Of
+      0: result := fState;
+      1: result := _Not(fState);
+    End;
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function TRS.Clone: TDigimanElement;
+Begin
+  result := TRS.Create();
 End;
 
 { TRelais }
