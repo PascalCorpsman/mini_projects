@@ -459,6 +459,17 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
+  TD = Class(TRS)
+  private
+    fLastClockState: TState;
+  public
+    Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
   { TRelais }
 
   TRelais = Class(TThreeInOneOut)
@@ -597,6 +608,7 @@ Begin
     't7segment': result := T7Segment.Create();
     'tand': result := Tand.Create();
     'tclock': result := TClock.Create();
+    'td': result := TD.Create();
     'tfulladder': result := TFullAdder.Create();
     'thalfadder': result := THalfAdder.Create();
     'tnand': result := TNand.Create();
@@ -2187,6 +2199,40 @@ End;
 Function TRS.Clone: TDigimanElement;
 Begin
   result := TRS.Create();
+End;
+
+Constructor TD.Create;
+Begin
+  Inherited Create();
+  fImage.free;
+  fImage := LoadImage('D.bmp');
+  fLastClockState := sUndefined;
+End;
+
+Function TD.GetState(aOutindex: integer): Tstate;
+Var
+  newClock: TState;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    newClock := _In(1);
+    If (newClock = sOn) And (fLastClockState <> sOn) Then Begin
+      fState := _In(0);
+    End;
+    fLastClockState := newClock;
+    Case aOutindex Of
+      0: result := fState;
+      1: result := _Not(fState);
+    End;
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function TD.Clone: TDigimanElement;
+Begin
+  Result := TD.Create();
 End;
 
 { TRelais }

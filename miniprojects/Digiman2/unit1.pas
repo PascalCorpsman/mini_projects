@@ -147,7 +147,7 @@ Begin
 
   // Seite 3: Speicher Elemente
   AddElementToSelector(TRs.Create(), 32 + 0, PaintBox2.Height * 2);
-  // TODO: D-Flip FLop
+  AddElementToSelector(TD.Create(), 32 + 50, PaintBox2.Height * 2);
   // TODO: JK-Flip FLop
   // TODO: T-Flip FLop ?
   // TODO: Schieberegister
