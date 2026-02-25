@@ -6,6 +6,6 @@ This is the cleanup from my [digiman](https://corpsman.de/index.php?doc=beispiel
 
 Features:
 - Load / save
-- Simulate in realtime (not yet implemented)
+- Simulate in realtime
 - Basic logic elements (or, and, not..)
 - High level logic elements (flipflops, adder, decoder ..) (not yet fully implemented)
