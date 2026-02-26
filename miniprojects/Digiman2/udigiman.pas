@@ -313,6 +313,14 @@ Type
     Constructor Create(); override;
   End;
 
+
+  { TFiveInTwoOut }
+
+  TFiveInTwoOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
+  End;
+
   { TEightInZeroOut }
 
   TEightInZeroOut = Class(TImagedElement)
@@ -500,6 +508,20 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
+  { TJK }
+
+  TJK = Class(TFiveInTwoOut)
+  private
+    fLastClockState: TState;
+    fState: TState;
+  public
+    Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
   { T7Segment }
 
   T7Segment = Class(TEightInZeroOut)
@@ -611,6 +633,7 @@ Begin
     'td': result := TD.Create();
     'tfulladder': result := TFullAdder.Create();
     'thalfadder': result := THalfAdder.Create();
+    'tjk': result := TJK.Create();
     'tnand': result := TNand.Create();
     'tnor': result := TNor.Create();
     'tnot': result := TNot.Create();
@@ -1819,6 +1842,32 @@ Begin
   fEvaluated[1].Flag := false;
 End;
 
+{ TFiveInTwoOut }
+
+Constructor TFiveInTwoOut.Create();
+Var
+  i: Integer;
+Begin
+  Inherited Create();
+  setlength(InPoints, 5);
+  InPoints[0] := point(1, 4 + 4);
+  InPoints[1] := point(1, 20 + 4);
+  InPoints[2] := point(1, 36 + 4);
+  InPoints[3] := point(12, 1);
+  InPoints[4] := point(12, 47);
+  setlength(InElements, 5);
+  For i := 0 To 4 Do Begin
+    InElements[i].Element := Nil;
+    InElements[i].Index := -1;
+  End;
+  setlength(OutPoints, 2);
+  OutPoints[0] := point(26, 4 + 4);
+  OutPoints[1] := point(26, 20 + 4);
+  setlength(fEvaluated, 2);
+  fEvaluated[0].Flag := false;
+  fEvaluated[1].Flag := false;
+End;
+
 { TEightInZeroOut }
 
 Constructor TEightInZeroOut.Create();
@@ -2321,6 +2370,64 @@ End;
 Function TFullAdder.Clone: TDigimanElement;
 Begin
   result := TFullAdder.Create();
+End;
+
+{ TJK }
+
+Constructor TJK.Create();
+Begin
+  Inherited Create();
+  OutPoints[0].X := OutPoints[0].X + 4;
+  OutPoints[1].X := OutPoints[1].X + 4;
+  fImage := LoadImage('JK.bmp');
+  fLastClockState := sUndefined;
+  fState := sOff; // TODO: macht das sinn ?
+End;
+
+Function TJK.GetState(aOutindex: integer): Tstate;
+Var
+  newClock: TState;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    newClock := _In(1);
+    If (newClock = sOn) And (fLastClockState <> sOn) Then Begin
+      If _In(0) = sOn Then Begin
+        If _In(2) = sOn Then Begin
+          fState := _Not(fState); // Toggle
+        End
+        Else Begin
+          fState := sOn;
+        End;
+      End
+      Else Begin
+        If _In(2) = sOn Then Begin
+          fState := sOff;
+        End;
+      End;
+    End;
+    If _In(3) = sOn Then Begin
+      fState := sOn;
+    End
+    Else Begin
+      If _In(4) = sOn Then Begin
+        fState := sOff;
+      End;
+    End;
+    fLastClockState := newClock;
+    Case aOutindex Of
+      0: result := fState;
+      1: result := _Not(fState);
+    End;
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function TJK.Clone: TDigimanElement;
+Begin
+  result := TJK.Create();
 End;
 
 { T7Segment }
