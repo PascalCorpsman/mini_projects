@@ -470,6 +470,7 @@ Type
   TD = Class(TRS)
   private
     fLastClockState: TState;
+    fNegClockState: TState; // Der Zustand der bei der Positiven Flanke eingelesen und bei der Negativen übernommen wird.
   public
     Constructor Create(); override;
 
@@ -513,6 +514,7 @@ Type
   TJK = Class(TFiveInTwoOut)
   private
     fLastClockState: TState;
+    fNegClockState: TState; // Der Zustand der bei der Positiven Flanke eingelesen und bei der Negativen übernommen wird.
     fState: TState;
   public
     Constructor Create(); override;
@@ -2268,7 +2270,10 @@ Begin
   Else Begin
     newClock := _In(1);
     If (newClock = sOn) And (fLastClockState <> sOn) Then Begin
-      fState := _In(0);
+      fNegClockState := _In(0);
+    End;
+    If (newClock = sOff) And (fLastClockState <> sOff) Then Begin
+      fState := fNegClockState;
     End;
     fLastClockState := newClock;
     Case aOutindex Of
@@ -2381,6 +2386,7 @@ Begin
   OutPoints[1].X := OutPoints[1].X + 4;
   fImage := LoadImage('JK.bmp');
   fLastClockState := sUndefined;
+  fNegClockState := sOff;
   fState := sOff; // TODO: macht das sinn ?
 End;
 
@@ -2393,27 +2399,34 @@ Begin
   End
   Else Begin
     newClock := _In(1);
+    // Die Positive Flanke
     If (newClock = sOn) And (fLastClockState <> sOn) Then Begin
       If _In(0) = sOn Then Begin
         If _In(2) = sOn Then Begin
-          fState := _Not(fState); // Toggle
+          fNegClockState := _Not(fState); // Toggle
         End
         Else Begin
-          fState := sOn;
+          fNegClockState := sOn;
         End;
       End
       Else Begin
         If _In(2) = sOn Then Begin
-          fState := sOff;
+          fNegClockState := sOff;
         End;
       End;
     End;
+    // Die Negative Flanke
+    If (newClock = sOff) And (fLastClockState <> sOff) Then Begin
+      fState := fNegClockState;
+    End;
     If _In(3) = sOn Then Begin
       fState := sOn;
+      fNegClockState := sOn;
     End
     Else Begin
       If _In(4) = sOn Then Begin
         fState := sOff;
+        fNegClockState := sOff;
       End;
     End;
     fLastClockState := newClock;
