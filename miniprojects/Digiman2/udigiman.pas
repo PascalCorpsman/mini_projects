@@ -1319,8 +1319,8 @@ Begin
     fLines[i].RenderTo(aCanvas, aOffset);
   End;
   For i := 0 To high(fBridges) Do Begin
-    aCanvas.Draw(fBridges[i].X - fBridgeImage.Width Div 2,
-      fBridges[i].Y - fBridgeImage.Height + 1, fBridgeImage);
+    aCanvas.Draw(fBridges[i].X - fBridgeImage.Width Div 2 - aOffset.X,
+      fBridges[i].Y - fBridgeImage.Height + 1 - aOffset.Y, fBridgeImage);
   End;
   For i := 0 To high(fElements) Do Begin
     fElements[i].RenderTo(aCanvas, aOffset);
@@ -2387,7 +2387,7 @@ Begin
   fImage := LoadImage('JK.bmp');
   fLastClockState := sUndefined;
   fNegClockState := sOff;
-  fState := sOff; // TODO: macht das sinn ?
+  fState := sOff;
 End;
 
 Function TJK.GetState(aOutindex: integer): Tstate;
