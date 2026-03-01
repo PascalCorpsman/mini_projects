@@ -313,6 +313,12 @@ Type
     Constructor Create(); override;
   End;
 
+  { TFourInSevenOut }
+
+  TFourInSevenOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
+  End;
 
   { TFiveInTwoOut }
 
@@ -524,6 +530,17 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
+  { T4To7 }
+
+  T4To7 = Class(TFourInSevenOut)
+  public
+    Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
   { T7Segment }
 
   T7Segment = Class(TEightInZeroOut)
@@ -629,6 +646,7 @@ Begin
    * Hier sind nicht alle Klassen gelistet, nur die die geladen und gespeichert werden können..
    *)
   Case lowercase(ClassName) Of
+    't4to7': result := T4To7.Create();
     't7segment': result := T7Segment.Create();
     'tand': result := Tand.Create();
     'tclock': result := TClock.Create();
@@ -1844,6 +1862,37 @@ Begin
   fEvaluated[1].Flag := false;
 End;
 
+{ TFourInSevenOut }
+
+Constructor TFourInSevenOut.Create();
+Var
+  i: Integer;
+Begin
+  Inherited Create();
+  setlength(InPoints, 4);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  InPoints[2] := point(1, 36);
+  InPoints[3] := point(1, 52);
+  setlength(InElements, 4);
+  For i := 0 To 3 Do Begin
+    InElements[i].Element := Nil;
+    InElements[i].Index := -1;
+  End;
+  setlength(OutPoints, 7);
+  OutPoints[0] := point(39, 4);
+  OutPoints[1] := point(39, 12);
+  OutPoints[2] := point(39, 20);
+  OutPoints[3] := point(39, 28);
+  OutPoints[4] := point(39, 36);
+  OutPoints[5] := point(39, 44);
+  OutPoints[6] := point(39, 52);
+  setlength(fEvaluated, 7);
+  For i := 0 To 6 Do Begin
+    fEvaluated[i].Flag := False;
+  End;
+End;
+
 { TFiveInTwoOut }
 
 Constructor TFiveInTwoOut.Create();
@@ -2441,6 +2490,47 @@ End;
 Function TJK.Clone: TDigimanElement;
 Begin
   result := TJK.Create();
+End;
+
+{ T4To7 }
+
+Constructor T4To7.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('4_to_7.bmp');
+End;
+
+Function T4To7.GetState(aOutindex: integer): Tstate;
+Var
+  aNum: Byte;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    fEvaluated[aOutindex].Flag := true;
+    Result := soff;
+    aNum := 0;
+    If _In(0) = sOn Then aNum := aNum + 1;
+    If _In(1) = sOn Then aNum := aNum + 2;
+    If _In(2) = sOn Then aNum := aNum + 4;
+    If _In(3) = sOn Then aNum := aNum + 8;
+    Case aOutindex Of
+      0: If (aNum In [0, 2, 3, 5, 6, 7, 8, 9, 10, 12, 14, 15]) Then result := sOn; // a
+      1: If (aNum In [0, 1, 2, 3, 4, 7, 8, 9, 10, 13]) Then result := sOn; // b
+      2: If (aNum In [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13]) Then result := sOn; // c
+      3: If (aNum In [0, 2, 3, 5, 6, 8, 9, 11, 12, 13, 14]) Then result := sOn; // d
+      4: If (aNum In [0, 2, 6, 8, 10, 11, 12, 13, 14, 15]) Then result := sOn; // e
+      5: If (aNum In [0, 4, 5, 6, 8, 9, 10, 11, 12, 14, 15]) Then result := sOn; // f
+      6: If (aNum In [2, 3, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15]) Then result := sOn; // g
+    End;
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function T4To7.Clone: TDigimanElement;
+Begin
+  result := T4To7.Create();
 End;
 
 { T7Segment }

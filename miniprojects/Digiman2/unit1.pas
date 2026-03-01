@@ -140,7 +140,7 @@ Begin
   AddElementToSelector(TRelais.Create(), 32 + 0, PaintBox2.Height * 1);
   AddElementToSelector(THalfAdder.Create(), 32 + 50, PaintBox2.Height * 1);
   AddElementToSelector(TFullAdder.Create(), 32 + 100, PaintBox2.Height * 1);
-  // TODO: Binary to 7 Segment decoder
+  AddElementToSelector(T4To7.Create(), 32 + 150, PaintBox2.Height * 1);
   AddElementToSelector(T7Segment.Create(), 32 + 200, PaintBox2.Height * 1);
   // Nand mit 3 Eingängen ?
   // Nand mit 4 Eingängen ?
