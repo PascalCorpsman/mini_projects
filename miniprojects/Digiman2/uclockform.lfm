@@ -28,14 +28,15 @@ object ClockForm: TClockForm
     ChildSizing.ShrinkHorizontal = crsScaleChilds
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 3
+    ChildSizing.ControlsPerLine = 4
     ClientHeight = 39
     ClientWidth = 247
-    Columns = 3
+    Columns = 4
     Items.Strings = (
       '0.25 Hz'
       '0.5 Hz'
       '1 Hz'
+      '10 Hz'
     )
     TabOrder = 0
   end

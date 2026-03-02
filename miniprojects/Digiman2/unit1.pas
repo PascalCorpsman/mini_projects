@@ -107,10 +107,12 @@ Var
   ut: TUserText;
 Begin
   (*
-   * Goal is to simulate a 7-Segment counter from 0 to 15 using flipflops ;)
+   * Additional Feature:
+   *    - Tastpunkt und Oszi für Logik ;)
+   *    - "Zoom"
    *
-   * Additional Feature: Tastpunkt und Oszi für Logik ;)
-   *
+   * Known Bugs:
+   *    - Wenn Ein Element verschoben wird, werden häufig alle Leitungen gelöscht und nicht nur die welche mit dem bewegten Element verbunden sind.
    *)
   defcaption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
   caption := defcaption;
@@ -121,36 +123,37 @@ Begin
   fSelector.ShowPegel := false;
   fSelector.ShowConnectionPoints := false;
   // Seite 1: Die Basik Elemente
-  AddElementToSelector(Toff.Create(), 32 + 0, 0);
-  AddElementToSelector(Ton.Create(), 32 + 50, 0);
-  AddElementToSelector(TUserInput.Create(), 32 + 100, 0);
-  AddElementToSelector(TClock.Create(), 32 + 150, 0);
-  AddElementToSelector(TProbe.Create(), 32 + 200, 0);
-  AddElementToSelector(TNot.Create(), 32 + 250, 0);
-  AddElementToSelector(TOr.Create(), 32 + 300, 0);
-  AddElementToSelector(TAnd.Create(), 32 + 350, 0);
-  AddElementToSelector(TNOr.Create(), 32 + 400, 0);
-  AddElementToSelector(TNAnd.Create(), 32 + 450, 0);
-  AddElementToSelector(TXor.Create(), 32 + 500, 0);
+  AddElementToSelector(Toff.Create(), 32 + 0, PaintBox2.Height * 0);
+  AddElementToSelector(Ton.Create(), 32 + 50, PaintBox2.Height * 0);
+  AddElementToSelector(TUserInput.Create(), 32 + 100, PaintBox2.Height * 0);
+  AddElementToSelector(TClock.Create(), 32 + 150, PaintBox2.Height * 0);
+  AddElementToSelector(TProbe.Create(), 32 + 200, PaintBox2.Height * 0);
+  AddElementToSelector(TNot.Create(), 32 + 250, PaintBox2.Height * 0);
+  AddElementToSelector(TOr.Create(), 32 + 300, PaintBox2.Height * 0);
+  AddElementToSelector(TAnd.Create(), 32 + 350, PaintBox2.Height * 0);
+  AddElementToSelector(TNOr.Create(), 32 + 400, PaintBox2.Height * 0);
+  AddElementToSelector(TNAnd.Create(), 32 + 450, PaintBox2.Height * 0);
+  AddElementToSelector(TXor.Create(), 32 + 500, PaintBox2.Height * 0);
   ut := TUserText.Create();
   ut.Text := 'Text';
   AddElementToSelector(ut, 32 + 550, 0);
 
-  // Seite 2: Higher Level Logig elemente
-  AddElementToSelector(TRelais.Create(), 32 + 0, PaintBox2.Height * 1);
-  AddElementToSelector(THalfAdder.Create(), 32 + 50, PaintBox2.Height * 1);
-  AddElementToSelector(TFullAdder.Create(), 32 + 100, PaintBox2.Height * 1);
-  AddElementToSelector(T4To7.Create(), 32 + 150, PaintBox2.Height * 1);
-  AddElementToSelector(T7Segment.Create(), 32 + 200, PaintBox2.Height * 1);
-  // Nand mit 3 Eingängen ?
-  // Nand mit 4 Eingängen ?
+  // Seite 2: Higher Level Logik Elemente
+  AddElementToSelector(TNAnd3.Create(), 32 + 0, PaintBox2.Height * 1);
+  AddElementToSelector(TNAnd4.Create(), 32 + 50, PaintBox2.Height * 1);
+  AddElementToSelector(TRelais.Create(), 32 + 100, PaintBox2.Height * 1);
+  AddElementToSelector(TRelais2.Create(), 32 + 150, PaintBox2.Height * 1);
+  AddElementToSelector(THalfAdder.Create(), 32 + 200, PaintBox2.Height * 1);
+  AddElementToSelector(TFullAdder.Create(), 32 + 250, PaintBox2.Height * 1);
+  AddElementToSelector(T4To7.Create(), 32 + 300, PaintBox2.Height * 1);
+  AddElementToSelector(T7Segment.Create(), 32 + 350, PaintBox2.Height * 1);
 
-  // Seite 3: Speicher Elemente
+  // Seite 3: Speichernde Elemente
   AddElementToSelector(TRs.Create(), 32 + 0, PaintBox2.Height * 2);
   AddElementToSelector(TD.Create(), 32 + 50, PaintBox2.Height * 2);
   AddElementToSelector(TJK.Create(), 32 + 100, PaintBox2.Height * 2);
-  // TODO: Schieberegister
-  // TODO: 4-Bit Zähler
+  AddElementToSelector(T1to10.Create(), 32 + 150, PaintBox2.Height * 2);
+  AddElementToSelector(T1To15.Create(), 32 + 200, PaintBox2.Height * 2);
 
   // Die Controlls die immer da sind
   For i := 0 To ScrollBar3.Max Do Begin
@@ -168,7 +171,7 @@ Procedure TForm1.FormShow(Sender: TObject);
 Begin
   If Not fFormShowOnce Then exit;
   fFormShowOnce := false;
-  //(*// Debug "remove"
+  (*// Debug "remove"
   If FileExists('First_save.ckt') Then Begin
     fEngine.LoadFromFile('First_save.ckt', PaintBox1);
     PaintBox1.Invalidate;

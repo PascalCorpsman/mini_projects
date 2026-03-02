@@ -42,6 +42,7 @@ Procedure TClockForm.SetInterval(aIntervalms: Integer);
 Begin
   RadioGroup1.ItemIndex := 1;
   Case aIntervalms Of
+    100: RadioGroup1.ItemIndex := 3;
     500: RadioGroup1.ItemIndex := 2;
     1000: RadioGroup1.ItemIndex := 1;
     2000: RadioGroup1.ItemIndex := 0;
@@ -54,6 +55,7 @@ Begin
     0: result := 2000;
     1: result := 1000;
     2: result := 500;
+    3: result := 100;
   End;
 End;
 

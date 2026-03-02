@@ -27,7 +27,7 @@ Const
 
 Type
 
-  TState = (sOff, sOn, {sOffToOn, sOnToOff,} sUndefined);
+  TState = (sOff, sOn, sUndefined);
 
   TDigimanElement = Class;
   Tline = Class;
@@ -313,6 +313,27 @@ Type
     Constructor Create(); override;
   End;
 
+  { TThreeInFourOut }
+
+  TThreeInFourOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
+  End;
+
+  { TThreeInTenOut }
+
+  TThreeInTenOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
+  End;
+
+  { TFourInOneOut }
+
+  TFourInOneOut = Class(TImagedElement)
+  public
+    Constructor Create(); override;
+  End;
+
   { TFourInSevenOut }
 
   TFourInSevenOut = Class(TImagedElement)
@@ -435,6 +456,28 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
+  { TNand3 }
+
+  TNand3 = Class(TThreeInOneOut)
+  public
+    Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
+  { TNand4 }
+
+  TNand4 = Class(TFourInOneOut)
+  public
+    Constructor Create(); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
   { TXor }
 
   TXor = Class(TTwoInOneOut)
@@ -473,6 +516,8 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
+  { TD }
+
   TD = Class(TRS)
   private
     fLastClockState: TState;
@@ -485,9 +530,46 @@ Type
     Function Clone: TDigimanElement; override;
   End;
 
+  { T1to10 }
+
+  T1to10 = Class(TThreeInTenOut)
+  private
+    fStates: Array[0..9] Of TState;
+    fLastClockState: TState;
+    fNegClockState: TState; // Der Zustand der bei der Positiven Flanke eingelesen und bei der Negativen übernommen wird.
+  public
+    Constructor Create(); override;
+
+    Procedure SaveToStream(Const aStream: TStream); override;
+    Procedure LoadFromStream(Const aStream: TStream); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
   { TRelais }
 
   TRelais = Class(TThreeInOneOut)
+  private
+    fOnImage, FOffImage: TBitmap;
+  protected
+    Function getHeight: integer; override;
+    Function getWidth: integer; override;
+  public
+    Constructor Create(); override;
+    Destructor Destroy(); override;
+
+    Procedure RenderTo(Const aCanvas: TCanvas; aOffset: TPoint); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
+  { TRelais2 }
+
+  TRelais2 = Class(TTwoInTwoOut)
   private
     fOnImage, FOffImage: TBitmap;
   protected
@@ -540,6 +622,25 @@ Type
 
     Function Clone: TDigimanElement; override;
   End;
+
+  { T1To15 }
+
+  T1To15 = Class(TThreeInFourOut)
+  private
+    aState: byte;
+    fLastClockState: TState;
+    fNegClockState: TState;
+  public
+    Constructor Create(); override;
+
+    Procedure SaveToStream(Const aStream: TStream); override;
+    Procedure LoadFromStream(Const aStream: TStream); override;
+
+    Function GetState(aOutindex: integer): Tstate; override;
+
+    Function Clone: TDigimanElement; override;
+  End;
+
 
   { T7Segment }
 
@@ -599,8 +700,6 @@ Begin
   Case aState Of
     sOff: result := sOn;
     sOn: Result := sOff;
-    //    sOffToOn: Result := sOnToOff;
-    //    sOnToOff: Result := sOffToOn;
   End;
 End;
 
@@ -646,6 +745,8 @@ Begin
    * Hier sind nicht alle Klassen gelistet, nur die die geladen und gespeichert werden können..
    *)
   Case lowercase(ClassName) Of
+    't1to10': result := T1to10.Create();
+    't1to15': result := T1To15.Create();
     't4to7': result := T4To7.Create();
     't7segment': result := T7Segment.Create();
     'tand': result := Tand.Create();
@@ -655,6 +756,8 @@ Begin
     'thalfadder': result := THalfAdder.Create();
     'tjk': result := TJK.Create();
     'tnand': result := TNand.Create();
+    'tnand3': result := TNand3.Create();
+    'tnand4': result := TNand4.Create();
     'tnor': result := TNor.Create();
     'tnot': result := TNot.Create();
     'toff': result := TOff.Create();
@@ -662,6 +765,7 @@ Begin
     'tor': result := Tor.Create();
     'tprobe': result := TProbe.Create();
     'trelais': result := TRelais.Create();
+    'trelais2': result := TRelais2.Create();
     'trs': result := TRS.Create();
     'tuserinput': result := TUserInput.Create();
     'tusertext': result := TUserText.Create();
@@ -674,7 +778,7 @@ End;
 
 Procedure LineStateToCanvas(Const aCanvas: TCanvas; aPos: Tpoint; aState: TState);
 Begin
-  If aState In [{sOffToOn,} sUndefined, sOn] Then Begin
+  If aState In [sUndefined, sOn] Then Begin
     acanvas.Pixels[aPos.x, apos.y] := clRed;
     acanvas.Pixels[aPos.x + 1, apos.y] := clRed;
     acanvas.Pixels[aPos.x, apos.y - 1] := clRed;
@@ -684,7 +788,7 @@ Begin
     acanvas.Pixels[aPos.x, apos.y - 5] := clRed;
     acanvas.Pixels[aPos.x + 1, apos.y - 5] := clRed;
   End;
-  If aState In [{sOffToOn,} sOn] Then Begin
+  If aState In [sOn] Then Begin
     acanvas.Pixels[aPos.x, apos.y - 2] := clRed;
     acanvas.Pixels[aPos.x + 1, apos.y - 2] := clRed;
     acanvas.Pixels[aPos.x, apos.y - 3] := clRed;
@@ -1680,8 +1784,8 @@ Begin
     state := sUndefined;
   End;
   Case State Of
-    sOff {, sOnToOff}: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOffImage);
-    sOn {, sOffToOn}: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOnImage);
+    sOff: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOffImage);
+    sOn: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fOnImage);
     sUndefined: acanvas.Draw(Left - aOffset.X, Top - aOffset.Y, fUnknownImage);
   End;
   //  If fOwner.ShowPegel Then Begin
@@ -1833,7 +1937,7 @@ Begin
   InElements[2].Element := Nil;
   InElements[2].Index := -1;
   setlength(OutPoints, 1);
-  OutPoints[0] := point(26, 4);
+  OutPoints[0] := point(26, 20);
   setlength(fEvaluated, 1);
   fEvaluated[0].Flag := false;
 End;
@@ -1860,6 +1964,92 @@ Begin
   setlength(fEvaluated, 2);
   fEvaluated[0].Flag := false;
   fEvaluated[1].Flag := false;
+End;
+
+{ TThreeInFourOut }
+
+Constructor TThreeInFourOut.Create();
+Begin
+  Inherited Create();
+  setlength(InPoints, 3);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  InPoints[2] := point(1, 36);
+  setlength(InElements, 3);
+  InElements[0].Element := Nil;
+  InElements[0].Index := -1;
+  InElements[1].Element := Nil;
+  InElements[1].Index := -1;
+  InElements[2].Element := Nil;
+  InElements[2].Index := -1;
+  setlength(OutPoints, 4);
+  OutPoints[0] := point(39, 4);
+  OutPoints[1] := point(39, 20);
+  OutPoints[2] := point(39, 36);
+  OutPoints[3] := point(39, 52);
+  setlength(fEvaluated, 4);
+  fEvaluated[0].Flag := False;
+  fEvaluated[1].Flag := False;
+  fEvaluated[2].Flag := False;
+  fEvaluated[3].Flag := False;
+End;
+
+{ TThreeInTenOut }
+
+Constructor TThreeInTenOut.Create();
+Var
+  i: Integer;
+Begin
+  Inherited Create();
+  setlength(InPoints, 3);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  InPoints[2] := point(1, 36);
+  setlength(InElements, 3);
+  InElements[0].Element := Nil;
+  InElements[0].Index := -1;
+  InElements[1].Element := Nil;
+  InElements[1].Index := -1;
+  InElements[2].Element := Nil;
+  InElements[2].Index := -1;
+  setlength(OutPoints, 10);
+  OutPoints[0] := point(39, 4);
+  OutPoints[1] := point(39, 12);
+  OutPoints[2] := point(39, 20);
+  OutPoints[3] := point(39, 28);
+  OutPoints[4] := point(39, 36);
+  OutPoints[5] := point(39, 44);
+  OutPoints[6] := point(39, 52);
+  OutPoints[7] := point(32, 59);
+  OutPoints[8] := point(20, 59);
+  OutPoints[9] := point(8, 59);
+  setlength(fEvaluated, 10);
+  For i := 0 To 9 Do Begin
+    fEvaluated[i].Flag := False;
+  End;
+End;
+
+{ TFourInOneOut }
+
+Constructor TFourInOneOut.Create();
+Var
+  i: Integer;
+Begin
+  Inherited Create();
+  setlength(InPoints, 4);
+  InPoints[0] := point(1, 4);
+  InPoints[1] := point(1, 20);
+  InPoints[2] := point(1, 36);
+  InPoints[3] := point(1, 52);
+  setlength(InElements, 4);
+  For i := 0 To 3 Do Begin
+    InElements[i].Element := Nil;
+    InElements[i].Index := -1;
+  End;
+  setlength(OutPoints, 1);
+  OutPoints[0] := point(26, 28);
+  setlength(fEvaluated, 1);
+  fEvaluated[0].Flag := false;
 End;
 
 { TFourInSevenOut }
@@ -2191,6 +2381,60 @@ Begin
   Result := TNand.Create();
 End;
 
+{ TNand3 }
+
+Constructor TNand3.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('Nand3.bmp');
+  OutPoints[0] := point(30, 20);
+End;
+
+Function TNand3.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    fEvaluated[aOutindex].Flag := true;
+    Result := sUndefined;
+    result := _not(_and(_In(0), _and(_In(1), _In(2))));
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function TNand3.Clone: TDigimanElement;
+Begin
+  result := TNand3.Create();
+End;
+
+{ TNand4 }
+
+Constructor TNand4.Create();
+Begin
+  Inherited Create();
+  fImage := LoadImage('Nand4.bmp');
+  OutPoints[0] := point(30, 28);
+End;
+
+Function TNand4.GetState(aOutindex: integer): Tstate;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    fEvaluated[aOutindex].Flag := true;
+    Result := sUndefined;
+    result := _not(_and(_In(0), _and(_In(1), _and(_In(2), _In(3)))));
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function TNand4.Clone: TDigimanElement;
+Begin
+  result := TNand4.Create();
+End;
+
 { TXor }
 
 Constructor TXor.Create();
@@ -2251,7 +2495,7 @@ End;
 Constructor TRS.Create;
 Begin
   Inherited Create();
-  fState := sUndefined;
+  fState := sOff;
   fImage := LoadImage('RS.bmp');
   OutPoints[0].X := OutPoints[0].X + 4;
   OutPoints[1].X := OutPoints[1].X + 4;
@@ -2306,6 +2550,7 @@ Begin
   Inherited Create();
   fImage.free;
   fImage := LoadImage('D.bmp');
+  fState := sOff;
   fLastClockState := sUndefined;
 End;
 
@@ -2338,6 +2583,66 @@ Begin
   Result := TD.Create();
 End;
 
+{ T1to10 }
+
+Constructor T1to10.Create;
+Var
+  i: Integer;
+Begin
+  Inherited Create();
+  fImage := LoadImage('1_to_10.bmp');
+  For i := 0 To 9 Do Begin
+    fStates[i] := sOff;
+  End;
+  fLastClockState := sOff;
+End;
+
+Procedure T1to10.SaveToStream(Const aStream: TStream);
+Begin
+  Inherited SaveToStream(aStream);
+  aStream.Write(fStates, sizeof(fStates));
+End;
+
+Procedure T1to10.LoadFromStream(Const aStream: TStream);
+Begin
+  Inherited LoadFromStream(aStream);
+  aStream.Read(fStates, sizeof(fStates));
+End;
+
+Function T1to10.GetState(aOutindex: integer): Tstate;
+Var
+  newClock: TState;
+  i: Integer;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    newClock := _In(1);
+    If (newClock = sOn) And (fLastClockState <> sOn) Then Begin
+      fNegClockState := _In(0);
+    End;
+    If (newClock = sOff) And (fLastClockState <> sOff) Then Begin
+      For i := 9 Downto 1 Do Begin
+        fStates[i] := fStates[i - 1];
+      End;
+      fStates[0] := fNegClockState;
+    End;
+    fLastClockState := newClock;
+    If _In(2) = sOn Then Begin // Async Reset
+      For i := 0 To 9 Do
+        fStates[i] := sOff;
+    End;
+    result := fStates[aOutindex];
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function T1to10.Clone: TDigimanElement;
+Begin
+  result := T1to10.Create();
+End;
+
 { TRelais }
 
 Function TRelais.getHeight: integer;
@@ -2368,7 +2673,7 @@ End;
 
 Procedure TRelais.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
 Begin
-  If _in(2) In [sOn {, sOnToOff}] Then Begin
+  If _in(2) In [sOn] Then Begin
     fImage := fOnImage;
   End
   Else Begin
@@ -2380,17 +2685,82 @@ End;
 
 Function TRelais.GetState(aOutindex: integer): Tstate;
 Begin
-  If _in(2) In [sOn {, sOnToOff}] Then Begin
-    result := _in(1);
+  If _in(2) In [sOn] Then Begin
+    result := _in(0);
   End
   Else Begin
-    result := _in(0);
+    result := _in(1);
   End;
 End;
 
 Function TRelais.Clone: TDigimanElement;
 Begin
   result := TRelais.Create();
+End;
+
+{ TRelais2 }
+
+Function TRelais2.getHeight: integer;
+Begin
+  Result := fOffImage.Height;
+End;
+
+Function TRelais2.getWidth: integer;
+Begin
+  Result := fOffImage.Width;
+End;
+
+Constructor TRelais2.Create();
+Begin
+  Inherited Create();
+  fOnImage := LoadImage('Relais21.bmp');
+  fOffImage := LoadImage('Relais20.bmp');
+  InPoints[0] := Point(1, 20);
+  InPoints[1] := Point(1, 36);
+End;
+
+Destructor TRelais2.Destroy();
+Begin
+  fOnImage.free;
+  fOnImage := Nil;
+  FOffImage.Free;
+  fOffImage := Nil;
+  Inherited Destroy();
+End;
+
+Procedure TRelais2.RenderTo(Const aCanvas: TCanvas; aOffset: TPoint);
+Begin
+  If _in(1) In [sOn] Then Begin
+    fImage := fOnImage;
+  End
+  Else Begin
+    fImage := fOffImage;
+  End;
+  Inherited RenderTo(aCanvas, aOffset);
+  fImage := Nil;
+End;
+
+Function TRelais2.GetState(aOutindex: integer): Tstate;
+Begin
+  Case aOutindex Of
+    0: Begin
+        If _in(1) = sOn Then
+          result := _In(0)
+        Else
+          result := sUndefined;
+      End;
+    1: Begin
+        If _in(1) In [sOff, sUndefined] Then
+          result := _In(0)
+        Else
+          result := sUndefined;
+      End;
+  End;
+End;
+
+Function TRelais2.Clone: TDigimanElement;
+Begin
+  result := TRelais2.Create();
 End;
 
 { TFullAdder }
@@ -2434,7 +2804,7 @@ Begin
   OutPoints[0].X := OutPoints[0].X + 4;
   OutPoints[1].X := OutPoints[1].X + 4;
   fImage := LoadImage('JK.bmp');
-  fLastClockState := sUndefined;
+  fLastClockState := sOff;
   fNegClockState := sOff;
   fState := sOff;
 End;
@@ -2533,6 +2903,65 @@ Begin
   result := T4To7.Create();
 End;
 
+{ T1To15 }
+
+Constructor T1To15.Create;
+Begin
+  Inherited Create();
+  fImage := LoadImage('1_to_15.bmp');
+  aState := 0;
+  fLastClockState := sOff;
+  fNegClockState := sOff;
+End;
+
+Procedure T1To15.SaveToStream(Const aStream: TStream);
+Begin
+  Inherited SaveToStream(aStream);
+  aStream.Write(aState, SizeOf(aState));
+End;
+
+Procedure T1To15.LoadFromStream(Const aStream: TStream);
+Begin
+  Inherited LoadFromStream(aStream);
+  aStream.Read(aState, SizeOf(aState));
+End;
+
+Function T1To15.GetState(aOutindex: integer): Tstate;
+Var
+  newClock: TState;
+Begin
+  If fEvaluated[aOutindex].Flag Then Begin
+    result := fEvaluated[aOutindex].State;
+  End
+  Else Begin
+    fEvaluated[aOutindex].Flag := true;
+    result := sUndefined;
+    newClock := _In(1);
+    If (newClock = sOn) And (fLastClockState <> sOn) Then Begin
+      fNegClockState := _In(0);
+    End;
+    If (newClock = sOff) And (fLastClockState <> sOff) Then Begin
+      If fNegClockState = sOn Then Begin
+        aState := (aState + 1) Mod 16;
+      End;
+    End;
+    fLastClockState := newClock;
+    If _In(2) = sOn Then aState := 0; // Async Reset
+    If ((1 Shl aOutindex) And aState) <> 0 Then Begin
+      result := sOn;
+    End
+    Else Begin
+      result := sOff;
+    End;
+    fEvaluated[aOutindex].State := result;
+  End;
+End;
+
+Function T1To15.Clone: TDigimanElement;
+Begin
+  result := T1To15.Create();
+End;
+
 { T7Segment }
 
 Constructor T7Segment.Create();
@@ -2564,7 +2993,7 @@ Var
 Begin
   Inherited RenderTo(aCanvas, aOffset);
   For i := 0 To 7 Do Begin
-    If (_In(i) In [sOn {, sOnToOff}]) Then Begin
+    If (_In(i) In [sOn]) Then Begin
       acanvas.Draw(Left - aOffset.x, Top - aOffset.y, fSegments[i]);
     End;
   End;
