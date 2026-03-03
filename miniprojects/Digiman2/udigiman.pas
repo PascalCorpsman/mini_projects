@@ -1335,29 +1335,26 @@ End;
 
 Procedure TDigiman.RemoveAllConnectionsTo(aElement: TDigimanElement);
 Var
-  i, j: Integer;
-  elem: TDigimanElement;
+  i, j: integer;
 Begin
-  If Not assigned(aElement) Then exit;
+  // Clears Registration from aElement to all other Elements
   For i := 0 To high(fElements) Do Begin
     fElements[i].RemoveAllConnectionsTo(aElement);
   End;
-  // ggf. Löschen von Linien..
   For i := high(fLines) Downto 0 Do Begin
-    // da siche RemoveAllConnectionsTo rekursiv aufruft, muss zusätzlich
-    // Noch geprüft werden, ob es das i-te elemen noch gibt, sonst knallts ;)
-    If (i <= high(fLines)) And ((fLines[i].fOutElement = aElement) Or
-      (fLines[i].fInElement = aElement)) Then Begin
-      elem := fLines[i].fInElement;
+    If (fLines[i].fInElement = aElement) Or
+      (fLines[i].fOutElement = aElement) Then Begin
       fLines[i].Free;
       For j := i To high(fLines) - 1 Do Begin
         fLines[j] := fLines[j + 1];
       End;
       setlength(fLines, high(fLines));
-      // Das In Element muss wieder getrennt werden, aber nach dem löschen der
-      // Linie sonst haben wir eine Endlos Rekursion..
-      RemoveAllConnectionsTo(elem);
     End;
+  End;
+  // Clear all In connections of aElement
+  For i := 0 To high(aElement.InElements) Do Begin
+    aElement.InElements[i].Element := Nil;
+    aElement.InElements[i].Index := -1;
   End;
   CalculateLineBridges;
 End;

@@ -112,7 +112,6 @@ Begin
    *    - "Zoom"
    *
    * Known Bugs:
-   *    - Wenn Ein Element verschoben wird, werden häufig alle Leitungen gelöscht und nicht nur die welche mit dem bewegten Element verbunden sind.
    *)
   defcaption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
   caption := defcaption;
