@@ -8,4 +8,4 @@ Features:
 - Load / save
 - Simulate in realtime
 - Basic logic elements (or, and, not..)
-- High level logic elements (flipflops, adder, decoder ..) (not yet fully implemented)
+- High level logic elements (flipflops, adder, decoder ..)
