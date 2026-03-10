@@ -1,15 +1,15 @@
 object Form1: TForm1
   Left = 347
-  Height = 692
+  Height = 736
   Top = 107
   Width = 804
   ActiveControl = OpenGLControl1
   Caption = 'Form1'
-  ClientHeight = 692
+  ClientHeight = 736
   ClientWidth = 804
   Menu = MainMenu1
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   object OpenGLControl1: TOpenGLControl
     Left = 0
