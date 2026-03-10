@@ -103,7 +103,7 @@ Implementation
 
 {$I clickomania.inc}
 
-Uses Unit2, unit3, unit4, unit5, unit6, unit7;
+Uses Unit2, unit3, unit4, unit5, unit6, unit7, uvectormath;
 
 { TForm1 }
 
@@ -428,7 +428,7 @@ Begin
   // Hintergrundbild
   If Backstyle <> bsgray Then Begin
     glcolor3f(1, 1, 1);
-    RenderQuad(point(0, 0), point(OpenGLControl1.Width, OpenGLControl1.Height), 180, false, Backtex);
+    RenderQuad(point(0, 0), v2(OpenGLControl1.Width, OpenGLControl1.Height), 180, false, Backtex);
     glBindTexture(GL_TEXTURE_2d, 0);
   End;
   glcolor3f(1, 1, 1);

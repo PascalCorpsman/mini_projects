@@ -152,7 +152,7 @@ Var
 
 Implementation
 
-Uses LCLType, math, inifiles, Unit2, LazFileUtils;
+Uses LCLType, math, inifiles, Unit2, LazFileUtils, uvectormath;
 
 {$R *.lfm}
 
@@ -841,7 +841,7 @@ Begin
   glColor4f(1, 1, 1, 1);
   For i := 0 To (OpenGLControl1.Width Div 32) + 1 Do Begin
     For j := 0 To (OpenGLControl1.Height Div 32) + 1 Do Begin
-      RenderQuad(point(i * 32, j * 32), point((i + 1) * 32, (j + 1) * 32), 0, false, backtex);
+      RenderQuad(v2(i * 32, j * 32), v2((i + 1) * 32, (j + 1) * 32), 0, false, backtex);
     End;
   End;
   glPopMatrix();
