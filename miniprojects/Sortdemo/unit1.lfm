@@ -1,0 +1,135 @@
+object Form1: TForm1
+  Left = 323
+  Height = 467
+  Top = 107
+  Width = 870
+  ActiveControl = Button3
+  Caption = 'Form1'
+  ClientHeight = 467
+  ClientWidth = 870
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  object Button1: TButton
+    Left = 555
+    Height = 25
+    Top = 432
+    Width = 85
+    Caption = '&Start'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 440
+    Height = 25
+    Top = 432
+    Width = 85
+    Caption = 'S&chrittweise'
+    TabOrder = 1
+    OnClick = Button2Click
+  end
+  object PaintBox1: TPaintBox
+    Left = 8
+    Height = 400
+    Top = 24
+    Width = 200
+    OnPaint = PaintBox1Paint
+  end
+  object PaintBox2: TPaintBox
+    Left = 224
+    Height = 400
+    Top = 24
+    Width = 200
+    OnPaint = PaintBox2Paint
+  end
+  object PaintBox3: TPaintBox
+    Left = 440
+    Height = 400
+    Top = 24
+    Width = 200
+    OnPaint = PaintBox3Paint
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 7
+    Width = 66
+    Caption = 'Bubblesort'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 224
+    Height = 16
+    Top = 7
+    Width = 78
+    Caption = 'Selectionsort'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 440
+    Height = 16
+    Top = 7
+    Width = 58
+    Caption = 'Quicksort'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 656
+    Height = 16
+    Top = 439
+    Width = 53
+    Caption = 'delay ms'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 728
+    Height = 26
+    Top = 432
+    Width = 128
+    TabOrder = 2
+    Text = 'Edit1'
+  end
+  object Button3: TButton
+    Left = 8
+    Height = 25
+    Top = 432
+    Width = 85
+    Caption = '&Init'
+    TabOrder = 3
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    Left = 123
+    Height = 25
+    Top = 432
+    Width = 85
+    Caption = '&Beenden'
+    TabOrder = 4
+    OnClick = Button4Click
+  end
+  object PaintBox4: TPaintBox
+    Left = 656
+    Height = 400
+    Top = 25
+    Width = 200
+    OnPaint = PaintBox4Paint
+  end
+  object Label5: TLabel
+    Left = 656
+    Height = 16
+    Top = 8
+    Width = 122
+    Caption = 'ButtomUpHeap Sort'
+    ParentColor = False
+  end
+  object Button5: TButton
+    Left = 224
+    Height = 25
+    Top = 432
+    Width = 85
+    Caption = 'Init &Reverse'
+    TabOrder = 5
+    OnClick = Button5Click
+  end
+end
