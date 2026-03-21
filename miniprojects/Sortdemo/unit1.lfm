@@ -12,18 +12,18 @@ object Form1: TForm1
   OnClose = FormClose
   OnCreate = FormCreate
   object Button1: TButton
-    Left = 555
+    Left = 339
     Height = 25
-    Top = 432
+    Top = 433
     Width = 85
     Caption = '&Start'
     TabOrder = 0
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 440
+    Left = 224
     Height = 25
-    Top = 432
+    Top = 433
     Width = 85
     Caption = 'Step'
     TabOrder = 1
@@ -75,17 +75,17 @@ object Form1: TForm1
     ParentColor = False
   end
   object Label4: TLabel
-    Left = 656
+    Left = 440
     Height = 16
-    Top = 439
+    Top = 440
     Width = 53
     Caption = 'delay ms'
     ParentColor = False
   end
   object Edit1: TEdit
-    Left = 728
+    Left = 512
     Height = 26
-    Top = 432
+    Top = 433
     Width = 128
     TabOrder = 2
     Text = 'Edit1'
@@ -100,9 +100,9 @@ object Form1: TForm1
     OnClick = Button3Click
   end
   object Button4: TButton
-    Left = 123
+    Left = 771
     Height = 25
-    Top = 432
+    Top = 433
     Width = 85
     Caption = 'Close'
     TabOrder = 4
@@ -111,7 +111,7 @@ object Form1: TForm1
   object PaintBox4: TPaintBox
     Left = 656
     Height = 400
-    Top = 25
+    Top = 24
     Width = 200
     OnPaint = PaintBox4Paint
   end
@@ -124,9 +124,9 @@ object Form1: TForm1
     ParentColor = False
   end
   object Button5: TButton
-    Left = 224
+    Left = 123
     Height = 25
-    Top = 432
+    Top = 433
     Width = 85
     Caption = 'Init reverse'
     TabOrder = 5
