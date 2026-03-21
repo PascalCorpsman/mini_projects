@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Sortdemo                                                        ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,8 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - ?                                                     *)
+(*               0.03 - translate gui to english                              *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -183,7 +185,7 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Sort-Speed-Demo ver. 0.02 by Corpsman, support : www.Corpsman.de';
+  caption := 'Sort-Speed-Demo ver. 0.03 by Corpsman, support : www.Corpsman.de';
   Tform(self).Constraints.MaxHeight := Tform(self).Height;
   Tform(self).Constraints.MinHeight := Tform(self).Height;
   Tform(self).Constraints.Maxwidth := Tform(self).width;
@@ -284,8 +286,6 @@ Begin
     inc(bubblesteps);
     b := true;
     While b Do Begin
-      //    For i := 1 To cnt - 1 Do
-      //      For j := cnt - 1 Downto i Do
       If BubbleArr[bubblej] < BubbleArr[bubblej - 1] Then Begin
         t := BubbleArr[bubblej];
         BubbleArr[bubblej] := BubbleArr[bubblej - 1];
@@ -307,7 +307,7 @@ Begin
         b := false;
     End;
     If BubbleFin Then Begin
-      Label1.Caption := Label1.Caption + ', Fertig [' + inttostr(bubblesteps) + '].';
+      Label1.Caption := Label1.Caption + ', ready [' + inttostr(bubblesteps) + '].';
     End;
     // Ausgabe
     PaintArr(TMPc.Canvas, BubbleArr);
@@ -338,7 +338,7 @@ Begin
       End;
     End;
     If SelectFin Then Begin
-      Label2.Caption := Label2.Caption + ', Fertig [' + inttostr(selsteps) + '].';
+      Label2.Caption := Label2.Caption + ', ready [' + inttostr(selsteps) + '].';
     End;
     // Ausgabe
     PaintArr(TMPc.Canvas, SelectArr);
@@ -390,7 +390,7 @@ Begin
       End;
     End;
     If QuickFin Then Begin
-      Label3.Caption := Label3.Caption + ', Fertig [' + inttostr(Quicksteps) + '].';
+      Label3.Caption := Label3.Caption + ', ready [' + inttostr(Quicksteps) + '].';
     End;
     // Ausgabe
     PaintArr(TMPc.Canvas, QuickArr);
@@ -513,7 +513,7 @@ Begin
     End;
     // Ausgabe
     If HeapFin Then Begin
-      Label5.Caption := Label5.Caption + ', Fertig [' + inttostr(HeapSteps) + '].';
+      Label5.Caption := Label5.Caption + ', ready [' + inttostr(HeapSteps) + '].';
     End;
     PaintArr(TMPc.Canvas, HeapArr);
     PaintBox4.Canvas.Draw(0, 0, TMPc);

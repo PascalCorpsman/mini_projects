@@ -25,7 +25,7 @@ object Form1: TForm1
     Height = 25
     Top = 432
     Width = 85
-    Caption = 'S&chrittweise'
+    Caption = 'Step'
     TabOrder = 1
     OnClick = Button2Click
   end
@@ -93,9 +93,9 @@ object Form1: TForm1
   object Button3: TButton
     Left = 8
     Height = 25
-    Top = 432
+    Top = 433
     Width = 85
-    Caption = '&Init'
+    Caption = 'Init'
     TabOrder = 3
     OnClick = Button3Click
   end
@@ -104,7 +104,7 @@ object Form1: TForm1
     Height = 25
     Top = 432
     Width = 85
-    Caption = '&Beenden'
+    Caption = 'Close'
     TabOrder = 4
     OnClick = Button4Click
   end
@@ -128,7 +128,7 @@ object Form1: TForm1
     Height = 25
     Top = 432
     Width = 85
-    Caption = 'Init &Reverse'
+    Caption = 'Init reverse'
     TabOrder = 5
     OnClick = Button5Click
   end
