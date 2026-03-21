@@ -5,10 +5,9 @@ This demo shows a interactive synchronized comparison of Bubblesort, Selectionss
 ![](preview.png)
 
 Features:
-- Search for files
-- Search in files
-- Export search results
-- Rename multiple files
+- Random sort
+- Inverted sort
+- Interactive sort
 
 Dependencies:
 - none
