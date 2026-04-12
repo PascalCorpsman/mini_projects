@@ -19,7 +19,7 @@ Unit upixeleditor_types;
 Interface
 
 Uses
-  Classes, SysUtils, ExtCtrls, dialogs, upixeleditorlcl, ugraphics;
+  Classes, SysUtils, ExtCtrls, dialogs, upixeleditorlcl, ugraphics, dglopengl;
 
 Const
 
@@ -56,8 +56,10 @@ Const
   AlphaOpaque = 0;
   AlphaTranslucent = 255;
 
-  ColorTransparent: TRGBA = (r: 0; g: 0; b: 0; a: AlphaTranslucent);
+Var
+  ColorTransparent: TRGBA; // Ist eigentlich Const und wird im Initialization Block definiert..
 
+Const
   // Beim Rendern der "Transparent" kachel werden diese beiden Farben benötigt.
   TransparentBrightLuminance = 180;
   TransparentDarkLuminance = 75;
@@ -239,9 +241,16 @@ Procedure RenderHint(p: TPoint; Text: String);
 
 Function RGBAToFormatString(Const c: TRGBA; AsHex: Boolean): String;
 
+Function LoadGraphik(Const Filename: String; Var CriticalError: String): integer;
+Function LoadAlphaColorGraphik(Const Filename: String; Var CriticalError: String): integer;
+
 Implementation
 
-Uses dglopengl, math, uOpenGL_ASCII_Font, uvectormath;
+Uses math, uOpenGL_ASCII_Font, uvectormath, uopengl_graphikengine, FileUtil
+{$IFNDEF LEGACYMODE}
+  , uopengl_shaderprimitives
+{$ENDIF}
+  ;
 
 Var
   CursorPixelPos: Array[TCursorSize, TCursorShape] Of Array Of TPoint; // Wird im Initialization teil gesetzt, damit da nicht jedesmal bei DoCursorOnPixel berechnet werden muss
@@ -249,6 +258,46 @@ Var
 Procedure Nop;
 Begin
 
+End;
+
+Function LoadGraphik(Const Filename: String; Var CriticalError: String): integer;
+Begin
+  // 1. Ganz normal Laden
+  result := OpenGL_GraphikEngine.LoadGraphikItem('GFX' + PathDelim + Filename, smClamp).Image;
+  If result = 0 Then Begin
+    // 2. Der User hat das Repo geklont aber die Dateien nicht korrekt um kopiert
+    If FileExists('..' + PathDelim + 'GFX' + PathDelim + Filename) Then Begin
+      // 3. Dann machen wir das geschwind für den User ..
+      If ForceDirectories('GFX') Then Begin
+        If copyfile('..' + PathDelim + 'GFX' + PathDelim + Filename, 'GFX' + PathDelim + Filename) Then Begin
+          result := OpenGL_GraphikEngine.LoadGraphikItem('GFX' + PathDelim + Filename, smClamp).Image;
+        End;
+      End;
+    End;
+  End;
+  If result = 0 Then Begin
+    CriticalError := Filename;
+  End;
+End;
+
+Function LoadAlphaColorGraphik(Const Filename: String; Var CriticalError: String): integer;
+Begin
+  // 1. Ganz normal Laden
+  result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
+  If result = 0 Then Begin
+    // 2. Der User hat das Repo geklont aber die Dateien nicht korrekt um kopiert
+    If FileExists('..' + PathDelim + 'GFX' + PathDelim + Filename) Then Begin
+      // 3. Dann machen wir das geschwind für den User ..
+      If ForceDirectories('GFX') Then Begin
+        If copyfile('..' + PathDelim + 'GFX' + PathDelim + Filename, 'GFX' + PathDelim + Filename) Then Begin
+          result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
+        End;
+      End;
+    End;
+  End;
+  If result = 0 Then Begin
+    CriticalError := Filename;
+  End;
 End;
 
 Procedure FoldCursorOnPixel(Const Cursor: TCompactCursor; Callback: TPixelCallback);
@@ -703,7 +752,6 @@ Const
 Var
   w, h: integer;
 Begin
-  glPushMatrix;
   w := round(OpenGL_ASCII_Font.TextWidth(text));
   h := round(OpenGL_ASCII_Font.TextHeight(text));
   If p.x + w + CurserOffset > ScreenWidth Then Begin
@@ -715,6 +763,8 @@ Begin
   If p.Y + h > ScreenHeight Then Begin
     p.y := p.y - h;
   End;
+{$IFDEF LEGACYMODE}
+  glPushMatrix;
   glTranslatef(p.x, p.y, LayerLCLHints);
   // Der Schwarze Hintergrund hinter dem Text
   glColor3f(0, 0, 0);
@@ -728,6 +778,23 @@ Begin
   OpenGL_ASCII_Font.ColorV3 := v3(1, 1, 1);
   OpenGL_ASCII_Font.Textout(0, 0, text);
   glPopMatrix;
+{$ELSE}
+  // Der Schwarze Hintergrund hinter dem Text
+  UseColorShader;
+  SetShaderColor(0, 0, 0, 1.0);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderRender([
+    v3(p.x - 2, p.y - 2, LayerLCLHints),
+      v3(p.x + w + 2, p.y - 2, LayerLCLHints),
+      v3(p.x + w + 2, p.y + h + 2, LayerLCLHints),
+      v3(p.x - 2, p.y + h + 2, LayerLCLHints)
+      ]);
+  glShaderEnd;
+  // Zurück zum Textur-Shader für den Text
+  UseTextureShader;
+  OpenGL_ASCII_Font.ColorV3 := v3(1, 1, 1);
+  OpenGL_ASCII_Font.Textout(p.x, p.y, LayerLCLHints + 0.02, text);
+{$ENDIF}
 End;
 
 Function RGBAToFormatString(Const c: TRGBA; AsHex: Boolean): String;
@@ -745,6 +812,7 @@ End;
 
 Initialization
   InitCursorPixelPos;
+  ColorTransparent := RGBA(0, 0, 0, AlphaTranslucent);
 
 End.
 

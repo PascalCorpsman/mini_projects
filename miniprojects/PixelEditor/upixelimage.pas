@@ -19,7 +19,7 @@ Unit upixelimage;
 Interface
 
 Uses
-  Classes, SysUtils, Graphics, ugraphics, upixeleditor_types;
+  Classes, SysUtils, Graphics, ugraphics, upixeleditor_types, dglOpenGL;
 
 Type
 
@@ -34,6 +34,9 @@ Type
 
   TPixelImage = Class
   private
+{$IFNDEF LEGACYMODE}
+    fShaderVBO: GLuint;
+{$ENDIF}
     fChanged: Boolean;
     fOpenGLImage: integer;
     fPixels: TPixelArea;
@@ -66,7 +69,11 @@ Type
     Procedure SetSize(aWidth, aHeight: Integer);
     Procedure Clear();
 
+{$IFDEF LEGACYMODE}
     Procedure Render(Monochrone: Boolean);
+{$ELSE}
+    Procedure Render(x, y, z: Single; Monochrone: Boolean);
+{$ENDIF}
 
     Procedure AppendToPEStream(Const Stream: TStream; Const aFilename: String);
     Procedure LoadFromPEStream(Const Stream: TStream; Const aFilename: String);
@@ -93,7 +100,7 @@ Implementation
 
 Uses
   FPWritePNG, IntfGraphics, LCLType, math
-  , dglOpenGL, uopengl_graphikengine
+  , uopengl_graphikengine
   , uvectormath
   , ufifo
   ;
@@ -472,6 +479,9 @@ End;
 Constructor TPixelImage.Create;
 Begin
   Inherited Create;
+{$IFNDEF LEGACYMODE}
+  fShaderVBO := 0;
+{$ENDIF}
   setlength(fPixels, 0, 0);
   setlength(fMonochronPixels, 0, 0);
   fOpenGLImage := 0;
@@ -492,6 +502,11 @@ Begin
     glDeleteTextures(1, @fMonochronOpenGLImage);
     fMonochronOpenGLImage := 0;
   End;
+{$IFNDEF LEGACYMODE}
+  If fShaderVBO <> 0 Then
+    glDeleteBuffers(1, @fShaderVBO);
+  fShaderVBO := 0;
+{$ENDIF}
 End;
 
 Procedure TPixelImage.CloneFrom(Const aSource: TPixelImage);
@@ -555,7 +570,9 @@ Begin
         inc(c);
       End;
     End;
+{$IFDEF LEGACYMODE}
     glEnable(GL_TEXTURE_2D);
+{$ENDIF}
     glBindTexture(gl_texture_2d, fOpenGLImage);
     glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, @Data[0]);
     glBindTexture(gl_texture_2d, fMonochronOpenGLImage);
@@ -593,7 +610,9 @@ Begin
   oc2[1] := fMonochronPixels[x, y].r;
   oc2[2] := fMonochronPixels[x, y].r;
   oc2[3] := c.a;
-  glEnable(GL_TEXTURE_2D);
+{$IFDEF LEGACYMODE}
+  glenable(GL_TEXTURE_2D); // Texturen
+{$ENDIF}
   glBindTexture(gl_texture_2d, fOpenGLImage);
   glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, @oc[0]);
   glBindTexture(gl_texture_2d, fMonochronOpenGLImage);
@@ -611,7 +630,9 @@ Begin
   setlength(fMonochronPixels, aWidth, aHeight);
   glGenTextures(1, @fOpenGLImage);
   glGenTextures(1, @fMonochronOpenGLImage);
-  glEnable(GL_TEXTURE_2D);
+{$IFDEF LEGACYMODE}
+  glenable(GL_TEXTURE_2D);
+{$ENDIF}
   glBindTexture(GL_TEXTURE_2D, fOpenGLImage);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -663,6 +684,8 @@ Begin
   Filename := '';
 End;
 
+{$IFDEF LEGACYMODE}
+
 Procedure TPixelImage.Render(Monochrone: Boolean);
 Var
   b: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
@@ -695,6 +718,84 @@ Begin
   If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
     gldisable(gl_blend);
 End;
+{$ELSE}
+
+Procedure TPixelImage.Render(x, y, z: Single; Monochrone: Boolean);
+Var
+  b: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
+  w, h: integer;
+  vertices: Array[0..15] Of GLfloat; // 4 vertices * (2 pos + 2 texcoord)
+  LocDepth: GLint;
+  CurrentProgram: GLint;
+Begin
+  If fOpenGLImage = 0 Then exit;
+  // Create on first use
+  If fShaderVBO = 0 Then
+    glGenBuffers(1, @fShaderVBO);
+  w := length(fPixels);
+  h := length(fPixels[0]);
+  //  glColor4f(1, 1, 1, 1);
+  B := glIsEnabled(gl_Blend);
+  If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
+    glenable(gl_Blend);
+  glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  If Monochrone Then Begin
+    glBindTexture(gl_texture_2d, fMonochronOpenGLImage);
+  End
+  Else Begin
+    glBindTexture(gl_texture_2d, fOpenGLImage);
+  End;
+
+  // Vertex 0: bottom-x
+  vertices[0] := x;
+  vertices[1] := y + h;
+  vertices[2] := 0;
+  vertices[3] := 1;
+
+  // Vertex 1: bottom-right
+  vertices[4] := x + w;
+  vertices[5] := y + h;
+  vertices[6] := 1;
+  vertices[7] := 1;
+
+  // Vertex 2: y-right
+  vertices[8] := x + w;
+  vertices[9] := y;
+  vertices[10] := 1;
+  vertices[11] := 0;
+
+  // Vertex 3: y-x
+  vertices[12] := x;
+  vertices[13] := y;
+  vertices[14] := 0;
+  vertices[15] := 0;
+
+  //  glBindTexture(GL_TEXTURE_2D, image.Image);
+  glBindBuffer(GL_ARRAY_BUFFER, fShaderVBO);
+  glBufferData(GL_ARRAY_BUFFER, SizeOf(vertices), @vertices[0], GL_DYNAMIC_DRAW);
+
+  // Set depth uniform
+  glGetIntegerv(GL_CURRENT_PROGRAM, @CurrentProgram);
+  LocDepth := glGetUniformLocation(CurrentProgram, 'uDepth');
+  If LocDepth >= 0 Then
+    glUniform1f(LocDepth, z);
+
+  // Position attribute (location = 0)
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Nil);
+
+  // TexCoord attribute (location = 1)
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Pointer(2 * SizeOf(GLfloat)));
+
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+  glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
+  If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
+    gldisable(gl_blend);
+End;
+{$ENDIF}
 
 Procedure TPixelImage.AppendToPEStream(Const Stream: TStream; Const aFilename: String
   );

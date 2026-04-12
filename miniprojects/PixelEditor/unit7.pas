@@ -83,6 +83,9 @@ Var
   i, j: Integer;
   tmp: TLazIntfImage;
   DestHandle, DestMaskHandle: HBitmap;
+{$IFDEF LCLGTK3}
+  c: TRGBA;
+{$ENDIF}
 Begin
   fInImage.Width := length(data);
   fInImage.Height := length(data[0]);
@@ -90,7 +93,13 @@ Begin
   tmp.LoadFromBitmap(fInImage.Handle, fInImage.MaskHandle);
   For i := 0 To high(data) Do Begin
     For j := 0 To high(data[i]) Do Begin
+{$IFDEF LCLGTK3}
+      c := data[i, j];
+      c.A := 255 - c.a; // WTF: wo muss man das noch berücksichtigen ?
+      tmp.Colors[i, j] := RGBAToFPColor(c);
+{$ELSE}
       tmp.Colors[i, j] := RGBAToFPColor(data[i, j]);
+{$ENDIF}
     End;
   End;
   tmp.CreateBitmaps(DestHandle, DestMaskHandle, false);

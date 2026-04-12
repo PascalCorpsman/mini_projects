@@ -17,6 +17,11 @@ Unit upixeleditorlcl;
 {$MODE ObjFPC}{$H+}
 
 Interface
+(*
+Aktiviert die Nutzung von OpenGL im Legacy Mode, default ist Shader mode, der
+auch mit OpenGL 3.3 funktioniert, aber nicht alle Funktionen von OpenGL 3.3 nutzt.
+*)
+{.$DEFINE LEGACYMODE}
 
 Uses
   Classes, controls, SysUtils, OpenGLContext, uopengl_widgetset, ugraphics,
@@ -211,6 +216,10 @@ Type
 
     Procedure OnColorClick(Sender: TObject);
 
+{$IFNDEF LEGACYMODE}
+    Procedure setDepth(AValue: Single); override;
+{$ENDIF}
+
   public
     CriticalError: String;
     SelectorPos: integer;
@@ -225,8 +234,8 @@ Type
     Procedure LoadColor(aColor: TOpenGL_ColorBox; aColorAsHex: Boolean);
   End;
 
-Procedure RenderTransparentQuad(x, y, w, h: Single);
-Procedure RenderClampedTransparentQuad(x, y, w, h, cw, ch: Single);
+Procedure RenderTransparentQuad(x, y, w, h: Single; z: Single = 0);
+Procedure RenderClampedTransparentQuad(x, y, w, h, cw, ch: Single; z: Single = 0);
 
 Implementation
 
@@ -235,6 +244,7 @@ Uses
   , dglOpenGL
   , uvectormath
   , upixeleditor_types
+  , uopengl_shaderprimitives
   ;
 
 Type
@@ -263,8 +273,9 @@ Begin
   result.b := b;
 End;
 
-Procedure RenderTransparentQuad(x, y, w, h: Single);
+Procedure RenderTransparentQuad(x, y, w, h: Single; z: Single = 0);
 Begin
+{$IFDEF LEGACYMODE}
   glColor3ub(TransparentDarkLuminance, TransparentDarkLuminance, TransparentDarkLuminance);
   glBegin(GL_QUADS);
   glVertex2f(x, y);
@@ -287,32 +298,99 @@ Begin
   glVertex2f(x + w / 2, y + h);
   glVertex2f(x, y + h);
   glend;
+{$ELSE}
+  UseColorShader;
+  SetShaderColorub(TransparentDarkLuminance, TransparentDarkLuminance, TransparentDarkLuminance);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(x, y, z);
+  glShaderVertex(x + w / 2, y, z);
+  glShaderVertex(x + w / 2, y + h / 2, z);
+  glShaderVertex(x, y + h / 2, z);
+  glShaderEnd;
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(x + w / 2, y + h / 2, z);
+  glShaderVertex(x + w, y + h / 2, z);
+  glShaderVertex(x + w, y + h, z);
+  glShaderVertex(x + w / 2, y + h, z);
+  glShaderEnd;
+  SetShaderColorub(TransparentBrightLuminance, TransparentBrightLuminance, TransparentBrightLuminance);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(x + w / 2, y, z);
+  glShaderVertex(x + w, y, z);
+  glShaderVertex(x + w, y + h / 2, z);
+  glShaderVertex(x + w / 2, y + h / 2, z);
+  glShaderEnd;
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(x, y + h / 2, z);
+  glShaderVertex(x + w / 2, y + h / 2, z);
+  glShaderVertex(x + w / 2, y + h, z);
+  glShaderVertex(x, y + h, z);
+  glShaderEnd();
+  UseTextureShader;
+{$ENDIF}
 End;
 
-Procedure RenderClampedTransparentQuad(x, y, w, h, cw, ch: Single);
+Procedure RenderClampedTransparentQuad(x, y, w, h, cw, ch: Single; z: Single = 0);
+Var
+  xm, ym, x2, y2: Single;
 Begin
+  xm := min(x + w / 2, cw);
+  ym := min(y + h / 2, ch);
+  x2 := min(x + w, cw);
+  y2 := min(y + h, ch);
+{$IFDEF LEGACYMODE}
   glColor3ub(TransparentDarkLuminance, TransparentDarkLuminance, TransparentDarkLuminance);
   glBegin(GL_QUADS);
   glVertex2f(x, y);
-  glVertex2f(min(x + w / 2, cw), y);
-  glVertex2f(min(x + w / 2, cw), min(y + h / 2, ch));
-  glVertex2f(x, min(y + h / 2, ch));
-  glVertex2f(min(x + w / 2, cw), min(y + h / 2, ch));
-  glVertex2f(min(x + w, cw), min(y + h / 2, ch));
-  glVertex2f(min(x + w, cw), min(y + h, ch));
-  glVertex2f(min(x + w / 2, cw), min(y + h, ch));
+  glVertex2f(xm, y);
+  glVertex2f(xm, ym);
+  glVertex2f(x, ym);
+  glVertex2f(xm, ym);
+  glVertex2f(x2, ym);
+  glVertex2f(x2, y2);
+  glVertex2f(xm, y2);
   glend;
   glColor3ub(TransparentBrightLuminance, TransparentBrightLuminance, TransparentBrightLuminance);
   glBegin(GL_QUADS);
-  glVertex2f(min(x + w / 2, cw), y);
-  glVertex2f(min(x + w, cw), y);
-  glVertex2f(min(x + w, cw), min(y + h / 2, ch));
-  glVertex2f(min(x + w / 2, cw), min(y + h / 2, ch));
-  glVertex2f(x, min(y + h / 2, ch));
-  glVertex2f(min(x + w / 2, cw), min(y + h / 2, ch));
-  glVertex2f(min(x + w / 2, cw), min(y + h, ch));
-  glVertex2f(x, min(y + h, ch));
+  glVertex2f(xm, y);
+  glVertex2f(x2, y);
+  glVertex2f(x2, ym);
+  glVertex2f(xm, ym);
+  glVertex2f(x, ym);
+  glVertex2f(xm, ym);
+  glVertex2f(xm, y2);
+  glVertex2f(x, y2);
   glend;
+{$ELSE}
+  UseColorShader;
+  SetShaderColorub(TransparentDarkLuminance, TransparentDarkLuminance, TransparentDarkLuminance);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(x, y, z);
+  glShaderVertex(xm, y, z);
+  glShaderVertex(xm, ym, z);
+  glShaderVertex(x, ym, z);
+  glShaderEnd();
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(xm, ym, z);
+  glShaderVertex(x2, ym, z);
+  glShaderVertex(x2, y2, z);
+  glShaderVertex(xm, y2, z);
+  glShaderEnd();
+  SetShaderColorub(TransparentBrightLuminance, TransparentBrightLuminance, TransparentBrightLuminance);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(xm, y, z);
+  glShaderVertex(x2, y, z);
+  glShaderVertex(x2, ym, z);
+  glShaderVertex(xm, ym, z);
+  glShaderEnd();
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(x, ym, z);
+  glShaderVertex(xm, ym, z);
+  glShaderVertex(xm, y2, z);
+  glShaderVertex(x, y2, z);
+  glShaderEnd();
+  UseTextureShader;
+{$ENDIF}
 End;
 
 { TRGBDialog }
@@ -413,6 +491,7 @@ Var
 Begin
   If Not Visible Then exit;
   Inherited OnRender();
+{$IFDEF LEGACYMODE}
   glBindTexture(GL_TEXTURE_2D, 0);
   glPushMatrix;
   glTranslatef(Left, Top, 0.01);
@@ -432,6 +511,26 @@ Begin
   glend;
   glLineWidth(1);
   glPopMatrix;
+{$ELSE}
+  UseColorShader;
+  If (fStyle = bsRaised) Or (fmDown) Then Begin
+    SetShaderColorub(RaisedColor.r, RaisedColor.g, RaisedColor.b);
+  End
+  Else Begin
+    SetShaderColorub(LoweredColor.r, LoweredColor.g, LoweredColor.b);
+  End;
+  glShaderLineWidth(2);
+  glShaderBegin(GL_LINE_LOOP);
+  glShaderRender([
+    v3(Left + 0, Top + 1, Depth + 0.01),
+      v3(Left + Width - 1, Top + 1, Depth + 0.01),
+      v3(Left + Width - 1, Top + Height, Depth + 0.01),
+      v3(Left + 0, Top + Height, Depth + 0.01)
+      ]);
+  glShaderEnd();
+  glShaderLineWidth(1);
+  UseTextureShader();
+{$ENDIF}
   If fShowHint And (hint <> '') Then Begin
     p := fOwner.ScreenToClient(Mouse.CursorPos);
     p.x := round(p.x * ScreenWidth / fOwner.Width);
@@ -556,6 +655,7 @@ Var
   p: TPoint;
 Begin
   If Not Visible Then exit;
+{$IFDEF LEGACYMODE}
   glBindTexture(GL_TEXTURE_2D, 0);
 
   glPushMatrix;
@@ -593,6 +693,43 @@ Begin
 
   glLineWidth(1);
   glPopMatrix;
+{$ELSE}
+  glShaderLineWidth(2);
+  If fColor = ColorTransparent Then Begin
+    RenderTransparentQuad(left, top, Width - 1, Height - 1, Depth);
+  End
+  Else Begin
+    UseColorShader;
+    SetShaderColorub(fColor.r, fColor.g, fColor.b);
+    glShaderBegin(GL_TRIANGLE_FAN);
+    glShaderRender([
+      v3(left + 0, top + 0, depth),
+        v3(left + Width - 1, top + 0, depth),
+        v3(left + Width - 1, top + Height - 1, depth),
+        v3(left + 0, top + Height - 1, depth)
+        ]);
+    glShaderEnd;
+    UseTextureShader;
+  End;
+  UseColorShader;
+
+  If (fStyle = bsRaised) Or (fmDown) Then Begin
+    SetShaderColorub(RaisedColor.r, RaisedColor.g, RaisedColor.b);
+  End
+  Else Begin
+    SetShaderColorub(LoweredColor.r, LoweredColor.g, LoweredColor.b);
+  End;
+  glShaderBegin(GL_LINE_LOOP);
+  glShaderRender([
+    v3(left + 0, top + 1, depth + 0.01),
+      v3(left + Width - 1, top + 1, depth + 0.01),
+      v3(left + Width - 1, top + Height, depth + 0.01),
+      v3(left + 0, top + Height, depth + 0.01)
+      ]);
+  glShaderEnd;
+  glShaderLineWidth(1);
+  UseTextureShader;
+{$ENDIF}
 
   If fShowHint And (hint <> '') Then Begin
     p := fOwner.ScreenToClient(Mouse.CursorPos);
@@ -642,9 +779,10 @@ Var
   w, h, B1, B2: integer;
 Begin
   If Not Visible Then exit;
-  glBindTexture(GL_TEXTURE_2D, 0);
   B1 := width Div 7; // Durch Probieren ermittelt ;)
   B2 := 2 * b1;
+{$IFDEF LEGACYMODE}
+  glBindTexture(GL_TEXTURE_2D, 0);
   glPushMatrix;
   glTranslatef(Left, Top, 0);
   glLineWidth(max(FOwner.Width / 640, FOwner.Height / 480) * 2);
@@ -705,6 +843,81 @@ Begin
   glend;
   glLineWidth(1);
   glPopMatrix;
+{$ELSE}
+  glShaderLineWidth(2);
+  // Die Hintergrundfarbe
+  If BackColor = ColorTransparent Then Begin
+    w := Width - B1 - B2;
+    h := Height - B1 - B2;
+    RenderTransparentQuad(left + b2, top + b2, w, h, Depth);
+  End
+  Else Begin
+    UseColorShader;
+    SetShaderColorub(BackColor.r, BackColor.g, BackColor.b);
+    glShaderBegin(GL_TRIANGLE_FAN);
+    glShaderRender([
+      v3(Left + B2, Top + B2, depth),
+        v3(Left + Width - B1, Top + B2, depth),
+        v3(Left + Width - B1, Top + Height - B1, depth),
+        v3(Left + B2, Top + Height - B1, depth)
+        ]);
+    glShaderEnd;
+    UseTextureShader
+  End;
+  UseColorShader;
+  SetShaderColorub(192, 192, 192);
+  glShaderBegin(GL_LINE_LOOP);
+  glShaderRender([
+    v3(left + B2, Top + B2, depth),
+      v3(left + Width - B1, Top + B2, depth),
+      v3(left + Width - B1, Top + Height - B1, depth),
+      v3(left + B2, Top + Height - B1, depth)
+      ]);
+  glShaderEnd;
+  UseTextureShader;
+  // Die Fordergrundfarbe
+  If FrontColor = ColorTransparent Then Begin
+    w := Width - B1 - B2;
+    h := Height - B1 - B2;
+    RenderTransparentQuad(left + b1, top + b1, w, h, depth + 0.01);
+  End
+  Else Begin
+    UseColorShader;
+    SetShaderColorub(FrontColor.r, FrontColor.g, FrontColor.b);
+    glShaderBegin(GL_TRIANGLE_FAN);
+    glShaderRender([
+      v3(left + B1, top + B1, depth + 0.01),
+        v3(left + Width - B2, top + B1, depth + 0.01),
+        v3(left + Width - B2, top + Height - B2, depth + 0.01),
+        v3(left + B1, top + Height - B2, depth + 0.01)
+        ]);
+    glShaderEnd;
+    UseTextureShader
+  End;
+  UseColorShader;
+  SetShaderColorub(192, 192, 192);
+  glShaderBegin(GL_LINE_LOOP);
+  glShaderRender([
+    v3(left + B1, top + B1, depth + 0.01),
+      v3(left + Width - B2, top + B1, depth + 0.01),
+      v3(left + Width - B2, top + Height - B2, depth + 0.01),
+      v3(left + B1, top + Height - B2, depth + 0.01)
+      ]);
+  glShaderEnd;
+  // Der Rahmen
+  SetShaderColorub(192, 192, 192);
+  glShaderBegin(GL_LINE_LOOP);
+  glShaderRender([
+    v3(left + 0, Top + 1, depth + 0.01),
+      v3(left + Width - 1, Top + 1, depth + 0.01),
+      v3(left + Width - 1, Top + Height, depth + 0.01),
+      v3(left + 0, Top + Height, depth + 0.01)
+      ]);
+  glShaderEnd;
+  glShaderLineWidth(1);
+  glShaderEnd;
+  UseTextureShader
+{$ENDIF}
 End;
 
 Constructor TOpenGL_ForeBackGroundColorBox.Create(aOwner: TOpenGLControl);
@@ -725,8 +938,33 @@ End;
 
 Procedure TOpenGL_Textbox.OnRender;
 Var
-  p: TPoint;
+  poffset: TVector2;
+  op, p: TPoint;
 Begin
+  poffset := point(0, 0);
+  Case Layout Of
+    tlTop: Begin
+        // Nichts zu tun
+      End;
+    tlCenter: Begin
+        poffset := poffset + v2(0, (Height - FFont.TextHeight(fcaption)) / 2 + 1);
+      End;
+    tlBottom: Begin
+        poffset := poffset + v2(0, (Height - FFont.TextHeight(fcaption)));
+      End;
+  End;
+  Case Alignment Of
+    taLeftJustify: Begin
+        // Nichts zu tun
+      End;
+    taCenter: Begin
+        poffset := poffset + v2((Width - FFont.TextWidth(fcaption)) / 2 - 1, 0);
+      End;
+    taRightJustify: Begin
+        poffset := poffset + v2((Width - FFont.TextWidth(fcaption)), 0);
+      End;
+  End;
+{$IFDEF LEGACYMODE}
   If BackColor.a <> 255 Then Begin
     glBindTexture(GL_TEXTURE_2D, 0);
     glPushMatrix;
@@ -741,28 +979,7 @@ Begin
     glPopMatrix;
   End;
   glPushMatrix;
-  Case Layout Of
-    tlTop: Begin
-        // Nichts zu tun
-      End;
-    tlCenter: Begin
-        gltranslatef(0, (Height - FFont.TextHeight(fcaption)) / 2 + 1, 0);
-      End;
-    tlBottom: Begin
-        gltranslatef(0, (Height - FFont.TextHeight(fcaption)), 0);
-      End;
-  End;
-  Case Alignment Of
-    taLeftJustify: Begin
-        // Nichts zu tun
-      End;
-    taCenter: Begin
-        gltranslatef((Width - FFont.TextWidth(fcaption)) / 2 - 1, 0, 0);
-      End;
-    taRightJustify: Begin
-        gltranslatef((Width - FFont.TextWidth(fcaption)), 0, 0);
-      End;
-  End;
+  gltranslatef(poffset.x, poffset.y, 0);
   Inherited OnRender();
   glPopMatrix;
   // Den Rahmen Rendern
@@ -780,6 +997,41 @@ Begin
   glend;
   glLineWidth(1);
   glPopMatrix;
+{$ELSE}
+  If BackColor.a <> 255 Then Begin
+    UseColorShader;
+    SetShaderColorub(BackColor.r, BackColor.g, BackColor.b);
+    glShaderBegin(GL_TRIANGLE_FAN);
+    glShaderRender([
+      v3(left + 0, top + 1, depth),
+        v3(left + Width - 1, top + 1, depth),
+        v3(left + Width - 1, top + Height, depth),
+        v3(left + 0, top + Height, depth)
+        ]);
+    glShaderEnd;
+    UseTextureShader;
+  End;
+  op := point(Left, Top);
+  left := round(left + poffset.X);
+  Top := round(Top + poffset.Y);
+  Inherited OnRender();
+  left := op.X;
+  top := op.y;
+  // Den Rahmen Rendern
+  UseColorShader;
+  SetShaderColorub(BorderColor.r, BorderColor.g, BorderColor.b);
+  glShaderLineWidth(2);
+  glShaderBegin(GL_LINE_LOOP);
+  glShaderRender([
+    v3(left + 0, top + 1, depth + 0.01),
+      v3(left + Width - 1, top + 1, depth + 0.01),
+      v3(left + Width - 1, top + Height, depth + 0.01),
+      v3(left + 0, top + Height, Depth + 0.01)
+      ]);
+  glShaderEnd();
+  glShaderLineWidth(1);
+  UseTextureShader;
+{$ENDIF}
   If fShowHint And (hint <> '') Then Begin
     p := fOwner.ScreenToClient(Mouse.CursorPos);
     p.x := round(p.x * ScreenWidth / fOwner.Width);
@@ -802,6 +1054,7 @@ End;
 
 Procedure TPlus.OnRender;
 Begin
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glTranslatef(left, top, 0);
   glColor4ub(192, 192, 192, 0);
@@ -828,6 +1081,36 @@ Begin
   glVertex2f(Width / 2 - 2, Height - 1);
   glend;
   glPopMatrix;
+{$ELSE}
+  UseColorShader;
+  SetShaderColorub(192, 192, 192, 0);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(Left + 0, Top + Height / 2 - 3, depth);
+  glShaderVertex(Left + Width, Top + Height / 2 - 3, depth);
+  glShaderVertex(Left + Width, Top + Height / 2 + 3, depth);
+  glShaderVertex(Left + 0, Top + Height / 2 + 3, depth);
+  glShaderEnd;
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(Left + Width / 2 - 3, Top + 0, depth);
+  glShaderVertex(Left + Width / 2 + 3, Top + 0, depth);
+  glShaderVertex(Left + Width / 2 + 3, Top + Height, depth);
+  glShaderVertex(Left + Width / 2 - 3, Top + Height, depth);
+  glShaderEnd;
+  SetShaderColorub(Color.r, Color.g, Color.b, 0);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(Left + 1, Top + Height / 2 - 2, depth + 0.01);
+  glShaderVertex(Left + Width - 1, Top + Height / 2 - 2, depth + 0.01);
+  glShaderVertex(Left + Width - 1, Top + Height / 2 + 2, depth + 0.01);
+  glShaderVertex(Left + 1, Top + Height / 2 + 2, depth + 0.01);
+  glShaderEnd;
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(Left + Width / 2 - 2, Top + 1, depth + 0.01);
+  glShaderVertex(Left + Width / 2 + 2, Top + 1, depth + 0.01);
+  glShaderVertex(Left + Width / 2 + 2, Top + Height - 1, depth + 0.01);
+  glShaderVertex(Left + Width / 2 - 2, Top + Height - 1, depth + 0.01);
+  glShaderEnd;
+  UseTextureShader;
+{$ENDIF}
 End;
 
 Procedure TPlus.OnClickEvent(Sender: TObject);
@@ -858,6 +1141,7 @@ End;
 
 Procedure TMinus.OnRender();
 Begin
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glTranslatef(left, top, 0);
   glColor4ub(192, 192, 192, 0);
@@ -876,6 +1160,28 @@ Begin
   glVertex2f(1, Height / 2 + 2);
   glend;
   glPopMatrix;
+{$ELSE}
+  UseColorShader;
+  SetShaderColorub(192, 192, 192, 0);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderRender([
+    v3(Left + 0, Top + Height / 2 - 3, depth),
+      v3(Left + Width, Top + Height / 2 - 3, depth),
+      v3(Left + Width, Top + Height / 2 + 3, depth),
+      v3(Left + 0, Top + Height / 2 + 3, depth)
+      ]);
+  glShaderEnd;
+  SetShaderColorub(Color.r, Color.g, Color.b, 0);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderRender([
+    v3(left + 1, Top + Height / 2 - 2, depth + 0.01),
+      v3(left + Width - 1, Top + Height / 2 - 2, depth + 0.01),
+      v3(left + Width - 1, Top + Height / 2 + 2, depth + 0.01),
+      v3(left + 1, Top + Height / 2 + 2, depth + 0.01)
+      ]);
+  glShaderEnd;
+  UseTextureShader;
+{$ENDIF}
 End;
 
 { TOpenGL_ColorPicDialog }
@@ -920,8 +1226,10 @@ End;
 Procedure TOpenGL_ColorPicDialog.OnRender;
 Begin
   Inherited OnRender();
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glTranslatef(0, 0, 0.01);
+{$ENDIF}
   // Rendern der Kind Komponenten
   fColorTable.Render();
   fPicColorButton.Render();
@@ -947,15 +1255,17 @@ Begin
   fOpenButton.Render();
   fResetButton.Render();
   fSetValuesButton.Render();
-
   // Den kleinen Auswahlzeiger malen ;)
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glColor4f(1, 1, 1, 1);
-  glTranslatef(Left, Top, 0);
-  glTranslatef(2 + 8 + 35 * SelectorPos, height - 10, 0);
+  glTranslatef(Left + 2 + 8 + 35 * SelectorPos, Top + height - 10, 0);
   RenderAlphaQuad(0, 0, fSelectorTex);
   glPopMatrix;
   glPopMatrix;
+{$ELSE}
+  RenderAlphaQuad(Left + 2 + 8 + 35 * SelectorPos, Top + height - 10, Depth + 0.01, fSelectorTex);
+{$ENDIF}
 End;
 
 Procedure TOpenGL_ColorPicDialog.SetVisible(AValue: Boolean);
@@ -1135,49 +1445,42 @@ Procedure TOpenGL_ColorPicDialog.OnColorClick(Sender: TObject);
 Begin
   ApplyColor((sender As TOpenGL_ColorBox));
 End;
+{$IFNDEF LEGACYMODE}
+
+Procedure TOpenGL_ColorPicDialog.setDepth(AValue: Single);
+Var
+  childdepth: Single;
+Begin
+  Inherited setDepth(AValue);
+  childdepth := AValue + 0.01;
+  fResetButton.Depth := childdepth;
+  fOpenButton.Depth := childdepth;
+  fSaveAsButton.Depth := childdepth;
+  fSetValuesButton.Depth := childdepth;
+  fColorTable.Depth := childdepth;
+  fPicColorButton.Depth := childdepth;
+  fColorInfo.Depth := childdepth;
+  fBlack.Depth := childdepth;
+  fDarken.Depth := childdepth;
+  fRed.Depth := childdepth;
+  fGreen.Depth := childdepth;
+  fBlue.Depth := childdepth;
+  fBrighten.Depth := childdepth;
+  fWhite.Depth := childdepth;
+  fDarkenMinus.Depth := childdepth;
+  fRedMinus.Depth := childdepth;
+  fGreenMinus.Depth := childdepth;
+  fBlueMinus.Depth := childdepth;
+  fWhiteMinus.Depth := childdepth;
+  fDarkenPlus.Depth := childdepth;
+  fRedPlus.Depth := childdepth;
+  fGreenPlus.Depth := childdepth;
+  fBluePlus.Depth := childdepth;
+  fWhitePlus.Depth := childdepth;
+End;
+{$ENDIF}
 
 Constructor TOpenGL_ColorPicDialog.Create(aOwner: TOpenGLControl);
-
-  Function LoadAlphaColorGraphik(Const Filename: String): integer;
-  Begin
-    // 1. Ganz normal Laden
-    result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
-    If result = 0 Then Begin
-      // 2. Der User hat das Repo geklont aber die Dateien nicht korrekt um kopiert
-      If FileExists('..' + PathDelim + 'GFX' + PathDelim + Filename) Then Begin
-        // 3. Dann machen wir das geschwind für den User ..
-        If ForceDirectories('GFX') Then Begin
-          If copyfile('..' + PathDelim + 'GFX' + PathDelim + Filename, 'GFX' + PathDelim + Filename) Then Begin
-            result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
-          End;
-        End;
-      End;
-    End;
-    If result = 0 Then Begin
-      CriticalError := Filename;
-    End;
-  End;
-
-  Function LoadGraphik(Const Filename: String): integer;
-  Begin
-    // 1. Ganz normal Laden
-    result := OpenGL_GraphikEngine.LoadGraphik('GFX' + PathDelim + Filename, smClamp);
-    If result = 0 Then Begin
-      // 2. Der User hat das Repo geklont aber die Dateien nicht korrekt um kopiert
-      If FileExists('..' + PathDelim + 'GFX' + PathDelim + Filename) Then Begin
-        // 3. Dann machen wir das geschwind für den User ..
-        If ForceDirectories('GFX') Then Begin
-          If copyfile('..' + PathDelim + 'GFX' + PathDelim + Filename, 'GFX' + PathDelim + Filename) Then Begin
-            result := OpenGL_GraphikEngine.LoadGraphik('GFX' + PathDelim + Filename, smClamp);
-          End;
-        End;
-      End;
-    End;
-    If result = 0 Then Begin
-      CriticalError := Filename;
-    End;
-  End;
-
 Var
   img: Integer;
 Begin
@@ -1213,16 +1516,16 @@ Begin
   fWhitePlus := TPlus.Create(aOwner);
   Inherited Create(aOwner);
   Transparent := true;
-  img := LoadAlphaColorGraphik('Color_Pic_Dialog.bmp');
+  img := LoadAlphaColorGraphik('Color_Pic_Dialog.bmp', CriticalError);
   If img = 0 Then exit;
   SetImage(img);
-  SelectorPos := 0;
 
-  img := LoadAlphaColorGraphik('Arror_down.bmp');
+  img := LoadAlphaColorGraphik('Arror_down.bmp', CriticalError);
   If img = 0 Then exit;
   fSelectorTex := OpenGL_GraphikEngine.GetInfo(img);
+  SelectorPos := 0;
 
-  img := LoadGraphik('ColorPalette.bmp');
+  img := LoadGraphik('ColorPalette.bmp', CriticalError);
   If img = 0 Then exit;
 
   fColorTableRaw := TBitmap.Create;

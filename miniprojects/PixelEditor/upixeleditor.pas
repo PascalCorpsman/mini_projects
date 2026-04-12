@@ -20,7 +20,7 @@ Interface
 
 Uses
   Graphics, Classes, SysUtils, Controls, OpenGLContext, uopengl_widgetset, upixeleditorlcl,
-  ExtCtrls, upixelimage, ugraphics, upixeleditor_types, uundo;
+  ExtCtrls, upixelimage, ugraphics, upixeleditor_types, uundo, dglOpenGL;
 
 Const
   (*
@@ -85,6 +85,7 @@ Const
    *                   FIX: use right color when cutting / erasing
    * -Released- 0.13 - FIX: Cut / paste did not always take right color into account
    *                   FIX: Right mouse scroll glitch
+   *            0.14 - ADD: Convert to shader rendering instead of legacy mode
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -323,8 +324,8 @@ Implementation
 
 Uses
   Forms, Dialogs, LCLType, math, Clipbrd, LCLIntf, IntfGraphics, fileutil // LCL- Units
-  , dglOpenGL // OpenGL Header
   , uOpenGL_ASCII_Font, uopengl_graphikengine // Corspan OpenGL-Engine
+  , uopengl_shaderprimitives
   , uvectormath // Math library
   , unit1 // Dialogs / Close
   , unit2 // Options
@@ -1064,9 +1065,16 @@ Procedure TPixelEditor.RenderGrid;
 Var
   zf: Single;
   i, j: Integer;
+{$IFNDEF LEGACYMODE}
+  m, m2: TMatrix4x4;
+  vp, vs, vc: TVector4;
+  gridZ: Single;
+{$ENDIF}
 Begin
   zf := (fZoom / 100);
+{$IFDEF LEGACYMODE}
   glBindTexture(GL_TEXTURE_2D, 0);
+  glColor3f(1, 1, 1);
   glPushMatrix;
   // Der Generelle Hintergrund
   glPushMatrix;
@@ -1101,6 +1109,8 @@ Begin
     glScalef((fImage.Width * zf) / fBackGroundImage.Width, (fImage.Height * zf) / fBackGroundImage.Height, 1);
     fBackGroundImage.Render(ColorMonochronButton.Style = bsRaised);
     glPopMatrix;
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glColor3f(1, 1, 1);
   End;
   // Der Rahmen um die Graphik für "niedrige" Zoom stufen
   // Verzerrung Raus Rechnen
@@ -1143,10 +1153,99 @@ Begin
     glLineWidth(1);
   End;
   glPopMatrix;
+{$ELSE}
+  UseColorShader;
+  SetShaderColorub(51, 51, 51);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(0, 0, LayerBackGroundColor);
+  glShaderVertex(640, 0, LayerBackGroundColor);
+  glShaderVertex(640, 480, LayerBackGroundColor);
+  glShaderVertex(0, 480, LayerBackGroundColor);
+  glShaderEnd();
+  UseTextureShader;
+  m := IdentityMatrix4x4;
+  m := TranslateMatrix4x4(m, WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0);
+  m := ScaleMatrix4x4(m, ScreenWidth / FOwner.Width, ScreenHeight / FOwner.Height, 1);
+  SetShaderTransform(m);
+  If fsettings.BackGroundTransparentPattern And (fBackGroundImageFilename = '') Then Begin
+    // Äquivalent zu: glScalef(patternScale, patternScale, 1) im Legacy-Mode.
+    // uTransform (= m) bleibt gesetzt; die Kachelkoordinaten werden vorab durch
+    // m2 transformiert, bevor sie an RenderClampedTransparentQuad übergeben werden.
+    m2 := IdentityMatrix4x4;
+    m2 := ScaleMatrix4x4(m2, fsettings.BackGroundTransparentPatternScale, fsettings.BackGroundTransparentPatternScale, 1);
+    vs := m2 * v4(zf, zf, 0, 0); // Kachelbröße als Richtungsvektor (w=0, keine Translation)
+    vc := m2 * v4(// Klammergrenzen sind loop-invariant — vorab berechnen
+      fImage.Width * zf / fsettings.BackGroundTransparentPatternScale,
+      fImage.Height * zf / fsettings.BackGroundTransparentPatternScale, 0, 1);
+    For i := 0 To (fImage.Width - 1) Div fsettings.BackGroundTransparentPatternScale Do Begin
+      For j := 0 To (fImage.Height - 1) Div fsettings.BackGroundTransparentPatternScale Do Begin
+        vp := m2 * v4(i * zf, j * zf, 0, 1); // Kachelposition (w=1, wird transliert)
+        RenderClampedTransparentQuad(vp.x, vp.y, vs.x, vs.y, vc.x, vc.y, LayerBackGroundColor + 0.01);
+      End;
+    End;
+  End;
+  If fBackGroundImageFilename <> '' Then Begin
+    // glTranslatef(0, 0, LayerBackGroundColor + 0.01);
+    // glScalef((fImage.Width * zf) / fBackGroundImage.Width, (fImage.Height * zf) / fBackGroundImage.Height, 1);
+    m2 := ScaleMatrix4x4(m, (fImage.Width * zf) / fBackGroundImage.Width, (fImage.Height * zf) / fBackGroundImage.Height, 1);
+    SetShaderTransform(m2);
+    fBackGroundImage.Render(0, 0, LayerBackGroundColor + 0.01, ColorMonochronButton.Style = bsRaised);
+    SetShaderTransform(m);
+  End;
+  // Der Rahmen um die Graphik für "niedrige" Zoom stufen
+  UseColorShader;
+  If fSettings.GridAboveImage Then Begin
+    gridZ := LayerForeGroundGrid;
+    SetShaderColor(102 / 255, 102 / 255, 102 / 255, 1.0);
+  End
+  Else Begin
+    gridZ := LayerBackGroundGrid;
+    SetShaderColor(0, 0, 0, 1.0);
+  End;
+  glShaderBegin(GL_LINES);
+  glShaderRender([
+    // Linke Kante
+    v3(0, 0, gridZ), v3(0, fImage.Height * zf, gridZ),
+      // Rechte + untere Kante
+    v3(fImage.Width * zf, 0, gridZ),
+      v3(fImage.Width * zf, fImage.Height * zf, gridZ),
+      v3(0, fImage.Height * zf, gridZ),
+      v3(fImage.Width * zf, fImage.Height * zf, gridZ)
+      ]);
+  glShaderEnd();
+  // Kein Grid gewünscht / Sinnvoll
+  If (GridButton.Style = bsLowered) Or (fZoom <= 100) Then Begin
+    ResetShaderTransform;
+    UseTextureShader;
+    exit;
+  End;
+  glShaderBegin(GL_LINES);
+  For i := 0 To max(fImage.Width, fImage.Height) Do Begin
+    If i Mod 5 = 0 Then
+      glShaderLineWidth(2)
+    Else
+      glShaderLineWidth(1);
+    If i <= fImage.Width Then Begin
+      glShaderRender([v3(i * zf, 0, gridZ), v3(i * zf, fImage.Height * zf, gridZ)]);
+    End;
+    If i <= fImage.Height Then Begin
+      glShaderRender([v3(0, i * zf, gridZ), v3(fImage.Width * zf, i * zf, gridZ)]);
+    End;
+  End;
+  glShaderEnd();
+  glShaderLineWidth(1);
+  ResetShaderTransform;
+  UseTextureShader;
+{$ENDIF}
 End;
 
 Procedure TPixelEditor.RenderImage;
+{$IFNDEF LEGACYMODE}
+Var
+  m: TMatrix4x4;
+{$ENDIF}
 Begin
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerImage); // Anfahren der Linken Oberen Ecke
   glColor4f(1, 1, 1, 1);
@@ -1154,6 +1253,15 @@ Begin
   glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
   fImage.Render(ColorMonochronButton.Style = bsRaised);
   glPopMatrix;
+{$ELSE}
+  m := IdentityMatrix4x4;
+  m := TranslateMatrix4x4(m, WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0); // Anfahren der Linken Oberen Ecke
+  // Zoom und Verzerrung rausrechnen
+  m := ScaleMatrix4x4(m, fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
+  SetShaderTransform(m); // Anfahren der Linken Oberen Ecke
+  fImage.Render(0, 0, LayerImage, ColorMonochronButton.Style = bsRaised);
+  ResetShaderTransform;
+{$ENDIF}
 End;
 
 Procedure TPixelEditor.OnEraserButtonClick(Sender: TObject);
@@ -1380,6 +1488,7 @@ Procedure TPixelEditor.RenderLCL;
 Var
   i: integer;
 Begin
+{$IFDEF LEGACYMODE}
   // 1. Rendern des Grauen Hintergrunds
   glBindTexture(GL_TEXTURE_2D, 0);
   glPushMatrix;
@@ -1408,14 +1517,51 @@ Begin
   glVertex2f(641, 425);
   glend();
   glPopMatrix;
-
+{$ELSE}
+  // 1. Rendern des Grauen Hintergrunds
+  UseColorShader;
+  SetShaderColor($80 / 255, $80 / 255, $80 / 255, 1.0);
+  // Oben Toolbar
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(-1, -1, LayerFormColor);
+  glShaderVertex(641, -1, LayerFormColor);
+  glShaderVertex(641, 38, LayerFormColor);
+  glShaderVertex(-1, 38, LayerFormColor);
+  glShaderEnd();
+  // Links Toolbar
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(-1, -1, LayerFormColor);
+  glShaderVertex(75, -1, LayerFormColor);
+  glShaderVertex(75, 481, LayerFormColor);
+  glShaderVertex(-1, 481, LayerFormColor);
+  glShaderEnd();
+  // Rechts
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(640 - 3, -1, LayerFormColor);
+  glShaderVertex(641, -1, LayerFormColor);
+  glShaderVertex(641, 480, LayerFormColor);
+  glShaderVertex(640 - 3, 480, LayerFormColor);
+  glShaderEnd();
+  // Unten Toolbar
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(-1, 425, LayerFormColor);
+  glShaderVertex(641, 425, LayerFormColor);
+  glShaderVertex(641, 481, LayerFormColor);
+  glShaderVertex(-1, 481, LayerFormColor);
+  glShaderEnd();
+  UseTextureShader;
+{$ENDIF}
   // 2. Rendern der Eigentlichen LCL Elemente
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glTranslatef(0, 0, LayerLCL);
+{$ENDIF}
   For i := 0 To high(FElements) Do Begin
     FElements[i].Render();
   End;
+{$IFDEF LEGACYMODE}
   glPopMatrix;
+{$ENDIF}
 End;
 
 Procedure TPixelEditor.CursorToPixelOperation(Callback: TPixelCallback);
@@ -1575,6 +1721,7 @@ Begin
     (j >= 0) And (j < fImage.Height) Then Begin
     If (fCursor.LeftColor.Color = upixeleditor_types.ColorTransparent) Or
       (EraserButton.Style = bsRaised) Then Begin
+{$IFDEF LEGACYMODE}
       // Abschalten des Cursor Point Render Modus
       glEnd;
       // Das Eigentliche Rendern als "Transparent" Cursor
@@ -1583,9 +1730,25 @@ Begin
       c := fCursor.LeftColor.Color;
       glColor3ub(c.r, c.g, c.b);
       glBegin(GL_POINTS);
+{$ELSE}
+      // Abschalten des Cursor Point Render Modus
+      glShaderEnd;
+      UseTextureShader;
+      // Das Eigentliche Rendern als "Transparent" Cursor
+      RenderTransparentQuad(i - 0.5, j - 0.5, 1, 1, LayerCursor);
+      // Wieder Aktivieren des Point Render Modus
+      UseColorShader;
+      c := fCursor.LeftColor.Color;
+      SetShaderColorub(c.r, c.g, c.b);
+      glShaderBegin(GL_POINTS);
+{$ENDIF}
     End
     Else Begin
+{$IFDEF LEGACYMODE}
       glVertex2f(i, j);
+{$ELSE}
+      glShaderVertex(v3(i, j, LayerCursor));
+{$ENDIF}
     End;
   End;
 End;
@@ -1755,7 +1918,11 @@ Var
   i, j: Integer;
   valid: Boolean;
   img: TPixelImage;
+{$IFNDEF LEGACYMODE}
+  m: TMatrix4x4;
+{$ENDIF}
 Begin
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerCursor); // Anfahren der Linken Oberen Ecke
   glColor4f(1, 1, 1, 1);
@@ -1847,6 +2014,102 @@ Begin
     End;
   End;
   glPopMatrix;
+{$ELSE}
+  //  glPushMatrix;
+  m := IdentityMatrix4x4;
+  //  glTranslatef(WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, LayerCursor); // Anfahren der Linken Oberen Ecke
+  m := TranslateMatrix4x4(m, WindowLeft - fScrollInfo.GlobalXOffset, WindowTop - fScrollInfo.GlobalYOffset, 0);
+  // Zoom und Verzerrung rausrechnen so dass 1 OpenGL Pixel = 1 Bild Pixel ist
+  //  glScalef(fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
+  m := ScaleMatrix4x4(m, fZoom / 100 * ScreenWidth / FOwner.Width, fZoom / 100 * ScreenHeight / FOwner.Height, 1);
+  // Anfahren des Cursor Mittelpunkts
+  //  glTranslatef(0.5, 0.5, 0);
+  m := TranslateMatrix4x4(m, 0.5, 0.5, 0);
+  SetShaderTransform(m); // Anfahren der Linken Oberen Ecke
+  If CursorIsInImageWindow Then Begin
+    UseColorShader;
+    c := fCursor.LeftColor.Color;
+    SetShaderColorub(c.r, c.g, c.b);
+    glShaderBegin(GL_POINTS);
+    CursorToPixelOperation(@SetOpenGLPixelByCursor);
+    glShaderEnd;
+    UseTextureShader;
+  End;
+  (*
+   * Ab hier kommen sachen Die der Cursor gerendert braucht aber keine offiziellen Pixel Geschichten sind !
+   *)
+  // Der Mirror Cursor muss noch die "Achsen" einmalen
+  If MirrorButton.Style = bsRaised Then Begin
+    UseColorShader;
+    //    glBindTexture(GL_TEXTURE_2D, 0);
+    SetShaderColorub(255, 255, 0);
+    If fZoom >= 500 Then glShaderLineWidth(0.2);
+    glShaderBegin(GL_LINES);
+    off := IfThen(MirrorCenterButton.style = bsLowered, 0, 0.5);
+    If (Mirror4Button.Style = bsRaised) Or
+      (MirrorVertButton.Style = bsRaised) Then Begin
+      glShaderVertex(fCursor.Origin.X - off, -0.5, LayerCursor);
+      glShaderVertex(fCursor.Origin.X - off, fImage.Height - 0.5, LayerCursor);
+    End;
+    If (Mirror4Button.Style = bsRaised) Or
+      (MirrorHorButton.Style = bsRaised) Then Begin
+      glShaderVertex(-0.5, fCursor.Origin.Y - off, LayerCursor);
+      glShaderVertex(fImage.Width - 0.5, fCursor.Origin.Y - off, LayerCursor);
+    End;
+    glShaderEnd;
+    glShaderLineWidth(1);
+    UseTextureShader;
+  End;
+  If (fCursor.Tool = tSelect) Then Begin
+    valid := false;
+    If (fCursor.LeftMouseButton) Then Begin
+      // Der Auswahl Rahmen wird gerade gezogen
+      tl.x := max(0, min(fCursor.PixelDownPos.X, fCursor.UnClampedMousePos.X));
+      tl.Y := max(0, min(fCursor.PixelDownPos.Y, fCursor.UnClampedMousePos.Y));
+      br.x := min(fImage.Width - 1, max(fCursor.PixelDownPos.X, fCursor.UnClampedMousePos.X));
+      br.Y := min(fImage.Height - 1, max(fCursor.PixelDownPos.Y, fCursor.UnClampedMousePos.Y));
+      valid := (tl.x <> -1);
+    End;
+    If fCursor.Select.aSet Then Begin
+      // Der Rahmen wurde gezogen, dann steht der natürlich fest ;)
+      tl := fCursor.Select.tl;
+      br := fCursor.Select.br;
+      valid := true;
+    End;
+    If valid Then Begin
+      If fZoom >= 500 Then glShaderLineWidth(0.2);
+      UseColorShader;
+      SetShaderColorub(255, 255, 0);
+      glShaderBegin(GL_LINE_LOOP);
+      glShaderVertex(tl.x - 0.5, tl.y - 0.5, LayerCursor);
+      glShaderVertex(br.x + 0.5, tl.y - 0.5, LayerCursor);
+      glShaderVertex(br.x + 0.5, br.y + 0.5, LayerCursor);
+      glShaderVertex(tl.x - 0.5, br.y + 0.5, LayerCursor);
+      glShaderEnd;
+      glShaderLineWidth(1);
+      UseTextureShader;
+    End;
+    // Wenn Der Rahmen steht, dann wird sein Inhalt auch gerendert
+    If fCursor.Select.aSet Then Begin
+      //      glTranslatef(fCursor.Select.tl.X - 0.5, fCursor.Select.tl.y - 0.5, 0);
+      If SelectModeButton.Style = bsLowered Then Begin
+        // Wenn der SelectMode so ist das die Transparenz nicht ignoriert wird,
+        // muss hier auch das "optische" Feedback gezeigt werden
+        // TODO: Das ist natürlich mega ineffizient für "Große" Graphiken, ggf macht es Sinn hier eine  Maske vor zu halten und dann diese zu rendern ..
+        img := TPixelImage(fCursor.Select.Data);
+        For i := 0 To img.Width - 1 Do Begin
+          For j := 0 To img.Height - 1 Do Begin
+            If img.GetColorAt(i, j) = upixeleditor_types.ColorTransparent Then Begin
+              RenderTransparentQuad(fCursor.Select.tl.X - 0.5 + i, fCursor.Select.tl.y - 0.5 + j, 1, 1, LayerCursor);
+            End;
+          End;
+        End;
+      End;
+      TPixelImage(fCursor.Select.Data).Render(fCursor.Select.tl.X - 0.5, fCursor.Select.tl.y - 0.5, LayerCursor, ColorMonochronButton.Style = bsRaised);
+    End;
+  End;
+  ResetShaderTransform;
+{$ENDIF}
 End;
 
 Procedure TPixelEditor.NewImage(aWidth, aHeight: Integer);
@@ -2609,34 +2872,16 @@ End;
 Procedure TPixelEditor.MakeCurrent(Owner: TOpenGLControl);
   Procedure AddElement(Const value: TOpenGL_BaseClass);
   Begin
+{$IFNDEF LEGACYMODE}
+    value.Depth := LayerLCL;
+{$ENDIF}
     setlength(FElements, high(FElements) + 2);
     FElements[high(FElements)] := value;
-  End;
-
-  Function LoadAlphaColorGraphik(Const Filename: String): integer;
-  Begin
-    // 1. Ganz normal Laden
-    result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
-    If result = 0 Then Begin
-      // 2. Der User hat das Repo geklont aber die Dateien nicht korrekt um kopiert
-      If FileExists('..' + PathDelim + 'GFX' + PathDelim + Filename) Then Begin
-        // 3. Dann machen wir das geschwind für den User ..
-        If ForceDirectories('GFX') Then Begin
-          If copyfile('..' + PathDelim + 'GFX' + PathDelim + Filename, 'GFX' + PathDelim + Filename) Then Begin
-            result := OpenGL_GraphikEngine.LoadAlphaColorGraphik('GFX' + PathDelim + Filename, Fuchsia, smClamp);
-          End;
-        End;
-      End;
-    End;
-    If result = 0 Then Begin
-      fCriticalError := Filename;
-    End;
   End;
 
 Var
   image: Integer;
 Begin
-
   FOwner := Owner;
 
   FElements := Nil;

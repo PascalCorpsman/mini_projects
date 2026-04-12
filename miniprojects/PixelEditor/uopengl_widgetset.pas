@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uOpenGL_WidgetSet.pas                                           ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.14                                                         *)
+(* Version     : 0.15                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -40,6 +40,7 @@
 (*               0.12 = Fix Font colors where not per instance                *)
 (*               0.13 = TOpenGl_BaseClass.Hint                                *)
 (*               0.14 = .click für buttons                                    *)
+(*               0.15 = Start with shader support                             *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -48,6 +49,12 @@ Unit uopengl_widgetset;
 {$MODE ObjFPC}{$H+}
 
 Interface
+
+(*
+Aktiviert die Nutzung von OpenGL im Legacy Mode, default ist Shader mode, der
+auch mit OpenGL 3.3 funktioniert, aber nicht alle Funktionen von OpenGL 3.3 nutzt.
+*)
+{.$DEFINE LEGACYMODE}
 
 Uses
   ExtCtrls,
@@ -77,6 +84,7 @@ Type
 
   TOpenGl_BaseClass = Class(TEventerClass) // Die Basisklasse, welche die ganzen Captures und Events Handled, alles im Protected Teil steht zum freien "Override" bereit.
   private
+    fDepth: Single;
     fHintTimer: TTimer;
     Procedure OnHintTimer(Sender: TObject);
   protected
@@ -85,14 +93,22 @@ Type
 
     Procedure MouseEnter(Sender: TObject); override;
     Procedure MouseLeave(Sender: TObject); override;
+
+{$IFNDEF LEGACYMODE}
+    Procedure setDepth(AValue: Single); virtual;
+{$ENDIF}
   public
     Name: String; // Einfach nur so, wird intern eigentlich nicht benötig.
-
     Hint: String;
 
     IgnoreDepthtest: Boolean; // Default = true (Nur für die Abwärtskompatibilität, im Idealfall, sollte hier false sein !)
 
     OnShowHint: TNotifyEvent;
+
+{$IFNDEF LEGACYMODE}
+    Property Depth: Single read fDepth write setDepth; // Die Z-Tiefe auf der das Widget sitzt
+{$ENDIF}
+
 
     Constructor Create(aOwner: TOpenGLControl); override;
     Destructor Destroy(); override;
@@ -358,21 +374,12 @@ Procedure WidgetSetGo2d(Width_2D, Height_2d: Integer);
 Begin
   _2DWidth := Width_2D;
   _2DHeight := Height_2d;
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  glOrtho(0, Width_2D, Height_2d, 0, -1, 1); // Set Up An Ortho Screen
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
+  Go2d(Width_2D, Height_2d);
 End;
 
 Procedure WidgetSetExit2d;
 Begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
+  Exit2d();
 End;
 
 Function WidgetSetTransformRoutine(x, y: integer): TPoint;
@@ -702,14 +709,22 @@ Var
   bool: GLboolean;
 Begin
   If Transparent Then Begin
+{$IFDEF LEGACYMODE}
     RenderAlphaQuad(top, left, Fimage);
+{$ELSE}
+    RenderAlphaQuad(left, top, Depth, Fimage);
+{$ENDIF}
   End
   Else Begin
     bool := glIsEnabled(gl_Blend);
     If bool Then
       gldisable(gl_blend);
+{$IFDEF LEGACYMODE}
     glColor4f(1, 1, 1, 1);
     RenderQuad(top, left, Fimage);
+{$ELSE}
+    RenderQuad(left, top, Depth, Fimage);
+{$ENDIF}
     If bool Then
       glenable(gl_blend);
   End;
@@ -1089,7 +1104,9 @@ Procedure TOpenGl_Button.OnRender;
 Var
   tex: String;
 Begin
+{$IFDEF LEGACYMODE}
   glColor4f(1, 1, 1, 1);
+{$ENDIF}
   If fMouseDown Then Begin
     If fDownTex.Image = 0 Then Begin
       glBindTexture(GL_TEXTURE_2D, 0);
@@ -1102,7 +1119,11 @@ Begin
       glend;
     End
     Else Begin
+{$IFDEF LEGACYMODE}
       RenderAlphaQuad(top, left, fDownTex);
+{$ELSE}
+      RenderAlphaQuad(left, top, Depth, fDownTex);
+{$ENDIF}
     End;
   End
   Else Begin
@@ -1118,7 +1139,11 @@ Begin
         glend;
       End
       Else Begin
+{$IFDEF LEGACYMODE}
         RenderAlphaQuad(top, left, fHoverTex);
+{$ELSE}
+        RenderAlphaQuad(left, top, Depth, fHoverTex);
+{$ENDIF}
       End;
     End
     Else Begin
@@ -1133,7 +1158,11 @@ Begin
         glend;
       End
       Else Begin
+{$IFDEF LEGACYMODE}
         RenderAlphaQuad(top, left, FNormalTex);
+{$ELSE}
+        RenderAlphaQuad(left, top, Depth, FNormalTex);
+{$ENDIF}
       End;
     End;
   End;
@@ -1199,23 +1228,29 @@ End;
 
 Procedure TOpenGl_Label.OnRender;
 Var
-  nw, ps: Single;
   d: Boolean;
+{$IFDEF LEGACYMODE}
+  nw, ps: Single;
   dim: Array[0..3] Of Integer;
+{$ENDIF}
 Begin
   If Visible Then Begin
     glBindTexture(GL_TEXTURE_2D, 0);
+{$IFDEF LEGACYMODE}
     glGetIntegerv(GL_VIEWPORT, @dim[0]);
     nw := max(dim[2] / _2DWidth, dim[3] / _2DHeight);
     glGetFloatv(GL_POINT_SIZE, @ps);
     glPointSize(nw);
+{$ENDIF}
     d := glIsEnabled(GL_DEPTH_TEST);
     If d And IgnoreDepthtest Then Begin
       glDisable(GL_DEPTH_TEST);
     End;
     ffont.ColorV3 := FontColor;
     ffont.Textout(left, top, Caption);
+{$IFDEF LEGACYMODE}
     glPointSize(ps);
+{$ENDIF}
     If d And IgnoreDepthtest Then Begin
       glenable(GL_DEPTH_TEST);
     End;
@@ -1506,6 +1541,15 @@ Begin
   If assigned(OnShowHint) Then OnShowHint(self);
 End;
 
+{$IFNDEF LEGACYMODE}
+
+Procedure TOpenGl_BaseClass.setDepth(AValue: Single);
+Begin
+  If fDepth = AValue Then Exit;
+  fDepth := AValue;
+End;
+{$ENDIF}
+
 Procedure TOpenGl_BaseClass.MouseEnter(Sender: TObject);
 Begin
   Inherited MouseEnter(Sender);
@@ -1528,6 +1572,9 @@ Begin
   Left := 10;
   Width := 100;
   Height := 25;
+{$IFNDEF LEGACYMODE}
+  Depth := 0;
+{$ENDIF}
   fHintTimer := TTimer.Create(Nil);
   fHintTimer.Enabled := false;
   fHintTimer.Interval := ShowHintTimeIntervalInMS;
@@ -1549,22 +1596,28 @@ Var
   l, d: Boolean;
 Begin
   If Visible Then Begin
+{$IFDEF LEGACYMODE}
     l := glIsEnabled(GL_LIGHTING);
     If l Then Begin
       glDisable(GL_LIGHTING);
     End;
+{$ENDIF}
     d := glIsEnabled(GL_DEPTH_TEST);
     If d And IgnoreDepthtest Then Begin
       glDisable(GL_DEPTH_TEST);
     End;
+{$IFDEF LEGACYMODE}
     glcolor4f(1, 1, 1, 1);
+{$ENDIF}
     OnRender();
     If d And IgnoreDepthtest Then Begin
       glenable(GL_DEPTH_TEST);
     End;
+{$IFDEF LEGACYMODE}
     If l Then Begin
       glEnable(GL_LIGHTING);
     End;
+{$ENDIF}
   End;
 End;
 

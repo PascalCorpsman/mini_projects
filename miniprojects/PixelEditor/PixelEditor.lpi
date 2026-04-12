@@ -18,6 +18,9 @@
     </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
+      <SharedMatrixOptions Count="1">
+        <Item1 ID="614480579538" Targets="Linux" Modes="default" Type="IDEMacro" MacroName="LCLWidgetType" Value="gtk3"/>
+      </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -43,7 +46,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="32">
       <Unit0>
         <Filename Value="PixelEditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -201,6 +204,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit9"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="../Sample/OpenGL/uopengl_shaderprimitives.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="../Sample/OpenGL/uopengl_legacychecker.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit31>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

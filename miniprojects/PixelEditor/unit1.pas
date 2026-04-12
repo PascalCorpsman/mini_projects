@@ -102,7 +102,6 @@ Var
   Form1: TForm1;
   Initialized: Boolean = false; // Wenn True dann ist OpenGL initialisiert
 
-
 Function GetValue(Identifier, Default: String): String;
 Procedure SetValue(Identifier, Value: String);
 
@@ -112,14 +111,39 @@ Implementation
 
 Uses
   LCLType
+  // , unit2 // Options
+  // , unit3 // New Dialog
+  // , unit4 // Select Transparent Color Dialog
+  // , unit5 // Floodfill tolerance Dialog
+  // , unit6 // Resize Dialog
+  // , unit7 // Rotate preview Dialog
+  // , unit8 // Color Curve Dialog
+  // , unit9 // Convolution Dialog
   , uopengl_graphikengine
+  , uopengl_shaderprimitives
   , uOpenGL_ASCII_Font
-  , uopengl_widgetset;
+  , uopengl_widgetset
+  , upixeleditor_types
+{$IFNDEF LEGACYMODE}
+  , uopengl_legacychecker
+{$ENDIF}
+  ;
 
 { TForm1 }
 
 Var
   allowcnt: Integer = 0;
+
+{$IFNDEF LEGACYMODE}
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
+End;
+{$ENDIF}
 
 Function GetValue(Identifier, Default: String): String;
 Begin
@@ -142,6 +166,9 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+{$IFNDEF LEGACYMODE}
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+{$ENDIF}
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
     (*
@@ -149,13 +176,33 @@ Begin
     Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
     *)
     OpenGL_GraphikEngine.clear;
-    Create_ASCII_Font;
+{$IFDEF LEGACYMODE}
     glenable(GL_TEXTURE_2D); // Texturen
+{$ENDIF}
     glEnable(GL_DEPTH_TEST); // Tiefentest
-    glDepthFunc(gl_less);
+    glDepthFunc(gl_less); // Shader negieren uDepth, damit höhere Werte näher sind
+{$IFNDEF LEGACYMODE}
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
+{$ENDIF}
+    Create_ASCII_Font;
     Editor.MakeCurrent(OpenGLControl1);
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
+{$IFNDEF LEGACYMODE}
+    ReActivateKHRDebug; // Reenable KHRDebug
+{$ENDIF}
     OpenGLControl1Resize(Nil);
   End;
   Form1.Invalidate;
@@ -167,7 +214,9 @@ Begin
   // Render Szene
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
+{$IFDEF LEGACYMODE}
   glLoadIdentity();
+{$ENDIF}
   WidgetSetGo2d(640, 480);
   Editor.Render();
   WidgetSetExit2d();
@@ -177,11 +226,17 @@ End;
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
   If Initialized Then Begin
+{$IFDEF LEGACYMODE}
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
     gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
+{$ELSE}
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
+{$ENDIF}
     Editor.CheckScrollBorders;
   End;
 End;
@@ -198,7 +253,6 @@ Begin
    * Abbildungsfunktion f(rgba) -> RGBA
    * Farbersetzungdialog -> mehrere Eingangsfarben werden automatisch convertiert zu mehreren Ausgangsfarben, im Trivialfall ein "suchen/ersetzen"
    *)
-
   Constraints.MinWidth := 640;
   Constraints.MinHeight := 480;
   defcaption := 'PixelEditor ver. ' + Version + ' by Uwe Schächterle, www.Corpsman.de';
@@ -209,6 +263,10 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
+{$IFNDEF LEGACYMODE}
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
+{$ENDIF}
   OpenGLControl1.Align := alClient;
   Editor := TPixelEditor.Create();
   // 25 Bilder die Sekunde reichen, ist ja nur ein Editor ;)
@@ -228,7 +286,14 @@ End;
 
 Procedure TForm1.FormDestroy(Sender: TObject);
 Begin
+{$IFNDEF LEGACYMODE}
+  If OpenGLControl1.MakeCurrent Then Begin
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+  End;
+{$ENDIF}
   editor.Free;
+  editor := Nil;
 End;
 
 Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
