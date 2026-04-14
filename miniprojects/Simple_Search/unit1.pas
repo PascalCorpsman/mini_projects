@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Simple Search                                                   ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.13                                                         *)
+(* Version     : 0.14                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -49,6 +49,7 @@
 (*               0.11 - Anzeigen Löschen                                      *)
 (*               0.12 - Copy selected to                                      *)
 (*               0.13 - do not follow symlinks                                *)
+(*               0.14 - Adjust file name pattern matching to be mor flexible  *)
 (*                                                                            *)
 (* Missing Features: Exclude beim Suchen                                      *)
 (*                                                                            *)
@@ -256,13 +257,9 @@ Begin
           b := Rex.MatchString(t, dummy1, dummy2);
         End
         Else Begin
-          If (pos('.', amask[i]) <> 0) Then Begin
-            t := lowercase(ExtractFileExt(ADirectory + SR.Name));
-          End
-          Else Begin
-            t := lowercase(ADirectory + SR.Name);
-          End;
-          b := (pos(amask[i], t) <> 0) Or (amask[i] = '*') Or (lowercase(SR.Name) = lowercase(amask[i]));
+          t := lowercase(ADirectory + SR.Name);
+          b := (amask[i] = '*') Or
+            (pos(amask[i], t) <> 0);
         End;
         If b Then Begin
           If (SR.Name <> '.') And (SR.Name <> '..') Then Begin
@@ -493,7 +490,7 @@ Procedure TForm1.FormCreate(Sender: TObject);
 Var
   param: String;
 Begin
-  caption := 'Simple scan ver 0.13, by Corpsman, www.Corpsman.de';
+  caption := 'Simple scan ver 0.14, by Corpsman, www.Corpsman.de';
   Constraints.MinWidth := Width;
   Constraints.MinHeight := Height;
   Application.Title := caption;
@@ -581,6 +578,9 @@ Begin
       If (sl[i][1] = '*') And (length(sl[i]) > 1) Then Begin
         sl[i] := copy(sl[i], 2, length(sl[i]));
       End;
+      // Case Insensitiv suchen
+      If Not CheckBox2.Checked Then
+        sl[i] := lowercase(sl[i]);
     End;
     BasePath := path;
     If CheckBox3.Checked Then Begin
