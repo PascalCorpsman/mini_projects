@@ -7,44 +7,44 @@ object Form1: TForm1
   Caption = 'Form1'
   ClientHeight = 152
   ClientWidth = 263
-  OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
   object Edit1: TEdit
     Left = 8
     Height = 26
     Top = 8
     Width = 112
-    OnKeyPress = Edit1KeyPress
     TabOrder = 1
     Text = 'Edit1'
+    OnKeyPress = Edit1KeyPress
   end
   object Edit2: TEdit
     Left = 8
     Height = 26
     Top = 44
     Width = 112
-    OnKeyPress = Edit1KeyPress
     TabOrder = 2
     Text = 'Edit2'
+    OnKeyPress = Edit1KeyPress
   end
   object Edit3: TEdit
     Left = 144
     Height = 26
     Top = 8
     Width = 112
-    OnKeyPress = Edit1KeyPress
     TabOrder = 3
     Text = 'Edit3'
+    OnKeyPress = Edit1KeyPress
   end
   object Edit4: TEdit
     Left = 144
     Height = 26
     Top = 44
     Width = 112
-    OnKeyPress = Edit1KeyPress
     TabOrder = 4
     Text = 'Edit4'
+    OnKeyPress = Edit1KeyPress
   end
   object Button1: TButton
     Left = 24
@@ -52,8 +52,8 @@ object Form1: TForm1
     Top = 80
     Width = 216
     Caption = 'Calc'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object Edit5: TEdit
     Left = 144
@@ -67,7 +67,7 @@ object Form1: TForm1
     Left = 8
     Height = 16
     Top = 122
-    Width = 38
+    Width = 37
     Caption = 'Result'
     ParentColor = False
   end

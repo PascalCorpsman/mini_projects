@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Intercept theorem                                               ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -24,6 +24,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - made more robust                                      *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -81,12 +82,13 @@ End;
 
 Procedure TForm1.Edit1KeyPress(Sender: TObject; Var Key: char);
 Begin
+  If key In ['.', ','] Then key := DefaultFormatSettings.DecimalSeparator;
   If key = #13 Then Button1.Click;
 End;
 
 Procedure TForm1.Button1Click(Sender: TObject);
 Begin
-  //
+  // Calc
   If trim(edit1.text) = '?' Then Begin
     edit5.text := FloatToStr(strtofloat(edit3.text) * strtofloat(edit2.text) / strtofloat(edit4.text));
   End;
