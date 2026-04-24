@@ -138,6 +138,7 @@ Var
 
 Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
 Begin
+  Initialized := false;
   showmessage(
     format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
     );

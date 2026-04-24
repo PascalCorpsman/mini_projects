@@ -218,11 +218,20 @@ Procedure RenderQuad(TopLeft, BottomRight: TVector2; Angle: Integer; RotatebyOri
 Procedure RenderTiledQuad(Left, Top: Single; Index, TilesPerRow, TilesPerCol: integer; Const Image: TGraphikItem);
 {$ELSE}
 // Shader mode rendering helper
-Procedure RenderQuad(Left, Top, Depth: Single; Image: TGraphikItem);
+// Normal functions
+Procedure RenderQuad(Left, Top, Depth: Single; Image: TGraphikItem); overload;
+Procedure RenderQuad(Middle: TVector3; Angle: Single; Image: TGraphikItem); overload;
 Procedure RenderAlphaQuad(Left, Top, Depth: Single; Image: TGraphikItem);
 
 Procedure RenderTiledQuad(Left, Top, Depth: Single; Index, TilesPerRow, TilesPerCol: integer; Const Image: TGraphikItem);
 Procedure RenderAlphaTiledQuad(Left, Top, Depth: Single; Index, TilesPerRow, TilesPerCol: integer; Const Image: TGraphikItem);
+
+// Functions that make custom "scalings" possible
+Procedure RenderQuad(Left, Top, Depth: Single; TileRenderWidth, TileRenderHeight: Single; Image: TGraphikItem); overload;
+Procedure RenderAlphaQuad(Left, Top, Depth: Single; TileRenderWidth, TileRenderHeight: Single; Image: TGraphikItem);
+
+Procedure RenderTiledQuad(Left, Top, Depth, TileRenderWidth, TileRenderHeight: Single; Index, TilesPerRow, TilesPerCol: integer; Const Image: TGraphikItem);
+Procedure RenderAlphaTiledQuad(Left, Top, Depth, TileRenderWidth, TileRenderHeight: Single; Index, TilesPerRow, TilesPerCol: integer; Const Image: TGraphikItem);
 {$ENDIF}
 (*
  * 2D rendering mode setup
@@ -271,7 +280,8 @@ Procedure UseColorShader;
  * Switches back to texture shader for rendering textured geometry
  * Call this to return to normal texture rendering after UseColorShader
  *)
-Procedure UseTextureShader;
+Procedure UseTextureShader(); overload;
+Procedure UseTextureShader(Const c: TVector4); overload;
 
 (*
  * Sets the color for the color shader
@@ -279,6 +289,13 @@ Procedure UseTextureShader;
  *)
 Procedure SetShaderColor(r, g, b: Single; a: Single = 1);
 Procedure SetShaderColorub(r, g, b: Byte; a: Byte = 255);
+
+(*
+ * Setzt den Alpha-Schwellwert für den Texture-Shader.
+ * Pixel mit Alpha < Threshold werden verworfen (discard).
+ * Threshold = 0.0 deaktiviert den Alpha-Test (Core-Profile-Ersatz für GL_ALPHA_TEST).
+ *)
+Procedure SetShaderAlphaThreshold(Threshold: Single);
 
 (*
  * Compiles a single OpenGL shader from source.
@@ -330,9 +347,11 @@ Const
     'out vec4 FragColor;'#10 +
     'uniform sampler2D uTexture;'#10 +
     'uniform vec4 uColor;'#10 +
+    'uniform float uAlphaThreshold;'#10 +
     'void main() {'#10 +
     '  vec4 texColor = texture(uTexture, vTexCoord);'#10 +
     '  FragColor = texColor * uColor;'#10 +
+    '  if (uAlphaThreshold > 0.0 && FragColor.a >= uAlphaThreshold) discard;'#10 +
     '}';
 
   // Shader sources for color rendering (no textures)
@@ -525,14 +544,25 @@ Begin
 End;
 
 Procedure UseTextureShader;
+Const
+  White: TVector4 = (x: 1.0; y: 1.0; z: 1.0; w: 1.0);
+Begin
+  UseTextureShader(White);
+End;
+
+Procedure UseTextureShader(Const c: TVector4);
 Var
-  LocColor: GLint;
+  LocColor, LocThreshold: GLint;
 Begin
   glUseProgram(ShaderProgram);
   glBindVertexArray(ShaderVAO);
   LocColor := glGetUniformLocation(ShaderProgram, 'uColor');
   If LocColor >= 0 Then
-    glUniform4f(LocColor, 1.0, 1.0, 1.0, 1.0);
+    glUniform4f(LocColor, c.x, c.y, c.z, c.w);
+  // Alpha-Test ist standardmäßig deaktiviert; Fragment-Shader-discard nur aktiv wenn > 0.
+  LocThreshold := glGetUniformLocation(ShaderProgram, 'uAlphaThreshold');
+  If LocThreshold >= 0 Then
+    glUniform1f(LocThreshold, 0.0);
 End;
 
 Procedure SetShaderColor(r, g, b: Single; a: Single);
@@ -547,6 +577,15 @@ End;
 Procedure SetShaderColorub(r, g, b: Byte; a: Byte);
 Begin
   SetShaderColor(r / 255, g / 255, b / 255, a / 255);
+End;
+
+Procedure SetShaderAlphaThreshold(Threshold: Single);
+Var
+  loc: GLint;
+Begin
+  loc := glGetUniformLocation(ShaderProgram, 'uAlphaThreshold');
+  If loc >= 0 Then
+    glUniform1f(loc, Threshold);
 End;
 
 Procedure SetShaderTransform(Const m: TMatrix4x4);
@@ -1019,6 +1058,9 @@ Begin
   // uTransform muss explizit auf Einheitsmatrix gesetzt werden,
   // da GLSL uniforms standardmäßig 0 sind (keine Einheitsmatrix).
   ResetShaderTransform;
+  // uAlphaThreshold explizit auf 0 setzen (kein Alpha-Test), obwohl GLSL-Default bereits 0.0 ist.
+  glUseProgram(ShaderProgram);
+  SetShaderAlphaThreshold(0.0);
 End;
 
 Procedure OpenGL_GraphikEngine_FinalizeShaderSystem;
@@ -1036,11 +1078,28 @@ Begin
   ShaderProgram := 0;
 End;
 
+Procedure RenderAlphaTiledQuad(Left, Top, Depth, TileRenderWidth,
+  TileRenderHeight: Single; Index, TilesPerRow, TilesPerCol: integer;
+  Const Image: TGraphikItem);
+Var
+  b: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
+Begin
+  B := glIsEnabled(gl_Blend);
+  If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
+    glenable(gl_Blend);
+  glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  RenderTiledQuad(Left, Top, Depth, TileRenderWidth, TileRenderHeight, Index, TilesPerRow, TilesPerCol, Image);
+  If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
+    gldisable(gl_blend);
+
+End;
 {$ENDIF}
 
 Procedure Go2d(Width, Height: Integer);
+{$IFNDEF LEGACYMODE}
 Var
   LocRes: GLint;
+{$ENDIF}
 Begin
 {$IFDEF LEGACYMODE}
   glMatrixMode(GL_PROJECTION);
@@ -1240,6 +1299,178 @@ Begin
   glBindVertexArray(0);
 End;
 
+Procedure RenderTiledQuad(Left, Top, Depth, TileRenderWidth, TileRenderHeight: Single;
+  Index, TilesPerRow, TilesPerCol: integer; Const Image: TGraphikItem);
+Var
+  tw, th: Single;
+  ix, iy: integer;
+  vertices: Array[0..15] Of GLfloat; // 4 vertices * (2 pos + 2 texcoord)
+  LocDepth: GLint;
+  CurrentProgram: GLint;
+Begin
+  ix := index Mod TilesPerRow;
+  iy := index Div TilesPerRow;
+  Case Image.Stretched Of
+    smClamp: Begin
+        tw := (Image.OrigWidth / TilesPerRow) / Image.StretchedWidth;
+        th := (Image.OrigHeight / TilesPerCol) / Image.StretchedHeight;
+      End;
+    smNone, smStretch, smStretchHard: Begin
+        tw := 1.0 / TilesPerRow;
+        th := 1.0 / TilesPerCol;
+      End;
+  End;
+  glBindTexture(gl_texture_2d, image.Image);
+
+  // Vertex 0: bottom-left
+  vertices[0] := left;
+  vertices[1] := top + TileRenderHeight;
+  vertices[2] := tw * ix;
+  vertices[3] := th * (iy + 1);
+
+  // Vertex 1: bottom-right
+  vertices[4] := left + TileRenderWidth;
+  vertices[5] := top + TileRenderHeight;
+  vertices[6] := tw * (ix + 1);
+  vertices[7] := th * (iy + 1);
+
+  // Vertex 2: top-right
+  vertices[8] := left + TileRenderWidth;
+  vertices[9] := top;
+  vertices[10] := tw * (ix + 1);
+  vertices[11] := th * iy;
+
+  // Vertex 3: top-left
+  vertices[12] := left;
+  vertices[13] := top;
+  vertices[14] := tw * ix;
+  vertices[15] := th * iy;
+
+  glBindTexture(GL_TEXTURE_2D, image.Image);
+  glBindVertexArray(ShaderVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, ShaderVBO);
+  glBufferData(GL_ARRAY_BUFFER, SizeOf(vertices), @vertices[0], GL_DYNAMIC_DRAW);
+
+  // Set depth uniform
+  glGetIntegerv(GL_CURRENT_PROGRAM, @CurrentProgram);
+  LocDepth := glGetUniformLocation(CurrentProgram, 'uDepth');
+  If LocDepth >= 0 Then
+    glUniform1f(LocDepth, Depth);
+
+  // Position attribute (location = 0)
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Nil);
+
+  // TexCoord attribute (location = 1)
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Pointer(2 * SizeOf(GLfloat)));
+
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+  glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
+  glBindVertexArray(0);
+End;
+
+Procedure RenderQuad(Middle: TVector3; Angle: Single; Image: TGraphikItem);
+Var
+  hw, hh: Single;
+  s, c: Single;
+  Center2D: TVector2;
+  Right, Up: TVector2;
+  TL, TR, BR, BL: TVector2;
+  tw, th: Single;
+  idx: Integer;
+  vertices: Array[0..15] Of GLfloat; // 4 vertices * (2 pos + 2 texcoord)
+  LocDepth: GLint;
+  CurrentProgram: GLint;
+Begin
+  hw := Image.OrigWidth * 0.5;
+  hh := Image.OrigHeight * 0.5;
+
+  { Angle -> LUT Index (0.1° steps) }
+  idx := Round(Angle * 10);
+  idx := idx Mod 3600;
+  If idx < 0 Then
+    idx := idx + 3600;
+  s := -Sin_discrete[idx];
+  c := Cos_discrete[idx];
+
+  { Basisvektoren als TVector2 }
+  Right := V2(c * hw, -s * hw);
+  Up := V2(s * hh, c * hh);
+
+  { 2D-Mittelpunkt aus dem 3D-Vektor (z = Tiefe) }
+  Center2D := V2(Middle.x, Middle.y);
+
+  { Ecken berechnen als Vektorarithmetik }
+  TL := Center2D - Right - Up;
+  TR := Center2D + Right - Up;
+  BR := Center2D + Right + Up;
+  BL := Center2D - Right + Up;
+
+  { Texturkoordinaten }
+  Case Image.Stretched Of
+    smClamp: Begin
+        tw := Image.OrigWidth / Image.StretchedWidth;
+        th := Image.OrigHeight / Image.StretchedHeight;
+      End;
+  Else Begin
+      tw := 1;
+      th := 1;
+    End;
+  End;
+
+  // Vertex 0: BL (bottom-left)
+  vertices[0] := BL.x;
+  vertices[1] := BL.y;
+  vertices[2] := 0;
+  vertices[3] := th;
+
+  // Vertex 1: BR (bottom-right)
+  vertices[4] := BR.x;
+  vertices[5] := BR.y;
+  vertices[6] := tw;
+  vertices[7] := th;
+
+  // Vertex 2: TR (top-right)
+  vertices[8] := TR.x;
+  vertices[9] := TR.y;
+  vertices[10] := tw;
+  vertices[11] := 0;
+
+  // Vertex 3: TL (top-left)
+  vertices[12] := TL.x;
+  vertices[13] := TL.y;
+  vertices[14] := 0;
+  vertices[15] := 0;
+
+  glBindTexture(GL_TEXTURE_2D, Image.Image);
+  glBindVertexArray(ShaderVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, ShaderVBO);
+  glBufferData(GL_ARRAY_BUFFER, SizeOf(vertices), @vertices[0], GL_DYNAMIC_DRAW);
+
+  // Tiefe (Middle.z) als Uniform setzen
+  glGetIntegerv(GL_CURRENT_PROGRAM, @CurrentProgram);
+  LocDepth := glGetUniformLocation(CurrentProgram, 'uDepth');
+  If LocDepth >= 0 Then
+    glUniform1f(LocDepth, Middle.z);
+
+  // Position attribute (location = 0)
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Nil);
+
+  // TexCoord attribute (location = 1)
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Pointer(2 * SizeOf(GLfloat)));
+
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+  glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
+  glBindVertexArray(0);
+End;
+
 Procedure RenderAlphaQuad(Left, Top, Depth: Single; Image: TGraphikItem);
 Var
   b: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
@@ -1249,6 +1480,91 @@ Begin
     glenable(gl_Blend);
   glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
   RenderQuad(Left, Top, Depth, Image);
+  If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
+    gldisable(gl_blend);
+End;
+
+Procedure RenderQuad(Left, Top, Depth: Single; TileRenderWidth,
+  TileRenderHeight: Single; Image: TGraphikItem);
+Var
+  tw, th: Single;
+  vertices: Array[0..15] Of GLfloat; // 4 vertices * (2 pos + 2 texcoord)
+  LocDepth: GLint;
+  CurrentProgram: GLint;
+Begin
+
+  Case Image.Stretched Of
+    smClamp: Begin
+        tw := Image.OrigWidth / Image.StretchedWidth;
+        th := Image.OrigHeight / Image.StretchedHeight;
+      End;
+    smNone, smStretch, smStretchHard: Begin
+        tw := 1;
+        th := 1;
+      End;
+  End;
+
+  // Vertex 0: bottom-left
+  vertices[0] := left;
+  vertices[1] := top + TileRenderHeight;
+  vertices[2] := 0;
+  vertices[3] := th;
+
+  // Vertex 1: bottom-right
+  vertices[4] := left + TileRenderWidth;
+  vertices[5] := top + TileRenderHeight;
+  vertices[6] := tw;
+  vertices[7] := th;
+
+  // Vertex 2: top-right
+  vertices[8] := left + TileRenderWidth;
+  vertices[9] := top;
+  vertices[10] := tw;
+  vertices[11] := 0;
+
+  // Vertex 3: top-left
+  vertices[12] := left;
+  vertices[13] := top;
+  vertices[14] := 0;
+  vertices[15] := 0;
+
+  glBindTexture(GL_TEXTURE_2D, image.Image);
+  glBindVertexArray(ShaderVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, ShaderVBO);
+  glBufferData(GL_ARRAY_BUFFER, SizeOf(vertices), @vertices[0], GL_DYNAMIC_DRAW);
+
+  // Set depth uniform
+  glGetIntegerv(GL_CURRENT_PROGRAM, @CurrentProgram);
+  LocDepth := glGetUniformLocation(CurrentProgram, 'uDepth');
+  If LocDepth >= 0 Then
+    glUniform1f(LocDepth, Depth);
+
+  // Position attribute (location = 0)
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Nil);
+
+  // TexCoord attribute (location = 1)
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Pointer(2 * SizeOf(GLfloat)));
+
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+  glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
+  glBindVertexArray(0);
+
+End;
+
+Procedure RenderAlphaQuad(Left, Top, Depth: Single; TileRenderWidth,
+  TileRenderHeight: Single; Image: TGraphikItem);
+Var
+  b: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
+Begin
+  B := glIsEnabled(gl_Blend);
+  If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
+    glenable(gl_Blend);
+  glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  RenderQuad(Left, Top, Depth, TileRenderWidth, TileRenderHeight, Image);
   If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
     gldisable(gl_blend);
 End;

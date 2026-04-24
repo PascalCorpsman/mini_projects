@@ -191,22 +191,23 @@ Var
   i: integer;
   pStart: PVector3;
 Begin
-  If (aShaderMode In [GL_LINES, GL_LINE_LOOP]) Then Begin
+  If (aShaderMode In [GL_LINES, GL_LINE_LOOP, GL_LINE_STRIP]) Then Begin
     // Wir Rendern immer 1 LinienSegment
     pStart := aData;
-    If aShaderMode = GL_LINE_LOOP Then Begin
-      For i := 0 To aLen - 2 Do Begin
-        RenderLineSegment(pStart^, (pStart + 1)^);
-        inc(pStart);
-      End;
-      RenderLineSegment(pStart^, (aData)^);
-    End
-    Else Begin
+    If aShaderMode = GL_LINES Then Begin
       For i := 0 To aLen Div 2 Do Begin
         RenderLineSegment(pStart^, (pStart + 1)^);
         inc(pStart);
         inc(pStart);
       End;
+    End
+    Else Begin // GL_LINE_LOOP, GL_LINE_STRIP
+      For i := 0 To aLen - 2 Do Begin
+        RenderLineSegment(pStart^, (pStart + 1)^);
+        inc(pStart);
+      End;
+      If aShaderMode = GL_LINE_LOOP Then
+        RenderLineSegment(pStart^, (aData)^);
     End;
     exit;
   End;
