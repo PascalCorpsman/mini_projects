@@ -63,6 +63,7 @@ Type
     Procedure ApplicationProperties1Idle(Sender: TObject; Var Done: Boolean);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure OpenGLControl1KeyDown(Sender: TObject; Var Key: Word;
@@ -78,8 +79,6 @@ Type
     { private declarations }
   public
     { public declarations }
-    Procedure Go2d();
-    Procedure Exit2d();
   End;
 
   TField = Array Of Array Of int64;
@@ -104,34 +103,34 @@ Implementation
 
 {$R *.lfm}
 
-Uses LazUTF8;
+Uses LazUTF8
+  , uopengl_shaderprimitives
+  , uopengl_graphikengine
+  , uvectormath
+{$IFNDEF LEGACYMODE}
+  , uopengl_legacychecker
+{$ENDIF}
+  ;
 
 Var
   ini: Tinifile;
 
   { TForm1 }
 
-Procedure Tform1.Go2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  glOrtho(0, OpenGLControl1.Width, OpenGLControl1.height, 0, -1, 1); // Set Up An Ortho Screen
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
-End;
-
-Procedure Tform1.Exit2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
-End;
-
 Var
   allowcnt: Integer = 0;
+
+{$IFNDEF LEGACYMODE}
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := false;
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
+End;
+{$ENDIF}
 
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
@@ -144,12 +143,33 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+{$IFNDEF LEGACYMODE}
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+{$ENDIF}
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
     glEnable(GL_DEPTH_TEST); // Tiefentest
     glDepthFunc(gl_less);
+{$IFNDEF LEGACYMODE}
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
+{$ENDIF}
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
+{$IFNDEF LEGACYMODE}
+    ReActivateKHRDebug; // Reenable KHRDebug
+{$ENDIF}
     If Not fileexists(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStrUTF8(0))) + 'font.ofnt') Then Begin
       showmessage('Error could not find : ' + IncludeTrailingPathDelimiter(ExtractFilePath(ParamStrUTF8(0))) + 'font.ofnt');
       halt;
@@ -162,20 +182,35 @@ Begin
 End;
 
 Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
+{$IFNDEF LEGACYMODE}
+Var
+  m: TMatrix4x4;
+{$ENDIF}
 Begin
   If Not Initialized Then Exit;
   // Render Szene
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
+{$IFDEF LEGACYMODE}
   glLoadIdentity();
+{$ENDIF}
 
-  go2d;
+  go2d(OpenGLControl1.Width, OpenGLControl1.Height);
   OpenGlFont.Size := 40;
   OpenGlFont.Color := clWhite;
   maxp := max(maxp, board.Points);
   OpenGlFont.Textout(10, 10, format('Points : %d    max Points : %d', [board.Points, maxp]));
+{$IFDEF LEGACYMODE}
   glTranslatef(0, 100, 0);
+{$ELSE}
+  m := IdentityMatrix4x4;
+  m := TranslateMatrix4x4(m, 0, 100, 0);
+  SetShaderTransform(m);
+{$ENDIF}
   board.Render;
+{$IFNDEF LEGACYMODE}
+  ResetShaderTransform;
+{$ENDIF}
   exit2d;
   OpenGLControl1.SwapBuffers;
 
@@ -190,11 +225,17 @@ End;
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
   If Initialized Then Begin
+{$IFDEF LEGACYMODE}
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
     gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
+{$ELSE}
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
+{$ENDIF}
     board.Resize(OpenGLControl1.Width, OpenGLControl1.Height - 100);
   End;
 End;
@@ -214,14 +255,19 @@ Begin
   Generell sollte die Interval Zahl also dynamisch zum Rechenaufwand, mindestens aber immer 17 sein.
   *)
   Timer1.Interval := 17;
+{$IFNDEF LEGACYMODE}
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
+{$ENDIF}
   OpenGLControl1.Align := alClient;
   Randomize;
   (*
    * Historie : 0.01 = Initial Version
    *            0.02 = Improvements in End-Game detection, added "ai-player", editable falltime
    *            0.03 = Einfügen "u" option
+   *            0.04 = Umstellen auf shader rendering
    *)
-  caption := '2048 ver.: 0.02 remake by Corpsman, www.Corpsman.de';
+  caption := '2048 ver.: 0.04 remake by Corpsman, www.Corpsman.de';
   Constraints.MinHeight := 280;
   Constraints.MinWidth := 180;
   ini := TIniFile.Create(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStrUTF8(0))) + 'Settings.ini');
@@ -259,6 +305,16 @@ Begin
   PieceColors[12].FontColor := ini.ReadInteger('Color', '4096f', PieceColors[12].FontColor);
   KeyDebounce := ini.ReadBool('General', 'KeyDebounce', KeyDebounce);
   OpenGLControl1.Invalidate;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+{$IFNDEF LEGACYMODE}
+  If OpenGLControl1.MakeCurrent Then Begin
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+  End;
+{$ENDIF}
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: boolean);
@@ -454,6 +510,7 @@ Begin
   b := Not Board.IsFalling;
   If b Then Begin
     KeyPressedDown := false;
+    f := Nil;
     setlength(f, BoardSize + 1, BoardSize + 1);
     For i := 0 To BoardSize Do
       For j := 0 To BoardSize Do

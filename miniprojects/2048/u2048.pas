@@ -23,6 +23,7 @@ Uses
 {$IFDEF Linux}
   , lclintf
 {$ENDIF}
+  , uvectormath
   ;
 
 Type
@@ -70,8 +71,8 @@ Type
     Value: int64;
     FallingDistanze: TPoint; // Richtung in Piece Breiten
     Constructor Create();
-    Procedure Render;
-    Procedure RenderFalling(Progress: Single); // in % wie viel der "FallStrecke" rum ist
+    Procedure Render(TL: TVector3);
+    Procedure RenderFalling(TL: TVector3; Progress: Single); // in % wie viel der "FallStrecke" rum ist
   End;
 
   { TBoard }
@@ -113,12 +114,10 @@ Procedure CreateFont(Filename: String); // initialisiert font
 
 Implementation
 
-Uses dglopengl, math;
-
-Procedure glColor(value: TColor);
-Begin
-  glColor3ub(value And $FF, (value And $FF00) Shr 8, (value And $FF0000) Shr 16);
-End;
+Uses dglopengl, math,
+  uopengl_graphikengine,
+  uopengl_shaderprimitives
+  ;
 
 (* Gibt fast den 2er Logarithmus aus *)
 
@@ -160,12 +159,13 @@ Begin
   value := 0;
 End;
 
-Procedure TPiece.Render;
+Procedure TPiece.Render(TL: TVector3);
 Var
   ColorIndex: integer;
   Border: Single;
   s: String;
 Begin
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   If value <> 0 Then
     glTranslatef(0, 0, 0.25);
@@ -194,9 +194,42 @@ Begin
     End;
   End;
   glPopMatrix;
+{$ELSE}
+  If value <> 0 Then
+    tl := tl + v3(0, 0, 0.25);
+  ColorIndex := Log2(value);
+  // Der Hintergrund
+  Border := Width / 20;
+
+  UseColorShader;
+  glColor(PieceColors[ColorIndex].BackColor);
+
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(tl + v3(Border, Border, 0));
+  glShaderVertex(tl + v3(Width - Border, Border, 0));
+  glShaderVertex(tl + v3(Width - Border, Height - Border, 0));
+  glShaderVertex(tl + v3(Border, Height - Border, 0));
+  glShaderEnd();
+  UseTextureShader();
+  // Value
+  If value <> 0 Then Begin
+    If width > 10 Then Begin
+      tl := tl + v3(0, 0, 0.125);
+      OpenGlFont.Color := PieceColors[ColorIndex].FontColor;
+      s := IntToStr(value);
+      OpenGlFont.Size := (Width - 10) / max(length(s), 3);
+      OpenGlFont.Textout(
+        round(tl.x + (Width - OpenGlFont.TextWidth(s)) / 2),
+        round(tl.y + (height - OpenGlFont.TextHeight(s)) / 2),
+        tl.z,
+        s
+        );
+    End;
+  End;
+{$ENDIF}
 End;
 
-Procedure TPiece.RenderFalling(Progress: Single);
+Procedure TPiece.RenderFalling(TL: TVector3; Progress: Single);
 Var
   i: integer;
 Begin
@@ -204,13 +237,18 @@ Begin
   If value <> 0 Then Begin
     i := value;
     value := 0;
-    render;
+    render(tl);
     value := i;
   End;
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glTranslatef(FallingDistanze.x * Width * Progress, FallingDistanze.y * Height * Progress, 0);
-  Render;
+  Render(tl);
   glPopMatrix;
+{$ELSE}
+  tl := tl + v3(FallingDistanze.x * Width * Progress, FallingDistanze.y * Height * Progress, 0);
+  Render(tl);
+{$ENDIF}
 End;
 
 { TBoard }
@@ -353,6 +391,7 @@ Var
   b: boolean;
   t: int64;
   s: Single;
+  v, tl: TVector3;
 Begin
   b := IsFalling();
   If b Then Begin
@@ -365,6 +404,7 @@ Begin
       EvalFalling;
     End;
   End;
+{$IFDEF LEGACYMODE}
   glPushMatrix;
   glTranslatef(fWidth / 2 - ((BoardSize + 1) / 2) * Field[0, 0].Width, fHeight / 2 - ((BoardSize + 1) / 2) * Field[0, 0].Height, -0.25);
   glColor(BoardBackColor);
@@ -375,21 +415,49 @@ Begin
   glVertex3f(0, Field[0, 0].Height * (BoardSize + 1), 0);
   glend;
   glTranslatef(0, 0, 0.25);
+  tl := v3(0, 0, 0);
+{$ELSE}
+  tl := v3(fWidth / 2 - ((BoardSize + 1) / 2) * Field[0, 0].Width, fHeight / 2 - ((BoardSize + 1) / 2) * Field[0, 0].Height, -0.25);
+  UseColorShader;
+  glColor(BoardBackColor);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(tl);
+  glShaderVertex(tl + v3(Field[0, 0].Width * (BoardSize + 1), 0, 0));
+  glShaderVertex(tl + v3(Field[0, 0].Width * (BoardSize + 1), Field[0, 0].Height * (BoardSize + 1), 0));
+  glShaderVertex(tl + v3(0, Field[0, 0].Height * (BoardSize + 1), 0));
+  glShaderEnd();
+  UseTextureShader();
+  tl := tl + v3(0, 0, 0.25);
+{$ENDIF}
   For j := 0 To BoardSize Do Begin
+{$IFDEF LEGACYMODE}
     glPushMatrix;
+{$ELSE}
+    v := tl;
+{$ENDIF}
     For i := 0 To BoardSize Do Begin
       If b Then Begin
-        Field[i, j].RenderFalling(s);
+        Field[i, j].RenderFalling(v, s);
       End
       Else Begin
-        Field[i, j].Render;
+        Field[i, j].Render(v);
       End;
+{$IFDEF LEGACYMODE}
       glTranslatef(Field[0, 0].Width, 0, 0);
+{$ELSE}
+      v := v + v3(Field[0, 0].Width, 0, 0);
+{$ENDIF}
     End;
+{$IFDEF LEGACYMODE}
     glPopMatrix;
     glTranslatef(0, Field[0, 0].Height, 0);
+{$ELSE}
+    tl := tl + v3(0, Field[0, 0].Height, 0);
+{$ENDIF}
   End;
+{$IFDEF LEGACYMODE}
   glPopMatrix;
+{$ENDIF}
 End;
 
 Procedure TBoard.StartFalling(Dir: TDir);
