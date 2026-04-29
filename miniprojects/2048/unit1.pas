@@ -194,7 +194,10 @@ Begin
 {$IFDEF LEGACYMODE}
   glLoadIdentity();
 {$ENDIF}
-
+{$IFDEF LCLGTK3}
+  // Unter GTK3 muss der Tiefentest jedes mal wieder neu aktiviert werden
+  glEnable(GL_DEPTH_TEST);
+{$ENDIF}
   go2d(OpenGLControl1.Width, OpenGLControl1.Height);
   OpenGlFont.Size := 40;
   OpenGlFont.Color := clWhite;
