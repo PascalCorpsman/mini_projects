@@ -15,15 +15,14 @@ Following is a short description of all listed projects
 | Project | Description |
 | --- | ---|
 | [2048](miniprojects/2048) | Implementation of the 2048 game |
-| [Extruder calibrator](miniprojects/3D_Printer/Extruder_Calibrator) | Application to easy calibrate the extruder steps of a 3d printer |
 | [3D-Puzzle](miniprojects/3d_puzzle) | Example for depth first search, with tree pruning (in 3D) |
 | [Affenpuzzle](miniprojects/Affenpuzzle) | Example for depth first search, with tree pruning |
 | [ALT_F2](miniprojects/ALT_F2) | Application starter app with included calculater |
 | [Autostereogram](miniprojects/Autostereogram) | Demo to create autostereograms |
 | [Bingo](miniprojects/Bingo) | Create and print bingo cards, play the game |
 | [Bitverknuepfungen](miniprojects/Bitverknuepfungen) | Program that evaluates boolean operator formulas |
-| [Button Tool](miniprojects/Button_Tool)| Program to create graphics with textured texts |
 | [Bridge Builder](miniprojects/Bridge_Builder)| Game inspired by the famoues Bridge Builder game ideas |
+| [Button Tool](miniprojects/Button_Tool)| Program to create graphics with textured texts |
 | [Clickomania](miniprojects/Clickomania) | Linux / OpenGL Version of Clickomania |
 | [Client server demo](miniprojects/Client_server_demo) | Demo for a multiple client one server application |
 | [Color Test](miniprojects/Color_Test) | Color capturing tool |
@@ -33,9 +32,10 @@ Following is a short description of all listed projects
 | [Digiman2](miniprojects/Digiman2) | Tool to simulate digital circuits |
 | [Einstein](miniprojects/Einstein) | Solver for Einstein puzzles |
 | [Episode manager](miniprojects/Episode_manager) | Database to store and organise movies / TV-series |
+| [Extruder calibrator](miniprojects/3D_Printer/Extruder_Calibrator) | Application to easy calibrate the extruder steps of a 3d printer |
 | [FIR IIR](miniprojects/FIR_IIR) | Demo to apply FIR and IIR Filter onto arbiture data |
-| [Freischichtkalender](miniprojects/Freischichtkalender) | Demo to print a yeargrid on a double sided DinA5 page |
 | [Fixed comma](miniprojects/Fixed_Comma) | Demo to show how fixed comma numbers work |
+| [Freischichtkalender](miniprojects/Freischichtkalender) | Demo to print a yeargrid on a double sided DinA5 page |
 | [GIT gui](miniprojects/GIT_gui) | Plattform independent Tortoise Git like GIT-Gui |
 | [Gorilla](miniprojects/Gorilla) | Reimplementation of gorilla.bas from DOS |
 | [Gradient maker](miniprojects/Gradient_Maker) | Tool to create gradient textures |
@@ -49,21 +49,21 @@ Following is a short description of all listed projects
 | [LAN Chat](miniprojects/LAN_Chat) | Simple chat program for LAN (and WAN if ports are forwared) |
 | [MAW](miniprojects/MAW) | Demo that shows picking in OpenGL on a little puppet example |
 | [Network](miniprojects/Network) | Develop tools to simulate network properties (limit and delay) |
+| [Parken](miniprojects/Parken) | Demo for trectric curves |
+| [Pentago](miniprojects/Pentago) | Implementation of the board game Pentago |
+| [PingPong](miniprojects/PingPong) | Demo of a billard/ breakout engine |
+| [Pixeleditor](miniprojects/PixelEditor) | tool to create pixelart images |
+| [PNG Editor](miniprojects/PNG_Editor) | Split and merge alpha channel of .png images |
+| [Pong Wars](miniprojects/PongWars) | the pongwars demo ;) |
+| [Prime factorizer](miniprojects/Prime_factorizer/) | Calc the primefactors of a given number |
 | [QProgrammer](miniprojects/QProgrammer) | Lightwight Pascal like interpreter with integrated testsystem |
 | [Race condition](miniprojects/Race_Condition) | Demo to show how (not) to use tThread class |
 | [RAM_user](miniprojects/RAM_user)| Application to allocate RAM |
 | [Raytracer](miniprojects/Raytracer) | Demo that shows how to write a raytracer (including a parser for the scenes) |
 | [RGB_Jumper](miniprojects/RGB_Jumper) | Tiny jump and run game |
+| [SFXR](miniprojects/SFXR) | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
 | [Screenreader](miniprojects/Screenreader) | Application to take multiple partly screenshots |
 | [Sequoia](miniprojects/Sequoia) | Application to easy find large files in a folder structure |
-| [PNG Editor](miniprojects/PNG_Editor) | Split and merge alpha channel of .png images |
-| [Pong Wars](miniprojects/PongWars) | the pongwars demo ;) |
-| [Prime factorizer](miniprojects/Prime_factorizer/) | Calc the primefactors of a given number |
-| [Parken](miniprojects/Parken) | Demo for trectric curves |
-| [Pentago](miniprojects/Pentago) | Implementation of the board game Pentago |
-| [PingPong](miniprojects/PingPong) | Demo of a billard/ breakout engine |
-| [Pixeleditor](miniprojects/PixelEditor) | tool to create pixelart images |
-| [SFXR](miniprojects/SFXR) | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
 | [Simple Search](miniprojects/Simple_Search) | Win98 style search dialog |
 | [Sortdemo](miniprojects/Sortdemo) | demo for comparison of integer sort algorithms |
 | [Spectrum_analyzer](miniprojects/Spectrum_analyzer) | Tool to visualize and edit .wav files audiospectrum |
