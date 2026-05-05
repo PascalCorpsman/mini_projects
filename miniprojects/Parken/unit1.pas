@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Parken                                                          ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.03                                                         *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -23,6 +23,9 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - ?                                                     *)
+(*               0.03 - ?                                                     *)
+(*               0.04 - Port to rendering via shader                          *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -59,6 +62,7 @@ Type
     Timer1: TTimer;
     Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
     Procedure MenuItem5Click(Sender: TObject);
@@ -78,6 +82,7 @@ Type
     Procedure OpenGLControl1Resize(Sender: TObject);
   private
     { private declarations }
+    Procedure SetupFrame;
   public
     { public declarations }
   End;
@@ -98,12 +103,25 @@ Implementation
 
 {$R *.lfm}
 
-Uses unit2, unit3, unit4, unit5, lazutf8, LazFileUtils;
+Uses unit2, unit3, unit4, unit5, lazutf8, LazFileUtils,
+  uopengl_legacychecker, uopengl_graphikengine, uopengl_shaderprimitives;
 
 { TForm1 }
 
 Var
   allowcnt: Integer = 0;
+
+{$IFNDEF LEGACYMODE}
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := false;
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
+End;
+{$ENDIF}
 
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
@@ -116,24 +134,65 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+{$IFNDEF LEGACYMODE}
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+{$ENDIF}
   End;
-  glenable(GL_LINE_SMOOTH);
-
-  // Der Anwendung erlauben zu Rendern.
-  Initialized := True;
-  OpenGLControl1Resize(Nil);
+  If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
+    (*
+    Man bedenke, jedesmal wenn der Renderingcontext neu erstellt wird, müssen sämtliche Graphiken neu Geladen werden.
+    Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
+    *)
+    OpenGL_GraphikEngine.clear;
+{$IFDEF LEGACYMODE}
+    glenable(GL_TEXTURE_2D); // Texturen
+{$ENDIF}
+    SetupFrame;
+{$IFNDEF LEGACYMODE}
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
+{$ENDIF}
+    // Der Anwendung erlauben zu Rendern.
+    Initialized := True;
+{$IFNDEF LEGACYMODE}
+    ReActivateKHRDebug; // Reenable KHRDebug
+{$ENDIF}
+    OpenGLControl1Resize(Nil);
+  End;
+  Form1.Invalidate;
 End;
 
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
-  If Not Initialized Then Exit;
-  AppWidth := OpenGLControl1.Width;
-  AppHeight := OpenGLControl1.Height;
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
-  gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
-  glMatrixMode(GL_MODELVIEW);
+  If Initialized Then Begin
+{$IFDEF LEGACYMODE}
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
+    glMatrixMode(GL_MODELVIEW);
+{$ELSE}
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
+{$ENDIF}
+  End;
+End;
+
+Procedure TForm1.SetupFrame;
+Begin
+  glenable(GL_LINE_SMOOTH);
 End;
 
 Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
@@ -141,11 +200,21 @@ Var
   c: TRGB;
 Begin
   If Not Initialized Then Exit;
+  SetupFrame;
   // Render Szene
   glClearColor(1.0, 1.0, 1.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
+{$IFDEF LEGACYMODE}
   glLoadIdentity();
-  Go2d;
+{$ENDIF}
+  If (GameState = gsEditCar) Or
+    (GameState = gsEditTrailer)
+    Then Begin
+    go2d(200, 200); // Set Up An Ortho Screen
+  End
+  Else Begin
+    Go2d(OpenGLControl1.Width, OpenGLControl1.Height);
+  End;
   Case GameState Of
     gsError: Begin
         field.render;
@@ -169,6 +238,7 @@ Begin
         EditArea.render;
         If m1.X <> -1 Then Begin
           c := ColorToRGB(form4.Button1.Font.color);
+{$IFDEF LEGACYMODE}
           If form4.RadioGroup1.itemindex < 2 Then Begin
             glColor3f(c.r / 255, c.g / 255, c.b / 255);
           End
@@ -179,6 +249,20 @@ Begin
           glVertex2i(unit4.m.x, unit4.m.y);
           glVertex2i(m1.x, m1.y);
           glend;
+{$ELSE}
+          UseColorShader;
+          If form4.RadioGroup1.itemindex < 2 Then Begin
+            SetShaderColorub(c.r, c.g, c.b);
+          End
+          Else Begin
+            SetShaderColor(1, 0, 0);
+          End;
+          glShaderBegin(gl_lines);
+          glShaderVertex(unit4.m.x, unit4.m.y, 0);
+          glShaderVertex(m1.x, m1.y, 0);
+          glShaderEnd;
+          UseTextureShader();
+{$ENDIF}
         End;
       End;
   End;
@@ -205,6 +289,10 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
+{$IFNDEF LEGACYMODE}
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
+{$ENDIF}
   OpenDialog1.InitialDir := ExtractFilePath(paramstr(0));
   OpenGLControl1.Align := alclient;
   car := TCar.create;
@@ -217,7 +305,7 @@ Begin
   EditArea := TArea.create;
   editarea.RenderStartPos := true;
   TEinachsenAnhaenger.create(car);
-  Caption := 'Car Simulation ver. 0.03 by Corpsman, support : www.Corpsman.de';
+  Caption := 'Car Simulation ver. 0.04 by Corpsman, support : www.Corpsman.de';
   {
   TODO :
 
@@ -234,6 +322,16 @@ Begin
   Constraints.MaxHeight := 480;
   Constraints.MinWidth := 640;
   Constraints.MaxWidth := 640;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+{$IFNDEF LEGACYMODE}
+  If OpenGLControl1.MakeCurrent Then Begin
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+  End;
+{$ENDIF}
 End;
 
 Procedure TForm1.MenuItem2Click(Sender: TObject);

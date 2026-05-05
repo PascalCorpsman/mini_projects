@@ -60,7 +60,7 @@ Type
   private
     FCarDir: Single; // Gesamt Winkel des Fahrzeuges
     Fangle: Single; // Winkel der Vorderräder
-    Procedure RenderWheel(Angle_: Single); // Zeichnen eines Rades
+    Procedure RenderWheel(M: TMatrix3x3; Angle_: Single); // Zeichnen eines Rades
     Procedure SetAngle(Value: Single);
     Procedure SetCarDir(Value: Single);
     Function GetOOBB: TOOBB; // Ermitteln der OOBB
@@ -91,7 +91,7 @@ Type
   private
     FOwner: TBaseVehicle;
     Function GetOOBB: TOOBB; virtual;
-    Procedure RenderWheel(Width, Height, Angle_: Single);
+    Procedure RenderWheel(M: TMatrix3x3; Width, Height, Angle_: Single);
   public
     Property OOBB: TOOBB read GetOOBB;
     Constructor Create(Owner: TBaseVehicle); virtual;
@@ -191,15 +191,11 @@ Const
   ZweiAchsenAnhaenger: integer = 1;
 
 Var
-  AppWidth, AppHeight: Integer;
   GameState: TGameState = gsWait;
-
-Procedure Go2d();
-Procedure Exit2d();
 
 Implementation
 
-Uses lazutf8;
+Uses lazutf8, uopengl_shaderprimitives, uopengl_graphikengine;
 
 Const
   FLoatToleranze: Single = 1.0;
@@ -207,33 +203,6 @@ Const
 Function CompareV2(a, b: TVector2; Tolerance: Single): Boolean;
 Begin
   result := LenV2(b - a) <= Tolerance;
-End;
-
-Procedure Go2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  //  glOrtho(0, 640, 0, 480, -1, 1); // Set Up An Ortho Screen
-  If (GameState = gsEditCar) Or
-    (GameState = gsEditTrailer)
-    Then Begin
-    glOrtho(0, 200, 200, 0, -1, 1); // Set Up An Ortho Screen
-  End
-  Else Begin
-    glOrtho(0, AppWidth, Appheight, 0, -1, 1); // Set Up An Ortho Screen
-  End;
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
-End;
-
-Procedure Exit2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
 End;
 
 { TCar }
@@ -284,19 +253,21 @@ Begin
   result := addv2(FAnkerPosition, scalev2(h4, d));
 End;
 
-Procedure TCar.RenderWheel(Angle_: Single);
+Procedure TCar.RenderWheel(M: TMatrix3x3; Angle_: Single);
 Const
   steps = 10;
 Var
   wb, wh: Single;
   i: Integer;
+  RMatrix: TMatrix3x3;
 Begin
+  wb := W2 / 8;
+  wh := H3 / 5;
+{$IFDEF LEGACYMODE}
   If Angle_ <> 0 Then Begin
     glpushmatrix;
     glRotatef(angle_, 0, 0, 1);
   End;
-  wb := W2 / 8;
-  wh := H3 / 5;
   glcolor3f(0.5, 0.5, 0.5);
   glbegin(GL_TRIANGLE_FAN);
   glVertex2f(0, 0);
@@ -313,6 +284,26 @@ Begin
   If Angle_ <> 0 Then Begin
     glpopmatrix;
   End;
+{$ELSE}
+  If Angle_ <> 0 Then Begin
+    RMatrix := CalculateRotationMatrix(-Angle_);
+    RMatrix[2, 2] := 1;
+    m := RMatrix * m;
+  End;
+  SetShaderColor(0.5, 0.5, 0.5);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(m * v3(0, 0, 1));
+  For i := 0 To steps Do Begin
+    glShaderVertex(m * v3(wb * cos(i * 2 * pi / steps), wh * sin(i * 2 * pi / steps), 1));
+  End;
+  glShaderEnd;
+  SetShaderColor(0.0, 0.0, 0.0);
+  glShaderBegin(GL_Line_loop);
+  For i := 0 To steps Do Begin
+    glShaderVertex(m * v3(wb * cos(i * 2 * pi / steps), wh * sin(i * 2 * pi / steps), 1));
+  End;
+  glShaderEnd;
+{$ENDIF}
 End;
 
 Procedure TCar.SetAngle(Value: Single);
@@ -321,7 +312,7 @@ Begin
     Fangle := value;
 End;
 
-Procedure Tcar.SetCarDir(Value: Single);
+Procedure TCar.SetCarDir(Value: Single);
 Var
   dir: TVector2;
 Begin
@@ -332,10 +323,17 @@ Begin
 End;
 
 Procedure TCar.Render;
-//Var
-//  f: TVector2;
-//  ob: TOOBB;
+Var
+  carPts: Array[0..5] Of TVector2;
+  carRotMatrix: TMatrix2x2;
+  m: TMatrix3x3;
+  i: Integer;
+  transformedPt: TVector2;
+  v: TVector3;
+  //  f: TVector2;
+  //  ob: TOOBB;
 Begin
+{$IFDEF LEGACYMODE}
   glpushmatrix;
   glLineWidth(1);
   glcolor3f(0, 0, 0);
@@ -353,16 +351,16 @@ Begin
   // Die Hinterräder
   glpushmatrix;
   gltranslatef(w2 / 2, h3, 0);
-  RenderWheel(0);
+  RenderWheel(IdentityMatrix3x3, 0);
   gltranslatef(-w2, 0, 0);
-  RenderWheel(0);
+  RenderWheel(IdentityMatrix3x3, 0);
   glpopmatrix;
   // Die Vorderräder
   glpushmatrix;
   gltranslatef(w2 / 2, 0, 0);
-  RenderWheel(Fangle);
+  RenderWheel(IdentityMatrix3x3, Fangle);
   gltranslatef(-w2, 0, 0);
-  RenderWheel(Fangle);
+  RenderWheel(IdentityMatrix3x3, Fangle);
   glpopmatrix;
   // Object Orientierte Bounding Box
   //  glcolor3f(0.25, 0.25, 0.25);
@@ -387,6 +385,60 @@ Begin
     glpopmatrix;
   End;
   glpopmatrix;
+{$ELSE}
+  UseColorShader;
+  SetShaderColor(0, 0, 0);
+  //das tut irgendwie nicht..
+  carPts[0] := v2(0, 0); // Start Mittellinie
+  carPts[1] := v2(0, h3); // Ende Mittellinie
+  carPts[2] := v2(-w2 / 2, 0); // Start vorne
+  carPts[3] := v2(w2 / 2, 0); // Ende vorne
+  carPts[4] := v2(-w2 / 2, h3); // Start hinten
+  carPts[5] := v2(w2 / 2, h3); // Ende hinten
+  carRotMatrix := CalculateRotationMatrix(-(FCarDir + 90));
+  // In 3D kann die Translation gleich mit Berücksichtigt werden ;)
+  m := carRotMatrix;
+  m[0, 2] := FAnkerPosition.x;
+  m[1, 2] := FAnkerPosition.y;
+  m[2, 2] := 1;
+  glShaderBegin(GL_LINES);
+  For i := 0 To High(carPts) Do Begin
+    v := m * v3(carPts[i], 1);
+    glShaderVertex(v);
+  End;
+  glShaderEnd();
+  // Die Hinterräder
+  RenderWheel(TranslateMatrix3x3(m, w2 / 2, h3), 0);
+  RenderWheel(TranslateMatrix3x3(m, -w2 / 2, h3), 0);
+  // Die Vorderräder
+  RenderWheel(TranslateMatrix3x3(m, w2 / 2, 0), Fangle);
+  RenderWheel(TranslateMatrix3x3(m, -w2 / 2, 0), Fangle);
+  // Object Orientierte Bounding Box
+  //SetShaderColor(0.25, 0.25, 0.25);
+  SetShaderColor(0.0, 0.5, 0.5);
+  glShaderBegin(gl_Line_Loop);
+  carPts[0] := v2(-w1 / 2, -h1);
+  carPts[1] := v2(w1 / 2, -h1);
+  carPts[2] := v2(w1 / 2, h2);
+  carPts[3] := v2(-w1 / 2, h2);
+  For i := 0 To 3 Do Begin
+    v := m * v3(carPts[i], 1);
+    glShaderVertex(v);
+  End;
+  glShaderEnd();
+  // Anhängerkupplung
+  If Assigned(Anhaenger) Or ForceRenderAnhaengerKupplung Then Begin
+    m := TranslateMatrix3x3(m, 0, h4);
+    SetShaderColor(0, 0, 0);
+    glShaderBegin(gl_Line_Loop);
+    glShaderVertex(m * v3(0, -5, 1));
+    glShaderVertex(m * v3(-5, 0, 1));
+    glShaderVertex(m * v3(0, 5, 1));
+    glShaderVertex(m * v3(5, 0, 1));
+    glShaderEnd;
+  End;
+  UseTextureShader();
+{$ENDIF}
   If Assigned(Anhaenger) Then
     Anhaenger.Render;
   //  f := AnhaengerAnker;
@@ -488,19 +540,22 @@ Begin
 End;
 {$WARNINGS ON}
 
-Procedure TBaseAnhaenger.RenderWheel(Width, Height, Angle_: Single);
+Procedure TBaseAnhaenger.RenderWheel(M: TMatrix3x3; Width, Height,
+  Angle_: Single);
 Const
   steps = 10;
 Var
   wb, wh: Single;
   i: Integer;
+  RMatrix: TMatrix3x3;
 Begin
+  wb := Width / 8;
+  wh := Height / 5;
+{$IFDEF LEGACYMODE}
   If Angle_ <> 0 Then Begin
     glpushmatrix;
     glRotatef(angle_, 0, 0, 1);
   End;
-  wb := Width / 8;
-  wh := Height / 5;
   glcolor3f(0.5, 0.5, 0.5);
   glbegin(GL_TRIANGLE_FAN);
   glVertex2f(0, 0);
@@ -517,6 +572,26 @@ Begin
   If Angle_ <> 0 Then Begin
     glpopmatrix;
   End;
+{$ELSE}
+  If Angle_ <> 0 Then Begin
+    RMatrix := CalculateRotationMatrix(-angle_);
+    RMatrix[2, 2] := 1;
+    m := RMatrix * m;
+  End;
+  SetShaderColor(0.5, 0.5, 0.5);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(m * v3(0, 0, 1));
+  For i := 0 To steps Do Begin
+    glShaderVertex(m * v3(wb * cos(i * 2 * pi / steps), wh * sin(i * 2 * pi / steps), 1));
+  End;
+  glShaderEnd;
+  SetShaderColor(0.0, 0.0, 0.0);
+  glShaderBegin(GL_Line_loop);
+  For i := 0 To steps Do Begin
+    glShaderVertex(m * v3(wb * cos(i * 2 * pi / steps), wh * sin(i * 2 * pi / steps), 1));
+  End;
+  glShaderEnd;
+{$ENDIF}
 End;
 
 { TArea }
@@ -587,9 +662,22 @@ Begin
 End;
 
 Procedure TArea.Render;
+
+// Definiere die Pfeil-Punkte in lokalen Koordinaten
 Var
+  arrowPts: Array[0..5] Of TVector2 = (
+    (x: 0; y: 0), // Start
+    (x: 50; y: 0), // Spitze
+    (x: 50; y: 0), // Spitze (nochmal)
+    (x: 40; y: 10), // Pfeilkopf oben
+    (x: 50; y: 0), // Spitze (nochmal)
+    (x: 40; y: - 10) // Pfeilkopf unten
+    );
+  rotMatrix: TMatrix2x2;
   i: Integer;
+  rotatedPt: TVector2;
 Begin
+{$IFDEF LEGACYMODE}
   // Die Parkplatzfläche
   glcolor3f(0.75, 0.75, 0.75);
   glbegin(GL_TRIANGLE_STRIP);
@@ -634,6 +722,51 @@ Begin
     glend;
     glpopmatrix;
   End;
+{$ELSE}
+  // Die Parkplatzfläche
+  UseColorShader;
+  SetShaderColor(0.75, 0.75, 0.75);
+  glShaderBegin(GL_TRIANGLE_STRIP);
+  glShaderVertex(FParkarea[0].x, FParkarea[0].y, 0);
+  glShaderVertex(FParkarea[3].x, FParkarea[3].y, 0);
+  glShaderVertex(FParkarea[1].x, FParkarea[1].y, 0);
+  glShaderVertex(FParkarea[2].x, FParkarea[2].y, 0);
+  glShaderEnd();
+  SetShaderColor(0.5, 0.5, 0.5);
+  glShaderBegin(GL_Line_Loop);
+  glShaderVertex(FParkarea[0].x, FParkarea[0].y, 0);
+  glShaderVertex(FParkarea[1].x, FParkarea[1].y, 0);
+  glShaderVertex(FParkarea[2].x, FParkarea[2].y, 0);
+  glShaderVertex(FParkarea[3].x, FParkarea[3].y, 0);
+  glShaderEnd();
+  // Die Linien im Level
+  For i := 0 To High(Flines) Do Begin
+    SetShaderColorub(Flines[i].Color.R, Flines[i].Color.G, Flines[i].Color.B);
+    glShaderBegin(GL_LINES);
+    glShaderVertex(Flines[i].Start.x, Flines[i].Start.y, 0);
+    glShaderVertex(Flines[i].Goal.x, Flines[i].Goal.y, 0);
+    glShaderEnd;
+  End;
+  For i := 0 To High(FLabelLines) Do Begin
+    SetShaderColorub(FLabelLines[i].Color.R, FLabelLines[i].Color.G, FLabelLines[i].Color.B);
+    glShaderBegin(GL_LINES);
+    glShaderVertex(FLabelLines[i].Start.x, FLabelLines[i].Start.y, 0);
+    glShaderVertex(FLabelLines[i].Goal.x, FLabelLines[i].Goal.y, 0);
+    glShaderEnd;
+  End;
+  // Wenn der "Start" Pfeil gerendert werden soll
+  If RenderStartPos Then Begin
+    SetShaderColor(1, 0, 0);
+    rotMatrix := CalculateRotationMatrix(FCarAngle);
+    glShaderBegin(gl_lines);
+    For i := 0 To High(arrowPts) Do Begin
+      rotatedPt := MulVectorMatrix(arrowPts[i], rotMatrix);
+      glShaderVertex(FCarPosition.x + rotatedPt.x, FCarPosition.y + rotatedPt.y, 0);
+    End;
+    glShaderEnd;
+  End;
+  UseTextureShader();
+{$ENDIF}
 End;
 
 Procedure TArea.SetCar(Const Car: TCar);
@@ -929,7 +1062,12 @@ End;
 Procedure TEinachsenAnhaenger.Render;
 //Var
 //  ob: TOOBB;
+Var
+  RotMatrix: TMatrix2x2;
+  m: TMatrix3x3;
 Begin
+{$IFDEF LEGACYMODE}
+  m := IdentityMatrix3x3;
   glPushMatrix;
   // Die Karosse
   gltranslatef(FPosition.x, FPosition.y, 0);
@@ -944,9 +1082,9 @@ Begin
   // Die Räder
   glpushmatrix;
   gltranslatef(w2 / 2, 0, 0);
-  RenderWheel(w2, h3, 0);
+  RenderWheel(m, w2, h3, 0);
   gltranslatef(-w2, 0, 0);
-  RenderWheel(w2, h3, 0);
+  RenderWheel(m, w2, h3, 0);
   glpopmatrix;
   // Object Orientierte Bounding Box
   //  glcolor3f(0.25, 0.25, 0.25);
@@ -971,6 +1109,47 @@ Begin
     glpopmatrix;
   End;
   glpopmatrix;
+{$ELSE}
+  UseColorShader;
+  SetShaderColor(0, 0, 0);
+  // Die Karosse
+  RotMatrix := CalculateRotationMatrix(-(Fdir + 90));
+  m := RotMatrix;
+  m[0, 2] := FPosition.x;
+  m[1, 2] := FPosition.y;
+  m[2, 2] := 1;
+  glShaderBegin(gl_lines);
+  glShaderVertex(m * v3(0, 0, 1));
+  glShaderVertex(m * v3(0, -h3, 1));
+  glShaderVertex(m * v3(-w2 / 2, 0, 1));
+  glShaderVertex(m * v3(w2 / 2, 0, 1));
+  glShaderEnd;
+  // Die Räder
+  RenderWheel(TranslateMatrix3x3(m, w2 / 2, 0), w2, h3, 0);
+  RenderWheel(TranslateMatrix3x3(m, -w2 / 2, 0), w2, h3, 0);
+  // Object Orientierte Bounding Box
+  //  SetShaderColor(0.25, 0.25, 0.25);
+  SetShaderColor(0.0, 0.5, 0.5);
+  glShaderBegin(gl_Line_Loop);
+  glShaderVertex(m * v3(-w1 / 2, -h1, 1));
+  glShaderVertex(m * v3(w1 / 2, -h1, 1));
+  glShaderVertex(m * v3(w1 / 2, h2, 1));
+  glShaderVertex(m * v3(-w1 / 2, h2, 1));
+  glShaderEnd;
+  // Anhängerkupplung
+  If Assigned(Anhaenger) Or ForceRenderAnhaengerKupplung Then Begin
+    m := TranslateMatrix3x3(m, 0, h4);
+    SetShaderColor(0, 0, 0);
+    glShaderBegin(gl_Line_Loop);
+    glShaderVertex(m * v3(0, -5, 1));
+    glShaderVertex(m * v3(-5, 0, 1));
+    glShaderVertex(m * v3(0, 5, 1));
+    glShaderVertex(m * v3(5, 0, 1));
+    glShaderEnd;
+  End;
+  //glpopmatrix;
+  UseTextureShader();
+{$ENDIF}
   If Assigned(Anhaenger) Then
     Anhaenger.Render;
   //  f := AnhaengerAnker;
@@ -1136,7 +1315,12 @@ Procedure TZweiAchsenAnhaenger.Render;
 //Var
 //  ob: TOOBB;
 //  f: TVector2;
+Var
+  RotMatrix: TMatrix2x2;
+  m: TMatrix3x3;
 Begin
+{$IFDEF LEGACYMODE}
+  m := IdentityMatrix3x3;
   glpushmatrix;
   gltranslatef(Fposition.x, fposition.y, 0);
   // Die Deixel
@@ -1151,11 +1335,11 @@ Begin
   glend;
   glpushmatrix;
   glTranslatef(w2 / 2, 0, 0);
-  RenderWheel(w2, h3, 0);
+  RenderWheel(m, w2, h3, 0);
   glpopmatrix;
   glpushmatrix;
   glTranslatef(-w2 / 2, 0, 0);
-  RenderWheel(w2, h3, 0);
+  RenderWheel(m, w2, h3, 0);
   glpopmatrix;
   glpopmatrix;
   // Der Wagen
@@ -1170,11 +1354,11 @@ Begin
   glend;
   glpushmatrix;
   glTranslatef(w2 / 2, h3, 0);
-  RenderWheel(w2, h3, 0);
+  RenderWheel(m, w2, h3, 0);
   glpopmatrix;
   glpushmatrix;
   glTranslatef(-w2 / 2, h3, 0);
-  RenderWheel(w2, h3, 0);
+  RenderWheel(m, w2, h3, 0);
   glpopmatrix;
   // Die OOBB
   glcolor3f(0.0, 0.5, 0.5);
@@ -1199,6 +1383,61 @@ Begin
   End;
   glpopmatrix;
   glpopmatrix;
+{$ELSE}
+  UseColorShader;
+  SetShaderColor(0, 0, 0);
+  // Die Karosse
+  RotMatrix := CalculateRotationMatrix(-(Fdir + 90));
+  m := RotMatrix;
+  m[0, 2] := FPosition.x;
+  m[1, 2] := FPosition.y;
+  m[2, 2] := 1;
+  // Die Deixel
+  SetShaderColor(0, 0, 0);
+  glShaderBegin(gl_lines);
+  glShaderVertex(m * v3(0, 0, 1));
+  glShaderVertex(m * v3(0, -h5, 1));
+  glShaderVertex(m * v3(-w2 / 2, 0, 1));
+  glShaderVertex(m * v3(w2 / 2, 0, 1));
+  glShaderEnd;
+  RenderWheel(TranslateMatrix3x3(m, w2 / 2, 0), w2, h3, 0);
+  RenderWheel(TranslateMatrix3x3(m, -w2 / 2, 0), w2, h3, 0);
+  // Der Wagen
+  RotMatrix := CalculateRotationMatrix(-(Fdir2 + 90));
+  m := RotMatrix;
+  m[0, 2] := FPosition.x;
+  m[1, 2] := FPosition.y;
+  m[2, 2] := 1;
+  SetShaderColor(0, 0, 0);
+  glShaderBegin(gl_lines);
+  glShaderVertex(m * v3(0, 0, 1));
+  glShaderVertex(m * v3(0, h3, 1));
+  glShaderVertex(m * v3(-w2 / 2, h3, 1));
+  glShaderVertex(m * v3(w2 / 2, h3, 1));
+  glShaderEnd;
+  RenderWheel(TranslateMatrix3x3(m, w2 / 2, h3), w2, h3, 0);
+  RenderWheel(TranslateMatrix3x3(m, -w2 / 2, h3), w2, h3, 0);
+  // Die OOBB
+  SetShaderColor(0.0, 0.5, 0.5);
+  glShaderBegin(gl_Line_Loop);
+  glShaderVertex(m * v3(-w1 / 2, -h1, 1));
+  glShaderVertex(m * v3(w1 / 2, -h1, 1));
+  glShaderVertex(m * v3(w1 / 2, h2, 1));
+  glShaderVertex(m * v3(-w1 / 2, h2, 1));
+  glShaderEnd;
+  // Anhängerkupplung
+  If Assigned(Anhaenger) Or ForceRenderAnhaengerKupplung Then Begin
+    m := TranslateMatrix3x3(m, 0, h4);
+    SetShaderColor(0, 0, 0);
+    glShaderBegin(gl_Line_Loop);
+    glShaderVertex(m * v3(0, -5, 1));
+    glShaderVertex(m * v3(-5, 0, 1));
+    glShaderVertex(m * v3(0, 5, 1));
+    glShaderVertex(m * v3(5, 0, 1));
+    glShaderEnd;
+  End;
+  UseTextureShader();
+{$ENDIF}
   // Debugg
   //  f := AnhaengerAnker;
   //  ob := GetOOBB;
