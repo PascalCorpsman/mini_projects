@@ -24,7 +24,7 @@ Uses
 
 Const
   // Game Version
-  Version: Single = 0.04;
+  Version: Single = 0.05;
 
 Type
   TRGB = Record
@@ -138,11 +138,11 @@ Var
   GameState: TGameState = gsWaitForPlayerInput; // Der Spielstatus
   Field: Tfield = Nil; // Das Aktuelle Feld
   cntField: Array Of Array Of Boolean; // TMP Feld, zum Zählen der Löschbaren Steine
-  Backtex: Integer = 0; // Der OpenGL Pointer für das Hintergrundbild
+  Backtex: TGraphikItem; // Der OpenGL Pointer für das Hintergrundbild
   AppPath: String;
-  rockettex: integer;
-  BombTex: Integer;
-  StoneTex: Integer;
+  rockettex: TGraphikItem;
+  BombTex: TGraphikItem;
+  StoneTex: TGraphikItem;
   UsedSpezials: Boolean; // Benötigt für die Highscore
   UsedColorNumbers: Integer; // Benötigt für die Highscore
   ExpSprite: Integer; // Sprite Pointer
@@ -242,7 +242,15 @@ Function TRGBToColor(Value: TRGB): TColor;
 
 Implementation
 
+Uses uopengl_shaderprimitives;
+
 {$I clickomania.inc}
+
+Operator := (v3: TVector3): TVector2;
+Begin
+  result.x := v3.x;
+  result.y := v3.y;
+End;
 
 Var
   undostack: TUndoStack;
@@ -487,8 +495,10 @@ Var
   b: Boolean;
   c, i, j: integer;
   dt: Single;
+  t, v, tl: TVector3;
 Begin
   dt := min(1, (GetTickCount - DropStartTime) / DropStoneDelay);
+{$IFDEF LEGACYMODE}
   glpushmatrix;
   If F_XsTextured Then Begin
     glenable(gl_Blend);
@@ -514,17 +524,17 @@ Begin
           glPushMatrix;
           glTranslatef(-dt * StonesWidth * c, 0, 0);
           If field[i, j] = SpezialStoneRocketUp Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 270, false, rockettex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 270, false, rockettex.Image)
           Else If field[i, j] = SpezialStoneRocketdown Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 90, false, rockettex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 90, false, rockettex.Image)
           Else If field[i, j] = SpezialStoneRocketleft Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, rockettex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 0, false, rockettex.Image)
           Else If field[i, j] = SpezialStoneRocketright Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 0, false, rockettex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, rockettex.Image)
           Else If field[i, j] = SpezialStoneBomb Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, bombtex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, bombtex.Image)
           Else If field[i, j] = SpezialStoneStone Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, Stonetex);
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, Stonetex.Image);
           glpopmatrix;
           glBindTexture(GL_TEXTURE_2d, 0);
         End
@@ -615,12 +625,145 @@ Begin
     glpopmatrix;
     gltranslatef(StonesWidth, 0, 0);
   End;
-  If b Then Begin
-    DropStartTime := GetTickCount - 2 * DropStoneDelay;
-  End;
   If F_XsTextured Then
     gldisable(gl_Blend);
   glpopmatrix;
+{$ELSE}
+  //   glpushmatrix;
+  If F_XsTextured Then Begin
+    glenable(gl_Blend);
+    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  End;
+  b := True;
+  c := 0;
+  tl := ZeroV3();
+  For i := 0 To FieldColumns - 1 Do Begin
+    v := tl;
+    If field[i, FieldRows - 1] < 0 Then inc(c);
+    //    glpushmatrix;
+    For j := 0 To FieldRows - 1 Do Begin
+      // Rendern des Feldes
+      If Field[i, j] >= 0 Then Begin
+        glBindTexture(GL_TEXTURE_2d, 0);
+        // Rendern des Eigentlichen Quads
+        If Field[i, j] > High(StoneColors) Then Begin
+          If c <> 0 Then
+            b := false;
+          t := v;
+          //          glPushMatrix;
+          //          glTranslatef(-dt * StonesWidth * c, 0, 0);
+          v := v + v3(-dt * StonesWidth * c, 0, 0);
+          If field[i, j] = SpezialStoneRocketUp Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 90, rockettex)
+          Else If field[i, j] = SpezialStoneRocketdown Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, -90, rockettex)
+          Else If field[i, j] = SpezialStoneRocketleft Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 180, rockettex)
+          Else If field[i, j] = SpezialStoneRocketright Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, rockettex)
+          Else If field[i, j] = SpezialStoneBomb Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, bombtex)
+          Else If field[i, j] = SpezialStoneStone Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, Stonetex);
+          v := t;
+          glBindTexture(GL_TEXTURE_2d, 0);
+        End
+        Else If field[i, j] >= 0 Then Begin
+          UseColorShader;
+          If c <> 0 Then
+            b := false;
+          If F_XsTextured Then
+            SetShaderColor(StoneColors[field[i, j]].r, StoneColors[field[i, j]].g, StoneColors[field[i, j]].b, AlphaF_XsTextured)
+          Else
+            SetShaderColor(StoneColors[field[i, j]].r, StoneColors[field[i, j]].g, StoneColors[field[i, j]].b);
+          glShaderBegin(GL_TRIANGLE_FAN);
+          glShaderVertex(v + v3(-dt * StonesWidth * c, 0, 0));
+          glShaderVertex(v + v3(StonesWidth - dt * StonesWidth * c, 0, 0));
+          glShaderVertex(v + v3(StonesWidth - dt * StonesWidth * c, StonesHeight, 0));
+          glShaderVertex(v + v3(0 - dt * StonesWidth * c, StonesHeight, 0));
+          glShaderEnd();
+          UseTextureShader();
+        End;
+        (*
+        Das Problem ist, dass die senkrechte Linie beim Verschieben, ab und an "Komisch" aussieht.
+        Die einzige Behebung ist das Ein bzw. Einkommentieren der 4 mit
+
+        //-------------------------------------
+
+        gekenzeichneten Linien
+        *)
+      End; //-------------------------------------
+      If c = 0 Then Begin // C = 0
+        UseColorShader;
+        If F_XsTextured Then
+          SetShaderColor(0, 0, 0, 0)
+        Else
+          SetShaderColor(0, 0, 0);
+        If f_XsTracelines Then Begin
+          glShaderBegin(GL_LINES);
+          // Rahmen nur an den Rändern
+          // Waagrechte Linien
+          If j > 0 Then Begin
+            If (Field[i, j] <> field[i, j - 1]) And ((Field[i, j] >= 0) Or (Field[i, j - 1] >= 0)) Then Begin
+              glShaderVertex(v + v3(0, 0, 0));
+              glShaderVertex(v + v3(StonesWidth, 0, 0));
+            End;
+            If j = FieldRows - 1 Then
+              If field[i, j] >= 0 Then Begin
+                glShaderVertex(v + v3(StonesWidth, StonesHeight + dt * StonesHeight * c - 1, 0));
+                glShaderVertex(v + v3(0, StonesHeight + dt * StonesHeight * c - 1, 0));
+              End;
+          End
+          Else If field[i, j] >= 0 Then Begin
+            glShaderVertex(v + v3(0, 0, 0));
+            glShaderVertex(v + v3(StonesWidth, 0, 0));
+          End;
+          // Senkrechte Liniean
+          If i > 0 Then Begin
+            If (field[i, j] <> field[i - 1, j]) And ((Field[i - 1, j] >= 0) Or (Field[i, j] >= 0)) Then Begin
+              glShaderVertex(v + v3(0, 0, 0));
+              glShaderVertex(v + v3(0, StonesHeight + dt * StonesHeight * c, 0));
+            End;
+            If i = FieldColumns - 1 Then
+              If Field[i, j] >= 0 Then Begin
+                glShaderVertex(v + v3(StonesWidth, 0, 0));
+                glShaderVertex(v + v3(StonesWidth, StonesHeight + dt * StonesHeight * c, 0));
+              End;
+            If i < FieldColumns - 1 Then
+              If (Field[i, j] >= 0) And (Field[i + 1, j] < 0) Then Begin
+                glShaderVertex(v + v3(StonesWidth, 0, 0));
+                glShaderVertex(v + v3(StonesWidth, StonesHeight + dt * StonesHeight * c, 0));
+              End;
+          End
+          Else If Field[i, j] >= 0 Then Begin
+            glShaderVertex(v + v3(1, 0, 0));
+            glShaderVertex(v + v3(1, StonesHeight + dt * StonesHeight * c, 0));
+          End;
+          glShaderEnd();
+        End
+        Else Begin
+          // Ein rahmen um das Komplette Feld
+          If field[i, j] >= 0 Then Begin
+            glShaderBegin(GL_LINE_LOOP);
+            glShaderVertex(v + v3(1, dt * StonesHeight * c, 0));
+            glShaderVertex(v + v3(StonesWidth, dt * StonesHeight * c, 0));
+            glShaderVertex(v + v3(StonesWidth, StonesHeight + dt * StonesHeight * c - 1, 0));
+            glShaderVertex(v + v3(0, StonesHeight + dt * StonesHeight * c - 1, 0));
+            glShaderEnd();
+          End;
+        End;
+        UseTextureShader();
+      End; // C = 0
+      v := v + v3(0, StonesHeight, 0);
+    End;
+    tl := tl + v3(StonesWidth, 0, 0);
+  End;
+  If F_XsTextured Then
+    gldisable(gl_Blend);
+{$ENDIF}
+  If b Then Begin
+    DropStartTime := GetTickCount - 2 * DropStoneDelay;
+  End;
 End;
 
 Function CoordCanBeDeleted(x, y: Integer): Boolean;
@@ -729,15 +872,16 @@ Begin
           bs := bsDefault;
       End;
   End;
+  Backtex.Image := 0;
   Case bs Of
     bsDefault: Begin
-        Backtex :=  OpenGL_GraphikEngine.LoadGraphik(AppPath + 'GFX' + PathDelim + 'default.png', smStretch);
+        Backtex := OpenGL_GraphikEngine.LoadGraphikItem(AppPath + 'GFX' + PathDelim + 'default.png', smStretch);
       End;
     bsFromDirectory: Begin
-        Backtex := OpenGL_GraphikEngine.LoadGraphik(d, smStretch);
+        Backtex := OpenGL_GraphikEngine.LoadGraphikItem(d, smStretch);
       End;
     bsFromPicture: Begin
-        Backtex := OpenGL_GraphikEngine.LoadGraphik(DirectPicture, smStretch);
+        Backtex := OpenGL_GraphikEngine.LoadGraphikItem(DirectPicture, smStretch);
       End;
   End;
 End;
@@ -745,7 +889,9 @@ End;
 Procedure RenderField;
 Var
   i, j: Integer;
+  v, tl: TVector3;
 Begin
+{$IFDEF LEGACYMODE}
   glpushmatrix;
   If F_XsTextured Then Begin
     glenable(gl_Blend);
@@ -761,17 +907,17 @@ Begin
         Else
           glcolor3f(1, 1, 1);
         If field[i, j] = SpezialStoneRocketUp Then
-          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 270, false, rockettex)
+          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 270, false, rockettex.Image)
         Else If field[i, j] = SpezialStoneRocketdown Then
-          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 90, false, rockettex)
+          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 90, false, rockettex.Image)
         Else If field[i, j] = SpezialStoneRocketleft Then
-          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, rockettex)
+          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 0, false, rockettex.Image)
         Else If field[i, j] = SpezialStoneRocketright Then
-          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 0, false, rockettex)
+          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, rockettex.Image)
         Else If field[i, j] = SpezialStoneBomb Then
-          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, bombtex)
+          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, bombtex.Image)
         Else If field[i, j] = SpezialStoneStone Then
-          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, Stonetex);
+          RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, Stonetex.Image);
         glBindTexture(GL_TEXTURE_2d, 0);
       End
       Else If field[i, j] >= 0 Then Begin
@@ -846,12 +992,114 @@ Begin
   If F_XsTextured Then
     gldisable(gl_Blend);
   glpopmatrix;
+{$ELSE}
+  If F_XsTextured Then Begin
+    glenable(gl_Blend);
+    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  End;
+  tl := ZeroV3();
+  For j := 0 To FieldRows - 1 Do Begin
+    v := tl;
+    For i := 0 To FieldColumns - 1 Do Begin
+      // Rendern des Eigentlichen Quads
+      If Field[i, j] > High(StoneColors) Then Begin
+        If field[i, j] = SpezialStoneRocketUp Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 90, rockettex)
+        Else If field[i, j] = SpezialStoneRocketdown Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, -90, rockettex)
+        Else If field[i, j] = SpezialStoneRocketleft Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 180, rockettex)
+        Else If field[i, j] = SpezialStoneRocketright Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, rockettex)
+        Else If field[i, j] = SpezialStoneBomb Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, bombtex)
+        Else If field[i, j] = SpezialStoneStone Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, Stonetex);
+        glBindTexture(GL_TEXTURE_2d, 0);
+      End
+      Else If field[i, j] >= 0 Then Begin
+        UseColorShader;
+        If F_XsTextured Then
+          SetShaderColor(StoneColors[field[i, j]].r, StoneColors[field[i, j]].g, StoneColors[field[i, j]].b, AlphaF_XsTextured)
+        Else
+          SetShaderColor(StoneColors[field[i, j]].r, StoneColors[field[i, j]].g, StoneColors[field[i, j]].b);
+        glShaderBegin(GL_TRIANGLE_FAN);
+        glShaderVertex(v + v3(0, 0, 0));
+        glShaderVertex(v + v3(StonesWidth, 0, 0));
+        glShaderVertex(v + v3(StonesWidth, StonesHeight, 0));
+        glShaderVertex(v + v3(0, StonesHeight, 0));
+        glShaderEnd();
+        UseTextureShader();
+      End;
+      UseColorShader;
+      If F_XsTextured Then
+        SetShaderColor(0, 0, 0, 0)
+      Else
+        SetShaderColor(0, 0, 0);
+      If f_XsTracelines Then Begin
+        glShaderBegin(GL_LINES);
+        // Rahmen nur an den Rändern
+        // Waagrechte Linien
+        If j > 0 Then Begin
+          If (Field[i, j] <> field[i, j - 1]) Then Begin
+            glShaderVertex(v + v3(0, 0, 0));
+            glShaderVertex(v + v3(StonesWidth, 0, 0));
+          End;
+          If j = FieldRows - 1 Then
+            If field[i, j] >= 0 Then Begin
+              glShaderVertex(v + v3(StonesWidth, StonesHeight - 1, 0));
+              glShaderVertex(v + v3(0, StonesHeight - 1, 0));
+            End;
+        End
+        Else If field[i, j] >= 0 Then Begin
+          glShaderVertex(v + v3(0, 0, 0));
+          glShaderVertex(v + v3(StonesWidth, 0, 0));
+        End;
+        // Senkrechte Liniean
+        If i > 0 Then Begin
+          If (field[i, j] <> field[i - 1, j]) And ((Field[i - 1, j] >= 0) Or (Field[i, j] >= 0)) Then Begin
+            glShaderVertex(v + v3(0, 0, 0));
+            glShaderVertex(v + v3(0, StonesHeight, 0));
+          End;
+          If i = FieldColumns - 1 Then
+            If Field[i, j] >= 0 Then Begin
+              glShaderVertex(v + v3(StonesWidth, 0, 0));
+              glShaderVertex(v + v3(StonesWidth, StonesHeight, 0));
+            End;
+        End
+        Else If Field[i, j] >= 0 Then Begin
+          glShaderVertex(v + v3(1, 0, 0));
+          glShaderVertex(v + v3(1, StonesHeight, 0));
+        End;
+        glShaderEnd();
+      End
+      Else Begin
+        // Ein rahmen um das Komplette Feld
+        If field[i, j] >= 0 Then Begin
+          glShaderBegin(GL_LINE_LOOP);
+          glShaderVertex(v + v3(1, 0, 0));
+          glShaderVertex(v + v3(StonesWidth, 0, 0));
+          glShaderVertex(v + v3(StonesWidth, StonesHeight - 1, 0));
+          glShaderVertex(v + v3(0, StonesHeight - 1, 0));
+          glShaderEnd();
+        End;
+      End;
+      UseTextureShader();
+      v := v + v3(StonesWidth, 0, 0);
+    End;
+    tl := tl + v3(0, StonesHeight, 0);
+  End;
+  If F_XsTextured Then
+    gldisable(gl_Blend);
+{$ENDIF}
 End;
 
 Procedure RenderExplosionField;
 Var
   i, j: Integer;
+  v, tl: TVector3;
 Begin
+{$IFDEF LEGACYMODE}
   glpushmatrix;
   If F_XsTextured Then Begin
     glenable(gl_Blend);
@@ -868,17 +1116,17 @@ Begin
         Else
           glcolor3f(1, 1, 1);
         If field[i, j] = SpezialStoneRocketUp Then
-          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 270, false, rockettex)
+          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 270, false, rockettex.Image)
         Else If field[i, j] = SpezialStoneRocketdown Then
-          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 90, false, rockettex)
+          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 90, false, rockettex.Image)
         Else If field[i, j] = SpezialStoneRocketleft Then
-          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 180, false, rockettex)
+          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 0, false, rockettex.Image)
         Else If field[i, j] = SpezialStoneRocketright Then
-          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 0, false, rockettex)
+          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 180, false, rockettex.Image)
         Else If field[i, j] = SpezialStoneBomb Then
-          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 180, false, bombtex)
+          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 180, false, bombtex.Image)
         Else If field[i, j] = SpezialStoneStone Then
-          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 180, false, Stonetex);
+          RenderAlphaRQuad(v2(0, 0), v2(1, 0.99), 180, false, Stonetex.Image);
         glBindTexture(GL_TEXTURE_2d, 0);
       End
       Else If Field[i, j] = -2 Then Begin
@@ -962,6 +1210,116 @@ Begin
   If F_XsTextured Then
     gldisable(gl_Blend);
   glpopmatrix;
+{$ELSE}
+  If F_XsTextured Then Begin
+    glenable(gl_Blend);
+    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  End;
+  //  glScalef(StonesWidth, StonesHeight, 1);
+  tl := ZeroV3();
+  For j := 0 To FieldRows - 1 Do Begin
+    v := tl;
+    //    glpushmatrix;
+    For i := 0 To FieldColumns - 1 Do Begin
+      // Rendern des Eigentlichen Quads
+      If Field[i, j] > High(StoneColors) Then Begin
+        If field[i, j] = SpezialStoneRocketUp Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 90, rockettex)
+        Else If field[i, j] = SpezialStoneRocketdown Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, -90, rockettex)
+        Else If field[i, j] = SpezialStoneRocketleft Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 180, rockettex)
+        Else If field[i, j] = SpezialStoneRocketright Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, rockettex)
+        Else If field[i, j] = SpezialStoneBomb Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, bombtex)
+        Else If field[i, j] = SpezialStoneStone Then
+          RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, Stonetex);
+        glBindTexture(GL_TEXTURE_2d, 0);
+      End
+      Else If Field[i, j] = -2 Then Begin
+        OpenGL_SpriteEngine.RenderSprite(v.x, v.y, v.z, StonesWidth, StonesHeight, ExpSprite);
+        glBindTexture(GL_TEXTURE_2d, 0);
+      End
+      Else If field[i, j] >= 0 Then Begin
+        UseColorShader;
+        If F_XsTextured Then
+          SetShaderColor(StoneColors[field[i, j]].r, StoneColors[field[i, j]].g, StoneColors[field[i, j]].b, AlphaF_XsTextured)
+        Else
+          SetShaderColor(StoneColors[field[i, j]].r, StoneColors[field[i, j]].g, StoneColors[field[i, j]].b);
+        glShaderBegin(GL_TRIANGLE_FAN);
+        glShaderVertex(v + v3(0, 0, 0));
+        glShaderVertex(v + v3(StonesWidth, 0, 0));
+        glShaderVertex(v + v3(StonesWidth, StonesHeight, 0));
+        glShaderVertex(v + v3(0, StonesHeight, 0));
+        glShaderEnd();
+        UseTextureShader();
+      End;
+      UseColorShader;
+      If F_XsTextured Then
+        SetShaderColor(0, 0, 0, 0)
+      Else
+        SetShaderColor(0, 0, 0);
+      If f_XsTracelines Then Begin
+        glShaderBegin(GL_LINES);
+        // Rahmen nur an den Rändern
+        // Waagrechte Linien
+        If j > 0 Then Begin
+          If (Field[i, j] <> field[i, j - 1]) Then Begin
+            glShaderVertex(v + v3(0, 0, 0));
+            glShaderVertex(v + v3(StonesWidth, 0, 0));
+          End;
+          If j = FieldRows - 1 Then
+            If field[i, j] >= 0 Then Begin
+              glShaderVertex(v + v3(StonesWidth, StonesHeight - 1, 0));
+              glShaderVertex(v + v3(0, StonesHeight - 1, 0));
+            End;
+        End
+        Else If field[i, j] >= 0 Then Begin
+          glShaderVertex(v + v3(0, 0, 0));
+          glShaderVertex(v + v3(StonesWidth, 0, 0));
+        End;
+        // Senkrechte Liniean
+        If i > 0 Then Begin
+          If (field[i, j] <> field[i - 1, j]) And ((Field[i - 1, j] >= 0) Or (Field[i, j] >= 0)) Then Begin
+            glShaderVertex(v + v3(0, 0, 0));
+            glShaderVertex(v + v3(0, StonesHeight, 0));
+          End;
+          If i = FieldColumns - 1 Then
+            If Field[i, j] >= 0 Then Begin
+              glShaderVertex(v + v3(StonesWidth, 0, 0));
+              glShaderVertex(v + v3(StonesWidth, StonesHeight, 0));
+            End;
+        End
+        Else If Field[i, j] >= 0 Then Begin
+          glShaderVertex(v + v3(1, 0, 0));
+          glShaderVertex(v + v3(1, StonesHeight, 0));
+        End;
+        glShaderEnd();
+      End
+      Else Begin
+        // Ein rahmen um das Komplette Feld
+        If field[i, j] >= 0 Then Begin
+          glShaderBegin(GL_LINE_LOOP);
+          glShaderVertex(v + v3(1, 0, 0));
+          glShaderVertex(v + v3(StonesWidth, 0, 0));
+          glShaderVertex(v + v3(StonesWidth, StonesHeight - 1, 0));
+          glShaderVertex(v + v3(0, StonesHeight - 1, 0));
+          glShaderEnd();
+        End;
+      End;
+      UseTextureShader();
+      v := v + v3(StonesWidth, 0, 0);
+    End;
+    //    glpopmatrix;
+    //    glTranslatef(0, 1, 0);
+    tl := tl + v3(0, StonesHeight, 0);
+  End;
+  //  glScalef(1, 1, 1);
+  If F_XsTextured Then
+    gldisable(gl_Blend);
+  //      glpopmatrix;
+{$ENDIF}
 End;
 
 Procedure RenderDropStoneField;
@@ -970,8 +1328,10 @@ Var
   c, i, j: Integer;
   dt: Single;
   b: Boolean;
+  t, v, tl: TVector3;
 Begin
   dt := min(1, (GetTickCount - DropStartTime) / DropStoneDelay);
+{$IFDEF LEGACYMODE}
   glpushmatrix;
   If F_XsTextured Then Begin
     glenable(gl_Blend);
@@ -1006,17 +1366,17 @@ Begin
           glpushmatrix;
           glTranslatef(0, j * StonesHeight + dt * StonesHeight * c, 0);
           If field[i, j] = SpezialStoneRocketUp Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 270, false, rockettex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 270, false, rockettex.Image)
           Else If field[i, j] = SpezialStoneRocketdown Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 90, false, rockettex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 90, false, rockettex.Image)
           Else If field[i, j] = SpezialStoneRocketleft Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, rockettex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 0, false, rockettex.Image)
           Else If field[i, j] = SpezialStoneRocketright Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 0, false, rockettex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, rockettex.Image)
           Else If field[i, j] = SpezialStoneBomb Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, bombtex)
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, bombtex.Image)
           Else If field[i, j] = SpezialStoneStone Then
-            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, Stonetex);
+            RenderAlphaRQuad(point(0, 0), point(StonesWidth, StonesHeight), 180, false, Stonetex.Image);
           glpopmatrix;
           glBindTexture(GL_TEXTURE_2d, 0);
         End
@@ -1103,6 +1463,137 @@ Begin
   If F_XsTextured Then
     gldisable(gl_Blend);
   glpopmatrix;
+{$ELSE}
+  If F_XsTextured Then Begin
+    glenable(gl_Blend);
+    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  End;
+  b := True;
+  c := 0; // Korrecktur Traceline
+  jj := FieldRows - 1; // Korrecktur Traceline
+  tl := ZeroV3();
+  v := tl;
+  For i := 0 To FieldColumns - 1 Do Begin
+    oc := c; // Korrecktur Traceline
+    oj := jj; // Korrecktur Traceline
+    jj := FieldRows - 1; // Korrecktur Traceline
+    c := 0;
+    For j := FieldRows - 1 Downto 0 Do Begin
+      // Zählen der "Lücken"
+      If Field[i, j] = -2 Then Begin
+        inc(c);
+        jj := j; // Korrecktur Traceline
+      End;
+      // Rendern des Feldes
+      If Field[i, j] >= 0 Then Begin
+        glBindTexture(GL_TEXTURE_2d, 0);
+        // Rendern des Eigentlichen Quads
+        If Field[i, j] > High(StoneColors) Then Begin
+          If c <> 0 Then
+            b := false;
+          t := v;
+          v := v + v3(0, j * StonesHeight + dt * StonesHeight * c, 0);
+          If field[i, j] = SpezialStoneRocketUp Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 90, rockettex)
+          Else If field[i, j] = SpezialStoneRocketdown Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, -90, rockettex)
+          Else If field[i, j] = SpezialStoneRocketleft Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 180, rockettex)
+          Else If field[i, j] = SpezialStoneRocketright Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, rockettex)
+          Else If field[i, j] = SpezialStoneBomb Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, bombtex)
+          Else If field[i, j] = SpezialStoneStone Then
+            RenderAlphaQuad(v + v2(StonesWidth, StonesHeight) / 2, 0, StonesWidth, StonesHeight, 0, Stonetex);
+          v := t;
+          glBindTexture(GL_TEXTURE_2d, 0);
+        End
+        Else If field[i, j] >= 0 Then Begin
+          If c <> 0 Then
+            b := false;
+          UseColorShader;
+          If F_XsTextured Then
+            SetShaderColor(StoneColors[field[i, j]].r, StoneColors[field[i, j]].g, StoneColors[field[i, j]].b, AlphaF_XsTextured)
+          Else
+            SetShaderColor(StoneColors[field[i, j]].r, StoneColors[field[i, j]].g, StoneColors[field[i, j]].b);
+          glShaderBegin(GL_TRIANGLE_FAN);
+          glShaderVertex(v + v3(0, j * StonesHeight + dt * StonesHeight * c, 0));
+          glShaderVertex(v + v3(StonesWidth, j * StonesHeight + dt * StonesHeight * c, 0));
+          glShaderVertex(v + v3(StonesWidth, j * StonesHeight + StonesHeight + dt * StonesHeight * c, 0));
+          glShaderVertex(v + v3(0, j * StonesHeight + StonesHeight + dt * StonesHeight * c, 0));
+          glShaderEnd();
+          UseTextureShader();
+        End;
+      End;
+      // rendern der Umrandung
+      If c = 0 Then Begin // C = 0
+        UseColorShader;
+        If F_XsTextured Then
+          SetShaderColor(0, 0, 0, 0)
+        Else
+          SetShaderColor(0, 0, 0);
+        If f_XsTracelines Then Begin
+          glShaderBegin(GL_LINES);
+          // Rahmen nur an den Rändern
+          // Waagrechte Linien
+          If j > 0 Then Begin
+            If (Field[i, j] <> field[i, j - 1]) And ((Field[i, j] >= 0) Or (Field[i, j - 1] >= 0)) Then Begin
+              glShaderVertex(v + v3(0, j * StonesHeight + dt * StonesHeight * c, 0));
+              glShaderVertex(v + v3(StonesWidth, j * StonesHeight + dt * StonesHeight * c, 0));
+            End;
+            If j = FieldRows - 1 Then
+              If field[i, j] >= 0 Then Begin
+                glShaderVertex(v + v3(StonesWidth, j * StonesHeight + StonesHeight + dt * StonesHeight * c - 1, 0));
+                glShaderVertex(v + v3(0, j * StonesHeight + StonesHeight + dt * StonesHeight * c - 1, 0));
+              End;
+          End
+          Else If field[i, j] >= 0 Then Begin
+            glShaderVertex(v + v3(0, j * StonesHeight + dt * StonesHeight * c, 0));
+            glShaderVertex(v + v3(StonesWidth, j * StonesHeight + dt * StonesHeight * c, 0));
+          End;
+          // Senkrechte Liniean
+          If i > 0 Then Begin
+            If (field[i, j] <> field[i - 1, j]) And ((Field[i - 1, j] >= 0) Or (Field[i, j] >= 0)) Then Begin
+              (*
+                Die Senkrechten Linien dürfen nur an Steine die nicht fallen
+                oj, und oc geben dabei an ob in der Vorherigen Spalte ein Stein viel, und wenn ja ab welcher Höhe
+              *)
+              If (oc = 0) Or (j > oj) Then Begin // Korrecktur Traceline
+                glShaderVertex(v + v3(0, j * StonesHeight + dt * StonesHeight * c, 0));
+                glShaderVertex(v + v3(0, j * StonesHeight + StonesHeight + dt * StonesHeight * c, 0));
+              End;
+            End;
+            If i = FieldColumns - 1 Then
+              If Field[i, j] >= 0 Then Begin
+                glShaderVertex(v + v3(StonesWidth, j * StonesHeight + dt * StonesHeight * c, 0));
+                glShaderVertex(v + v3(StonesWidth, j * StonesHeight + StonesHeight + dt * StonesHeight * c, 0));
+              End;
+          End
+          Else If Field[i, j] >= 0 Then Begin
+            glShaderVertex(v + v3(1, j * StonesHeight + dt * StonesHeight * c, 0));
+            glShaderVertex(v + v3(1, j * StonesHeight + StonesHeight + dt * StonesHeight * c, 0));
+          End;
+          glShaderEnd();
+        End
+        Else Begin
+          // Ein rahmen um das Komplette Feld
+          If field[i, j] >= 0 Then Begin
+            glShaderBegin(GL_LINE_LOOP);
+            glShaderVertex(v + v3(1, j * StonesHeight + dt * StonesHeight * c, 0));
+            glShaderVertex(v + v3(StonesWidth, j * StonesHeight + dt * StonesHeight * c, 0));
+            glShaderVertex(v + v3(StonesWidth, j * StonesHeight + StonesHeight + dt * StonesHeight * c - 1, 0));
+            glShaderVertex(v + v3(0, j * StonesHeight + StonesHeight + dt * StonesHeight * c - 1, 0));
+            glShaderEnd();
+          End;
+        End;
+        UseTextureShader();
+      End; // C = 0
+    End;
+    v := v + v3(StonesWidth, 0, 0);
+  End;
+  If F_XsTextured Then
+    gldisable(gl_Blend);
+{$ENDIF}
   // Wenn es nichts zum runterfallen gibt.
   If b Then Begin
     DropStartTime := GetTickCount - 2 * DropStoneDelay;

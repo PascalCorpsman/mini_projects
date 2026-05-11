@@ -10,6 +10,7 @@ object Form1: TForm1
   LCLVersion = '4.99.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   object OpenGLControl1: TOpenGLControl
     Left = 5
     Height = 336

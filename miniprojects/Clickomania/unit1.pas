@@ -24,6 +24,7 @@
 (*                                                                            *)
 (* History     : 0.01 - 0.03: Initial version / unkbown                       *)
 (*               0.04 : release auf Github                                    *)
+(*               0.05 : switch rendering to shader                            *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -42,6 +43,8 @@ Uses
   lclintf,
   lcltype,
   uopengl_graphikengine // Zum Laden von Graphiken
+  , uopengl_shaderprimitives
+  , uopengl_legacychecker
   , uopengl_spriteengine
   , uclickomania;
 
@@ -67,6 +70,7 @@ Type
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
@@ -86,8 +90,6 @@ Type
   public
     { public declarations }
     Function Callback(Sender: TObject; MetaData: Pointer): Boolean;
-    Procedure Go2d();
-    Procedure Exit2d();
     Procedure CenterWindow;
   End;
 
@@ -110,7 +112,19 @@ Uses Unit2, unit3, unit4, unit5, unit6, unit7, uvectormath;
 Var
   allowcnt: Integer = 0;
 
-  // Setzt die Größe des Formulares in Abhängigkeit der Spiefeldgröße..
+{$IFNDEF LEGACYMODE}
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := false;
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
+End;
+{$ENDIF}
+
+// Setzt die Größe des Formulares in Abhängigkeit der Spiefeldgröße..
 
 Procedure SetFormSize;
 Begin
@@ -302,26 +316,6 @@ Begin
 {$ENDIF}
 End;
 
-Procedure TForm1.Go2d;
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  //  glOrtho(0, 640, 0, 480, -1, 1); // Set Up An Ortho Screen
-  glOrtho(0, OpenGLControl1.Width, OpenGLControl1.height, 0, -1, 1); // Set Up An Ortho Screen
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
-End;
-
-Procedure TForm1.Exit2d;
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
-End;
-
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
   If allowcnt > 2 Then Begin
@@ -334,36 +328,62 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+{$IFNDEF LEGACYMODE}
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+{$ENDIF}
   End;
-  (*
-  Man bedenke, jedesmal wenn der Renderingcontext neu erstellt wird, müssen sämtliche Graphiken neu Geladen werden.
-  Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
-  *)
-  glenable(GL_TEXTURE_2D); // Texturen
-  OpenGL_GraphikEngine.clear;
-  bombtex := OpenGL_GraphikEngine.LoadAlphaGraphik(AppPath + 'GFX' + PathDelim + 'bomb.png');
-  rockettex := OpenGL_GraphikEngine.LoadAlphaGraphik(AppPath + 'GFX' + PathDelim + 'rocket.png');
-  Stonetex := OpenGL_GraphikEngine.LoadAlphaGraphik(AppPath + 'GFX' + PathDelim + 'stone.png');
-  OpenGL_SpriteEngine.Clear;
-  ExpSprite := OpenGL_SpriteEngine.AddSprite(
-    OpenGL_GraphikEngine.LoadAlphaGraphik(AppPath + 'GFX' + PathDelim + 'explosion.png'), // Textur
-    'Explosion', // Name des Sprites
-    true, // Transparent
-    Frect(0, 0, 1, 1), // Nutzrect auf dem Bild
-    1, 1, // Breite, Höhe beim Rendern
-    4, 4, // Anzahl der Frames Pro Zeile und Spalte
-    0, 16, // Frame Start und Ende
-    10, // Delay Pro bild
-    // 100, // Delay Pro bild -- Debugg
-    @Callback, Nil
-    );
-  // Der Anwendung erlauben zu Rendern.
-  Initialized := True;
-  OpenGLControl1Resize(Nil);
-  // Nach dem Laden der Config Datei setzen wir alle entsprechenden Größen
-  // und starten das 1. Spiel
-  SpeedButton1Click(Nil);
-  CenterWindow;
+  If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
+    (*
+    Man bedenke, jedesmal wenn der Renderingcontext neu erstellt wird, müssen sämtliche Graphiken neu Geladen werden.
+    Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
+    *)
+{$IFDEF LEGACYMODE}
+    glenable(GL_TEXTURE_2D); // Texturen
+{$ENDIF}
+    OpenGL_GraphikEngine.clear;
+{$IFNDEF LEGACYMODE}
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
+{$ENDIF}
+    bombtex := OpenGL_GraphikEngine.LoadAlphaColorGraphikItem(AppPath + 'GFX' + PathDelim + 'bomb.png', Fuchsia);
+    rockettex := OpenGL_GraphikEngine.LoadAlphaColorGraphikItem(AppPath + 'GFX' + PathDelim + 'rocket.png', Fuchsia);
+    Stonetex := OpenGL_GraphikEngine.LoadAlphaColorGraphikItem(AppPath + 'GFX' + PathDelim + 'stone.png', Fuchsia);
+    OpenGL_SpriteEngine.Clear;
+    ExpSprite := OpenGL_SpriteEngine.AddSprite(
+      OpenGL_GraphikEngine.LoadAlphaColorGraphikItem(AppPath + 'GFX' + PathDelim + 'explosion.png', Fuchsia), // Textur
+      'Explosion', // Name des Sprites
+      true, // Transparent
+      Frect(0, 0, 1, 1), // Nutzrect auf dem Bild
+      1, 1, // Breite, Höhe beim Rendern
+      4, 4, // Anzahl der Frames Pro Zeile und Spalte
+      0, 16, // Frame Start und Ende
+      10, // Delay Pro bild
+      // 100, // Delay Pro bild -- Debugg
+      @Callback, Nil
+      );
+    // Der Anwendung erlauben zu Rendern.
+    Initialized := True;
+{$IFNDEF LEGACYMODE}
+    ReActivateKHRDebug; // Reenable KHRDebug
+{$ENDIF}
+    OpenGLControl1Resize(Nil);
+    // Nach dem Laden der Config Datei setzen wir alle entsprechenden Größen
+    // und starten das 1. Spiel
+    SpeedButton1Click(Nil);
+    CenterWindow;
+  End;
+  Form1.Invalidate;
 End;
 
 Procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -421,17 +441,22 @@ Begin
   // Render Szene
   glClearColor(0.5, 0.5, 0.5, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
+{$IFDEF LEGACYMODE}
   glLoadIdentity();
-  go2d;
   glColor4f(1, 1, 1, 1);
+{$ENDIF}
+  go2d(OpenGLControl1.Width, OpenGLControl1.Height);
   glBindTexture(GL_TEXTURE_2d, 0);
   // Hintergrundbild
   If Backstyle <> bsgray Then Begin
-    glcolor3f(1, 1, 1);
-    RenderQuad(point(0, 0), v2(OpenGLControl1.Width, OpenGLControl1.Height), 180, false, Backtex);
+{$IFDEF LEGACYMODE}
+    RenderQuad(point(0, 0), v2(OpenGLControl1.Width, OpenGLControl1.Height), 180, false, Backtex.Image);
     glBindTexture(GL_TEXTURE_2d, 0);
+{$ELSE}
+    RenderQuad(0, 0, 0, OpenGLControl1.Width, OpenGLControl1.Height, Backtex);
+    glBindTexture(GL_TEXTURE_2d, 0);
+{$ENDIF}
   End;
-  glcolor3f(1, 1, 1);
   Case GameState Of
     gsWaitForPlayerInput: Begin
         // Das Spielfeld
@@ -469,11 +494,17 @@ End;
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
   If Initialized Then Begin
+{$IFDEF LEGACYMODE}
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
     gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
+{$ELSE}
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
+{$ENDIF}
   End;
 End;
 
@@ -624,6 +655,10 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
+{$IFNDEF LEGACYMODE}
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
+{$ENDIF}
   (*
   60 - FPS entsprechen
   0.01666666 ms
@@ -678,6 +713,16 @@ Begin
     f.free;
   End;
   SpeedButton2.Enabled := Trackthegame;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+{$IFNDEF LEGACYMODE}
+  If OpenGLControl1.MakeCurrent Then Begin
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+  End;
+{$ENDIF}
 End;
 
 Procedure TForm1.MenuItem1Click(Sender: TObject);
