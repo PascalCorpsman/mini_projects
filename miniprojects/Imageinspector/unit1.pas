@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Imageinspector                                                  ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.07                                                         *)
+(* Version     : 0.08                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -50,6 +50,7 @@
 (*                           Editable                                         *)
 (*               0.07      - Wenn die Größe drastisch verkleinert wurde, hat  *)
 (*                           es die Metrik Messpunkte aus dem Bild            *)
+(*               0.08      - Exportieren von Punkt Koordinaten aller objekte  *)
 (*                                                                            *)
 (******************************************************************************)
   (*
@@ -401,6 +402,7 @@ Function PixelToArea(Area: Single): Single;
 
 Function GetPixelUnit(): String;
 Function GetPixelAreaUnit(): String;
+Function GetCoordUnit(): String;
 
 Function GetValue(Section, Ident, Default: String): String;
 Procedure SetValue(Section, Ident, value: String);
@@ -459,6 +461,11 @@ End;
 Function GetPixelAreaUnit(): String;
 Begin
   result := form1.ComboBox2.Text + '²';
+End;
+
+Function GetCoordUnit(): String;
+Begin
+  result := form1.ComboBox2.Text + '/' + form1.ComboBox2.Text;
 End;
 
 Function PixelToDistance(Len: Single): Single;
@@ -533,7 +540,7 @@ Begin
 
   ini := TIniFile.Create(IncludeTrailingPathDelimiter(GetAppConfigDir(false)) + 'settings.ini');
 
-  Defcaption := 'Image inspector ver. 0.07';
+  Defcaption := 'Image inspector ver. 0.08';
   Caption := Defcaption;
   MouseAbsolute := point(0, 0);
   fProjectFileName := '';
@@ -786,7 +793,7 @@ Procedure TForm1.PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
     cl.OnChange := @ObjChange;
     fPreview.Clear;
     If form12.Visible Then Begin
-      form12.RefreshData;
+      form12.RefreshData(GetValue('General', 'ExportCoordsInTables', '0') = '1');
     End;
     SetChanged();
   End;
@@ -935,7 +942,7 @@ Begin
             End;
             setlength(fMeasureElements, high(fMeasureElements));
             If form12.Visible Then Begin
-              form12.RefreshData;
+              form12.RefreshData(GetValue('General', 'ExportCoordsInTables', '0') = '1');
             End;
             break;
           End;
@@ -1572,7 +1579,7 @@ Procedure TForm1.ObjChange(Sender: TObject);
 Begin
   If form12.Visible Then Begin
     If sender = fMetrik Then Begin
-      form12.RefreshData;
+      form12.RefreshData(GetValue('General', 'ExportCoordsInTables', '0') = '1');
     End
     Else Begin
       form12.RefreshDataObj(Sender As TMeasureElement);
@@ -2821,7 +2828,7 @@ Begin
   ComboBox2Change(Nil);
   SetChanged();
   If assigned(form12) And form12.Visible Then Begin
-    form12.RefreshData;
+    form12.RefreshData(GetValue('General', 'ExportCoordsInTables', '0') = '1');
   End;
 End;
 
@@ -3015,10 +3022,12 @@ Var
   ol, uo, i: integer;
 Begin
   form14.CheckBox1.Checked := GetValue('General', 'RememberLast', '1') = '1';
+  form14.CheckBox2.Checked := GetValue('General', 'ExportCoordsInTables', '0') = '1';
   form14.Edit1.Text := inttostr(strtointdef(GetValue('General', 'MaxUndoImg', '10'), 10));
   form14.Edit2.Text := inttostr(strtointdef(GetValue('General', 'MaxUndoObj', '100'), 100));
   If form14.ShowModal = mrOK Then Begin
     SetValue('General', 'RememberLast', inttostr(ord(form14.CheckBox1.Checked)));
+    SetValue('General', 'ExportCoordsInTables', inttostr(ord(form14.CheckBox2.Checked)));
     // undo Objects
     uo := strtointdef(Form14.Edit2.Text, -1);
     If uo > 0 Then Begin
@@ -3155,7 +3164,7 @@ Procedure TForm1.BitBtn6Click(Sender: TObject);
 Begin
   // Show Table
   form12.Show;
-  form12.RefreshData;
+  form12.RefreshData(GetValue('General', 'ExportCoordsInTables', '0') = '1');
 End;
 
 Procedure TForm1.BitBtn7Click(Sender: TObject);
@@ -3166,7 +3175,7 @@ Var
 Begin
   // CSV Export
   If SaveDialog3.Execute Then Begin
-    form12.RefreshData;
+    form12.RefreshData(GetValue('General', 'ExportCoordsInTables', '0') = '1');
     // Alle Daten sind gesammelt -> Speichern
     sl := TStringList.Create;
     For j := 0 To Form12.StringGrid1.RowCount - 1 Do Begin
@@ -3444,7 +3453,7 @@ Begin
   UpdateSizeInfo();
   StatusBar1.Panels[Panel_index_Filename].Text := ExtractFileName(Filename);
   If assigned(form12) And form12.Visible Then Begin
-    form12.RefreshData;
+    form12.RefreshData(GetValue('General', 'ExportCoordsInTables', '0') = '1');
   End;
   label4.visible := false;
   fChanged := false;

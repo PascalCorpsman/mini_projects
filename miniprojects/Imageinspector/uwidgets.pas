@@ -52,6 +52,7 @@ Type
   public
     Constructor Create(aOwner: TPaintBox); override;
     Procedure Render; virtual;
+    Function GetCoordString(): String;
   End;
 
   { TTextField }
@@ -107,7 +108,7 @@ Type
     Procedure RefreshText(); virtual; // Abstract
     Procedure Render; virtual; // Abstract
 
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); virtual; //abstract;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); virtual; //abstract;
 
     Function Hit(x, y: Integer): Boolean; virtual; // True, wenn das Element in Pixelkoordinaten angeklickt werden "könnte" (geht ja net, weils
     Procedure SetPoints(Points: TPointArray); virtual;
@@ -123,7 +124,7 @@ Type
   private
     Function GetLength(): Single;
   public
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
     Procedure RefreshText(); override;
     Procedure Render; override;
   End;
@@ -134,7 +135,7 @@ Type
   private
     Function GetArea(): Single;
   public
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
     Procedure RefreshText(); override;
     Procedure Render; override;
   End;
@@ -153,7 +154,7 @@ Type
   protected
     Procedure RefreshByKnob(Sender: TKnob); override;
   public
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
 
     Procedure RefreshText(); override;
     Procedure Render; override;
@@ -179,7 +180,7 @@ Type
     Constructor Create(Owner: TPaintBox); override;
     Destructor Destroy(); override;
 
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
 
     Procedure RefreshText(); override;
     Procedure Render; override;
@@ -203,7 +204,7 @@ Type
     Constructor Create(Owner: TPaintBox); override;
     Destructor Destroy(); override;
 
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
 
     Procedure RefreshText(); override;
     Procedure Render; override;
@@ -229,7 +230,7 @@ Type
     Constructor Create(Owner: TPaintBox); override;
     Destructor Destroy(); override;
 
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
 
     Procedure RefreshText(); override;
     Procedure Render; override;
@@ -243,7 +244,7 @@ Type
   private
     Function GetAngle(): Single;
   public
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
     Procedure RefreshText(); override;
     Procedure Render; override;
   End;
@@ -256,7 +257,7 @@ Type
     Function GetLength(): Single;
     Function GetRadius(): Single;
   public
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
     Procedure RefreshText(); override;
     Procedure Render; override;
   End;
@@ -270,7 +271,7 @@ Type
 
     Procedure LoadFromStream(Const Stream: TStream); override;
   public
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
     Procedure SetText(Text: String);
     Function GetText(): String;
     Procedure RefreshText(); override;
@@ -284,7 +285,7 @@ Type
   private
   protected
   public
-    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; Line: integer = -1); override;
+    Procedure AddInfoToStringgrid(Const Stringgrid: TStringGrid; Index: integer; AddKoordinates: Boolean; Line: integer = -1); override;
 
     Procedure RefreshText(); override;
     Procedure Render; override;
@@ -304,7 +305,7 @@ Type
 
     Constructor Create(Owner: TPaintBox); override;
 
-    Procedure RefreshText(); override; // !! ACHTUNG !! das wird misbraucht zum Auslosen des OnChanged Events, die Metrik selbst hat keinen Text !!
+    Procedure RefreshText(); override; // !! ACHTUNG !! das wird misbraucht zum Auslösen des OnChanged Events, die Metrik selbst hat keinen Text !!
 
     Function PixelToDistance(Len: Single): Single;
     Function PixelToArea(Area: Single): Single;
@@ -426,6 +427,11 @@ Const
 Procedure Nop;
 Begin
 
+End;
+
+Function TPointToCoordString(Const p: Tpoint): String;
+Begin
+  result := format('%0.2f / %0.2f', [PixelToDistance(p.x), PixelToDistance(p.y)]);
 End;
 
 Function TextHeight(Const Canvas: TCanvas; Text: String): integer;
@@ -704,12 +710,12 @@ End;
 { TArrow }
 
 Procedure TArrow.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Begin
   // Nichts, der hat keinen Eintrag im CSV
 End;
 
-Procedure TArrow.RefreshText();
+Procedure TArrow.RefreshText;
 Begin
   fText.Visible := false; // Der Pfeil hat keinen Text
 End;
@@ -755,7 +761,7 @@ Begin
 End;
 
 Procedure TText.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Begin
   // Nichts, der hat keinen Eintrag im CSV
 End;
@@ -772,12 +778,12 @@ Begin
   setlength(fPoints, 0);
 End;
 
-Function TText.GetText(): String;
+Function TText.GetText: String;
 Begin
   result := fText.Text;
 End;
 
-Procedure TText.RefreshText();
+Procedure TText.RefreshText;
 Begin
   // Nichts zu tun, Text wurde durch User eingegeben
 End;
@@ -801,7 +807,7 @@ End;
 
 { TArc }
 
-Function TArc.GetAngle(): Single;
+Function TArc.GetAngle: Single;
 Var
   t, p1, p2, p3, c: TVector2;
 Begin
@@ -818,7 +824,7 @@ Begin
   Result := AngleV2_2(p1 - c, p3 - c);
 End;
 
-Function TArc.GetLength(): Single;
+Function TArc.GetLength: Single;
 Var
   u, a: Single;
 Begin
@@ -827,7 +833,7 @@ Begin
   result := (u * a) / 360;
 End;
 
-Function TArc.GetRadius(): Single;
+Function TArc.GetRadius: Single;
 Var
   p1, c: TVector2;
 Begin
@@ -837,13 +843,18 @@ Begin
 End;
 
 Procedure TArc.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Var
   i: integer;
 Begin
   If line = -1 Then Begin
     i := Stringgrid.RowCount;
-    Stringgrid.RowCount := i + 3;
+    If AddKoordinates Then Begin
+      Stringgrid.RowCount := i + 3 + 4;
+    End
+    Else Begin
+      Stringgrid.RowCount := i + 3;
+    End;
   End
   Else Begin
     i := Line;
@@ -865,9 +876,36 @@ Begin
   Stringgrid.Cells[GridIndexMUnit, i + 2] := 'Radius';
   Stringgrid.Cells[GridIndexValue, i + 2] := format('%0.2f', [GetRadius()]);
   Stringgrid.Cells[GridIndexUnit, i + 2] := GetPixelUnit();
+  If AddKoordinates Then Begin
+    // Center
+    Stringgrid.Cells[GridIndexID, i + 3] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 3] := '3-Point-Arc';
+    Stringgrid.Cells[GridIndexMUnit, i + 3] := 'Center';
+    Stringgrid.Cells[GridIndexValue, i + 3] := fMiddle.GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 3] := GetCoordUnit;
+
+    // P1
+    Stringgrid.Cells[GridIndexID, i + 4] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 4] := '3-Point-Arc';
+    Stringgrid.Cells[GridIndexMUnit, i + 4] := 'P1';
+    Stringgrid.Cells[GridIndexValue, i + 4] := fPoints[0].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 4] := GetCoordUnit;
+    // P2
+    Stringgrid.Cells[GridIndexID, i + 5] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 5] := '3-Point-Arc';
+    Stringgrid.Cells[GridIndexMUnit, i + 5] := 'P2';
+    Stringgrid.Cells[GridIndexValue, i + 5] := fPoints[1].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 5] := GetCoordUnit;
+    // P3
+    Stringgrid.Cells[GridIndexID, i + 6] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 6] := '3-Point-Arc';
+    Stringgrid.Cells[GridIndexMUnit, i + 6] := 'P3';
+    Stringgrid.Cells[GridIndexValue, i + 6] := fPoints[2].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 6] := GetCoordUnit;
+  End;
 End;
 
-Procedure TArc.RefreshText();
+Procedure TArc.RefreshText;
 Begin
   fText.Text :=
     format('Length: %0.2f %s', [GetLength(), GetPixelUnit()]) + LineEnding +
@@ -913,7 +951,7 @@ End;
 
 { TAngle }
 
-Function TAngle.GetAngle(): Single;
+Function TAngle.GetAngle: Single;
 Var
   vv1, vv2: TVector2;
 Begin
@@ -923,13 +961,18 @@ Begin
 End;
 
 Procedure TAngle.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Var
-  i: integer;
+  i, j: integer;
 Begin
   If line = -1 Then Begin
     i := Stringgrid.RowCount;
-    Stringgrid.RowCount := i + 1;
+    If AddKoordinates Then Begin
+      Stringgrid.RowCount := i + 1 + 3;
+    End
+    Else Begin
+      Stringgrid.RowCount := i + 1;
+    End;
   End
   Else Begin
     i := Line;
@@ -939,9 +982,18 @@ Begin
   Stringgrid.Cells[GridIndexMUnit, i] := 'Angle';
   Stringgrid.Cells[GridIndexValue, i] := format('%0.2f', [GetAngle()]);
   Stringgrid.Cells[GridIndexUnit, i] := '°';
+  If AddKoordinates Then Begin
+    For j := 0 To high(fPoints) Do Begin
+      Stringgrid.Cells[GridIndexID, i + j + 1] := inttostr(Index);
+      Stringgrid.Cells[GridIndexObjType, i + j + 1] := 'Angle';
+      Stringgrid.Cells[GridIndexMUnit, i + j + 1] := 'P' + inttostr(j + 1);
+      Stringgrid.Cells[GridIndexValue, i + j + 1] := fPoints[j].GetCoordString();
+      Stringgrid.Cells[GridIndexUnit, i + j + 1] := GetCoordUnit();
+    End;
+  End;
 End;
 
-Procedure TAngle.RefreshText();
+Procedure TAngle.RefreshText;
 Begin
   fText.Text := format('Angle: %0.2f °', [GetAngle()]);
 End;
@@ -979,7 +1031,7 @@ Begin
   fMiddle.fParent := self;
 End;
 
-Destructor T3PointCircle.Destroy();
+Destructor T3PointCircle.Destroy;
 Begin
   fMiddle.free;
   Inherited Destroy();
@@ -991,7 +1043,7 @@ Begin
   fMiddle.Enabled := AValue;
 End;
 
-Procedure T3PointCircle.CalcMiddle();
+Procedure T3PointCircle.CalcMiddle;
 Var
   c: TCircle;
   m: Tpoint;
@@ -1032,17 +1084,17 @@ Begin
   End;
 End;
 
-Function T3PointCircle.GetCircumfence(): Single;
+Function T3PointCircle.GetCircumfence: Single;
 Begin
   result := pi * GetDiameter();
 End;
 
-Function T3PointCircle.GetArea(): Single;
+Function T3PointCircle.GetArea: Single;
 Begin
   result := pi * sqr(GetDiameter() / 2);
 End;
 
-Function T3PointCircle.GetDiameter(): Single;
+Function T3PointCircle.GetDiameter: Single;
 Var
   d: Single;
 Begin
@@ -1051,13 +1103,18 @@ Begin
 End;
 
 Procedure T3PointCircle.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Var
   i: integer;
 Begin
   If line = -1 Then Begin
     i := Stringgrid.RowCount;
-    Stringgrid.RowCount := i + 3;
+    If AddKoordinates Then Begin
+      Stringgrid.RowCount := i + 3 + 4;
+    End
+    Else Begin
+      Stringgrid.RowCount := i + 3;
+    End;
   End
   Else Begin
     i := Line;
@@ -1079,9 +1136,36 @@ Begin
   Stringgrid.Cells[GridIndexMUnit, i + 2] := 'Diameter';
   Stringgrid.Cells[GridIndexValue, i + 2] := format('%0.2f', [GetDiameter()]);
   Stringgrid.Cells[GridIndexUnit, i + 2] := GetPixelUnit();
+  If AddKoordinates Then Begin
+    // Center
+    Stringgrid.Cells[GridIndexID, i + 3] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 3] := '3-Point-Circle';
+    Stringgrid.Cells[GridIndexMUnit, i + 3] := 'Center';
+    Stringgrid.Cells[GridIndexValue, i + 3] := fMiddle.GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 3] := GetCoordUnit;
+
+    // P1
+    Stringgrid.Cells[GridIndexID, i + 4] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 4] := '3-Point-Circle';
+    Stringgrid.Cells[GridIndexMUnit, i + 4] := 'P1';
+    Stringgrid.Cells[GridIndexValue, i + 4] := fPoints[0].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 4] := GetCoordUnit;
+    // P2
+    Stringgrid.Cells[GridIndexID, i + 5] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 5] := '3-Point-Circle';
+    Stringgrid.Cells[GridIndexMUnit, i + 5] := 'P2';
+    Stringgrid.Cells[GridIndexValue, i + 5] := fPoints[1].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 5] := GetCoordUnit;
+    // P3
+    Stringgrid.Cells[GridIndexID, i + 6] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 6] := '3-Point-Circle';
+    Stringgrid.Cells[GridIndexMUnit, i + 6] := 'P3';
+    Stringgrid.Cells[GridIndexValue, i + 6] := fPoints[2].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 6] := GetCoordUnit;
+  End;
 End;
 
-Procedure T3PointCircle.RefreshText();
+Procedure T3PointCircle.RefreshText;
 Begin
   fText.Text :=
     format('Circumfence: %0.2f %s', [GetCircumfence(), GetPixelUnit()]) + LineEnding +
@@ -1135,7 +1219,7 @@ Begin
   fMiddle.fParent := self;
 End;
 
-Destructor T2PointCircle.Destroy();
+Destructor T2PointCircle.Destroy;
 Begin
   fMiddle.free;
   Inherited Destroy();
@@ -1166,17 +1250,17 @@ Begin
   End;
 End;
 
-Function T2PointCircle.GetCircumfence(): Single;
+Function T2PointCircle.GetCircumfence: Single;
 Begin
   result := pi * GetDiameter();
 End;
 
-Function T2PointCircle.GetArea(): Single;
+Function T2PointCircle.GetArea: Single;
 Begin
   result := pi * sqr(GetDiameter() / 2);
 End;
 
-Function T2PointCircle.GetDiameter(): Single;
+Function T2PointCircle.GetDiameter: Single;
 Var
   d: Single;
 Begin
@@ -1185,13 +1269,18 @@ Begin
 End;
 
 Procedure T2PointCircle.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Var
   i: integer;
 Begin
   If line = -1 Then Begin
     i := Stringgrid.RowCount;
-    Stringgrid.RowCount := i + 3;
+    If AddKoordinates Then Begin
+      Stringgrid.RowCount := i + 3 + 3;
+    End
+    Else Begin
+      Stringgrid.RowCount := i + 3;
+    End;
   End
   Else Begin
     i := Line;
@@ -1213,9 +1302,29 @@ Begin
   Stringgrid.Cells[GridIndexMUnit, i + 2] := 'Diameter';
   Stringgrid.Cells[GridIndexValue, i + 2] := format('%0.2f', [GetDiameter()]);
   Stringgrid.Cells[GridIndexUnit, i + 2] := GetPixelUnit();
+  If AddKoordinates Then Begin
+    // Center
+    Stringgrid.Cells[GridIndexID, i + 3] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 3] := 'Circle';
+    Stringgrid.Cells[GridIndexMUnit, i + 3] := 'Center';
+    Stringgrid.Cells[GridIndexValue, i + 3] := fMiddle.GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 3] := GetCoordUnit();
+    // P1
+    Stringgrid.Cells[GridIndexID, i + 4] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 4] := 'Circle';
+    Stringgrid.Cells[GridIndexMUnit, i + 4] := 'P1';
+    Stringgrid.Cells[GridIndexValue, i + 4] := fPoints[0].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 4] := GetCoordUnit();
+    // P2
+    Stringgrid.Cells[GridIndexID, i + 5] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 5] := 'Circle';
+    Stringgrid.Cells[GridIndexMUnit, i + 5] := 'P2';
+    Stringgrid.Cells[GridIndexValue, i + 5] := fPoints[1].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 5] := GetCoordUnit();
+  End;
 End;
 
-Procedure T2PointCircle.RefreshText();
+Procedure T2PointCircle.RefreshText;
 Begin
   fText.Text :=
     format('Circumfence: %0.2f %s', [GetCircumfence(), GetPixelUnit()]) + LineEnding +
@@ -1272,7 +1381,7 @@ Begin
   fLP.fParent := self;
 End;
 
-Destructor TLinePoint.Destroy();
+Destructor TLinePoint.Destroy;
 Begin
   fLP.free;
   Inherited Destroy();
@@ -1320,7 +1429,7 @@ Begin
   End;
 End;
 
-Function TLinePoint.GetLength(): Single;
+Function TLinePoint.GetLength: Single;
 Var
   l: Single;
 Begin
@@ -1329,13 +1438,18 @@ Begin
 End;
 
 Procedure TLinePoint.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Var
   i: integer;
 Begin
   If line = -1 Then Begin
     i := Stringgrid.RowCount;
-    Stringgrid.RowCount := i + 1;
+    If AddKoordinates Then Begin
+      Stringgrid.RowCount := i + 1 + 4;
+    End
+    Else Begin
+      Stringgrid.RowCount := i + 1;
+    End;
   End
   Else Begin
     i := Line;
@@ -1345,9 +1459,36 @@ Begin
   Stringgrid.Cells[GridIndexMUnit, i] := 'Length';
   Stringgrid.Cells[GridIndexValue, i] := format('%0.2f', [getLength()]);
   Stringgrid.Cells[GridIndexUnit, i] := GetPixelUnit();
+
+  If AddKoordinates Then Begin
+    // P1 der Linie
+    Stringgrid.Cells[GridIndexID, i + 1] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 1] := 'Line-Point-Distance';
+    Stringgrid.Cells[GridIndexMUnit, i + 1] := 'P1';
+    Stringgrid.Cells[GridIndexValue, i + 1] := fPoints[0].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 1] := GetCoordUnit();
+    // P2 der Linie
+    Stringgrid.Cells[GridIndexID, i + 2] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 2] := 'Line-Point-Distance';
+    Stringgrid.Cells[GridIndexMUnit, i + 2] := 'P2';
+    Stringgrid.Cells[GridIndexValue, i + 2] := fPoints[1].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 2] := GetCoordUnit();
+    // Lotfußpunkt
+    Stringgrid.Cells[GridIndexID, i + 3] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 3] := 'Line-Point-Distance';
+    Stringgrid.Cells[GridIndexMUnit, i + 3] := 'Point of perpendicularity';
+    Stringgrid.Cells[GridIndexValue, i + 3] := fLP.GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 3] := GetCoordUnit();
+    // DistanzePunkg
+    Stringgrid.Cells[GridIndexID, i + 4] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 4] := 'Line-Point-Distance';
+    Stringgrid.Cells[GridIndexMUnit, i + 4] := 'Distanze point';
+    Stringgrid.Cells[GridIndexValue, i + 4] := fPoints[2].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 4] := GetCoordUnit();
+  End;
 End;
 
-Procedure TLinePoint.RefreshText();
+Procedure TLinePoint.RefreshText;
 Begin
   fText.Text := format('Length: %0.2f %s', [GetLength(), GetPixelUnit()]);
 End;
@@ -1413,7 +1554,7 @@ Begin
   p2.fParent := self;
 End;
 
-Destructor TRectangle.Destroy();
+Destructor TRectangle.Destroy;
 Begin
   p1.free;
   p2.free;
@@ -1443,17 +1584,17 @@ Begin
   p2.Visible := AValue;
 End;
 
-Function TRectangle.GetWidth(): Single;
+Function TRectangle.GetWidth: Single;
 Begin
   result := PixelToDistance(abs(fPoints[0].Left - fPoints[1].Left));
 End;
 
-Function TRectangle.GetHeight(): Single;
+Function TRectangle.GetHeight: Single;
 Begin
   result := PixelToDistance(abs(fPoints[0].Top - fPoints[1].Top));
 End;
 
-Function TRectangle.GetArea(): Single;
+Function TRectangle.GetArea: Single;
 Begin
   result := GetWidth() * GetHeight();
 End;
@@ -1480,13 +1621,19 @@ Begin
 End;
 
 Procedure TRectangle.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Var
   i: integer;
+  p: Tpoint;
 Begin
   If line = -1 Then Begin
     i := Stringgrid.RowCount;
-    Stringgrid.RowCount := i + 3;
+    If AddKoordinates Then Begin
+      Stringgrid.RowCount := i + 3 + 4;
+    End
+    Else Begin
+      Stringgrid.RowCount := i + 3;
+    End;
   End
   Else Begin
     i := Line;
@@ -1509,9 +1656,38 @@ Begin
   Stringgrid.Cells[GridIndexMUnit, i + 2] := 'Height';
   Stringgrid.Cells[GridIndexValue, i + 2] := format('%0.2f', [GetHeight()]);
   Stringgrid.Cells[GridIndexUnit, i + 2] := GetPixelUnit();
+
+  If AddKoordinates Then Begin
+    // TL
+    Stringgrid.Cells[GridIndexID, i + 3] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 3] := 'Rectangle';
+    Stringgrid.Cells[GridIndexMUnit, i + 3] := 'Topleft';
+    Stringgrid.Cells[GridIndexValue, i + 3] := fPoints[0].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 3] := GetCoordUnit();
+    // TR
+    p := point(fPoints[1].Left, fPoints[0].Top);
+    Stringgrid.Cells[GridIndexID, i + 4] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 4] := 'Rectangle';
+    Stringgrid.Cells[GridIndexMUnit, i + 4] := 'Topright';
+    Stringgrid.Cells[GridIndexValue, i + 4] := TPointToCoordString(p);
+    Stringgrid.Cells[GridIndexUnit, i + 4] := GetCoordUnit();
+    // BL
+    p := point(fPoints[0].Left, fPoints[1].Top);
+    Stringgrid.Cells[GridIndexID, i + 5] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 5] := 'Rectangle';
+    Stringgrid.Cells[GridIndexMUnit, i + 5] := 'Bottomleft';
+    Stringgrid.Cells[GridIndexValue, i + 5] := TPointToCoordString(p);
+    Stringgrid.Cells[GridIndexUnit, i + 5] := GetCoordUnit();
+    // BR
+    Stringgrid.Cells[GridIndexID, i + 6] := inttostr(Index);
+    Stringgrid.Cells[GridIndexObjType, i + 6] := 'Rectangle';
+    Stringgrid.Cells[GridIndexMUnit, i + 6] := 'Bottomright';
+    Stringgrid.Cells[GridIndexValue, i + 6] := fPoints[1].GetCoordString();
+    Stringgrid.Cells[GridIndexUnit, i + 6] := GetCoordUnit();
+  End;
 End;
 
-Procedure TRectangle.RefreshText();
+Procedure TRectangle.RefreshText;
 Begin
   fText.Text :=
     format('Area: %0.2f %s', [GetArea, GetPixelAreaUnit()]) + LineEnding +
@@ -1596,7 +1772,7 @@ Begin
   fText.Render;
 End;
 
-Function TPolygon.GetArea(): Single;
+Function TPolygon.GetArea: Single;
 Var
   a: Single;
   i: Integer;
@@ -1613,13 +1789,18 @@ Begin
 End;
 
 Procedure TPolygon.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Var
-  i: integer;
+  i, j: integer;
 Begin
   If line = -1 Then Begin
     i := Stringgrid.RowCount;
-    Stringgrid.RowCount := i + 2;
+    If AddKoordinates Then Begin
+      Stringgrid.RowCount := i + 2 + length(fPoints);
+    End
+    Else Begin
+      Stringgrid.RowCount := i + 2;
+    End;
   End
   Else Begin
     i := Line;
@@ -1636,9 +1817,19 @@ Begin
   Stringgrid.Cells[GridIndexMUnit, i + 1] := 'Perimeter';
   Stringgrid.Cells[GridIndexValue, i + 1] := format('%0.2f', [getLength()]);
   Stringgrid.Cells[GridIndexUnit, i + 1] := GetPixelUnit();
+
+  If AddKoordinates Then Begin
+    For j := 0 To high(fPoints) Do Begin
+      Stringgrid.Cells[GridIndexID, i + j + 2] := inttostr(Index);
+      Stringgrid.Cells[GridIndexObjType, i + j + 2] := 'Polygon';
+      Stringgrid.Cells[GridIndexMUnit, i + j + 2] := 'P' + inttostr(j + 1);
+      Stringgrid.Cells[GridIndexValue, i + j + 2] := fPoints[j].GetCoordString();
+      Stringgrid.Cells[GridIndexUnit, i + j + 2] := GetCoordUnit();
+    End;
+  End;
 End;
 
-Procedure TPolygon.RefreshText();
+Procedure TPolygon.RefreshText;
 Begin
   fText.Text := format('Area: %0.2f %s', [GetArea(), GetPixelAreaUnit()]) + LineEnding +
   format('Perimeter: %0.2f %s', [GetLength(), GetPixelUnit()]);
@@ -1646,7 +1837,7 @@ End;
 
 { TMultiLine }
 
-Function TMultiLine.GetLength(): Single;
+Function TMultiLine.GetLength: Single;
 Var
   i: integer;
 Begin
@@ -1658,13 +1849,18 @@ Begin
 End;
 
 Procedure TMultiLine.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Var
-  i: integer;
+  i, j: integer;
 Begin
   If line = -1 Then Begin
     i := Stringgrid.RowCount;
-    Stringgrid.RowCount := i + 1;
+    If AddKoordinates Then Begin
+      Stringgrid.RowCount := i + 1 + length(fPoints);
+    End
+    Else Begin
+      Stringgrid.RowCount := i + 1;
+    End;
   End
   Else Begin
     i := Line;
@@ -1674,9 +1870,18 @@ Begin
   Stringgrid.Cells[GridIndexMUnit, i] := 'Length';
   Stringgrid.Cells[GridIndexValue, i] := format('%0.2f', [getLength()]);
   Stringgrid.Cells[GridIndexUnit, i] := GetPixelUnit();
+  If AddKoordinates Then Begin
+    For j := 0 To high(fPoints) Do Begin
+      Stringgrid.Cells[GridIndexID, i + j + 1] := inttostr(Index);
+      Stringgrid.Cells[GridIndexObjType, i + j + 1] := 'Line';
+      Stringgrid.Cells[GridIndexMUnit, i + j + 1] := 'P' + inttostr(j + 1);
+      Stringgrid.Cells[GridIndexValue, i + j + 1] := fPoints[j].GetCoordString();
+      Stringgrid.Cells[GridIndexUnit, i + j + 1] := GetCoordUnit();
+    End;
+  End;
 End;
 
-Procedure TMultiLine.RefreshText();
+Procedure TMultiLine.RefreshText;
 Begin
   fText.Text := format('Length: %0.2f %s', [GetLength(), GetPixelUnit()]);
 End;
@@ -1786,7 +1991,7 @@ Begin
   fText.ReadOnly := true;
 End;
 
-Destructor TMeasureElement.Destroy();
+Destructor TMeasureElement.Destroy;
 Var
   i: Integer;
 Begin
@@ -1818,7 +2023,7 @@ Begin
   End;
 End;
 
-Function TMeasureElement.ClassToIdentifier(): int32;
+Function TMeasureElement.ClassToIdentifier: int32;
 Var
   i: Integer;
 Begin
@@ -1871,7 +2076,7 @@ Begin
   fText.Visible := AValue;
 End;
 
-Procedure TMeasureElement.InitText();
+Procedure TMeasureElement.InitText;
 Var
   x, y, i: integer;
 Begin
@@ -1888,7 +2093,7 @@ Begin
   RefreshText;
 End;
 
-Procedure TMeasureElement.RefreshText();
+Procedure TMeasureElement.RefreshText;
 Begin
   Raise exception.create('Missing "RefreshText" implementation for: ' + ClassName);
 End;
@@ -1899,7 +2104,7 @@ Begin
 End;
 
 Procedure TMeasureElement.AddInfoToStringgrid(Const Stringgrid: TStringGrid;
-  Index: integer; Line: integer);
+  Index: integer; AddKoordinates: Boolean; Line: integer);
 Begin
   Raise exception.create('Missing "AddInfoToStringgrid" implementation for: ' + ClassName);
 End;
@@ -1938,7 +2143,7 @@ Begin
   End;
 End;
 
-Function TMeasureElement.GetPoints(): TPointArray;
+Function TMeasureElement.GetPoints: TPointArray;
 Var
   i: Integer;
 Begin
@@ -2126,6 +2331,11 @@ Begin
   p := InverseTransformRoutine(left, top);
   d := point(Width, height);
   fOwner.canvas.Rectangle(p.x, p.y, p.x + d.x, p.y + d.y);
+End;
+
+Function TKnob.GetCoordString(): String;
+Begin
+  result := TPointToCoordString(point(left, top));
 End;
 
 { TPreview }

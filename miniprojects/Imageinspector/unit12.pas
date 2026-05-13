@@ -31,9 +31,9 @@ Type
     Procedure Button1Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
   private
-
+    fExportAbsoluteCoordinates: Boolean;
   public
-    Procedure RefreshData;
+    Procedure RefreshData(ExportAbsoluteCoordinates: Boolean);
     Procedure RefreshDataObj(Sender: TMeasureElement);
   End;
 
@@ -58,10 +58,11 @@ Begin
   caption := 'Table of measurements';
 End;
 
-Procedure TForm12.RefreshData;
+Procedure TForm12.RefreshData(ExportAbsoluteCoordinates: Boolean);
 Var
   i: Integer;
 Begin
+  fExportAbsoluteCoordinates := ExportAbsoluteCoordinates;
   StringGrid1.BeginUpdate;
   StringGrid1.ColCount := 5;
   StringGrid1.Cells[GridIndexID, 0] := 'ID';
@@ -71,7 +72,7 @@ Begin
   StringGrid1.Cells[GridIndexUnit, 0] := 'Unit';
   StringGrid1.RowCount := 1;
   For i := 0 To high(form1.fMeasureElements) Do Begin
-    form1.fMeasureElements[i].AddInfoToStringgrid(StringGrid1, i + 1);
+    form1.fMeasureElements[i].AddInfoToStringgrid(StringGrid1, i + 1, fExportAbsoluteCoordinates);
   End;
   StringGrid1.EndUpdate();
   StringGrid1.AutoAdjustColumns;
@@ -85,7 +86,7 @@ Begin
     If Form1.fMeasureElements[i] = Sender Then Begin
       For j := 1 To StringGrid1.RowCount - 1 Do Begin
         If StringGrid1.Cells[GridIndexID, j] = inttostr(i + 1) Then Begin
-          form1.fMeasureElements[i].AddInfoToStringgrid(StringGrid1, i + 1, j);
+          form1.fMeasureElements[i].AddInfoToStringgrid(StringGrid1, i + 1, fExportAbsoluteCoordinates, j);
           exit;
         End;
       End;

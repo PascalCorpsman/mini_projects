@@ -31,6 +31,7 @@ Type
     Button2: TButton;
     Button3: TButton;
     CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Label1: TLabel;
@@ -75,8 +76,7 @@ Begin
     'Contributor: Julian Bauknecht' + LineEnding +
     'Homepage: www.Corpsman.de' + LineEnding +
     'License: ' + LineEnding +
-    '   This program is postcardware, see Homepage' + LineEnding +
-    '   for futher details' + LineEnding +
+    '   https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md' + LineEnding +
     'Warranty: There is no warranty!' + LineEnding +
     'Description: ' + LineEnding +
     '   This tool is intended to measure distances' + LineEnding +
