@@ -32,6 +32,7 @@ Type
     Button3: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
+    CheckBox3: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Label1: TLabel;

@@ -52,6 +52,7 @@
 (*                           es die Metrik Messpunkte aus dem Bild            *)
 (*               0.08      - Exportieren von Punkt Koordinaten aller objekte  *)
 (*                         - FIX: Offset bei Perspektifischer Verzerrung      *)
+(*                         - ADD: remember tools positions                    *)
 (*                                                                            *)
 (******************************************************************************)
   (*
@@ -407,6 +408,8 @@ Function GetCoordUnit(): String;
 
 Function GetValue(Section, Ident, Default: String): String;
 Procedure SetValue(Section, Ident, value: String);
+Function GetPoint(Section, Ident: String; Default: TPoint): Tpoint;
+Procedure SetPoint(Section, Ident: String; value: Tpoint);
 
 Implementation
 
@@ -452,6 +455,18 @@ Begin
   If assigned(ini) Then Begin
     ini.WriteString(Section, Ident, value);
   End;
+End;
+
+Function GetPoint(Section, Ident: String; Default: TPoint): Tpoint;
+Begin
+  result.x := strtointdef(getvalue(section, ident + 'X', ''), default.x);
+  result.Y := strtointdef(getvalue(section, ident + 'Y', ''), default.Y);
+End;
+
+Procedure SetPoint(Section, Ident: String; value: Tpoint);
+Begin
+  setvalue(section, ident + 'X', inttostr(value.X));
+  setvalue(section, ident + 'Y', inttostr(value.Y));
 End;
 
 Function GetPixelUnit(): String;
@@ -1351,6 +1366,7 @@ End;
 Procedure TForm1.Bevel19Click(Sender: TObject);
 Var
   pa: TPointArray;
+  i: Integer;
 Begin
   // Cut
   If Not assigned(fImage) Then exit;
@@ -1363,6 +1379,12 @@ Begin
     setlength(pa, 2);
     pa[0] := GlobalToImage(point(PaintBox1.Width Div 4, PaintBox1.Height Div 4));
     pa[1] := GlobalToImage(point((PaintBox1.Width * 3) Div 4, (PaintBox1.Height * 3) Div 4));
+    If GetValue('General', 'RememberToolsPositions', '0') = '1' Then Begin
+      // Speichern fürs "remembering"
+      For i := 0 To high(Pa) Do Begin
+        pa[i] := getPoint('Cuttool', 'Pts' + inttostr(i), pa[i]);
+      End;
+    End;
     fCutTool.SetPoints(Pa);
   End
   Else Begin
@@ -1382,6 +1404,7 @@ End;
 Procedure TForm1.Bevel5Click(Sender: TObject);
 Var
   pa: TPointArray;
+  i: Integer;
 Begin
   If Not assigned(fImage) Then exit;
   DisableAllManipulate_except(Bevel5);
@@ -1396,6 +1419,13 @@ Begin
     pa[1] := GlobalToImage(point(PaintBox1.Width Div 4, (PaintBox1.Height * 3) Div 4));
     pa[2] := GlobalToImage(point((PaintBox1.Width * 3) Div 4, PaintBox1.Height Div 4));
     pa[3] := GlobalToImage(point((PaintBox1.Width * 3) Div 4, (PaintBox1.Height * 3) Div 4));
+    If GetValue('General', 'RememberToolsPositions', '0') = '1' Then Begin
+      CheckBox3.Checked := getvalue('PerspectiveCorrection', 'Stretch', '0') = '1';
+      // Speichern fürs "remembering"
+      For i := 0 To high(Pa) Do Begin
+        pa[i] := GetPoint('PerspectiveCorrection', 'P' + inttostr(i), pa[i]);
+      End;
+    End;
     fPerspectiveCorrection.SetPoints(pa);
     fPerspectiveCorrection.Visible := true;
   End
@@ -1417,6 +1447,7 @@ End;
 Procedure TForm1.Bevel6Click(Sender: TObject);
 Var
   pa: TPointArray;
+  i: Integer;
 Begin
   If Not assigned(fImage) Then exit;
   DisableAllManipulate_except(Bevel6);
@@ -1436,6 +1467,14 @@ Begin
 
     fHeightCorrection.Texts[0] := format('%0.1f', [100.0]);
     fHeightCorrection.Texts[1] := format('%0.1f', [100.0]);
+
+    If GetValue('General', 'RememberToolsPositions', '0') = '1' Then Begin
+      fHeightCorrection.Texts[0] := getValue('ScaleTool', 'Text1', fHeightCorrection.Texts[0]);
+      fHeightCorrection.Texts[1] := getValue('ScaleTool', 'Text2', fHeightCorrection.Texts[1]);
+      For i := 0 To high(Pa) Do Begin
+        pa[i] := GetPoint('ScaleTool', 'P' + inttostr(i), pa[i]);
+      End;
+    End;
 
     fHeightCorrection.SetPoints(pa);
     fHeightCorrection.Visible := true;
@@ -2870,6 +2909,11 @@ Begin
   // Do the Perspektive Korrection
   PushUndoImg(fImage);
   p := fPerspectiveCorrection.GetPoints();
+  // Speichern fürs "remembering"
+  For i := 0 To high(P) Do Begin
+    SetPoint('PerspectiveCorrection', 'P' + inttostr(i), p[i]);
+  End;
+  setvalue('PerspectiveCorrection', 'Stretch', inttostr(ord(CheckBox3.Checked)));
   // Offset Verschiebung um den "Mittelpunkt" der Knöpfe..
   pt := GlobalToImage(point(5, 5), true);
   For i := 0 To high(p) Do Begin
@@ -2899,9 +2943,13 @@ Var
   m: tmatrix3x3;
   sm: TMatrixNxM;
   pa: TPointArray;
+  i: Integer;
 Begin
   // Do the Height Equalization
   p := fHeightCorrection.GetPoints();
+  For i := 0 To high(P) Do Begin
+    SetPoint('ScaleTool', 'P' + inttostr(i), p[i]);
+  End;
   v1 := p[1] - p[0];
   v2 := p[3] - p[2];
   a := AngleV2(v1, v2);
@@ -2915,6 +2963,8 @@ Begin
     showmessage('Error, invalid value for distances.');
     exit;
   End;
+  setValue('ScaleTool', 'Text1', fHeightCorrection.Texts[0]);
+  setValue('ScaleTool', 'Text2', fHeightCorrection.Texts[1]);
   PushUndoImg(fImage);
   (*
    * Init the matrix to solve:  (The equations is sponsored by Julian Bauknecht ;) )
@@ -2939,6 +2989,7 @@ Begin
   m := IdentityMatrix3x3;
   m[1, 1] := py / px;
   MulImage(fImage, m, imBilinear);
+  pa := Nil;
   setlength(pa, 2);
   pa[0] := p[2];
   pa[1] := p[2];
@@ -2992,6 +3043,10 @@ Begin
   PushUndoImg(fImage);
   tmp := TBitmap.Create;
   pts := fCutTool.GetPoints();
+  // Speichern fürs "remembering"
+  For i := 0 To high(Pts) Do Begin
+    SetPoint('Cuttool', 'Pts' + inttostr(i), pts[i]);
+  End;
   // Offset Verschiebung um den "Mittelpunkt" der Knöpfe..
   pt := GlobalToImage(point(5, 5), true);
   For i := 0 To high(pts) Do Begin
@@ -3038,11 +3093,13 @@ Var
 Begin
   form14.CheckBox1.Checked := GetValue('General', 'RememberLast', '1') = '1';
   form14.CheckBox2.Checked := GetValue('General', 'ExportCoordsInTables', '0') = '1';
+  form14.CheckBox3.Checked := GetValue('General', 'RememberToolsPositions', '0') = '1';
   form14.Edit1.Text := inttostr(strtointdef(GetValue('General', 'MaxUndoImg', '10'), 10));
   form14.Edit2.Text := inttostr(strtointdef(GetValue('General', 'MaxUndoObj', '100'), 100));
   If form14.ShowModal = mrOK Then Begin
     SetValue('General', 'RememberLast', inttostr(ord(form14.CheckBox1.Checked)));
     SetValue('General', 'ExportCoordsInTables', inttostr(ord(form14.CheckBox2.Checked)));
+    SetValue('General', 'RememberToolsPositions', inttostr(ord(form14.CheckBox3.Checked)));
     // undo Objects
     uo := strtointdef(Form14.Edit2.Text, -1);
     If uo > 0 Then Begin
