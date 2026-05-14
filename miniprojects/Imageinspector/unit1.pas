@@ -51,6 +51,7 @@
 (*               0.07      - Wenn die Größe drastisch verkleinert wurde, hat  *)
 (*                           es die Metrik Messpunkte aus dem Bild            *)
 (*               0.08      - Exportieren von Punkt Koordinaten aller objekte  *)
+(*                         - FIX: Offset bei Perspektifischer Verzerrung      *)
 (*                                                                            *)
 (******************************************************************************)
   (*
@@ -2863,10 +2864,17 @@ End;
 Procedure TForm1.Button4Click(Sender: TObject);
 Var
   P: TPointArray;
+  pt: TPoint;
+  i: Integer;
 Begin
   // Do the Perspektive Korrection
   PushUndoImg(fImage);
   p := fPerspectiveCorrection.GetPoints();
+  // Offset Verschiebung um den "Mittelpunkt" der Knöpfe..
+  pt := GlobalToImage(point(5, 5), true);
+  For i := 0 To high(p) Do Begin
+    p[i] := p[i] + pt;
+  End;
   CorrectProjection(fImage, p[0], p[1], p[2], p[3], imBilinear, wmBlack, CheckBox3.Checked);
   Bevel5Click(Nil); // Wieder Ausschalten als Bestätigung
   ReCreateStretchBMP();
@@ -2976,12 +2984,19 @@ Var
   tmp: TBitmap;
   pts: TPointArray;
   d: TVector2;
+  pt: TPoint;
+  i: Integer;
 Begin
   // Cut
   If Not assigned(fImage) Then exit;
   PushUndoImg(fImage);
   tmp := TBitmap.Create;
   pts := fCutTool.GetPoints();
+  // Offset Verschiebung um den "Mittelpunkt" der Knöpfe..
+  pt := GlobalToImage(point(5, 5), true);
+  For i := 0 To high(pts) Do Begin
+    pts[i] := pts[i] + pt;
+  End;
   d := pts[1] - pts[0];
   tmp.Width := round(abs(d.x));
   tmp.Height := round(abs(d.y));

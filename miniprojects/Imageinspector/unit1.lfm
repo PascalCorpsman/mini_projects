@@ -9,7 +9,7 @@ object Form1: TForm1
   ClientWidth = 988
   KeyPreview = True
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnChangeBounds = FormChangeBounds
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -19,7 +19,7 @@ object Form1: TForm1
     Left = 416
     Height = 16
     Top = 392
-    Width = 179
+    Width = 178
     Caption = 'Please load a image or project'
   end
   object PaintBox1: TPaintBox
@@ -87,9 +87,9 @@ object Form1: TForm1
     Height = 128
     Top = 8
     Width = 973
-    ActivePage = TabSheet5
+    ActivePage = TabSheet3
     Anchors = [akTop, akLeft, akRight]
-    TabIndex = 4
+    TabIndex = 2
     TabOrder = 3
     OnChange = PageControl1Change
     object TabSheet1: TTabSheet
@@ -342,7 +342,7 @@ object Form1: TForm1
         Left = 8
         Height = 16
         Top = 24
-        Width = 34
+        Width = 35
         Caption = 'Zoom'
       end
       object BitBtn1: TBitBtn
@@ -1902,7 +1902,7 @@ object Form1: TForm1
         Left = 32
         Height = 22
         Top = 64
-        Width = 102
+        Width = 101
         Caption = 'Show legend'
         TabOrder = 0
         OnChange = ScrollBar1Change
