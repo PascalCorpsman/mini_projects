@@ -18,11 +18,11 @@ Program Project1;
 {$MODE ObjFPC}{$H+}
 
 Uses
-  Forms, lazopenglcontext, Interfaces,
-  Unit1, uvectormath;
+  Forms, lazopenglcontext, Interfaces, Unit1;
 
 Begin
   Application.Initialize;
+  Application.Title:='';
   Application.CreateForm(TForm1, Form1);
   Application.Run;
 End.

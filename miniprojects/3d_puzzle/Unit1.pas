@@ -1,9 +1,9 @@
 (******************************************************************************)
 (* 3D-Puzzle                                                       20.11.2006 *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
-(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(* Author      : Uwe SchÃ¤chterle (Corpsman)                                   *)
 (*                                                                            *)
 (* Support     : www.Corpsman.de                                              *)
 (*                                                                            *)
@@ -24,6 +24,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - port to shader rendering                              *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -34,6 +35,7 @@ Interface
 
 Uses
   dglopengl, uvectormath,
+  Math,
   LCLIntf, LCLType, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, OpenGLContext;
 
@@ -59,13 +61,13 @@ Type
     Timer1: TTimer;
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
-    Procedure FormResize(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
+    Procedure OpenGLControl1Resize(Sender: TObject);
     Procedure RadioGroup1Click(Sender: TObject);
-    Procedure Panel1MouseDown(Sender: TObject; Button: TMouseButton;
+    Procedure OpenGLControl1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    Procedure Panel1MouseMove(Sender: TObject; Shift: TShiftState; X,
+    Procedure OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
@@ -75,14 +77,10 @@ Type
     Procedure Button3Click(Sender: TObject);
     Procedure Timer1Timer(Sender: TObject);
   private
+    Procedure SetupFrame;
     { Private-Deklarationen }
   public
     { Public-Deklarationen }
-    // The Render Function
-    Procedure Render;
-    // Functions for 2D Mode
-    Procedure Go2d;
-    Procedure Exit2d;
   End;
 
   // 0 = Unbelegt, 1 .. 6 = Farben
@@ -97,7 +95,7 @@ Const
   ScreenWidth = 512;
   ScreenHeight = 512;
   ROT_SENSITIVITY = 0.5;
-  // Die Farben der Seitenflächen
+  // Die Farben der SeitenflÃ¤chen
   Colors: Array[1..6] Of Tvector3 = (
     (x: 1; y: 0; z: 0),
     (x: 0; y: 1; z: 0),
@@ -106,7 +104,7 @@ Const
     (x: 1; y: 0; z: 1),
     (x: 1; y: 1; z: 0)
     );
-  // Offset für 2D Modus
+  // Offset fÃ¼r 2D Modus
   xoff = (512 - 400) Div 2;
   yoff = Xoff;
   // PieceBreite im 2D Modus
@@ -119,11 +117,11 @@ Var
   Initialized: Boolean = False;
   // Auswahl im menu deitlich schneller als jedesmal Radiogroupbox1.itemindex ab zu fragen.
   Switcher: Integer = 0;
-  // Rotationsmatrix des Würfels
+  // Rotationsmatrix des WÃ¼rfels
   RotMatrix: TMatrix4x4;
   // Alte Maus Daten
   aMouse: Tpoint;
-  // Der Angezeigt Würfel
+  // Der Angezeigt WÃ¼rfel
   Cube: TCubeData;
   //                           ist von 1 bis 6 wegen Switcher.
   VirtualPieces, Pieces: Array[1..6] Of TPiece;
@@ -132,8 +130,222 @@ Implementation
 
 {$R *.lfm}
 
+Uses
+  uopengl_graphikengine
+  , uopengl_legacychecker
+  , uopengl_shaderprimitives
+  ;
+
+{$IFNDEF LEGACYMODE}
+Const
+  CubeVertexData: Array[0..215] Of GLfloat = (
+    // Top (y = +0.5)
+    -0.5, 0.5, 0.5, 0.0, 1.0, 0.0,
+    0.5, 0.5, 0.5, 0.0, 1.0, 0.0,
+    0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
+    -0.5, 0.5, 0.5, 0.0, 1.0, 0.0,
+    0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
+    -0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
+    // Bottom (y = -0.5)
+    -0.5, -0.5, -0.5, 0.0, -1.0, 0.0,
+    0.5, -0.5, -0.5, 0.0, -1.0, 0.0,
+    0.5, -0.5, 0.5, 0.0, -1.0, 0.0,
+    -0.5, -0.5, -0.5, 0.0, -1.0, 0.0,
+    0.5, -0.5, 0.5, 0.0, -1.0, 0.0,
+    -0.5, -0.5, 0.5, 0.0, -1.0, 0.0,
+    // Front (z = +0.5)
+    -0.5, -0.5, 0.5, 0.0, 0.0, 1.0,
+    0.5, -0.5, 0.5, 0.0, 0.0, 1.0,
+    0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
+    -0.5, -0.5, 0.5, 0.0, 0.0, 1.0,
+    0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
+    -0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
+    // Back (z = -0.5)
+    -0.5, 0.5, -0.5, 0.0, 0.0, -1.0,
+    0.5, 0.5, -0.5, 0.0, 0.0, -1.0,
+    0.5, -0.5, -0.5, 0.0, 0.0, -1.0,
+    -0.5, 0.5, -0.5, 0.0, 0.0, -1.0,
+    0.5, -0.5, -0.5, 0.0, 0.0, -1.0,
+    -0.5, -0.5, -0.5, 0.0, 0.0, -1.0,
+    // Right (x = +0.5)
+    0.5, -0.5, 0.5, 1.0, 0.0, 0.0,
+    0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
+    0.5, 0.5, -0.5, 1.0, 0.0, 0.0,
+    0.5, -0.5, 0.5, 1.0, 0.0, 0.0,
+    0.5, 0.5, -0.5, 1.0, 0.0, 0.0,
+    0.5, 0.5, 0.5, 1.0, 0.0, 0.0,
+    // Left (x = -0.5)
+    -0.5, 0.5, 0.5, -1.0, 0.0, 0.0,
+    -0.5, 0.5, -0.5, -1.0, 0.0, 0.0,
+    -0.5, -0.5, -0.5, -1.0, 0.0, 0.0,
+    -0.5, 0.5, 0.5, -1.0, 0.0, 0.0,
+    -0.5, -0.5, -0.5, -1.0, 0.0, 0.0,
+    -0.5, -0.5, 0.5, -1.0, 0.0, 0.0
+    );
+
+  CubeVertexShaderSrc: PChar =
+  '#version 330 core'#10 +
+    'layout(location = 0) in vec3 aPos;'#10 +
+    'layout(location = 1) in vec3 aNormal;'#10 +
+    'uniform mat4 uMVP;'#10 +
+    'uniform mat4 uModel;'#10 +
+    'out vec3 vNormal;'#10 +
+    'void main() {'#10 +
+    '  gl_Position = uMVP * vec4(aPos, 1.0);'#10 +
+    '  vNormal = normalize((uModel * vec4(aNormal, 0.0)).xyz);'#10 +
+    '}';
+
+  CubeFragmentShaderSrc: PChar =
+  '#version 330 core'#10 +
+    'in vec3 vNormal;'#10 +
+    'uniform vec3 uBaseColor;'#10 +
+    'uniform vec3 uLightDir;'#10 +
+    'uniform float uLightingEnabled;'#10 +
+    'out vec4 FragColor;'#10 +
+    'void main() {'#10 +
+    '  float diffuse = max(dot(normalize(vNormal), normalize(-uLightDir)), 0.0);'#10 +
+    '  float lit = mix(1.0, 0.5 + 0.5 * diffuse, uLightingEnabled);'#10 +
+    '  FragColor = vec4(uBaseColor * lit, 1.0);'#10 +
+    '}';
+
+Var
+  CubeShaderProgram: GLuint = 0;
+  CubeVAO: GLuint = 0;
+  CubeVBO: GLuint = 0;
+  CubeLocMVP: GLint = -1;
+  CubeLocModel: GLint = -1;
+  CubeLocBaseColor: GLint = -1;
+  CubeLocLightDir: GLint = -1;
+  CubeLocLightingEnabled: GLint = -1;
+  CubeViewMatrix: TMatrix4x4;
+  CubeProjectionMatrix: TMatrix4x4;
+
+Function BuildPerspectiveMatrix(FovYDeg, Aspect, NearZ, FarZ: Single): TMatrix4x4;
+Var
+  f: Single;
+Begin
+  result := Zero4x4;
+  f := 1 / Tan(DegToRad(FovYDeg) * 0.5);
+  result[0, 0] := f / Aspect;
+  result[1, 1] := f;
+  result[2, 2] := (FarZ + NearZ) / (NearZ - FarZ);
+  result[3, 2] := -1;
+  result[2, 3] := (2 * FarZ * NearZ) / (NearZ - FarZ);
+End;
+
+Function BuildLookAtMatrix(EyePos, TargetPos, Up: TVector3): TMatrix4x4;
+Var
+  f, s, u: TVector3;
+Begin
+  f := NormV3(TargetPos - EyePos);
+  s := NormV3(CrossV3(f, Up));
+  u := CrossV3(s, f);
+
+  result := IdentityMatrix4x4;
+  result[0, 0] := s.x;
+  result[1, 0] := s.y;
+  result[2, 0] := s.z;
+
+  result[0, 1] := u.x;
+  result[1, 1] := u.y;
+  result[2, 1] := u.z;
+
+  result[0, 2] := -f.x;
+  result[1, 2] := -f.y;
+  result[2, 2] := -f.z;
+
+  result[0, 3] := -DotV3(s, EyePos);
+  result[1, 3] := -DotV3(u, EyePos);
+  result[2, 3] := DotV3(f, EyePos);
+End;
+
+Function CompileShader(Const Src: PChar; ShaderType: GLenum): GLuint;
+Var
+  s: GLuint;
+  status: GLint;
+  Log: Array[0..1023] Of Char;
+Begin
+  result := 0;
+  s := glCreateShader(ShaderType);
+  glShaderSource(s, 1, @Src, Nil);
+  glCompileShader(s);
+  glGetShaderiv(s, GL_COMPILE_STATUS, @status);
+  If status = 0 Then Begin
+    glGetShaderInfoLog(s, Length(Log), Nil, @Log[0]);
+    Raise exception.Create('Shader Fehler: ' + StrPas(@Log[0]));
+  End;
+  result := s;
+End;
+
+Procedure InitCubeShader;
+Var
+  vs, fs: GLuint;
+  status: GLint;
+  Log: Array[0..1023] Of Char;
+Begin
+  vs := CompileShader(CubeVertexShaderSrc, GL_VERTEX_SHADER);
+  fs := CompileShader(CubeFragmentShaderSrc, GL_FRAGMENT_SHADER);
+  CubeShaderProgram := glCreateProgram();
+  glAttachShader(CubeShaderProgram, vs);
+  glAttachShader(CubeShaderProgram, fs);
+  glLinkProgram(CubeShaderProgram);
+  glGetProgramiv(CubeShaderProgram, GL_LINK_STATUS, @status);
+  If status = 0 Then Begin
+    glGetProgramInfoLog(CubeShaderProgram, Length(Log), Nil, @Log[0]);
+    Raise exception.Create('Shader Link Fehler: ' + StrPas(@Log[0]));
+  End;
+  glDeleteShader(vs);
+  glDeleteShader(fs);
+
+  CubeLocMVP := glGetUniformLocation(CubeShaderProgram, 'uMVP');
+  CubeLocModel := glGetUniformLocation(CubeShaderProgram, 'uModel');
+  CubeLocBaseColor := glGetUniformLocation(CubeShaderProgram, 'uBaseColor');
+  CubeLocLightDir := glGetUniformLocation(CubeShaderProgram, 'uLightDir');
+  CubeLocLightingEnabled := glGetUniformLocation(CubeShaderProgram, 'uLightingEnabled');
+
+  glGenVertexArrays(1, @CubeVAO);
+  glGenBuffers(1, @CubeVBO);
+  glBindVertexArray(CubeVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, CubeVBO);
+  glBufferData(GL_ARRAY_BUFFER, SizeOf(CubeVertexData), @CubeVertexData[0], GL_STATIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * SizeOf(GLfloat), Pointer(0));
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * SizeOf(GLfloat), Pointer(3 * SizeOf(GLfloat)));
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+End;
+
+Procedure FinalizeCubeShader;
+Begin
+  If CubeVBO <> 0 Then
+    glDeleteBuffers(1, @CubeVBO);
+  CubeVBO := 0;
+  If CubeVAO <> 0 Then
+    glDeleteVertexArrays(1, @CubeVAO);
+  CubeVAO := 0;
+  If CubeShaderProgram <> 0 Then
+    glDeleteProgram(CubeShaderProgram);
+  CubeShaderProgram := 0;
+End;
+
+Procedure UseCubeShader(LightingEnabled: Boolean);
+Begin
+  glUseProgram(CubeShaderProgram);
+  glBindVertexArray(CubeVAO);
+  // Transform light direction to world space to ensure it remains constant
+  glUniform3f(CubeLocLightDir, 0, -1, 0); // Fixed light direction in world space
+  If LightingEnabled Then
+    glUniform1f(CubeLocLightingEnabled, 1.0)
+  Else
+    glUniform1f(CubeLocLightingEnabled, 0.0);
+End;
+{$ENDIF}
+
 (*
-Dreht ein Teil um 90° und gibt das gedrehte zurück.
+Dreht ein Teil um 90Â° und gibt das gedrehte zurÃ¼ck.
 *)
 
 Function RotatePiece(Piece: TPiece): TPiece; // Fertig -- Getestet
@@ -161,8 +373,8 @@ End;
 (*
 1. Die Parameter sind nur Var weil wir Verhindern wollen das der Aufrufstack immer neuen Speicher Allokiert
    die gesammte Function hat aber keinen Schreibenden Zugriff !!!
-2. Die Function Prüft ob ein Piece an Position Side in den Cube eingesetzt werden Könnte
-   wenn Ja wird True zurückgegeben.
+2. Die Function PrÃ¼ft ob ein Piece an Position Side in den Cube eingesetzt werden KÃ¶nnte
+   wenn Ja wird True zurÃ¼ckgegeben.
 
 Side = 0 = Unten
 Side = 1 = Hinten
@@ -257,7 +469,7 @@ Begin
 End;
 
 (*
-Diese Function setzt das Piece an die Side des Cube's ein und gibt den neuen zurück.
+Diese Function setzt das Piece an die Side des Cube's ein und gibt den neuen zurÃ¼ck.
 *)
 
 Function PlacePiece(Piece: TPiece; Index, Side: smallint; Cube: TCubeData): TCubeData; // Fertig -- Getestet
@@ -375,7 +587,7 @@ Begin
 End;
 
 (*
-Löscht den gesamten Würfel
+LÃ¶scht den gesamten WÃ¼rfel
 *)
 
 Function ClearCube: TCubeData; // Fertig -- Getestet
@@ -384,11 +596,11 @@ Begin
 End;
 
 (*
-Diese Function berechnet einen Würfel aus den Gegebenen Teilen
-Wenn die berechnung erfolgreich war wird True zurückgegeben und die Variable Cube enthält dann
-den gelösten Würfel.
+Diese Function berechnet einen WÃ¼rfel aus den Gegebenen Teilen
+Wenn die berechnung erfolgreich war wird True zurÃ¼ckgegeben und die Variable Cube enthÃ¤lt dann
+den gelÃ¶sten WÃ¼rfel.
 
-Bei einem Unlösbaren Cube ist Cube undefiniert.
+Bei einem UnlÃ¶sbaren Cube ist Cube undefiniert.
 *)
 
 Function CalculateCube(Depth: Smallint; Var Cube: TCubeData; UsedPieces: TPieceBoolArray): Boolean; // Fertig -- Getestet
@@ -414,13 +626,13 @@ Begin
         result := CalculateCube(Depth + 1, cube, UsedPieces);
       End;
     1..5: Begin // Berechnen der Teile 2 .. 6
-        // Da wir Teil 1 Ja immer Verbaun brauchen wir das hier nicht mehr prüfen und sparen CPU Zeit ;)
+        // Da wir Teil 1 Ja immer Verbaun brauchen wir das hier nicht mehr prÃ¼fen und sparen CPU Zeit ;)
         For i := 2 To 6 Do
-          // Nur noch nicht Verbaute Teile dürfen benutzt werden.
+          // Nur noch nicht Verbaute Teile dÃ¼rfen benutzt werden.
           If Not UsedPieces[i] Then Begin
             // Zwischenspeichern des Teiles
             Apiece := Pieces[i];
-            // Testen der 1 .. 4 Fälle
+            // Testen der 1 .. 4 FÃ¤lle
             For j := 0 To 3 Do Begin
               // Wenn das Teil eingesetzt werden kann dann gehts weiter
               If PieceIsPlaceable(APiece, Depth, Cube) Then Begin
@@ -428,24 +640,24 @@ Begin
                 WorkCube := PlacePiece(Apiece, i, depth, Cube);
                 // Merken das das Teil Verbaut ist
                 UsedPieces[i] := True;
-                // Nächstes Teil Suchen
+                // NÃ¤chstes Teil Suchen
                 result := CalculateCube(depth + 1, WorkCube, UsedPieces);
-                // Wenn der Cube Gelöst werden Konnte
+                // Wenn der Cube GelÃ¶st werden Konnte
                 If Result Then Begin
-                  // Rückgabe des Gefundenen Cubes
+                  // RÃ¼ckgabe des Gefundenen Cubes
                   Cube := WorkCube;
                   // Raus
                   Exit;
                 End;
-                // Rücksetzen der Teilnutzung
+                // RÃ¼cksetzen der Teilnutzung
                 UsedPieces[i] := false;
               End;
-              // Das Teil um 90° drehen und damit den Nächsten Fall erzeugen
+              // Das Teil um 90Â° drehen und damit den NÃ¤chsten Fall erzeugen
               Apiece := RotatePiece(Apiece);
             End;
             // Spiegeln des Teiles
             aPiece := MirrowPiece(apiece);
-            // Testen der 5 .. 8 Fälle
+            // Testen der 5 .. 8 FÃ¤lle
             For j := 0 To 3 Do Begin
               // Wenn das Teil eingesetzt werden kann dann gehts weiter
               If PieceIsPlaceable(APiece, Depth, Cube) Then Begin
@@ -453,34 +665,34 @@ Begin
                 WorkCube := PlacePiece(Apiece, i, depth, Cube);
                 // Merken das das Teil Verbaut ist
                 UsedPieces[i] := True;
-                // Nächstes Teil Suchen
+                // NÃ¤chstes Teil Suchen
                 result := CalculateCube(depth + 1, WorkCube, UsedPieces);
-                // Wenn der Cube Gelöst werden Konnte
+                // Wenn der Cube GelÃ¶st werden Konnte
                 If Result Then Begin
-                  // Rückgabe des Gefundenen Cubes
+                  // RÃ¼ckgabe des Gefundenen Cubes
                   Cube := WorkCube;
                   // Raus
                   Exit;
                 End;
-                // Rücksetzen der Teilnutzung
+                // RÃ¼cksetzen der Teilnutzung
                 UsedPieces[i] := false;
               End;
-              // Das Teil um 90° drehen und damit den Nächsten Fall erzeugen
+              // Das Teil um 90Â° drehen und damit den NÃ¤chsten Fall erzeugen
               Apiece := RotatePiece(Apiece);
             End;
           End;
       End;
     6: Begin
-        // Eigentlich ist es unnötig diese Rekursionstiefe auf zu Rufen
+        // Eigentlich ist es unnÃ¶tig diese Rekursionstiefe auf zu Rufen
         // Aber der RestCode wird dadurch "Eleganter" = Schneller und den
         // Overhead dieser einen Rekursion Erlauben wir uns einfach ;).
-        Result := True; // RekursionsEnde , da Würfel Gelöst
+        Result := True; // RekursionsEnde , da WÃ¼rfel GelÃ¶st
       End;
   End;
 End;
 
 (*
-Mit Licht sieht alles gleich viel Schöner aus.
+Mit Licht sieht alles gleich viel SchÃ¶ner aus.
 *)
 
 Procedure SetUpLighting;
@@ -488,11 +700,13 @@ Const
   ambient: Array[0..3] Of glfloat = (1.0, 1.0, 1.0, 1.0);
   //  position: Array[0..3] Of glfloat = (5.0, 4.0, 5.0, 1.0);
 Begin
+{$IFDEF LEGACYMODE}
   glLightfv(GL_LIGHT0, GL_AMBIENT, @ambient);
   //  glLightfv(GL_LIGHT0, GL_SPECULAR, @ambient);
   //  glLightfv(GL_LIGHT0, GL_POSITION, @position);
   glEnable(GL_LIGHT0);
   glenable(Gl_lighting);
+{$ENDIF}
 End;
 
 (*
@@ -501,6 +715,7 @@ Rendern eines Quads im 2D - Modus
 
 Procedure RenderQuad(x, y: Integer);
 Begin
+{$IFDEF LEGACYMODE}
   glpushmatrix;
   glTranslatef(x, y, 0);
   glbegin(gl_quads);
@@ -510,6 +725,14 @@ Begin
   glvertex3f(-halfSize, -halfSize, 0);
   glend;
   glpopmatrix;
+{$ELSE}
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(v3(x, y, 0) + v3(-halfSize, halfSize, 0));
+  glShaderVertex(v3(x, y, 0) + v3(halfSize, halfSize, 0));
+  glShaderVertex(v3(x, y, 0) + v3(halfSize, -halfSize, 0));
+  glShaderVertex(v3(x, y, 0) + v3(-halfSize, -halfSize, 0));
+  glShaderEnd();
+{$ENDIF}
 End;
 
 (*
@@ -520,6 +743,7 @@ Procedure Render2DPiece(piece: Tpiece; Color: Tvector3);
 Var
   i, j: Integer;
 Begin
+{$IFDEF LEGACYMODE}
   glcolor3fv(@Color);
   glpushmatrix;
   gltranslatef(xoff, yoff, 0);
@@ -528,6 +752,15 @@ Begin
       If Piece[i, j] Then
         RenderQuad(i * PieceSize, j * PieceSize);
   glpopmatrix;
+{$ELSE}
+  UseColorShader;
+  SetShaderColor(color.x, color.y, color.z);
+  For i := 0 To 4 Do
+    For j := 0 To 4 Do
+      If Piece[i, j] Then
+        RenderQuad(xoff + i * PieceSize, yoff + j * PieceSize);
+  UseTextureShader();
+{$ENDIF}
 End;
 
 (*
@@ -536,8 +769,13 @@ Rendern eines kleinen Cubes, aus diesen wird der Gesamtcube zusammengesetzt.
 
 Procedure Render3DCube(position, Color: Tvector3);
 Var
+{$IFDEF LEGACYMODE}
   b: Boolean;
+{$ELSE}
+  ModelMatrix, MVP: TMatrix4x4;
+{$ENDIF}
 Begin
+{$IFDEF LEGACYMODE}
   glpushmatrix;
   //glcolor3fv(@Color);
   // Bei Alten Graphikkarten braucht es hier einen Alphawert, keine Ahnung warum
@@ -591,45 +829,101 @@ Begin
   glcolor4f(1, 1, 1, 1);
 
   glpopmatrix;
+{$ELSE}
+  // Legacy-Ã„quivalent: erst globale Rotation, dann lokale Translation je TeilwÃ¼rfel
+  ModelMatrix := TranslateMatrix4x4(RotMatrix, position.x, position.y, position.z);
+  MVP := MulMatrix(ModelMatrix, CubeViewMatrix);
+  MVP := MulMatrix(MVP, CubeProjectionMatrix);
+  glUniformMatrix4fv(CubeLocModel, 1, GL_TRUE, @ModelMatrix[0, 0]);
+  glUniformMatrix4fv(CubeLocMVP, 1, GL_TRUE, @MVP[0, 0]);
+  glUniform3f(CubeLocBaseColor, Color.x, Color.y, Color.z);
+  glDrawArrays(GL_TRIANGLES, 0, 36);
+{$ENDIF}
 End;
 
-Procedure TForm1.Go2d;
+Var
+  allowcnt: integer = 0;
+
+{$IFNDEF LEGACYMODE}
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
 Begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  glOrtho(0, Screenwidth, Screenheight, 0, -1, 1); // Set Up An Ortho Screen
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
+  Initialized := false;
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
 End;
+{$ENDIF}
 
-Procedure TForm1.Exit2d;
+Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
+  If allowcnt > 2 Then Begin
+    exit;
+  End;
+  inc(allowcnt);
+  // Sollen Dialoge beim Starten ausgefÃ¼hrt werden ist hier der Richtige Zeitpunkt
+  If allowcnt = 1 Then Begin
+    // Init dglOpenGL.pas , Teil 2
+    ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
+    ReadImplementationProperties;
+{$IFNDEF LEGACYMODE}
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+{$ENDIF}
+  End;
+  If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafÃ¼r, dass der Code nur 1 mal ausgefÃ¼hrt wird.
+{$IFNDEF LEGACYMODE}
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
+    InitCubeShader;
+{$ENDIF}
+    // Berechnen des GelÃ¶sten WÃ¼rfels, damit man am Anfang auch schon was sehen kann ;)
+    Button3.onclick(Nil);
+    // Setup OpenGL
+    Button1Click(Nil);
+    SetupFrame;
+    // Set OpenGL initialized
+    Initialized := true;
+{$IFNDEF LEGACYMODE}
+    ReActivateKHRDebug; // Reenable KHRDebug
+{$ENDIF}
+    // Resize Window
+    SetUpLighting;
+    OpenGLControl1Resize(Nil);
+  End;
+  Invalidate;
 End;
 
-(*
-Render Szene
-*)
-
-Procedure Tform1.Render;
+Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
 Var
   i, j, k: integer;
 Begin
   If Not Initialized Then exit;
-  // Clearscreen
+  glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
-  glViewport(0, 0, OpenGLControl1.width, OpenGLControl1.height);
+  //  glViewport(0, 0, OpenGLControl1.width, OpenGLControl1.height);
+{$IFDEF LEGACYMODE}
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity;
+  glLoadIdentity();
+{$ELSE}
+  SetupFrame;
+{$ENDIF}
   Case Switcher Of
     0: Begin // 3D - Modus
+{$IFDEF LEGACYMODE}
         gluLookAt(5, 4, 5, 0, 0, 0, 0, 1, 0);
-        // Würfel Drehen
+        // WÃ¼rfel Drehen
         If CheckBox1.Checked Then Begin
           glenable(Gl_Lighting);
         End
@@ -639,65 +933,60 @@ Begin
         glMultMatrixf(@RotMatrix);
         glColor4f(1, 1, 1, 1);
         glBindTexture(GL_TEXTURE_2D, 0);
-        // Rendern des Würfels
+        // Rendern des WÃ¼rfels
         For i := 0 To 4 Do
           For j := 0 To 4 Do
             For k := 0 To 4 Do
               If cube[i, j, k] <> 0 Then
                 Render3DCube(v3(i - 2, j - 2, k - 2), colors[cube[i, j, k]]);
+{$ELSE}
+        UseCubeShader(CheckBox1.Checked);
+
+        // Rendern des WÃ¼rfels
+        For i := 0 To 4 Do
+          For j := 0 To 4 Do
+            For k := 0 To 4 Do
+              If cube[i, j, k] <> 0 Then
+                Render3DCube(v3(i - 2, j - 2, k - 2), colors[cube[i, j, k]]);
+        glBindVertexArray(0);
+        glUseProgram(0);
+{$ENDIF}
       End;
     1..6: Begin // 2D - Modus
+{$IFDEF LEGACYMODE}
         gldisable(gl_Lighting);
         // Switch to 2D mode
-        Go2d;
+        Go2d(OpenGLControl1.Width, OpenGLControl1.Height);
         Render2DPiece(pieces[switcher], colors[switcher]);
         // Switch to 3D mode
         Exit2d;
         glenable(Gl_Lighting);
+{$ELSE}
+        Go2d(OpenGLControl1.Width, OpenGLControl1.Height);
+        Render2DPiece(pieces[switcher], colors[switcher]);
+        Exit2d;
+{$ENDIF}
       End;
   End;
   // Redraw screen
   OpenGLControl1.SwapBuffers;
 End;
 
-Var
-  allowcnt: integer = 0;
-
-Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
+Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
-  If allowcnt > 2 Then Begin
-    allow := false;
-    exit;
+  If Initialized Then Begin
+{$IFDEF LEGACYMODE}
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    gluPerspective(90.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 128.0);
+    glMatrixMode(GL_MODELVIEW);
+{$ELSE}
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
+{$ENDIF}
   End;
-  inc(allowcnt);
-  // Sollen Dialoge beim Starten ausgeführt werden ist hier der Richtige Zeitpunkt
-  If allowcnt = 1 Then Begin
-    // Init dglOpenGL.pas , Teil 2
-    ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
-    ReadImplementationProperties;
-  End;
-
-  // Berechnen des Gelösten Würfels, damit man am Anfang auch schon was sehen kann ;)
-  Button3.onclick(Nil);
-  // Setup OpenGL
-  RotMatrix := IdentityMatrix4x4;
-  glenable(gl_cull_face);
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS);
-  // Set Clear Color = black
-  glClearColor(0, 0, 0, 0);
-  // Resize Window
-  OnResize(Nil);
-  // Set OpenGL initialized
-  Initialized := true;
-  SetUpLighting;
-  FormResize(Nil);
-  Invalidate;
-End;
-
-Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
-Begin
-  render;
 End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
@@ -710,12 +999,16 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
+{$IFNDEF LEGACYMODE}
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
+{$ENDIF}
   // Initialisierung
   Label1.caption := 'Click on Image' + LineEnding + 'to change piece.';
   s := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
   SaveDialog1.initialdir := s;
   OpenDialog1.initialdir := s;
-  Caption := '3D-Puzzle solver by Corpsman | Support : www.Corpsman.de';
+  Caption := '3D-Puzzle solver ver.: 0.02, by Corpsman | Support : www.Corpsman.de';
   // Initialisieren der Teile
   For i := 1 To 6 Do Begin
     pieces[i] := ClearPiece(i);
@@ -729,18 +1022,13 @@ Procedure TForm1.FormDestroy(Sender: TObject);
 Begin
   // Free OpenGL
   Initialized := false;
-End;
-
-Procedure TForm1.FormResize(Sender: TObject);
-Begin
-  If Not Initialized Then exit;
-  // resize OpenGL
-  glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.height);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity;
-  gluPerspective(90, OpenGLControl1.clientwidth / OpenGLControl1.Clientheight, 0.1, 128);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity;
+{$IFNDEF LEGACYMODE}
+  If OpenGLControl1.MakeCurrent Then Begin
+    FinalizeCubeShader;
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+  End;
+{$ENDIF}
 End;
 
 Procedure TForm1.RadioGroup1Click(Sender: TObject);
@@ -750,7 +1038,7 @@ Begin
   Button1.visible := Not Label1.visible;
 End;
 
-Procedure TForm1.Panel1MouseDown(Sender: TObject; Button: TMouseButton;
+Procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Begin
   Case Switcher Of
@@ -766,16 +1054,17 @@ Begin
   End;
 End;
 
-Procedure TForm1.Panel1MouseMove(Sender: TObject; Shift: TShiftState; X,
+Procedure TForm1.OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 Var
   rotx, roty: Single;
 Begin
   If ((ssleft In shift) Or (ssRight In shift)) And (Switcher = 0) Then Begin
+{$IFDEF LEGACYMODE}
     rotY := (x - amouse.X) * ROT_SENSITIVITY;
     rotX := (y - amouse.Y) * ROT_SENSITIVITY;
     aMouse := Point(x, y);
-    // Berechnen der neuen Rotationsmatrix, für den Cube
+    // Berechnen der neuen Rotationsmatrix, fÃ¼r den Cube
     glPushMatrix();
     glLoadIdentity();
     glRotatef(rotY, 0.0, 1.0, 0.0);
@@ -786,12 +1075,46 @@ Begin
     glMultMatrixf(@RotMatrix);
     glGetFloatv(GL_MODELVIEW_MATRIX, @RotMatrix);
     glPopMatrix();
+{$ELSE}
+    rotY := -(x - amouse.X) * ROT_SENSITIVITY;
+    rotX := -(y - amouse.Y) * ROT_SENSITIVITY;
+    aMouse := Point(x, y);
+    // Manuelles Nachbilden der Rotationsmatrix
+    If (ssleft In shift) Then
+      RotMatrix := MulMatrix(
+        MulMatrix(
+        CalculateRotationMatrix(rotX, v3(1, 0, 0)),
+        CalculateRotationMatrix(rotY, v3(0, 1, 0))
+        ),
+        RotMatrix
+        )
+    Else
+      RotMatrix := MulMatrix(
+        MulMatrix(
+        CalculateRotationMatrix(-rotX, v3(0, 0, 1)),
+        CalculateRotationMatrix(rotY, v3(0, 1, 0))
+        ),
+        RotMatrix
+        );
+{$ENDIF}
   End;
 End;
 
 Procedure TForm1.Button1Click(Sender: TObject);
 Begin
   RotMatrix := IdentityMatrix4x4;
+{$IFNDEF LEGACYMODE}
+  // KA Warum, aber mit der Rotation sieht es wieder halbwegs gleich aus wie im Legacymode
+  RotMatrix := MulMatrix(
+    MulMatrix(
+    CalculateRotationMatrix(10, v3(1, 0, 0)),
+    MulMatrix(
+    CalculateRotationMatrix(20, v3(0, 0, 1)),
+    CalculateRotationMatrix(10, v3(0, 1, 0))
+    )),
+    RotMatrix
+    );
+{$ENDIF}
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
@@ -819,6 +1142,7 @@ Begin
     f.read(pieces, sizeof(pieces));
     f.free;
     Cube := ClearCube;
+    Button3.Click; // Automatisch versuchen den WÃ¼rfel zu berechnen
   End;
 End;
 
@@ -852,7 +1176,12 @@ Var
 {$ENDIF}
 Begin
   If Initialized Then Begin
+{$IFDEF LCLGTK3}
+    // Im GTK3 mode muss immer Ã¼ber invalidate gegangen werden !
+    OpenGLControl1.Invalidate;
+{$ELSE}
     OpenGLControl1Paint(Nil);
+{$ENDIF}
 {$IFDEF DebuggMode}
     i := glGetError();
     If i <> 0 Then Begin
@@ -865,6 +1194,29 @@ Begin
     End;
 {$ENDIF}
   End;
+End;
+
+Procedure TForm1.SetupFrame;
+Begin
+  glenable(gl_cull_face);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+
+{$IFNDEF LEGACYMODE}
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+  If OpenGLControl1.Height > 0 Then Begin
+    // Adjust CubeViewMatrix to match legacy OpenGL default camera setup
+    CubeViewMatrix := BuildLookAtMatrix(v3(-5, -4, 5), v3(0, 0, 0), v3(0, 1, 0));
+    CubeProjectionMatrix := BuildPerspectiveMatrix(
+      90.0,
+      OpenGLControl1.Width / OpenGLControl1.Height,
+      0.1,
+      128.0
+      );
+  End;
+{$ENDIF}
+
 End;
 
 End.

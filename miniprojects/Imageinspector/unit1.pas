@@ -50,7 +50,7 @@
 (*                           Editable                                         *)
 (*               0.07      - Wenn die Größe drastisch verkleinert wurde, hat  *)
 (*                           es die Metrik Messpunkte aus dem Bild            *)
-(*               0.08      - Exportieren von Punkt Koordinaten aller objekte  *)
+(*               0.08 (HP) - Exportieren von Punkt Koordinaten aller objekte  *)
 (*                         - FIX: Offset bei Perspektifischer Verzerrung      *)
 (*                         - ADD: remember tools positions                    *)
 (*                                                                            *)
@@ -97,7 +97,7 @@ Const
   Panel_index_RGB = 3;
 
   View_Index_Fill = 0; // Zoomstufe Bildfüllend
-  //View_Index Fit = ?; Eine Kannte Fill die andere im Korrekten Aspektionsverhältnis
+  //View_Index Fit = ?; Eine Kante Fill die andere im Korrekten Aspektionsverhältnis
   View_Index_8_1 = 1; // 2:1
   View_Index_4_1 = 2; // 2:1
   View_Index_2_1 = 3; // 2:1
