@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* uopengl_truetype_font.pas                                       ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.04                                                         *)
+(* Version     : 0.05                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -28,11 +28,18 @@
 (*               0.02 - Bugfix Setcolor                                       *)
 (*               0.03 - SaveToStream / LoadFromStream                         *)
 (*               0.04 - Umstellen auf Abgeleitet von TOpenGL_Font             *)
+(*               0.05 - Render via Shader as default                          *)
 (*                                                                            *)
 (******************************************************************************)
 Unit uopengl_truetype_font;
 
 {$MODE objfpc}{$H+}
+
+(*
+Aktiviert die Nutzung von OpenGL im Legacy Mode, default ist Shader mode, der
+auch mit OpenGL 3.3 funktioniert, aber nicht alle Funktionen von OpenGL 3.3 nutzt.
+*)
+{.$DEFINE LEGACYMODE}
 
 Interface
 
@@ -61,6 +68,11 @@ Type
     Fscreenwidth: integer; //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
     Fscreenheight: integer; //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
     FFontGo2D: boolean; //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
+{$IFNDEF LEGACYMODE}
+    FVBO: GLuint; //< Vertex Buffer Object für Shader-Mode
+    FCharData: Array[0..255] Of Array Of Single; //< Pro-Zeichen Vertices in Bildschirmkoordinaten
+    FCharDataLen: Array[0..255] Of integer; //< Anzahl der Floats in FCharData[i]
+{$ENDIF}
     Procedure SaveLetter(Const Stream: TStream; Const Letter: TLetter);
     Function LoadLetter(Const Stream: TStream): TLetter;
     Procedure DrawLetter(Index: byte);
@@ -80,7 +92,8 @@ Type
     Procedure LoadfromFile(Filename: String);
     Procedure LoadFromStream(Const Stream: TStream);
 
-    Procedure Textout(x, y: integer; Text: String); override;
+    Procedure Textout(x, y: integer; Text: String); overload; override;
+    Procedure Textout(x, y: integer; Depth: Single; Text: String); overload; virtual; //< Wie Textout, jedoch kann hier die Tiefe (NDC z) angegeben werden
     Function TextWidth(Text: String): single; override;
     Function TextHeight(text: String): single; override;
     Procedure SetColor(r, g, b: Float); //< Aus Kompatibilitätsgründen werden nicht oder nur Teilweise unterstützt
@@ -90,6 +103,12 @@ Type
   End;
 
 Implementation
+
+{$IFNDEF LEGACYMODE}
+Uses
+  uopengl_graphikengine
+  ;
+{$ENDIF}
 
 (*
   Konvertiert eine TFPColor nach TColor
@@ -128,9 +147,17 @@ Begin
   Init_Create_Font_by_Bitmaps();
   For i := 0 To 255 Do Begin
     fCharWidths[i] := 0;
+{$IFNDEF LEGACYMODE}
+    SetLength(FCharData[i], 0);
+    FCharDataLen[i] := 0;
+{$ENDIF}
   End;
   fCharheight := 0;
   FFontGo2D := false;
+{$IFNDEF LEGACYMODE}
+  FVBO := 0;
+  glGenBuffers(1, @FVBO);
+{$ENDIF}
 End;
 
 (*
@@ -138,8 +165,17 @@ End;
  *)
 
 Destructor TOpenGL_TrueType_Font.Destroy;
+{$IFNDEF LEGACYMODE}
+Var
+  i: integer;
+{$ENDIF}
 Begin
   Init_Create_Font_by_Bitmaps; // Löschen der Evtl initialisierten Chars
+{$IFNDEF LEGACYMODE}
+  If FVBO <> 0 Then glDeleteBuffers(1, @FVBO);
+  For i := 0 To 255 Do
+    SetLength(FCharData[i], 0);
+{$ENDIF}
 End;
 
 Procedure TOpenGL_TrueType_Font.Go2d;
@@ -338,17 +374,32 @@ End;
  *)
 
 Procedure TOpenGL_TrueType_Font.Textout(x, y: integer; Text: String);
+Begin
+  Textout(x, y, 0.0, Text);
+End;
+
+Procedure TOpenGL_TrueType_Font.Textout(x, y: integer; Depth: Single; Text: String);
 Var
   k: integer;
   c: integer;
   sc: Single;
   ps: Single;
   b: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
+{$IFNDEF LEGACYMODE}
+  res: Tpoint;
+  vi, nFloats, i: integer;
+  alpha: Single;
+  allVerts: Array Of Single;
+  penX, penY, startX: Single;
+  LocRes, CurrentProgram: GLint;
+{$ENDIF}
 Begin
   glBindTexture(GL_TEXTURE_2D, 0); // Entladen des Texturspeichers, da dieser uns beeinflusst
   B := glIsEnabled(gl_Blend);
   If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
     glenable(gl_Blend);
+
+{$IFDEF LEGACYMODE}
   glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
   glPushMatrix();
   If FFontGo2D Then Go2d();
@@ -374,10 +425,104 @@ Begin
   glPopMatrix();
   glPopMatrix();
   glPointSize(ps);
-  If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
-    gldisable(gl_blend);
   If FFontGo2D Then Exit2d();
   glcolor3f(1, 1, 1); // Reset def OpenGL Farbe, nach außen
+{$ELSE}
+  // Shader-Mode
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  text := ConvertEncoding(text, EncodingUTF8, 'iso88591');
+  sc := fsize / fCharheight;
+  penX := x;
+  penY := y;
+  startX := x;
+  nFloats := 0;
+  allVerts := Nil;
+  SetLength(allVerts, 0);
+
+  // Alle Zeichen des Textes in einen Vertex-Buffer aufbauen (Bildschirm-Koordinaten)
+  For k := 1 To length(text) Do Begin
+    c := ord(text[k]);
+    If c = 10 Then Begin
+      penX := startX;
+      penY := penY + fsize;
+    End
+    Else If c <> 13 Then Begin
+      If (high(FLetters[c]) <> -1) Then Begin
+        // Jeden Pixel als zwei Dreiecke (6 Vertices) rendern
+        For i := 0 To high(FLetters[c]) Do Begin
+          If fletters[c][i].Alpha <> 0 Then Begin
+            vi := nFloats;
+            Inc(nFloats, 24); // 6 Vertices * 4 Floats (x,y,z,alpha)
+            SetLength(allVerts, nFloats);
+            alpha := FLetters[c][i].Alpha / 255;
+
+            // Dreieck 1, Punkt 1
+            allVerts[vi + 0] := penX + FLetters[c][i].x * sc;
+            allVerts[vi + 1] := penY + FLetters[c][i].y * sc;
+            allVerts[vi + 2] := Depth;
+            allVerts[vi + 3] := alpha;
+            // Dreieck 1, Punkt 2
+            allVerts[vi + 4] := penX + FLetters[c][i].x * sc + sc;
+            allVerts[vi + 5] := penY + FLetters[c][i].y * sc;
+            allVerts[vi + 6] := Depth;
+            allVerts[vi + 7] := alpha;
+            // Dreieck 1, Punkt 3
+            allVerts[vi + 8] := penX + FLetters[c][i].x * sc + sc;
+            allVerts[vi + 9] := penY + FLetters[c][i].y * sc + sc;
+            allVerts[vi + 10] := Depth;
+            allVerts[vi + 11] := alpha;
+            // Dreieck 2, Punkt 1
+            allVerts[vi + 12] := penX + FLetters[c][i].x * sc;
+            allVerts[vi + 13] := penY + FLetters[c][i].y * sc;
+            allVerts[vi + 14] := Depth;
+            allVerts[vi + 15] := alpha;
+            // Dreieck 2, Punkt 2
+            allVerts[vi + 16] := penX + FLetters[c][i].x * sc + sc;
+            allVerts[vi + 17] := penY + FLetters[c][i].y * sc + sc;
+            allVerts[vi + 18] := Depth;
+            allVerts[vi + 19] := alpha;
+            // Dreieck 2, Punkt 3
+            allVerts[vi + 20] := penX + FLetters[c][i].x * sc;
+            allVerts[vi + 21] := penY + FLetters[c][i].y * sc + sc;
+            allVerts[vi + 22] := Depth;
+            allVerts[vi + 23] := alpha;
+          End;
+        End;
+      End;
+      penX := penX + (fCharWidths[c] + 2) * sc;
+    End;
+  End;
+
+  If nFloats = 0 Then Begin
+    If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
+      gldisable(gl_blend);
+    Exit;
+  End;
+
+  // Use Color Shader from uOpenGL_GraphikEngine.pas
+  UseColorShader;
+  SetShaderColor(fColor.x, fColor.y, fColor.z, 1.0);
+  glGetIntegerv(GL_CURRENT_PROGRAM, @CurrentProgram);
+  LocRes := glGetUniformLocation(CurrentProgram, 'uResolution');
+  If LocRes >= 0 Then Begin
+    res := Get2DResolution;
+    glUniform2f(LocRes, res.x, res.y);
+  End;
+
+  // VBO konfigurieren für vec3 (x,y,z)
+  glBindBuffer(GL_ARRAY_BUFFER, FVBO);
+  glBufferData(GL_ARRAY_BUFFER, nFloats * SizeOf(GLfloat), @allVerts[0], GL_DYNAMIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, Nil); // 4 Komponenten: x,y,z,alpha
+
+  // Zeichnen
+  glDrawArrays(GL_TRIANGLES, 0, nFloats Div 4);
+  glBindVertexArray(0);
+  UseTextureShader; // Default is textureShader, so switch back to this
+{$ENDIF}
+
+  If Not (b{$IFDEF USE_GL} = 1{$ENDIF}) Then
+    gldisable(gl_blend);
 End;
 
 (*
@@ -402,6 +547,8 @@ Var
   j: single;
   s: String;
 Begin
+  result := 0;
+  If fCharheight = 0 Then exit;
   j := 0;
   While pos(#13, text) <> 0 Do
     delete(text, pos(#13, text), 1);

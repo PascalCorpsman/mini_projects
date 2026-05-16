@@ -94,6 +94,7 @@ Type
     { private declarations }
     Editor: TPixelEditor;
     Procedure FormCloseEvent(Sender: TObject);
+    Procedure SetupFrame;
   public
     { public declarations }
   End;
@@ -180,8 +181,7 @@ Begin
 {$IFDEF LEGACYMODE}
     glenable(GL_TEXTURE_2D); // Texturen
 {$ENDIF}
-    glEnable(GL_DEPTH_TEST); // Tiefentest
-    glDepthFunc(gl_less); // Shader negieren uDepth, damit höhere Werte näher sind
+    SetupFrame;
 {$IFNDEF LEGACYMODE}
     If Not Assigned(glCreateShader) Then Begin
       // On Windows it seems that you need to "reload" the core functions for proper function
@@ -213,6 +213,7 @@ Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
 Begin
   If Not Initialized Then Exit;
   // Render Szene
+  SetupFrame;
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
 {$IFDEF LEGACYMODE}
@@ -387,6 +388,12 @@ End;
 Procedure TForm1.FormCloseEvent(Sender: TObject);
 Begin
   close;
+End;
+
+Procedure TForm1.SetupFrame;
+Begin
+  glEnable(GL_DEPTH_TEST); // Tiefentest
+  glDepthFunc(gl_less); // Shader negieren uDepth, damit höhere Werte näher sind
 End;
 
 End.
