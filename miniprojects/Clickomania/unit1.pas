@@ -319,7 +319,6 @@ End;
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
   If allowcnt > 2 Then Begin
-    allow := false;
     exit;
   End;
   inc(allowcnt);
@@ -810,7 +809,11 @@ Var
 {$ENDIF}
 Begin
   If Initialized Then Begin
+{$IFDEF LCLGTK3}
+    OpenGLControl1.Invalidate;
+{$ELSE}
     OpenGLControl1.OnPaint(Nil);
+{$ENDIF}
 {$IFDEF DebuggMode}
     i := glGetError();
     If i <> 0 Then Begin
