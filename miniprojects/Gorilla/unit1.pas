@@ -27,6 +27,7 @@
 (*                     Sperren des 3. Players beim Netzwerkspiel, da sonst    *)
 (*                     das gesamte Spiel kaputt geht                          *)
 (*               0.05: refactor for publish                                   *)
+(*               0.06: port to shader rendering                               *)
 (*                                                                            *)
 (******************************************************************************)
  (*
@@ -50,6 +51,7 @@ Uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
   ExtCtrls,
   OpenGlcontext,
+  uopengl_graphikengine,
   uOpenGL_ASCII_Font, // http://corpsman.de/index.php?doc=opengl/simple_font
   ugorilla,
   math,
@@ -66,6 +68,7 @@ Type
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure LTCPComponent1Accept(aSocket: TLSocket);
     Procedure LTCPComponent1CanSend(aSocket: TLSocket);
     Procedure LTCPComponent1Connect(aSocket: TLSocket);
@@ -87,21 +90,34 @@ Type
 Var
   Form1: TForm1;
   Initialized: Boolean = false; // Wenn True dann ist OpenGL initialisiert
-  Gorilla: tgorilla; // Die Spiel Instanz
+  Gorilla: TGorillaGame; // Die Spiel Instanz
 
 Implementation
 
 {$R *.lfm}
+
+Uses
+  uopengl_shaderprimitives
+  , uopengl_legacychecker
+  ;
 
 { TForm1 }
 
 Var
   allowcnt: Integer = 0;
 
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := false;
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
+End;
+
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
   If allowcnt > 2 Then Begin
-    allow := false;
     exit;
   End;
   inc(allowcnt);
@@ -110,12 +126,28 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
   End;
   If allowcnt = 2 Then Begin
     // glenable(GL_POINT_SMOOTH); //das würde die Punkte Glätten führt aber nicht zu den Pixelfehlern, welche wohl nur auf nicht Nvidia Graphikkarten auftreten
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
     Create_ASCII_Font();
+    Gorilla := TGorillaGame.create;
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
+    ReActivateKHRDebug; // Reenable KHRDebug
     OpenGLControl1Resize(Nil);
   End;
   Form1.Invalidate;
@@ -127,7 +159,6 @@ Begin
   // Render Szene
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
   go2d(640, 480);
   Gorilla.Render;
   exit2d;
@@ -137,12 +168,9 @@ End;
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
   If Initialized Then Begin
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
-    gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
-    glMatrixMode(GL_MODELVIEW);
-    glPointSize(ceil(max(OpenGLControl1.Width / 640, OpenGLControl1.Height / 480)));
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
   End;
 End;
 
@@ -155,6 +183,8 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
   ClientWidth := 640;
   ClientHeight := 480;
   OpenGLControl1.Align := alClient;
@@ -166,7 +196,14 @@ Begin
   *)
   Timer1.Interval := 17;
   Network := LTCPComponent1;
-  Gorilla := TGorilla.create;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+  If OpenGLControl1.MakeCurrent Then Begin
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+  End;
 End;
 
 Procedure TForm1.LTCPComponent1Accept(aSocket: TLSocket);
@@ -230,7 +267,11 @@ Var
 {$ENDIF}
 Begin
   If Initialized Then Begin
+{$IFDEF LCLGTK3}
+    OpenGLControl1.Invalidate;
+{$ELSE}
     OpenGLControl1.OnPaint(Nil);
+{$ENDIF}
 {$IFDEF DebuggMode}
     i := glGetError();
     If i <> 0 Then Begin

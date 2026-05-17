@@ -47,9 +47,7 @@ Implementation
 
 {$R *.lfm}
 
-Uses
-  unit1,
-  ugorilla;
+Uses unit1, ugorilla;
 
 { TForm3 }
 

@@ -31,12 +31,13 @@ Uses
   lnet,
   IntfGraphics, // TLazIntfImage type
   fpImage, // TFPColor type
-  uvectormath, // http://corpsman.de/index.php?doc=opengl/opengl_graphik_engine
-  uOpenGL_ASCII_Font; // http://corpsman.de/index.php?doc=opengl/simple_font
-
+  uvectormath, // http://corpsman.de/index.php?doc=opengl/opengl_graphikengine
+  uOpenGL_ASCII_Font // http://corpsman.de/index.php?doc=opengl/simple_font
+  , ugorilla_helper
+  ;
 Const
 
-  GorillaVersion = 005; // Spiel Versionsnummer
+  GorillaVersion = 006; // Spiel Versionsnummer
 
   (*
    * Op Codes für die Steuerung der Netzwerk Kommunikation
@@ -92,7 +93,7 @@ Const
   WindowColors: Array[0..1] Of TColor = ($54FCFC, $545454); // Mögliche Farben für Fenster
   GorillaColors: Array[0..3] Of TColor = ($54A8FC, $54FCA8, $A8FC54, $A854FC); // Die Gorilla Farben
 
-{$DEFINE ImprovedCollisionDetection} // Ist dieser Switch an, dann kann es nicht mehr vorkommen, dass die Banane "durch" die Boundingbox des Gorillas hindurchfliegen kann.
+  {.$DEFINE ImprovedCollisionDetection}// Ist dieser Switch an, dann kann es nicht mehr vorkommen, dass die Banane "durch" die Boundingbox des Gorillas hindurchfliegen kann.
 
 Type
 
@@ -126,14 +127,22 @@ Type
     gsWaitForClient // Der Server Wartet bis der Client Connected hat.
     );
 
-  TBanana = Record
+  { TBanana }
+
+  TBanana = Class
+  private
 {$IFDEF ImprovedCollisionDetection}
-    OldPosition: TVector2; // Damit die Genauere Flugbahnkollision gemacht werden kann, muss jeweils die Alte Position mit geführt werden.
+    AltePosition: TVector2; // Damit die Genauere Flugbahnkollision gemacht werden kann, muss jeweils die Alte Position mit geführt werden.
 {$ENDIF}
     Position: TVector2; // Aktuelle Position der Banane
-    Acceleration: TVector2; // Aktuelle Beschleunigung der Banane
+    Accelration: TVector2; // Aktuelle Beschleunigung der Banane
     Speed: TVector2; // Aktuelle Geschwindigkeit der Banane
     Rotation: Integer; // Aktuelle Drehung der Banane
+    fBody: T2DPatch;
+  public
+    Constructor Create; virtual;
+    Destructor Destroy; override;
+    Procedure Render;
   End;
 
   Tfinish_reason = (
@@ -160,38 +169,62 @@ Type
 
   TGorilla = Class
   private
+    fBody: T2DPatch;
+    fLeftArmUp, fLeftArmDown, fRightArmUp, fRightArmDown: T2DPatch;
+  public
+    Constructor Create; virtual;
+    Destructor Destroy; override;
+    Procedure Render(pos: TVector2; GorillaColor: TColor; LeftArm,
+      RightArm: TGorillaArmState);
+  End;
+
+  { TSun }
+
+  TSun = Class
+  private
+    fFrightened, fNormal: T2DPatch;
+  public
+    Constructor Create; virtual;
+    Destructor Destroy; override;
+    Procedure Render(pos: TVector2; frightened: Boolean);
+  End;
+
+  { TGorillaGame }
+
+  TGorillaGame = Class
+  private
     FNetwork: TNetwork; // Alles was noch zusätzlich für den 2-Player Netzwerkmodus notwendig ist.
     fai: Tai; // Alle Daten die der KI zur Verfügung stehen ( + die FLast.. daten )
-    fUfoGraphic: Tbitmap; // Die Graphik des Ufos, geladen aus der Ressource
-    fUfoPos: TVector2; // Die Position des Ufos, wenns dens eins Gibt. ( nur für die KI notwendig )
+    fufographic: Tbitmap; // Die Graphik des Ufos, geladen aus der Ressource
+    fufoypos: TVector2; // Die Position des Ufos, wenns den eins Gibt. ( nur für die KI notwendig )
     FmaxWindStrength: integer; // Maximale Windkraft
     FBanana: TBanana; // Eine Banane die Gerade so Rumfliegt
-    fSun: DWord; // Speichert, ob die Sonne gerade "o" macht
     fWindStrength: TVector2; // Die Aktuelle Windstärke
     fGravity: TVector2; // Die Aktuelle Schwerkraft
-    fGorillaBody: Array[-9..9, 0..28] Of Boolean; // Texturcontainer für einen Gorilla
-    fGorillaArm: Array[0..7, 0..10] Of Boolean; // Texturcontainer für einen Arm
-    fBananaTexture: Array[-4..4, -4..1] Of boolean; //Texturcontainer für eine Banane
-    fSunNormalTexture: Array[-20..20, -15..15] Of boolean; //Texturcontainer für eine Sonne
-    fSunScareTexture: Array[-20..20, -15..15] Of boolean; //Texturcontainer für eine Sonne
     fPlayerNames: Array[0..3] Of String; // Abspeichern der Spielernamen
     fPlayerPoints: Array[0..3] Of integer; // Abspeichern der Siege der Einzelnen Spieler
     fPlayerAlive: Array[0..3] Of boolean; // Abspeichern ob der Spieler im Spiel ist ( bei mehr als 2 Spielern notwendig )
     fLastPlayerAngle: Array[0..3] Of integer; // Der Zuletzt benutze Abwurfwinkel
     fLastPlayerPower: Array[0..3] Of integer; // Die Zuletzt benutzte Abwurfkraft
     fplayerpos: Array[0..3] Of tvector2; // Die "Positionsdaten" der Spieler
+
     fSunPos: TVector2; // Position der Sonne
+    fSun: TSun;
+    FSonne: DWord; // Speichert, ob die Sonne gerade "o" macht
+
+    fGorilla: TGorilla;
+    fGorillaState: tGorillastate; // Der Aktuelle Spiel Modus
+
     fPlayerCount: integer; // Anzahl der Gesamt Spieler in Spiel
     fRoundCount: integer; // Anzahl der zu Spielenden Runden
-    fActualRound: integer; // Die Aktuell Gespielte Runde
-    fActualPlayer: integer; // Der Aktuell gewählte Spieler
+    fAktualRound: integer; // Die Aktuell Gespielte Runde
+    fAktualPlayer: integer; // Der Aktuell gewählte Spieler
     fLastTime: Dword; // Zum Messen von Zeiten
-    ftemporaryInt: Integer; // Quasi Globale Variablen zum wilden gebrauch
-    ftemporaryString: String; // Quasi Globale Variablen zum wilden gebrauch
-    fGorillaState: tGorillastate; // Der Aktuelle Spiel Modus
+    fSchmierInt: Integer; // Quasi Globale Variablen zum wilden gebrauch
+    fSchmierString: String; // Quasi Globale Variablen zum wilden gebrauch
+
     fMap: Array[0..639, 0..479] Of TColor; // Die Hintergrundkarte = Alles was beschädigt werden kann
-    Procedure SetOpenGLColor(Const Farbe: TColor); // Setzt die OpenGL Farbe auf Farbe
-    Procedure RenderGorilla(pos: TVector2; GorillaColor: TColor; LeftArm, RightArm: TGorillaArmState); // Zeichnet einen Gorilla
+    fbackGround: T2DPatch;
     Procedure RenderBanana(); // Zeichnet die Banane + Rotation
     Procedure RenderWindStrength(); // Zeichnet den Wind Pfeil
     Procedure RenderSun(); // Zeichnet die Sonne
@@ -224,7 +257,7 @@ Type
     Procedure SendPlayerStats(); // Der Server sendet dem Client alle Player Informationen
   public
     Property ChatName: String read fgetChatName; // Der Name des Spielers, welcher im Chat angezeigt wird
-    Constructor create;
+    Constructor Create;
     Destructor Destroy; override;
     Procedure Render;
     Procedure OnKeyDown(Var Key: Word; Shift: TShiftState);
@@ -245,35 +278,63 @@ Implementation
 { TGorilla }
 
 Uses
-  Unit2, // für die Online Hilfe
-  unit3; // für den Chat
+  Unit2 // für die Online Hilfe
+  , unit3 // für den Chat
+  , uopengl_graphikengine
+  , uopengl_shaderprimitives
+  ;
 
-Constructor TGorilla.create;
+{ TBanana }
+
+Constructor TBanana.Create;
 Var
-  i, j: integer;
+  fBananaTexture: Array[-4..4, -4..1] Of boolean; //Texturcontainer für eine Banane
+  i, j: Integer;
 Begin
   Inherited create;
-  (*
-   * Die Ufo Graphik wird als ressource Geladen, der Rest ist im Source hard gecodet
-   *)
-  fufographic := Tbitmap.Create;
-  fufographic.LoadFromLazarusResource('ufo_template');
-  fUfoPos := v2(-1, -1);
-  FNetwork.active := false;
-  FNetwork.port := 9876;
-  FNetwork.ServerIP := '127.0.0.1';
-  FNetwork.isServer := false;
-  FNetwork.Socket := Nil;
-  fSunPos := v2(320, 25);
-  fGravity := v2(0, 10);
-  fGorillaState := gsStartScreen;
-  fLastTime := GetTickCount;
-  fRoundCount := 3;
-  FmaxWindStrength := 100;
-  fPlayerNames[0] := 'Player1';
-  fPlayerNames[1] := 'Player2';
-  fPlayerNames[2] := 'Player3';
-  fPlayerNames[3] := 'Player4';
+  // Die Banane
+  For i := -4 To 4 Do
+    For j := -4 To 1 Do
+      fBananaTexture[i, j] := true;
+  For i := -2 To 2 Do
+    For j := 0 To 1 Do
+      fBananaTexture[i, j] := false;
+  fBananaTexture[-4, -2] := false;
+  fBananaTexture[-4, -3] := false;
+  fBananaTexture[-4, -4] := false;
+  fBananaTexture[-3, -3] := false;
+  fBananaTexture[-3, -4] := false;
+  fBananaTexture[4, -2] := false;
+  fBananaTexture[4, -3] := false;
+  fBananaTexture[4, -4] := false;
+  fBananaTexture[3, -3] := false;
+  fBananaTexture[3, -4] := false;
+  fbody := T2DPatch.Create(4 + 1 + 4, 4 + 1 + 1, 'Banana Body');
+  For i := -4 To 4 Do Begin
+    For j := -4 To 1 Do Begin
+      If fBananaTexture[i, j] Then Begin
+        fBody.SetPixelByColor(i + 4, j + 4, BananaColor);
+      End;
+    End;
+  End;
+End;
+
+Destructor TBanana.Destroy;
+Begin
+  fBody.Free;
+End;
+
+Procedure TBanana.Render;
+Begin
+  fBody.Render(Position, 0, Rotation);
+End;
+
+Constructor TGorilla.Create;
+Var
+  i, j: Integer;
+  fGorillaBody: Array[-9..9, 0..28] Of Boolean; // Texturcontainer für einen Gorilla
+  fGorillaArm: Array[0..7, 0..10] Of Boolean; // Texturcontainer für einen Arm
+Begin
   // Abspeichern der Gorilla Textur, das ginge sicherlich auch via TBitmap, aber so gehts auch *g*
   For i := -9 To 9 Do
     For j := 0 To 28 Do
@@ -347,6 +408,7 @@ Begin
   fGorillaBody[9, 2] := true;
   fGorillaBody[9, 1] := true;
   fGorillaBody[4, 0] := true;
+
   // Ein Arm
   For i := 0 To 7 Do
     For j := 0 To 10 Do
@@ -370,139 +432,252 @@ Begin
       fGorillaArm[i, j] := true;
   fGorillaArm[5, 1] := true;
   fGorillaArm[0, 0] := true;
-  // Die Banane
-  For i := -4 To 4 Do
-    For j := -4 To 1 Do
-      fBananaTexture[i, j] := true;
-  For i := -2 To 2 Do
-    For j := 0 To 1 Do
-      fBananaTexture[i, j] := false;
-  fBananaTexture[-4, -2] := false;
-  fBananaTexture[-4, -3] := false;
-  fBananaTexture[-4, -4] := false;
-  fBananaTexture[-3, -3] := false;
-  fBananaTexture[-3, -4] := false;
-  fBananaTexture[4, -2] := false;
-  fBananaTexture[4, -3] := false;
-  fBananaTexture[4, -4] := false;
-  fBananaTexture[3, -3] := false;
-  fBananaTexture[3, -4] := false;
-  // die beiden Sonnen
-  For i := -20 To 20 Do
-    For j := -15 To 15 Do Begin
-      fSunNormalTexture[i, j] := false;
+
+  // Umrechnen in T2DPatch
+  fBody := T2DPatch.Create(9 + 1 + 9, 29, 'Gorilla Body');
+  For i := -9 To 9 Do
+    For j := 0 To 28 Do Begin
+      If fGorillaBody[i, j] Then Begin
+        fBody.SetPixelByColor(i + 9, 28 - j, clWhite);
+      End;
     End;
-  For i := -12 To 12 Do
-    For j := -9 To 9 Do Begin
-      fSunNormalTexture[i, j] := true;
+  fLeftArmUp := T2DPatch.Create(8, 11, 'Gorilla LeftArmUp');
+  fLeftArmDown := T2DPatch.Create(8, 11, 'Gorilla Body');
+  fRightArmUp := T2DPatch.Create(8, 11, 'Gorilla Body');
+  fRightArmDown := T2DPatch.Create(8, 11, 'Gorilla Body');
+  For i := low(fGorillaArm) To high(fGorillaArm) Do
+    For j := low(fGorillaArm[0]) To high(fGorillaArm[0]) Do Begin
+      If fGorillaArm[i, 10 - j] Then Begin
+        fLeftArmUp.SetPixelByColor(7 - i, 10 - j, clWhite);
+        fLeftArmDown.SetPixelByColor(7 - i, j, clWhite);
+        fRightArmUp.SetPixelByColor(i, 10 - j, clWhite);
+        fRightArmDown.SetPixelByColor(i, j, clWhite);
+      End;
     End;
-  For i := -11 To -6 Do Begin
-    fSunNormalTexture[i, -9] := false;
-    fSunNormalTexture[i, -8] := false;
-  End;
-  For i := 7 To 10 Do Begin
-    fSunNormalTexture[i, -9] := false;
-    fSunNormalTexture[i, -8] := false;
-  End;
-  For j := 5 To 7 Do Begin
-    fSunNormalTexture[11, -j] := false;
-    fSunNormalTexture[12, -j] := false;
-    fSunNormalTexture[-12, -j] := false;
-  End;
-  fSunNormalTexture[12, -3] := false;
-  fSunNormalTexture[-12, -4] := false;
-  fSunNormalTexture[-11, -5] := false;
-  fSunNormalTexture[10, -6] := false;
-  fSunNormalTexture[-11, -6] := false;
-  fSunNormalTexture[9, -7] := false;
-  fSunNormalTexture[-9, -7] := false;
-  fSunNormalTexture[-10, -7] := false;
-  fSunNormalTexture[6, -8] := false;
-  fSunNormalTexture[12, -9] := false;
-  fSunNormalTexture[11, -9] := false;
-  fSunNormalTexture[5, -9] := false;
-  fSunNormalTexture[4, -9] := false;
-  fSunNormalTexture[-4, -9] := false;
-  fSunNormalTexture[-12, -9] := false;
-  For j := 10 To 15 Do Begin
-    fSunNormalTexture[0, -j] := true;
-  End;
-  For i := 13 To 20 Do Begin
-    fSunNormalTexture[i, 0] := true;
-    fSunNormalTexture[-i, 0] := true;
-  End;
-  fSunNormalTexture[-8, -13] := true;
-  fSunNormalTexture[-7, -12] := true;
-  fSunNormalTexture[-7, -11] := true;
-  fSunNormalTexture[-6, -10] := true;
-  fSunNormalTexture[8, -13] := true;
-  fSunNormalTexture[8, -12] := true;
-  fSunNormalTexture[7, -11] := true;
-  fSunNormalTexture[6, -10] := true;
-  fSunNormalTexture[13, -9] := true;
-  fSunNormalTexture[14, -10] := true;
-  fSunNormalTexture[15, -10] := true;
-  For i := 0 To 2 Do Begin
-    fSunNormalTexture[13 + i, -4] := true;
-    fSunNormalTexture[16 + i, -5] := true;
-  End;
-  fSunNormalTexture[-13, -8] := true;
-  fSunNormalTexture[-14, -9] := true;
-  fSunNormalTexture[-15, -10] := true;
-  For i := 0 To 3 Do
-    fSunNormalTexture[-17 + i, -4] := true;
-  fSunNormalTexture[-13, -3] := true;
-  fSunNormalTexture[-18, -5] := true;
-  For i := -20 To 20 Do
-    For j := -15 To -1 Do
-      fSunNormalTexture[i, -j] := fSunNormalTexture[i, j];
-  fSunNormalTexture[-3, 3] := false;
-  fSunNormalTexture[-4, 2] := false;
-  fSunNormalTexture[-3, 2] := false;
-  fSunNormalTexture[-2, 2] := false;
-  fSunNormalTexture[-3, 1] := false;
-  For i := -20 To 20 Do
-    For j := -15 To 15 Do Begin
-      fSunScareTexture[i, j] := fSunNormalTexture[i, j];
-    End;
-  // Einbasteln des Lachenden Gesichtes
-  fSunNormalTexture[-7, -3] := false;
-  fSunNormalTexture[-6, -4] := false;
-  fSunNormalTexture[-5, -4] := false;
-  fSunNormalTexture[-4, -5] := false;
-  fSunNormalTexture[-3, -5] := false;
-  fSunNormalTexture[-2, -6] := false;
-  fSunNormalTexture[-1, -6] := false;
-  fSunNormalTexture[0, -6] := false;
-  For i := -7 To -1 Do
-    For j := -6 To 3 Do
-      fSunNormalTexture[-i, j] := fSunNormalTexture[i, j];
-  // Einbasteln des erschrockenen Gesichtes
-  For i := -1 To 0 Do Begin
-    fSunScareTexture[i, -4] := false;
-    fSunScareTexture[i, -5] := false;
-    fSunScareTexture[i, -6] := false;
-    fSunScareTexture[i, -7] := false;
-    fSunScareTexture[-i, -4] := false;
-    fSunScareTexture[-i, -5] := false;
-    fSunScareTexture[-i, -6] := false;
-    fSunScareTexture[-i, -7] := false;
-  End;
-  fSunScareTexture[-2, -5] := false;
-  fSunScareTexture[-2, -6] := false;
-  fSunScareTexture[2, -5] := false;
-  fSunScareTexture[2, -6] := false;
-  For i := -7 To -1 Do
-    For j := 1 To 3 Do
-      fSunScareTexture[-i, j] := fSunScareTexture[i, j];
 End;
 
 Destructor TGorilla.Destroy;
 Begin
-  fufographic.free;
+  fBody.Free;
+  fLeftArmUp.free;
+  fLeftArmDown.free;
+  fRightArmUp.free;
+  fRightArmDown.free;
+  Inherited Destroy;
 End;
 
-Procedure TGorilla.EraseElippseInMap(x, y, r1, r2: integer);
+Procedure TGorilla.Render(pos: TVector2; GorillaColor: TColor; LeftArm,
+  RightArm: TGorillaArmState);
+Var
+  r, g, b: Byte;
+Begin
+  r := GorillaColor And $FF;
+  g := (GorillaColor Shr 8) And $FF;
+  b := (GorillaColor Shr 16) And $FF;
+  UseTextureShader(v4(r / 255, g / 255, b / 255, 1));
+  // Der Kopf, der Körper die Beine
+  fBody.Render(round(pos.x) - 10, round(pos.y) - 28);
+  If RightArm = gaDown Then Begin
+    fRightArmDown.Render(round(pos.x) + 6, round(pos.y) - 19);
+  End
+  Else Begin
+    fRightArmup.Render(round(pos.x) + 6, round(pos.y) - 19 - 8);
+  End;
+  If LeftArm = gaDown Then Begin
+    fLeftArmDown.Render(round(pos.x) - 6 - 8, round(pos.y) - 19);
+  End
+  Else Begin
+    fLeftArmUp.Render(round(pos.x) - 6 - 8, round(pos.y) - 19 - 8);
+  End;
+  UseTextureShader(); // Reset der Farbe
+End;
+
+{ TSun }
+
+Constructor TSun.Create;
+Var
+  i, j: Integer;
+  fSonneNormalTexture: Array[-20..20, -15..15] Of boolean; //Texturcontainer für eine Sonne
+  fSonneErschrockenTexture: Array[-20..20, -15..15] Of boolean; //Texturcontainer für eine Sonne
+Begin
+  Inherited create;
+  // die beiden Sonnen
+  For i := -20 To 20 Do
+    For j := -15 To 15 Do Begin
+      fSonneNormalTexture[i, j] := false;
+    End;
+  For i := -12 To 12 Do
+    For j := -9 To 9 Do Begin
+      fSonneNormalTexture[i, j] := true;
+    End;
+  For i := -11 To -6 Do Begin
+    fSonneNormalTexture[i, -9] := false;
+    fSonneNormalTexture[i, -8] := false;
+  End;
+  For i := 7 To 10 Do Begin
+    fSonneNormalTexture[i, -9] := false;
+    fSonneNormalTexture[i, -8] := false;
+  End;
+  For j := 5 To 7 Do Begin
+    fSonneNormalTexture[11, -j] := false;
+    fSonneNormalTexture[12, -j] := false;
+    fSonneNormalTexture[-12, -j] := false;
+  End;
+  fSonneNormalTexture[12, -3] := false;
+  fSonneNormalTexture[-12, -4] := false;
+  fSonneNormalTexture[-11, -5] := false;
+  fSonneNormalTexture[10, -6] := false;
+  fSonneNormalTexture[-11, -6] := false;
+  fSonneNormalTexture[9, -7] := false;
+  fSonneNormalTexture[-9, -7] := false;
+  fSonneNormalTexture[-10, -7] := false;
+  fSonneNormalTexture[6, -8] := false;
+  fSonneNormalTexture[12, -9] := false;
+  fSonneNormalTexture[11, -9] := false;
+  fSonneNormalTexture[5, -9] := false;
+  fSonneNormalTexture[4, -9] := false;
+  fSonneNormalTexture[-4, -9] := false;
+  fSonneNormalTexture[-12, -9] := false;
+  For j := 10 To 15 Do Begin
+    fSonneNormalTexture[0, -j] := true;
+  End;
+  For i := 13 To 20 Do Begin
+    fSonneNormalTexture[i, 0] := true;
+    fSonneNormalTexture[-i, 0] := true;
+  End;
+  fSonneNormalTexture[-8, -13] := true;
+  fSonneNormalTexture[-7, -12] := true;
+  fSonneNormalTexture[-7, -11] := true;
+  fSonneNormalTexture[-6, -10] := true;
+  fSonneNormalTexture[8, -13] := true;
+  fSonneNormalTexture[8, -12] := true;
+  fSonneNormalTexture[7, -11] := true;
+  fSonneNormalTexture[6, -10] := true;
+  fSonneNormalTexture[13, -9] := true;
+  fSonneNormalTexture[14, -10] := true;
+  fSonneNormalTexture[15, -10] := true;
+  For i := 0 To 2 Do Begin
+    fSonneNormalTexture[13 + i, -4] := true;
+    fSonneNormalTexture[16 + i, -5] := true;
+  End;
+  fSonneNormalTexture[-13, -8] := true;
+  fSonneNormalTexture[-14, -9] := true;
+  fSonneNormalTexture[-15, -10] := true;
+  For i := 0 To 3 Do
+    fSonneNormalTexture[-17 + i, -4] := true;
+  fSonneNormalTexture[-13, -3] := true;
+  fSonneNormalTexture[-18, -5] := true;
+  For i := -20 To 20 Do
+    For j := -15 To -1 Do
+      fSonneNormalTexture[i, -j] := fSonneNormalTexture[i, j];
+  fSonneNormalTexture[-3, 3] := false;
+  fSonneNormalTexture[-4, 2] := false;
+  fSonneNormalTexture[-3, 2] := false;
+  fSonneNormalTexture[-2, 2] := false;
+  fSonneNormalTexture[-3, 1] := false;
+  For i := -20 To 20 Do
+    For j := -15 To 15 Do Begin
+      fSonneErschrockenTexture[i, j] := fSonneNormalTexture[i, j];
+    End;
+  // Einbasteln des Lachenden Gesichtes
+  fSonneNormalTexture[-7, -3] := false;
+  fSonneNormalTexture[-6, -4] := false;
+  fSonneNormalTexture[-5, -4] := false;
+  fSonneNormalTexture[-4, -5] := false;
+  fSonneNormalTexture[-3, -5] := false;
+  fSonneNormalTexture[-2, -6] := false;
+  fSonneNormalTexture[-1, -6] := false;
+  fSonneNormalTexture[0, -6] := false;
+  For i := -7 To -1 Do
+    For j := -6 To 3 Do
+      fSonneNormalTexture[-i, j] := fSonneNormalTexture[i, j];
+  // Einbasteln des erschrockenen Gesichtes
+  For i := -1 To 0 Do Begin
+    fSonneErschrockenTexture[i, -4] := false;
+    fSonneErschrockenTexture[i, -5] := false;
+    fSonneErschrockenTexture[i, -6] := false;
+    fSonneErschrockenTexture[i, -7] := false;
+    fSonneErschrockenTexture[-i, -4] := false;
+    fSonneErschrockenTexture[-i, -5] := false;
+    fSonneErschrockenTexture[-i, -6] := false;
+    fSonneErschrockenTexture[-i, -7] := false;
+  End;
+  fSonneErschrockenTexture[-2, -5] := false;
+  fSonneErschrockenTexture[-2, -6] := false;
+  fSonneErschrockenTexture[2, -5] := false;
+  fSonneErschrockenTexture[2, -6] := false;
+  For i := -7 To -1 Do
+    For j := 1 To 3 Do
+      fSonneErschrockenTexture[-i, j] := fSonneErschrockenTexture[i, j];
+  fNormal := T2DPatch.Create(20 + 1 + 20, 15 + 1 + 15, 'Sun Normal');
+  fFrightened := T2DPatch.Create(20 + 1 + 20, 15 + 1 + 15, 'Sun Frightened');
+  For i := -20 To 20 Do Begin
+    For j := -15 To 15 Do Begin
+      If fSonneNormalTexture[i, -j] Then
+        fNormal.SetPixelByColor(i + 20, j + 15, SunColor);
+      If fSonneErschrockenTexture[i, -j] Then
+        fFrightened.SetPixelByColor(i + 20, j + 15, SunColor);
+    End;
+  End;
+End;
+
+Destructor TSun.Destroy;
+Begin
+  fFrightened.free;
+  fNormal.free;
+End;
+
+Procedure TSun.Render(pos: TVector2; frightened: Boolean);
+Begin
+  If frightened Then Begin
+    fFrightened.Render(round(pos.x) - 21, round(pos.y) + 4);
+  End
+  Else Begin
+    fNormal.Render(round(pos.x) - 21, round(pos.y) + 4);
+  End;
+End;
+
+Constructor TGorillaGame.Create;
+Begin
+  Inherited create;
+  (*
+   * Die Ufo Graphik wird als ressource Geladen, der Rest ist im Source hard gecodet
+   *)
+  fufographic := Tbitmap.Create;
+  fufographic.LoadFromLazarusResource('ufo_template');
+  fufoypos := v2(-1, -1);
+  FNetwork.active := false;
+  FNetwork.port := 9876;
+  FNetwork.ServerIP := '127.0.0.1';
+  FNetwork.isServer := false;
+  FNetwork.Socket := Nil;
+  fSunPos := v2(320, 25);
+  fGravity := v2(0, 10);
+  fGorillaState := gsStartScreen;
+  fLastTime := GetTickCount;
+  fRoundCount := 3;
+  FmaxWindStrength := 100;
+  fPlayerNames[0] := 'Player1';
+  fPlayerNames[1] := 'Player2';
+  fPlayerNames[2] := 'Player3';
+  fPlayerNames[3] := 'Player4';
+
+  fbackGround := T2DPatch.Create(640, 480, 'Background');
+  fGorilla := TGorilla.Create;
+  fSun := TSun.Create;
+  FBanana := TBanana.Create;
+End;
+
+Destructor TGorillaGame.Destroy;
+Begin
+  fufographic.free;
+  fbackGround.free;
+  fGorilla.free;
+  fsun.free;
+  FBanana.free;
+End;
+
+Procedure TGorillaGame.EraseElippseInMap(x, y, r1, r2: integer);
 
   Procedure SetPixel(xp, yp: integer);
   Begin
@@ -553,7 +728,7 @@ Begin
   drawEllipse(x, y, r1, r2);
 End;
 
-Procedure TGorilla.ShowStats;
+Procedure TGorillaGame.ShowStats;
 Begin
   (*
    * Diese Routine wird quasi als Spiel Ende Aufgerufen, hier können weitere Spiel auswertende Dinge geschehen
@@ -575,7 +750,7 @@ Begin
   fGorillaState := gsViewPlayerStats;
 End;
 
-Procedure TGorilla.Do_AI_move;
+Procedure TGorillaGame.Do_AI_move;
 Const
   WindKIScale = 3;
 Var
@@ -669,13 +844,13 @@ Begin
    * Die Berechneten Daten so übergeben, dass der OnKeydown Event die Ki Startet
    *)
   fLastPlayerAngle[1] := calculated_Angle;
-  ftemporaryString := inttostr(calculated_Power);
+  fSchmierString := inttostr(calculated_Power);
   fGorillaState := gsEnterPower;
   key := VK_RETURN;
   OnKeyDown(key, []);
 End;
 
-Procedure TGorilla.SendMessage(OpCode: byte; Message: String);
+Procedure TGorillaGame.SendMessage(OpCode: byte; Message: String);
 Var
   data: Array Of byte;
   i: integer;
@@ -688,49 +863,7 @@ Begin
   Network.Send(data[0], high(data) + 1);
 End;
 
-Procedure TGorilla.RenderGorilla(pos: TVector2; GorillaColor: TColor; LeftArm,
-  RightArm: TGorillaArmState);
-Var
-  i, j: integer;
-Begin
-  glPushMatrix();
-  glTranslatef(pos.X, pos.Y, 0);
-  glBegin(GL_POINTS);
-  // Der Kopf, der Körper die Beine
-  SetOpenGLColor(GorillaColor);
-  For i := low(fGorillaBody) To high(fGorillaBody) Do
-    For j := low(fGorillaBody[0]) To high(fGorillaBody[0]) Do
-      If fGorillaBody[i, 28 - j] Then glVertex2i(i, j - 28);
-  If RightArm = gaDown Then Begin
-    For i := low(fGorillaArm) To high(fGorillaArm) Do
-      For j := low(fGorillaArm[0]) To high(fGorillaArm[0]) Do
-        If fGorillaArm[i, 10 - j] Then glVertex2i(i + 7, j - 19);
-  End
-  Else Begin
-    For i := low(fGorillaArm) To high(fGorillaArm) Do
-      For j := low(fGorillaArm[0]) To high(fGorillaArm[0]) Do
-        If fGorillaArm[i, 10 - j] Then glVertex2i(i + 7, -17 - j);
-  End;
-  If LeftArm = gaDown Then Begin
-    For i := low(fGorillaArm) To high(fGorillaArm) Do
-      For j := low(fGorillaArm[0]) To high(fGorillaArm[0]) Do
-        If fGorillaArm[i, 10 - j] Then glVertex2i(-6 - i, j - 19);
-  End
-  Else Begin
-    For i := low(fGorillaArm) To high(fGorillaArm) Do
-      For j := low(fGorillaArm[0]) To high(fGorillaArm[0]) Do
-        If fGorillaArm[i, 10 - j] Then glVertex2i(-6 - i, -17 - j);
-  End;
-  glend();
-  glpopmatrix();
-End;
-
-Procedure TGorilla.SetOpenGLColor(Const Farbe: TColor);
-Begin
-  glColor3ub(byte(Farbe), byte(Farbe Shr 8), byte(Farbe Shr 16));
-End;
-
-Procedure TGorilla.StartGame;
+Procedure TGorillaGame.StartGame;
 Var
   i: integer;
 Begin
@@ -739,11 +872,11 @@ Begin
     fPlayerAlive[i] := false;
     fPlayerPoints[i] := 0;
   End;
-  fActualRound := 0;
+  fAktualRound := 0;
   NewRound();
 End;
 
-Procedure TGorilla.SetBuilding(StartX, EndX, Height: integer);
+Procedure TGorillaGame.SetBuilding(StartX, EndX, Height: integer);
 Var
   i, j, x, y: integer;
   c: TColor;
@@ -765,14 +898,14 @@ Begin
     End;
 End;
 
-Procedure TGorilla.SetUfo;
+Procedure TGorillaGame.SetUfo;
 Var
   i, j, x, y: integer;
   TempIntfImg: TLazIntfImage;
   c: Tcolor;
 Begin
-  x := round(fUfoPos.x);
-  y := round(fUfoPos.y);
+  x := round(fufoypos.x);
+  y := round(fufoypos.y);
   x := x - fufographic.Width Div 2;
   TempIntfImg := TLazIntfImage.Create(0, 0);
   TempIntfImg.LoadFromBitmap(fufographic.Handle, fufographic.MaskHandle);
@@ -788,7 +921,7 @@ Begin
   TempIntfImg.free;
 End;
 
-Procedure TGorilla.NewRound;
+Procedure TGorillaGame.NewRound;
 Var
   j, i, h: integer;
   tmp: TVector2;
@@ -806,12 +939,12 @@ Begin
     End
     Else Begin
       // Der Client übernimmt das Seed aus Schmierint
-      RandSeed := ftemporaryInt;
+      RandSeed := fSchmierInt;
     End;
   End;
   // Den Nächsten Spieler Wählen der Dran ist
-  fSun := GetTickCount - SunScareTime;
-  fActualPlayer := random(max(2, fPlayerCount)) + 1;
+  FSonne := GetTickCount - SunScareTime;
+  fAktualPlayer := random(max(2, fPlayerCount)) + 1;
   fWindStrength := v2(random(2 * fmaxWindStrength) - fmaxWindStrength, 0);
   // Init der Spieler
   For i := 0 To max(fPlayerCount - 1, 1) Do Begin
@@ -864,13 +997,13 @@ Begin
   End;
   SetBuilding(j, 640, h);
   // Das Ufo Plazieren oder nicht
-  fUfoPos := v2(-1, -1);
+  fufoypos := v2(-1, -1);
   If Random(100) > 50 Then Begin
-    fUfoPos := v2(RandomRange(20, 620), RandomRange(minufoypos, maxufoypos));
+    fufoypos := v2(RandomRange(20, 620), RandomRange(minufoypos, maxufoypos));
     SetUfo();
   End;
-  ftemporaryString := inttostr(fLastPlayerAngle[fActualPlayer - 1]);
-  If ftemporaryString = '0' Then ftemporaryString := '';
+  fSchmierString := inttostr(fLastPlayerAngle[fAktualPlayer - 1]);
+  If fSchmierString = '0' Then fSchmierString := '';
   //  In Abhängigkeit von Playercount nun noch die Fplayerpos Tauschen
   For i := 0 To 25 Do Begin
     j := random(max(2, fPlayerCount));
@@ -881,9 +1014,9 @@ Begin
       fplayerpos[h] := tmp;
     End;
   End;
-  fActualRound := fActualRound + 1;
-  If fActualRound > fRoundCount Then Begin
-    fActualRound := fRoundCount;
+  fAktualRound := fAktualRound + 1;
+  If fAktualRound > fRoundCount Then Begin
+    fAktualRound := fRoundCount;
     ShowStats();
     exit;
   End;
@@ -905,15 +1038,14 @@ Begin
       fPlayerNames[1] := 'Computer';
       // Falls die KI den Zug beginnt
       fai.initialized := false;
-      If (fActualPlayer = 2) Then
+      If (fAktualPlayer = 2) Then
         Do_AI_move();
     End;
   End;
 End;
 
-Procedure TGorilla.RenderBanana;
-Var
-  i, j: integer;
+Procedure TGorillaGame.RenderBanana;
+
 Begin
   (*
    * Zeichnen und Rotation der Banane
@@ -922,35 +1054,21 @@ Begin
     fLastTime := GetTickCount;
     FBanana.Rotation := (FBanana.Rotation + 22) Mod 360;
   End;
-  glPushMatrix();
-  glTranslatef(FBanana.Position.x, FBanana.Position.y, 0);
-  glPushMatrix();
-  glRotatef(FBanana.Rotation, 0, 0, 1);
-  SetOpenGLColor(BananaColor);
-  glbegin(GL_POINTS);
-  // die Banane muss wegen den rotationen "übersampelt" werden, sonst entstehen während der Drehung Löcher
-  For i := 2 * low(fBananaTexture) To 2 * high(fBananaTexture) Do
-    For j := 2 * low(fBananaTexture[0]) To 2 * high(fBananaTexture[0]) Do
-      If fBananaTexture[i Div 2, j Div 2] Then Begin
-        glVertex2f(i / 2, j / 2);
-      End;
-  glend;
-  glPopMatrix();
-  glPopMatrix();
+  FBanana.Render;
 End;
 
-Procedure TGorilla.CollideBanana;
+Procedure TGorillaGame.CollideBanana;
 
   Procedure HitPlayer(index: integer);
   Begin
     fPlayerAlive[index] := false;
-    If (fActualPlayer - 1) = index Then Begin
+    If (fAktualPlayer - 1) = index Then Begin
       // Der Selfkill
-      fPlayerPoints[fActualPlayer - 1] := fPlayerPoints[fActualPlayer - 1] - 1;
+      fPlayerPoints[fAktualPlayer - 1] := fPlayerPoints[fAktualPlayer - 1] - 1;
     End
     Else Begin
       // Ein echter Kill
-      fPlayerPoints[fActualPlayer - 1] := fPlayerPoints[fActualPlayer - 1] + 1;
+      fPlayerPoints[fAktualPlayer - 1] := fPlayerPoints[fAktualPlayer - 1] + 1;
     End;
     EraseElippseInMap(round(fplayerpos[index].x), round(fplayerpos[index].y - 14), PlayerDeadRadiusX, PlayerDeadRadiusY);
   End;
@@ -968,10 +1086,10 @@ Begin
    * Bewegung der Banane
    *)
   dt := 0.017;
-  FBanana.Speed := FBanana.Speed + FBanana.Acceleration + (dt * fWindStrength);
-  FBanana.Acceleration := FBanana.Acceleration + dt * fGravity;
+  FBanana.Speed := FBanana.Speed + FBanana.Accelration + (dt * fWindStrength);
+  FBanana.Accelration := FBanana.Accelration + dt * fGravity;
 {$IFDEF ImprovedCollisionDetection}
-  FBanana.OldPosition := FBanana.Position; // Damit die Genauere Flugbahnkollision gemacht werden kann, muss jeweils die Alte Position mit geführt werden.
+  FBanana.AltePosition := FBanana.Position; // Damit die Genauere Flugbahnkollision gemacht werden kann, muss jeweils die Alte Position mit geführt werden.
 {$ENDIF}
   FBanana.Position := FBanana.Position + dt * FBanana.Speed;
   // Vernünftige Abbruch Bedingung, für das Verlassen des Screens
@@ -980,7 +1098,7 @@ Begin
   (FBanana.Position.x < -BananaKilldist) Or // zu Weit Links
   ((abs(fGravity) < BananaKillspeed) And (abs(FBanana.Speed) < BananaKillspeed)) {// Zu Langsam ( Eigentlich alles = 0 ), ohne diese Prüfung, würde die Banne Ewig fliegen und sich nicht bewegen..} Then Begin
     NextTurn := true;
-    If fActualPlayer = 2 Then Begin
+    If fAktualPlayer = 2 Then Begin
       fai.initialized := true;
       fai.finish_reason := ai_out_of_sceen;
       fai.lastthrowpos := FBanana.Position;
@@ -995,11 +1113,11 @@ Begin
     If fMap[i, j] <> BackGround Then Begin
       NextTurn := true;
       EraseElippseInMap(i, j, BananaDamageRadius, BananaDamageRadius);
-      If fActualPlayer = 2 Then Begin
+      If fAktualPlayer = 2 Then Begin
         fai.initialized := true;
         fai.finish_reason := ai_hit_building;
         fai.lastthrowpos := FBanana.Position;
-        If (j < fUfoPos.y + fufographic.Height) And (fUfoPos.y <> -1) Then Begin
+        If (j < fufoypos.y + fufographic.Height) And (fufoypos.y <> -1) Then Begin
           fai.finish_reason := ai_hit_ufo;
         End;
       End;
@@ -1017,19 +1135,19 @@ Begin
       tr := fplayerpos[i] + v2(PlayerColideWidth, 0);
       bl := fplayerpos[i] + v2(-PlayerColideWidth, -PlayerColideHeight);
       br := fplayerpos[i] + v2(PlayerColideWidth, -PlayerColideHeight);
-      If Not Nextturn And IntersectLine_segments(FBanana.OldPosition, FBanana.Position, tl, tr, dummy) Then Begin
+      If Not Nextturn And IntersectLines(FBanana.AltePosition, FBanana.Position, tl, tr, dummy) Then Begin
         HitPlayer(i);
         NextTurn := true;
       End;
-      If Not Nextturn And IntersectLine_segments(FBanana.OldPosition, FBanana.Position, tr, br, dummy) Then Begin
+      If Not Nextturn And IntersectLines(FBanana.AltePosition, FBanana.Position, tr, br, dummy) Then Begin
         HitPlayer(i);
         NextTurn := true;
       End;
-      If Not Nextturn And IntersectLine_segments(FBanana.OldPosition, FBanana.Position, br, bl, dummy) Then Begin
+      If Not Nextturn And IntersectLines(FBanana.AltePosition, FBanana.Position, br, bl, dummy) Then Begin
         HitPlayer(i);
         NextTurn := true;
       End;
-      If Not Nextturn And IntersectLine_segments(FBanana.OldPosition, FBanana.Position, bl, tl, dummy) Then Begin
+      If Not Nextturn And IntersectLines(FBanana.AltePosition, FBanana.Position, bl, tl, dummy) Then Begin
         HitPlayer(i);
         NextTurn := true;
       End;
@@ -1046,7 +1164,7 @@ Begin
    * Kollision mit der Sonne
    *)
   If PointInRect(FBanana.Position, fSunPos - v2(15, 20), fSunPos + v2(15, 20)) Then Begin
-    fSun := GetTickCount;
+    FSonne := GetTickCount;
   End;
   (*
    * Wenn der Flug Offiziell beendet ist
@@ -1054,10 +1172,10 @@ Begin
   If (NextTurn) Then Begin
     // Umschalten auf einen Spielder der Lebt
     Repeat
-      fActualPlayer := ((fActualPlayer) Mod (max(2, fPlayerCount))) + 1;
-    Until fPlayerAlive[fActualPlayer - 1];
-    ftemporaryString := IntToStr(fLastPlayerAngle[fActualPlayer - 1]);
-    If ftemporaryString = '0' Then ftemporaryString := '';
+      fAktualPlayer := ((fAktualPlayer) Mod (max(2, fPlayerCount))) + 1;
+    Until fPlayerAlive[fAktualPlayer - 1];
+    fSchmierString := IntToStr(fLastPlayerAngle[fAktualPlayer - 1]);
+    If fSchmierString = '0' Then fSchmierString := '';
     fGorillaState := gsEnterAngle;
     j := 0;
     For i := 0 To max(fPlayerCount - 1, 1) Do Begin
@@ -1067,70 +1185,51 @@ Begin
      * Nur noch 1 Spieler übrig, das Spiel wird beendet.
      *)
     If (j = 1) Then Begin
-      ftemporaryInt := 0;
+      fSchmierInt := 0;
       fGorillaState := gsVictoryDance; // Starten der Spiel Vorbei Animation
     End
     Else Begin
       // im KI-Modus den Computer Spielen lassen
-      If (fPlayerCount = 1) And (fActualPlayer = 2) And (Not (fnetwork.active)) Then Begin
+      If (fPlayerCount = 1) And (fAktualPlayer = 2) And (Not (fnetwork.active)) Then Begin
         Do_AI_move();
       End;
     End;
   End;
 End;
 
-Procedure TGorilla.RenderWindStrength;
-Var
-  w: Single;
-  i: integer;
+Procedure TGorillaGame.RenderWindStrength;
 Begin
-  SetOpenGLColor(WindColor);
+  UseColorShader;
+  SetShaderColor(1, 0, 0);
   If abs(fWindStrength) > 10 Then Begin
-    glbegin(GL_LINES);
-    glVertex2f(320, 470);
-    glVertex2f(320 + fWindStrength.x, 470 + fWindStrength.y);
-    glend();
-    w := ArcTangens(fWindStrength.x, fWindStrength.y);
-    glPushMatrix();
-    glTranslatef(320 + fWindStrength.x, 471 + fWindStrength.y, 0);
-    glPushMatrix();
-    glRotatef(w, 0, 0, 1);
-    glBegin(GL_POINTS);
-    For i := 1 To 5 Do Begin
-      glVertex2i(-i, i);
-      glVertex2i(-i, -i);
+    glShaderBegin(GL_LINES);
+    glShaderVertex(320, 470, 0);
+    glShaderVertex(320 + fWindStrength.x, 470 + fWindStrength.y, 0);
+    If fWindStrength.x > 0 Then Begin
+      glShaderVertex(320 + fWindStrength.x, 470 + fWindStrength.y, 0);
+      glShaderVertex(320 + fWindStrength.x - 5, 470 + fWindStrength.y - 5, 0);
+      glShaderVertex(320 + fWindStrength.x, 470 + fWindStrength.y, 0);
+      glShaderVertex(320 + fWindStrength.x - 5, 470 + fWindStrength.y + 5, 0);
+    End
+    Else Begin
+      If fWindStrength.x < 0 Then Begin
+        glShaderVertex(320 + fWindStrength.x, 470 + fWindStrength.y, 0);
+        glShaderVertex(320 + fWindStrength.x + 5, 470 + fWindStrength.y - 5, 0);
+        glShaderVertex(320 + fWindStrength.x, 470 + fWindStrength.y, 0);
+        glShaderVertex(320 + fWindStrength.x + 5, 470 + fWindStrength.y + 5, 0);
+      End;
     End;
-    glend();
-    glPopMatrix();
-    glPopMatrix();
+    glShaderEnd();
   End;
+  UseTextureShader();
 End;
 
-Procedure TGorilla.RenderSun;
-Var
-  i, j: integer;
+Procedure TGorillaGame.RenderSun;
 Begin
-  SetOpenGLColor(SunColor);
-  glPushMatrix();
-  glTranslatef(fSunPos.x, fSunPos.y, 0);
-  glPushMatrix();
-  glBegin(GL_POINTS);
-  If GetTickCount - fSun < SunScareTime Then Begin
-    For i := low(fSunScareTexture) To high(fSunScareTexture) Do
-      For j := low(fSunScareTexture[0]) To high(fSunScareTexture[0]) Do
-        If fSunScareTexture[i, j] Then glVertex2i(i, 20 - j);
-  End
-  Else Begin
-    For i := low(fSunNormalTexture) To high(fSunNormalTexture) Do
-      For j := low(fSunNormalTexture[0]) To high(fSunNormalTexture[0]) Do
-        If fSunNormalTexture[i, j] Then glVertex2i(i, 20 - j);
-  End;
-  glend;
-  glPopMatrix();
-  glPopMatrix();
+  fSun.Render(fSunPos, GetTickCount - FSonne < SunScareTime);
 End;
 
-Procedure TGorilla.Render;
+Procedure TGorillaGame.Render;
 Var
   t, s: String;
   h, w, w2: integer;
@@ -1155,16 +1254,16 @@ Begin
         s := 'Please enter the max wind strength (default 100 m/s): '; //Dieser Text dient nur der "Breiten" Bestimmung
         w := round(OpenGL_ASCII_Font.TextWidth(s)) Div 2;
         For i := 1 To 2 Do Begin
-          If (i = ftemporaryInt) {And (fGorillaState = gsEnterName) } Then Begin
-            s := 'Please enter the name of player' + inttostr(ftemporaryInt) + ' : '; // Nur zur Berechnung von w2
+          If (i = fSchmierInt) {And (fGorillaState = gsEnterName) } Then Begin
+            s := 'Please enter the name of player' + inttostr(fSchmierInt) + ' : '; // Nur zur Berechnung von w2
             w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-            s := fPlayerNames[ftemporaryInt - 1];
+            s := fPlayerNames[fSchmierInt - 1];
             If GetTickCount - fLastTime < 500 Then s := s + '_';
             If GetTickCount - fLastTime > 1000 Then fLastTime := GetTickCount;
             OpenGL_ASCII_Font.Color := clLtGray;
             OpenGL_ASCII_Font.Textout(300 - w + w2, 120 + (i - 1) * h, s);
             w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-            s := 'Please enter the name of player' + inttostr(ftemporaryInt) + ' : ';
+            s := 'Please enter the name of player' + inttostr(fSchmierInt) + ' : ';
           End
           Else Begin
             s := format('Player%d : %s', [i, fPlayerNames[i - 1]]);
@@ -1209,7 +1308,7 @@ Begin
         w := round(OpenGL_ASCII_Font.TextWidth(s));
         If fGorillaState = gsQuestionPort Then Begin
           w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-          s := ftemporaryString;
+          s := fSchmierString;
           If GetTickCount - fLastTime < 500 Then s := s + '_';
           If GetTickCount - fLastTime > 1000 Then fLastTime := GetTickCount;
           OpenGL_ASCII_Font.Color := clLtGray;
@@ -1236,7 +1335,7 @@ Begin
           If (fGorillaState = gsQuestionIP) Then Begin
             s := 'Please enter the server IP-Address : ';
             w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-            s := ftemporaryString;
+            s := fSchmierString;
             If GetTickCount - fLastTime < 500 Then s := s + '_';
             If GetTickCount - fLastTime > 1000 Then fLastTime := GetTickCount;
             OpenGL_ASCII_Font.Color := clLtGray;
@@ -1265,7 +1364,7 @@ Begin
         s := format(
           '          Player stats ' + LineEnding + LineEnding +
           '     Total rounds :  %3d' + LineEnding +
-          '     Played rounds : %3d' + LineEnding, [fRoundCount, fActualRound]);
+          '     Played rounds : %3d' + LineEnding, [fRoundCount, fAktualRound]);
         s := s + LineEnding + LineEnding + '     Name        Points' + LineEnding + LineEnding;
         For i := 0 To max(1, fPlayerCount - 1) Do Begin
           s := s + format('     %10s   %3d' + LineEnding, [fPlayerNames[i], fPlayerPoints[i]]);
@@ -1299,8 +1398,8 @@ Begin
         j := 0;
         If GetTickCount - fLastTime < 500 Then j := 1;
         If GetTickCount - fLastTime > 1000 Then fLastTime := GetTickCount;
-        RenderGorilla(v2(50, 100), GorillaColors[0], TGorillaArmState(j), TGorillaArmState(1 - j));
-        RenderGorilla(v2(590, 100), GorillaColors[0], TGorillaArmState(1 - j), TGorillaArmState(j));
+        fGorilla.Render(v2(50, 100), GorillaColors[0], TGorillaArmState(j), TGorillaArmState(1 - j));
+        fGorilla.Render(v2(590, 100), GorillaColors[0], TGorillaArmState(1 - j), TGorillaArmState(j));
       End;
     gsEnterGravity,
       gsEnterMaxWind,
@@ -1312,16 +1411,16 @@ Begin
         s := 'Please enter the max wind strength (default 100 m/s): '; //Dieser Text dient nur der "Breiten" Bestimmung
         w := round(OpenGL_ASCII_Font.TextWidth(s)) Div 2;
         For i := 1 To fPlayerCount Do Begin
-          If (i = ftemporaryInt) And (fGorillaState = gsEnterName) Then Begin
-            s := 'Please enter the name of player' + inttostr(ftemporaryInt) + ' : '; // Nur zur Berechnung von w2
+          If (i = fSchmierInt) And (fGorillaState = gsEnterName) Then Begin
+            s := 'Please enter the name of player' + inttostr(fSchmierInt) + ' : '; // Nur zur Berechnung von w2
             w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-            s := fPlayerNames[ftemporaryInt - 1];
+            s := fPlayerNames[fSchmierInt - 1];
             If GetTickCount - fLastTime < 500 Then s := s + '_';
             If GetTickCount - fLastTime > 1000 Then fLastTime := GetTickCount;
             OpenGL_ASCII_Font.Color := clLtGray;
             OpenGL_ASCII_Font.Textout(300 - w + w2, 100 + (i - 1) * h, s);
             w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-            s := 'Please enter the name of player' + inttostr(ftemporaryInt) + ' : ';
+            s := 'Please enter the name of player' + inttostr(fSchmierInt) + ' : ';
           End
           Else Begin
             s := format('Player%d : %s', [i, fPlayerNames[i - 1]]);
@@ -1351,7 +1450,7 @@ Begin
           OpenGL_ASCII_Font.Color := clwhite;
           OpenGL_ASCII_Font.Textout(300 - w, 100 + (5) * h, s);
           w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-          s := ftemporaryString;
+          s := fSchmierString;
           If GetTickCount - fLastTime < 500 Then s := s + '_';
           If GetTickCount - fLastTime > 1000 Then fLastTime := GetTickCount;
           OpenGL_ASCII_Font.Color := clLtGray;
@@ -1370,7 +1469,7 @@ Begin
           OpenGL_ASCII_Font.Color := clwhite;
           OpenGL_ASCII_Font.Textout(300 - w, 100 + (7) * h, s);
           w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-          s := ftemporaryString;
+          s := fSchmierString;
           If GetTickCount - fLastTime < 500 Then s := s + '_';
           If GetTickCount - fLastTime > 1000 Then fLastTime := GetTickCount;
           OpenGL_ASCII_Font.Color := clLtGray;
@@ -1389,7 +1488,7 @@ Begin
           OpenGL_ASCII_Font.Color := clwhite;
           OpenGL_ASCII_Font.Textout(300 - w, 100 + (9) * h, s);
           w2 := round(OpenGL_ASCII_Font.TextWidth(s));
-          s := ftemporaryString;
+          s := fSchmierString;
           If GetTickCount - fLastTime < 500 Then s := s + '_';
           If GetTickCount - fLastTime > 1000 Then fLastTime := GetTickCount;
           OpenGL_ASCII_Font.Color := clLtGray;
@@ -1408,28 +1507,17 @@ Begin
       gsStartThrow, gsThrow,
       gsEnterAngle, gsEnterPower: Begin
         // 1. Rendern der Karte
-        glBegin(GL_QUADs);
-        SetOpenGLColor(BackGround);
-        glVertex2i(0, 0);
-        glVertex2i(640, 0);
-        glVertex2i(640, 480);
-        glVertex2i(0, 480);
-        glend();
-        glBegin(GL_POINTS);
         For i := 0 To high(fMap) Do
           For j := 0 To high(fmap[0]) Do Begin
-            If fMap[i, j] <> BackGround Then Begin
-              SetOpenGLColor(fMap[i, j]);
-              glVertex2i(i, j);
-            End;
+            fbackGround.SetPixelByColor(i, j, fMap[i, j]);
           End;
-        glend;
+        fbackGround.Render(0, 0);
         // 2. Rendern der Sonne, Wind
         RenderSun();
         RenderWindStrength();
         For i := 0 To max(fPlayerCount - 1, 1) Do Begin
           // 3. Rendern des Aktuellen Spielers
-          If (fGorillaState = gsStartThrow) And (i = fActualPlayer - 1) Then Begin
+          If (fGorillaState = gsStartThrow) And (i = fAktualPlayer - 1) Then Begin
             l := gaDown;
             r := gaDown;
             If FBanana.Speed.x >= 0 Then
@@ -1449,8 +1537,8 @@ Begin
               End;
               If GetTickCount - fLastTime > VictoryDanceTime Then Begin
                 fLastTime := GetTickCount;
-                ftemporaryInt := ftemporaryInt + 1;
-                If (ftemporaryInt > maxVictoryDanceTime) Then Begin
+                fSchmierInt := fSchmierInt + 1;
+                If (fSchmierInt > maxVictoryDanceTime) Then Begin
                   If FNetwork.active Then Begin
                     // Das Verhindert dass der Client evtl. Schneller als der Server eine neue Runde startet und damit den Server durcheinander bringt.
                     If FNetwork.isServer Then Begin
@@ -1467,7 +1555,7 @@ Begin
           End;
           // nur lebendige Gorillas werden Gezeichnet
           If fPlayerAlive[i] Then
-            RenderGorilla(fplayerpos[i], GorillaColors[i], l, r);
+            fGorilla.Render(fplayerpos[i], GorillaColors[i], l, r);
           // 4. Rendern der aktuellen Spieler Informationen und Texte
           s := fPlayerNames[i] + ' : ' + inttostr(fPlayerPoints[i]);
           OpenGL_ASCII_Font.Color := GorillaColors[i];
@@ -1479,15 +1567,15 @@ Begin
           CollideBanana();
         End;
         // Rendern der Rundeninfo
-        s := format('(%d/%d)', [fActualRound, fRoundCount]);
+        s := format('(%d/%d)', [fAktualRound, fRoundCount]);
         OpenGL_ASCII_Font.Color := clWhite;
         OpenGL_ASCII_Font.Textout(320 - (round(OpenGL_ASCII_Font.TextWidth(s)) Div 2), 10, s);
         // Rendern der Dialog informationen
         s := 'Velocity : 0000 '; // Festlegen der "Breite"
         //s := 'Angle : 0000 ';  // ist Kürzer als das Obere, deswegen ausgeblendet
-        OpenGL_ASCII_Font.Color := GorillaColors[fActualPlayer - 1];
+        OpenGL_ASCII_Font.Color := GorillaColors[fAktualPlayer - 1];
         w := round(OpenGL_ASCII_Font.TextWidth(s));
-        s := fPlayerNames[fActualPlayer - 1];
+        s := fPlayerNames[fAktualPlayer - 1];
         w := max(w, round(OpenGL_ASCII_Font.TextWidth(s)));
         OpenGL_ASCII_Font.Textout(640 - w, 10, s);
         s := '';
@@ -1498,11 +1586,11 @@ Begin
           s := 'Velocity : ';
         End;
         If s <> '' Then Begin
-          t := ftemporaryString;
+          t := fSchmierString;
           If FNetwork.active Then Begin
             // Das Blinken natürlich nur, wenn der Aktuelle Spieler auch Berechtigt ist zu editieren
-            If ((fActualPlayer = 1) And FNetwork.isServer) Or
-              ((fActualPlayer = 2) And Not FNetwork.isServer) Then Begin
+            If ((fAktualPlayer = 1) And FNetwork.isServer) Or
+              ((fAktualPlayer = 2) And Not FNetwork.isServer) Then Begin
               If GetTickCount - fLastTime < 500 Then t := t + '_';
             End;
           End
@@ -1518,39 +1606,39 @@ Begin
   End;
 End;
 
-Procedure TGorilla.OnAnglePowerReturn;
+Procedure TGorillaGame.OnAnglePowerReturn;
 Var
   i: integer;
 Begin
   Case fGorillaState Of
     gsEnterAngle: Begin
-        i := StrToIntDef(ftemporaryString, 0);
-        fLastPlayerAngle[fActualPlayer - 1] := i;
+        i := StrToIntDef(fSchmierString, 0);
+        fLastPlayerAngle[fAktualPlayer - 1] := i;
         fGorillaState := gsEnterPower;
-        ftemporaryString := inttostr(fLastPlayerPower[fActualPlayer - 1]);
-        If ftemporaryString = '0' Then ftemporaryString := '';
+        fSchmierString := inttostr(fLastPlayerPower[fAktualPlayer - 1]);
+        If fSchmierString = '0' Then fSchmierString := '';
       End;
     gsEnterPower: Begin
-        i := StrToIntDef(ftemporaryString, 0);
+        i := StrToIntDef(fSchmierString, 0);
         (*
          * Start eines Wurfes mit allen Notwendigen Initialisierungen
          *)
-        fLastPlayerPower[fActualPlayer - 1] := i;
-        ftemporaryString := '';
+        fLastPlayerPower[fAktualPlayer - 1] := i;
+        fSchmierString := '';
         fGorillaState := gsStartThrow;
         fLastTime := GetTickCount;
-        FBanana.Speed := V2(cos(degtorad(fLastPlayerAngle[fActualPlayer - 1])) * fLastPlayerPower[fActualPlayer - 1], -sin(degtorad(fLastPlayerAngle[fActualPlayer - 1])) * fLastPlayerPower[fActualPlayer - 1]);
-        FBanana.Acceleration := v2(0, 0);
+        FBanana.Speed := V2(cos(degtorad(fLastPlayerAngle[fAktualPlayer - 1])) * fLastPlayerPower[fAktualPlayer - 1], -sin(degtorad(fLastPlayerAngle[fAktualPlayer - 1])) * fLastPlayerPower[fAktualPlayer - 1]);
+        FBanana.Accelration := v2(0, 0);
         FBanana.Rotation := random(360);
-        FBanana.Position := v2(fplayerpos[fActualPlayer - 1].X, fplayerpos[fActualPlayer - 1].Y - 30);
+        FBanana.Position := v2(fplayerpos[fAktualPlayer - 1].X, fplayerpos[fAktualPlayer - 1].Y - 30);
 {$IFDEF ImprovedCollisionDetection}
-        FBanana.OldPosition := FBanana.Position; // Damit die Genauere Flugbahnkollision gemacht werden kann, muss jeweils die Alte Position mit geführt werden.
+        FBanana.AltePosition := FBanana.Position; // Damit die Genauere Flugbahnkollision gemacht werden kann, muss jeweils die Alte Position mit geführt werden.
 {$ENDIF}
       End;
   End;
 End;
 
-Procedure TGorilla.OnKeyDown(Var Key: Word; Shift: TShiftState);
+Procedure TGorillaGame.OnKeyDown(Var Key: Word; Shift: TShiftState);
 Begin
   // ESC - Beendet immer.
   If (key = vk_escape) Then application.Terminate;
@@ -1567,13 +1655,13 @@ Begin
         If Key = vk_S Then Begin
           // Der Server Startet
           FNetwork.isServer := true;
-          ftemporaryString := IntToStr(FNetwork.port);
+          fSchmierString := IntToStr(FNetwork.port);
           fGorillaState := gsQuestionPort;
         End;
         If Key = vk_C Then Begin
           // Der Client Startet
           FNetwork.isServer := false;
-          ftemporaryString := IntToStr(FNetwork.port);
+          fSchmierString := IntToStr(FNetwork.port);
           fGorillaState := gsQuestionPort;
         End;
       End;
@@ -1590,8 +1678,8 @@ Begin
       End;
     gsWaitForServerToStart: Begin
         If Key = VK_BACK Then Begin
-          delete(fPlayerNames[ftemporaryInt - 1], Length(fPlayerNames[ftemporaryInt - 1]), 1);
-          SendMessage(OpClientChangedName, fPlayerNames[ftemporaryInt - 1]);
+          delete(fPlayerNames[fSchmierInt - 1], Length(fPlayerNames[fSchmierInt - 1]), 1);
+          SendMessage(OpClientChangedName, fPlayerNames[fSchmierInt - 1]);
         End;
         // Namen sollen nur aus Groß, Klein Buchstaben und 0..9 bestehen.
         If (key In [VK_A..VK_Z]) Or
@@ -1600,8 +1688,8 @@ Begin
           // Die Kleinen Buchstaben
           If (key In [VK_NUMPAD0..VK_NUMPAD9]) Then key := key - VK_NUMPAD0 + VK_0; // Umrechnen Numpad in zahlen
           If (key In [VK_A..VK_Z]) And Not (ssShift In Shift) Then key := key + 32;
-          fPlayerNames[ftemporaryInt - 1] := fPlayerNames[ftemporaryInt - 1] + chr(Key);
-          SendMessage(OpClientChangedName, fPlayerNames[ftemporaryInt - 1]);
+          fPlayerNames[fSchmierInt - 1] := fPlayerNames[fSchmierInt - 1] + chr(Key);
+          SendMessage(OpClientChangedName, fPlayerNames[fSchmierInt - 1]);
         End;
       End;
     gsQuestionIP: Begin
@@ -1610,18 +1698,18 @@ Begin
         End;
         // Eingabe des Portes
         If Key = VK_BACK Then Begin
-          delete(ftemporaryString, Length(ftemporaryString), 1);
+          delete(fSchmierString, Length(fSchmierString), 1);
         End;
         If key = VK_OEM_PERIOD Then Begin
-          ftemporaryString := ftemporaryString + '.';
+          fSchmierString := fSchmierString + '.';
         End;
         If (key In [VK_0..VK_9]) Or
           (key In [VK_NUMPAD0..VK_NUMPAD9]) Then Begin
           If (key In [VK_NUMPAD0..VK_NUMPAD9]) Then key := key - VK_NUMPAD0 + VK_0; // Umrechnen Numpad in zahlen
-          ftemporaryString := ftemporaryString + chr(Key);
+          fSchmierString := fSchmierString + chr(Key);
         End;
         If Key = VK_RETURN Then Begin
-          FNetwork.ServerIP := ftemporaryString;
+          FNetwork.ServerIP := fSchmierString;
           If Network.Connected Then Begin
             Network.Disconnect(true);
           End;
@@ -1629,8 +1717,8 @@ Begin
             //            form3.show;
             FNetwork.active := true;
             fGorillaState := gsWaitForServerToStart;
-            ftemporaryString := fPlayerNames[1];
-            ftemporaryInt := 2;
+            fSchmierString := fPlayerNames[1];
+            fSchmierInt := 2;
           End
           Else Begin
             showmessage('Error could not connect.');
@@ -1644,15 +1732,15 @@ Begin
         End;
         // Eingabe des Portes
         If Key = VK_BACK Then Begin
-          delete(ftemporaryString, Length(ftemporaryString), 1);
+          delete(fSchmierString, Length(fSchmierString), 1);
         End;
         If (key In [VK_0..VK_9]) Or
           (key In [VK_NUMPAD0..VK_NUMPAD9]) Then Begin
           If (key In [VK_NUMPAD0..VK_NUMPAD9]) Then key := key - VK_NUMPAD0 + VK_0; // Umrechnen Numpad in zahlen
-          ftemporaryString := ftemporaryString + chr(Key);
+          fSchmierString := fSchmierString + chr(Key);
         End;
         If Key = VK_RETURN Then Begin
-          FNetwork.port := strtointdef(ftemporaryString, 9876);
+          FNetwork.port := strtointdef(fSchmierString, 9876);
           If FNetwork.isServer Then Begin
             If Network.Connected Then Begin
               Network.Disconnect(true);
@@ -1661,7 +1749,7 @@ Begin
             fGorillaState := gsWaitForClient; // Warten bis der Client Verbunden hat
           End
           Else Begin
-            ftemporaryString := FNetwork.ServerIP;
+            fSchmierString := FNetwork.ServerIP;
             fGorillaState := gsQuestionIP;
           End;
         End;
@@ -1671,13 +1759,13 @@ Begin
           // Im Netzwerkmodus kommen wir wieder in die Eingabe Maske
           If FNetwork.isServer Then Begin
             // Das Ganze so einstelllen, das der Server auch alles wieder richtig sieht ..
-            ftemporaryInt := 1;
+            fSchmierInt := 1;
             fPlayerCount := 1;
             fGorillaState := gsEnterName;
           End
           Else Begin
-            ftemporaryString := fPlayerNames[1];
-            ftemporaryInt := 2;
+            fSchmierString := fPlayerNames[1];
+            fSchmierInt := 2;
             fPlayerCount := 0; // ist im Prinzip egal, sollte halt nicht 1 sein
             fGorillaState := gsWaitForServerToStart;
           End;
@@ -1700,7 +1788,7 @@ Begin
       End;
     gsThrow, gsStartThrow: Begin
         If (key = VK_Q) Then Begin
-          fActualRound := fActualRound - 1; // Die Runde wurde ja nicht beendet, zählt also nicht
+          fAktualRound := fAktualRound - 1; // Die Runde wurde ja nicht beendet, zählt also nicht
           ShowStats(); // Spielabbruch
         End;
       End;
@@ -1709,7 +1797,7 @@ Begin
           form2.show;
         End;
         If (key = VK_Q) Then Begin
-          fActualRound := fActualRound - 1; // Die Runde wurde ja nicht beendet, zählt also nicht
+          fAktualRound := fAktualRound - 1; // Die Runde wurde ja nicht beendet, zählt also nicht
           If FNetwork.active Then Begin
             SendMessage(opCancelRound, '');
           End;
@@ -1724,21 +1812,21 @@ Begin
         If Key = VK_BACK Then Begin
           // Prüfen ob der Spieler berechtigt ist den jeweiligen Wert zu editieren
           If FNetwork.active Then Begin
-            If ((fActualPlayer = 2) And FNetwork.isServer) Or
-              ((fActualPlayer = 1) And Not FNetwork.isServer) Then Begin
+            If ((fAktualPlayer = 2) And FNetwork.isServer) Or
+              ((fAktualPlayer = 1) And Not FNetwork.isServer) Then Begin
               exit;
             End;
           End;
-          delete(ftemporaryString, Length(ftemporaryString), 1);
+          delete(fSchmierString, Length(fSchmierString), 1);
           If FNetwork.active Then Begin
-            SendMessage(opUpdateSchmierstring, ftemporaryString);
+            SendMessage(opUpdateSchmierstring, fSchmierString);
           End;
         End;
         If key = VK_RETURN Then Begin
           // Prüfen ob der Spieler berechtigt ist den jeweiligen Wert zu editieren
           If FNetwork.active Then Begin
-            If ((fActualPlayer = 2) And FNetwork.isServer) Or
-              ((fActualPlayer = 1) And Not FNetwork.isServer) Then Begin
+            If ((fAktualPlayer = 2) And FNetwork.isServer) Or
+              ((fAktualPlayer = 1) And Not FNetwork.isServer) Then Begin
               exit;
             End;
             SendMessage(opReturnPressed, ''); // Dem Anderen Mitteilen das "Enter" gedrückt wurde.
@@ -1749,24 +1837,24 @@ Begin
         If (key = VK_SUBTRACT) Or (key = VK_OEM_MINUS) Then Begin
           // Prüfen ob der Spieler berechtigt ist den jeweiligen Wert zu editieren
           If FNetwork.active Then Begin
-            If ((fActualPlayer = 2) And FNetwork.isServer) Or
-              ((fActualPlayer = 1) And Not FNetwork.isServer) Then Begin
+            If ((fAktualPlayer = 2) And FNetwork.isServer) Or
+              ((fAktualPlayer = 1) And Not FNetwork.isServer) Then Begin
               exit;
             End;
           End;
-          If Length(ftemporaryString) = 0 Then Begin
-            ftemporaryString := '-';
+          If Length(fSchmierString) = 0 Then Begin
+            fSchmierString := '-';
           End
           Else Begin
-            If ftemporaryString[1] = '-' Then Begin
-              delete(ftemporaryString, 1, 1);
+            If fSchmierString[1] = '-' Then Begin
+              delete(fSchmierString, 1, 1);
             End
             Else Begin
-              ftemporaryString := '-' + ftemporaryString;
+              fSchmierString := '-' + fSchmierString;
             End;
           End;
           If FNetwork.active Then Begin
-            SendMessage(opUpdateSchmierstring, ftemporaryString);
+            SendMessage(opUpdateSchmierstring, fSchmierString);
           End;
         End;
         // Die Rundenzahl bleigt nur eine Zahl
@@ -1775,14 +1863,14 @@ Begin
           If (key In [VK_NUMPAD0..VK_NUMPAD9]) Then key := key - VK_NUMPAD0 + VK_0; // Umrechnen Numpad in zahlen
           // Prüfen ob der Spieler berechtigt ist den jeweiligen Wert zu editieren
           If FNetwork.active Then Begin
-            If ((fActualPlayer = 2) And FNetwork.isServer) Or
-              ((fActualPlayer = 1) And Not FNetwork.isServer) Then Begin
+            If ((fAktualPlayer = 2) And FNetwork.isServer) Or
+              ((fAktualPlayer = 1) And Not FNetwork.isServer) Then Begin
               exit;
             End;
           End;
-          ftemporaryString := ftemporaryString + chr(Key);
+          fSchmierString := fSchmierString + chr(Key);
           If FNetwork.active Then Begin
-            SendMessage(opUpdateSchmierstring, ftemporaryString);
+            SendMessage(opUpdateSchmierstring, fSchmierString);
           End;
         End;
       End;
@@ -1794,7 +1882,7 @@ Begin
           (key In [VK_NUMPAD0..VK_NUMPAD9]) Then Begin
           If (key In [VK_NUMPAD0..VK_NUMPAD9]) Then key := key - VK_NUMPAD0 + VK_0; // Umrechnen Numpad in zahlen
           fPlayerCount := Key - VK_1 + 1;
-          ftemporaryInt := 1;
+          fSchmierInt := 1;
           fGorillaState := gsEnterName;
           fLastTime := GetTickCount;
           // Sicherstellen das das Netzwerk aus ist, falls es evtl irgendwo vergessen wurde..
@@ -1816,17 +1904,17 @@ Begin
           End;
         End;
         If Key = VK_BACK Then Begin
-          delete(ftemporaryString, Length(ftemporaryString), 1);
+          delete(fSchmierString, Length(fSchmierString), 1);
           If FNetwork.active Then Begin
             Case fGorillaState Of
               gsEnterRoundCount: Begin
-                  SendMessage(opServerChangedRoundsToPlay, ftemporaryString);
+                  SendMessage(opServerChangedRoundsToPlay, fSchmierString);
                 End;
               gsEnterGravity: Begin
-                  SendMessage(opServerChangedGravity, ftemporaryString);
+                  SendMessage(opServerChangedGravity, fSchmierString);
                 End;
               gsEnterMaxWind: Begin
-                  SendMessage(opServerChangedMaxWind, ftemporaryString);
+                  SendMessage(opServerChangedMaxWind, fSchmierString);
                 End;
             End;
           End;
@@ -1834,19 +1922,19 @@ Begin
         If Key = VK_Up Then Begin
           Case fGorillaState Of
             gsEnterRoundCount: Begin
-                ftemporaryInt := fPlayerCount;
+                fSchmierInt := fPlayerCount;
                 fGorillaState := gsEnterName;
                 fLastTime := GetTickCount;
               End;
             gsEnterGravity: Begin
-                If ftemporaryInt > fPlayerCount Then Begin
-                  ftemporaryString := inttostr(froundcount);
+                If fSchmierInt > fPlayerCount Then Begin
+                  fSchmierString := inttostr(froundcount);
                   fGorillaState := gsEnterRoundCount;
                 End;
               End;
             gsEnterMaxWind: Begin
-                FmaxWindStrength := abs(StrToIntDef(ftemporaryString, 100));
-                ftemporaryString := inttostr(round(abs(fGravity)));
+                FmaxWindStrength := abs(StrToIntDef(fSchmierString, 100));
+                fSchmierString := inttostr(round(abs(fGravity)));
                 fGorillaState := gsEnterGravity;
               End;
           End;
@@ -1854,22 +1942,22 @@ Begin
         If (key = VK_RETURN) Or (key = VK_DOWN) Then Begin
           Case fGorillaState Of
             gsEnterRoundCount: Begin
-                fRoundCount := StrToIntDef(ftemporaryString, 1);
+                fRoundCount := StrToIntDef(fSchmierString, 1);
                 fRoundCount := max(fRoundCount, 1);
-                ftemporaryString := inttostr(round(abs(fGravity)));
+                fSchmierString := inttostr(round(abs(fGravity)));
                 fGorillaState := gsEnterGravity;
               End;
             gsEnterGravity: Begin
-                If ftemporaryString = '0' Then Begin
-                  ftemporaryString := inttostr(random(95) + 1);
+                If fSchmierString = '0' Then Begin
+                  fSchmierString := inttostr(random(95) + 1);
                 End;
-                fGravity := v2(0, abs(StrToIntDef(ftemporaryString, 10)));
-                ftemporaryString := inttostr(FmaxWindStrength);
+                fGravity := v2(0, abs(StrToIntDef(fSchmierString, 10)));
+                fSchmierString := inttostr(FmaxWindStrength);
                 fGorillaState := gsEnterMaxWind;
               End;
             gsEnterMaxWind: Begin
-                FmaxWindStrength := abs(StrToIntDef(ftemporaryString, 100));
-                ftemporaryString := '';
+                FmaxWindStrength := abs(StrToIntDef(fSchmierString, 100));
+                fSchmierString := '';
                 StartGame();
               End;
           End;
@@ -1878,18 +1966,18 @@ Begin
         If (key In [VK_0..VK_9]) Or
           (key In [VK_NUMPAD0..VK_NUMPAD9]) Then Begin
           If (key In [VK_NUMPAD0..VK_NUMPAD9]) Then key := key - VK_NUMPAD0 + VK_0; // Umrechnen Numpad in zahlen
-          ftemporaryString := ftemporaryString + chr(Key);
+          fSchmierString := fSchmierString + chr(Key);
           // Hier ändert der Server seinen Namen
           If FNetwork.active Then Begin
             Case fGorillaState Of
               gsEnterRoundCount: Begin
-                  SendMessage(opServerChangedRoundsToPlay, ftemporaryString);
+                  SendMessage(opServerChangedRoundsToPlay, fSchmierString);
                 End;
               gsEnterGravity: Begin
-                  SendMessage(opServerChangedGravity, ftemporaryString);
+                  SendMessage(opServerChangedGravity, fSchmierString);
                 End;
               gsEnterMaxWind: Begin
-                  SendMessage(opServerChangedMaxWind, ftemporaryString);
+                  SendMessage(opServerChangedMaxWind, fSchmierString);
                 End;
             End;
           End;
@@ -1897,22 +1985,22 @@ Begin
       End;
     gsEnterName: Begin
         If Key = VK_BACK Then Begin
-          delete(fPlayerNames[ftemporaryInt - 1], Length(fPlayerNames[ftemporaryInt - 1]), 1);
+          delete(fPlayerNames[fSchmierInt - 1], Length(fPlayerNames[fSchmierInt - 1]), 1);
           // Hier ändert der Server seinen Namen
           If FNetwork.active Then Begin
-            SendMessage(OpServerChangedName, fPlayerNames[ftemporaryInt - 1]);
+            SendMessage(OpServerChangedName, fPlayerNames[fSchmierInt - 1]);
           End;
         End;
         If (key = VK_RETURN) Or (key = VK_DOWN) Then Begin
-          ftemporaryInt := ftemporaryInt + 1;
-          If ftemporaryInt > fPlayerCount Then Begin
-            ftemporaryString := inttostr(froundcount);
+          fSchmierInt := fSchmierInt + 1;
+          If fSchmierInt > fPlayerCount Then Begin
+            fSchmierString := inttostr(froundcount);
             fGorillaState := gsEnterRoundCount;
           End;
         End;
         If Key = VK_UP Then Begin
-          ftemporaryInt := ftemporaryInt - 1;
-          If ftemporaryInt = 0 Then Begin
+          fSchmierInt := fSchmierInt - 1;
+          If fSchmierInt = 0 Then Begin
             fGorillaState := gsStartScreen;
             If FNetwork.isServer Then Begin
               Network.Disconnect(true);
@@ -1926,17 +2014,17 @@ Begin
           // Die Kleinen Buchstaben
           If (key In [VK_NUMPAD0..VK_NUMPAD9]) Then key := key - VK_NUMPAD0 + VK_0; // Umrechnen Numpad in zahlen
           If (key In [VK_A..VK_Z]) And Not (ssShift In Shift) Then key := key + 32;
-          fPlayerNames[ftemporaryInt - 1] := fPlayerNames[ftemporaryInt - 1] + chr(Key);
+          fPlayerNames[fSchmierInt - 1] := fPlayerNames[fSchmierInt - 1] + chr(Key);
           // Hier ändert der Server seinen Namen
           If FNetwork.active Then Begin
-            SendMessage(OpServerChangedName, fPlayerNames[ftemporaryInt - 1]);
+            SendMessage(OpServerChangedName, fPlayerNames[fSchmierInt - 1]);
           End;
         End;
       End;
   End;
 End;
 
-Procedure TGorilla.OnDisconnect(aSocket: TLSocket);
+Procedure TGorillaGame.OnDisconnect(aSocket: TLSocket);
 Begin
   If asocket = FNetwork.Socket Then Begin
     // Der Server muss sich merken mit welchem Socket er verbunden ist und nur beim trennen von diesem alles killen
@@ -1953,7 +2041,7 @@ Begin
   End;
 End;
 
-Procedure TGorilla.OnAccept(aSocket: TLSocket);
+Procedure TGorillaGame.OnAccept(aSocket: TLSocket);
 Var
   b: byte;
 Begin
@@ -1961,7 +2049,7 @@ Begin
   If fGorillaState = gsWaitForClient Then Begin
     fGorillaState := gsEnterName;
     fPlayerCount := 1;
-    ftemporaryInt := 1;
+    fSchmierInt := 1;
     FNetwork.active := true;
     FNetwork.Socket := aSocket;
   End
@@ -1972,7 +2060,7 @@ Begin
   End;
 End;
 
-Function TGorilla.GetMessage(aSocket: TLSocket): String;
+Function TGorillaGame.GetMessage(aSocket: TLSocket): String;
 Var
   b: Byte;
   s: String;
@@ -1992,7 +2080,7 @@ Begin
   result := s;
 End;
 
-Function TGorilla.fgetChatName: String;
+Function TGorillaGame.fgetChatName: String;
 Begin
   If FNetwork.isServer Then Begin
     result := fPlayerNames[0];
@@ -2002,7 +2090,7 @@ Begin
   End;
 End;
 
-Procedure TGorilla.SendPlayerStats;
+Procedure TGorillaGame.SendPlayerStats;
 Var
   s: String;
 Begin
@@ -2010,12 +2098,12 @@ Begin
   If FNetwork.active And FNetwork.isServer Then Begin
     s := inttostr(fPlayerPoints[0]) + '~' +
       inttostr(fPlayerPoints[1]) + '~' +
-      inttostr(fActualRound);
+      inttostr(fAktualRound);
     SendMessage(opServerSendStats, s);
   End;
 End;
 
-Procedure TGorilla.OnReceive(OpCode: byte; aSocket: TLSocket);
+Procedure TGorillaGame.OnReceive(OpCode: byte; aSocket: TLSocket);
 Var
   s, t: String;
   w: Word;
@@ -2038,7 +2126,7 @@ Begin
         // Die Aktuelle Runde
         t := copy(s, 1, pos('~', s) - 1);
         delete(s, 1, length(t) + 1);
-        fActualRound := strtoint(t);
+        fAktualRound := strtoint(t);
       End;
     opNoMessage: Begin
         // Ein Dummy, der nichts bewirkt, einfach nur das es definiert ist ..
@@ -2062,7 +2150,7 @@ Begin
         FmaxWindStrength := StrToIntDef(GetMessage(aSocket), 0);
       End;
     opStartGame: Begin
-        ftemporaryInt := strtoint(GetMessage(aSocket));
+        fSchmierInt := strtoint(GetMessage(aSocket));
         StartGame();
       End;
     opClientReadyToPlay: Begin
@@ -2071,7 +2159,7 @@ Begin
         fGorillaState := gsEnterAngle;
       End;
     opUpdateSchmierstring: Begin
-        ftemporaryString := GetMessage(aSocket);
+        fSchmierString := GetMessage(aSocket);
       End;
     opReturnPressed: Begin
         GetMessage(aSocket); // Dummy den String Lesen
@@ -2079,7 +2167,7 @@ Begin
       End;
     opCancelRound: Begin
         GetMessage(aSocket); // Dummy den String Lesen
-        fActualRound := fActualRound - 1; // Beim Rundenabbruch, wird eine Runde weniger gezählt
+        fAktualRound := fAktualRound - 1; // Beim Rundenabbruch, wird eine Runde weniger gezählt
         ShowStats();
       End;
     opShowStats: Begin

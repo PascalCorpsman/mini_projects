@@ -1,16 +1,17 @@
 object Form1: TForm1
-  Left = 250
+  Left = 347
   Height = 307
-  Top = 120
+  Top = 109
   Width = 351
   ActiveControl = OpenGLControl1
   Caption = 'Form1'
   ClientHeight = 307
   ClientWidth = 351
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   object OpenGLControl1: TOpenGLControl
     Left = 8
     Height = 288
