@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Pongwars                                                        21.09.2025 *)
 (*                                                                            *)
-(* Version     : 0.02                                                         *)
+(* Version     : 0.03                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -24,6 +24,7 @@
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
 (*               0.02 - show points on right sides                            *)
+(*               0.03 - port to shader rendering                              *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -42,6 +43,8 @@ Uses
    *)
   dglOpenGL // http://wiki.delphigl.com/index.php/dglOpenGL.pas
   , uopengl_graphikengine // Die OpenGLGraphikengine ist eine Eigenproduktion von www.Corpsman.de, und kann getrennt auf https://github.com/PascalCorpsman/Examples/tree/master/OpenGL geladen werden.
+  , uopengl_legacychecker
+  , uopengl_shaderprimitives
   , uOpenGL_ASCII_Font
   , uvectormath;
 
@@ -61,7 +64,7 @@ Type
   TPongWars = Record
     Field: Array Of Array Of Boolean; // True = Bright, False = Dark
     Bright, Dark: TPong;
-    BallTexture: integer;
+    BallTexture: TGraphikItem;
     Paused: Boolean;
     JitterDirectionAndSpeed: Boolean;
     MaxSpeed, MinSpeed: Single;
@@ -73,6 +76,7 @@ Type
     OpenGLControl1: TOpenGLControl;
     Timer1: TTimer;
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure OpenGLControl1KeyDown(Sender: TObject; Var Key: Word;
       Shift: TShiftState);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
@@ -90,8 +94,6 @@ Type
     Procedure Simulate;
   public
     { public declarations }
-    Procedure Go2d();
-    Procedure Exit2d();
   End;
 
 Var
@@ -106,28 +108,17 @@ Uses LCLType, math;
 
 { TForm1 }
 
-Procedure TForm1.Go2d;
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  //  glOrtho(0, 640, 0, 480, -1, 1); // Set Up An Ortho Screen
-  glOrtho(0, OpenGLControl1.Width, OpenGLControl1.height, 0, -1, 1); // Set Up An Ortho Screen
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
-End;
-
-Procedure TForm1.Exit2d;
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
-End;
-
 Var
   allowcnt: Integer = 0;
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := false;
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
+End;
 
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
@@ -140,6 +131,7 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
     (*
@@ -147,10 +139,23 @@ Begin
     Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
     *)
     OpenGL_GraphikEngine.clear;
-    glenable(GL_TEXTURE_2D); // Texturen
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
     Create_ASCII_BigFont;
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
+    ReActivateKHRDebug; // Reenable KHRDebug
     OpenGLControl1Resize(Nil);
     ReadParameters;
     CreateTextures;
@@ -161,14 +166,12 @@ End;
 Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
   Procedure Pixel(i, j: Single);
   Begin
-    glTexCoord2f(0, 0);
-    glVertex2f(i * BlockDim - BlockDim / 2, j * BlockDim - BlockDim / 2);
-    glTexCoord2f(0, 1);
-    glVertex2f(i * BlockDim - BlockDim / 2, j * BlockDim + BlockDim / 2);
-    glTexCoord2f(1, 1);
-    glVertex2f(i * BlockDim + BlockDim / 2, j * BlockDim + BlockDim / 2);
-    glTexCoord2f(1, 0);
-    glVertex2f(i * BlockDim + BlockDim / 2, j * BlockDim - BlockDim / 2);
+    glShaderBegin(GL_TRIANGLE_FAN);
+    glShaderVertex(i * BlockDim, j * BlockDim, 0);
+    glShaderVertex(i * BlockDim, j * BlockDim + BlockDim, 0);
+    glShaderVertex(i * BlockDim + BlockDim, j * BlockDim + BlockDim, 0);
+    glShaderVertex(i * BlockDim + BlockDim, j * BlockDim, 0);
+    glShaderEnd();
   End;
 
 Var
@@ -181,41 +184,32 @@ Begin
   // Render Szene
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
-  go2d;
+  go2d(OpenGLControl1.Width, OpenGLControl1.Height);
   // 1. Das Feld
-  glPushMatrix;
-  glTranslatef(BlockDim / 2, BlockDim / 2, 0);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glBegin(GL_QUADS);
+  UseColorShader;
   bright := 0;
   dark := 0;
   For i := 0 To high(PongWars.Field) Do Begin
     For j := 0 To high(PongWars.Field[0]) Do Begin
       If PongWars.Field[i, j] Then Begin
         inc(bright);
-        glColor3fv(@PongWars.Bright.Color);
+        SetShaderColor(PongWars.Bright.Color.x, PongWars.Bright.Color.y, PongWars.Bright.Color.z);
       End
       Else Begin
         inc(dark);
-        glColor3fv(@PongWars.Dark.Color);
+        SetShaderColor(PongWars.Dark.Color.x, PongWars.Dark.Color.y, PongWars.Dark.Color.z);
       End;
       Pixel(i, j);
     End;
   End;
-  glend();
   // 2. Die Spieler (ohne tiefentest geht das ;))
-  glBindTexture(GL_TEXTURE_2D, PongWars.BallTexture);
+  UseTextureShader(v4(PongWars.Bright.Color, 1));
   glenable(gl_Blend);
   glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-  glBegin(GL_QUADS);
-  glColor3fv(@PongWars.Bright.Color);
-  pixel(PongWars.Bright.Position.x, PongWars.Bright.Position.y);
-  glColor3fv(@PongWars.Dark.Color);
-  pixel(PongWars.Dark.Position.x, PongWars.Dark.Position.y);
-  glend();
+  RenderQuad(PongWars.Bright.Position * BlockDim + v2(BlockDim, BlockDim) / 2, 0, BlockDim, BlockDim, 0, PongWars.BallTexture);
+  UseTextureShader(v4(PongWars.Dark.Color, 1));
+  RenderQuad(PongWars.Dark.Position * BlockDim + v2(BlockDim, BlockDim) / 2, 0, BlockDim, BlockDim, 0, PongWars.BallTexture);
   gldisable(gl_blend);
-  glPopMatrix;
   // Die Lebenspunkte
   glBindTexture(GL_TEXTURE_2D, 0);
   // Show the darks points (which are the bright fields) on the left
@@ -232,11 +226,9 @@ End;
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
   If Initialized Then Begin
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
-    gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
-    glMatrixMode(GL_MODELVIEW);
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
   End;
 End;
 
@@ -247,7 +239,9 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
-  caption := 'Pongwars 0.02, by Corpsman';
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
+  caption := 'Pongwars 0.03, by Corpsman';
   Randomize;
   OpenGLControl1.Align := alClient;
   (*
@@ -257,6 +251,14 @@ Begin
   Generell sollte die Interval Zahl also dynamisch zum Rechenaufwand, mindestens aber immer 17 sein.
   *)
   Timer1.Interval := 17;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+  If OpenGLControl1.MakeCurrent Then Begin
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+  End;
 End;
 
 Procedure TForm1.OpenGLControl1KeyDown(Sender: TObject; Var Key: Word;
@@ -354,7 +356,7 @@ End;
 
 Procedure TForm1.CreateTextures;
 Begin
-  PongWars.BallTexture := OpenGL_GraphikEngine.LoadAlphaGraphik('gfx' + PathDelim + 'ball.bmp');
+  PongWars.BallTexture := OpenGL_GraphikEngine.LoadAlphaGraphikItem('gfx' + PathDelim + 'ball.bmp');
 End;
 
 Procedure TForm1.Reset;

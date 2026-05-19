@@ -9,6 +9,7 @@ object Form1: TForm1
   ClientWidth = 560
   LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   object OpenGLControl1: TOpenGLControl
     Left = 8
     Height = 246
