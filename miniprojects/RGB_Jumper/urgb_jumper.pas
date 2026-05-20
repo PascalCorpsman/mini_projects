@@ -368,9 +368,8 @@ Begin
       End;
     gsGame: Begin
         ApplyPhysics;
-        fPlayer.SetCamPosToRenderingContext;
-        fActualLevel.Render();
-        fPlayer.Render();
+        fActualLevel.Render(fPlayer.GetCamPosToRenderContext);
+        fPlayer.Render;
       End;
     gsLevelError: Begin
         glBindTexture(GL_TEXTURE_2D, 0);

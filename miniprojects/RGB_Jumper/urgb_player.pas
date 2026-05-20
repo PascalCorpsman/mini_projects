@@ -47,7 +47,7 @@ Type
 
     Procedure SetPos(aPos: TVector2);
     Procedure SetColor(aColor: TPlayerColor);
-    Procedure SetCamPosToRenderingContext();
+    Function GetCamPosToRenderContext(): TVector2;
     Procedure Render;
   End;
 
@@ -84,22 +84,21 @@ Begin
   fColor := aColor;
 End;
 
-Procedure TRGB_Player.SetCamPosToRenderingContext;
+Function TRGB_Player.GetCamPosToRenderContext(): TVector2;
 Begin
-  glTranslatef(-fPos.x * 8 + 64, -fPos.y * 8 + 64, 0);
+  result := v2(-fPos.x * 8 + 64, -fPos.y * 8 + 64);
 End;
 
 Procedure TRGB_Player.Render;
 Var
   item: TGraphikItem;
 Begin
-  glColor3f(1, 1, 1);
   Case fColor Of
     pcRed: item := tTextureR;
     pcGreen: item := tTextureG;
     pcBlue: item := tTextureB;
   End;
-  RenderAlphaQuad(fpos.y * 8, fpos.x * 8, item);
+  RenderAlphaQuad(64, 64, 0, item);
 End;
 
 End.

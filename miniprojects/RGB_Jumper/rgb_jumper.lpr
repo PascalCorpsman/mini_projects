@@ -25,7 +25,6 @@ Uses
 
 Begin
   Application.Initialize;
-  Application.Title := '';
   Application.CreateForm(TForm1, Form1);
   Application.Run;
 End.

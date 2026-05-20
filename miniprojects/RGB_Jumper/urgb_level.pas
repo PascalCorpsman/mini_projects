@@ -52,7 +52,7 @@ Type
     Function LoadLevel(Const aFilename: String): Boolean;
     Procedure Reset();
 
-    Procedure Render();
+    Procedure Render(Const offset: TVector2);
     Function CollideWith(Var aPlayer: TRGB_Player): TContactReasons;
   End;
 
@@ -208,9 +208,9 @@ Begin
   // Aktuell ist alles Statisch, da gibt es noch nichts zum "resetten" ..
 End;
 
-Procedure TRGB_Level.Render;
+Procedure TRGB_Level.Render(Const offset: TVector2);
 Begin
-  RenderQuad(0, 0, fTexture);
+  RenderQuad(offset.x, offset.y, 0, fTexture);
 End;
 
 Function TRGB_Level.CollideWith(Var aPlayer: TRGB_Player): TContactReasons;

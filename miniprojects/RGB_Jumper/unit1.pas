@@ -23,7 +23,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
-(*               0.02 -                                                       *)
+(*               0.02 - Port to shader                                        *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -44,6 +44,7 @@ Uses
   dglOpenGL // http://wiki.delphigl.com/index.php/dglOpenGL.pas
   , uopengl_graphikengine // Die OpenGLGraphikengine ist eine Eigenproduktion von www.Corpsman.de, und kann getrennt auf https://github.com/PascalCorpsman/Examples/tree/master/OpenGL geladen werden.
   , uOpenGL_ASCII_Font
+  , uopengl_legacychecker
   , urgb_jumper
   ;
 
@@ -59,6 +60,7 @@ Type
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
@@ -85,6 +87,18 @@ Uses uopengl_widgetset;
 Var
   allowcnt: Integer = 0;
 
+{$IFNDEF LEGACYMODE}
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := false;
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
+End;
+{$ENDIF}
+
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
   If allowcnt > 2 Then Begin
@@ -96,13 +110,35 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+{$IFNDEF LEGACYMODE}
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+{$ENDIF}
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
     OpenGL_GraphikEngine.clear;
     Create_ASCII_Font();
+{$IFDEF LEGACYMODE}
     glenable(GL_TEXTURE_2D); // Texturen
+{$ENDIF}
     //    glEnable(GL_DEPTH_TEST); // Tiefentest
     //    glDepthFunc(gl_less);
+{$IFNDEF LEGACYMODE}
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+{$ENDIF}
+{$IFNDEF LEGACYMODE}
+    ReActivateKHRDebug; // Reenable KHRDebug
+{$ENDIF}
     game.Initialize(OpenGLControl1);
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
@@ -117,7 +153,9 @@ Begin
   // Render Szene
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
+{$IFDEF LEGACYMODE}
   glLoadIdentity();
+{$ENDIF}
   WidgetSetGo2d(128, 128);
   game.Render();
   WidgetSetExit2d();
@@ -127,11 +165,17 @@ End;
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
   If Initialized Then Begin
+{$IFDEF LEGACYMODE}
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
     gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
+{$ELSE}
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
+{$ENDIF}
   End;
 End;
 
@@ -143,6 +187,10 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
+{$IFNDEF LEGACYMODE}
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
+{$ENDIF}
   (*
   60 - FPS entsprechen
   0.01666666 ms
@@ -152,6 +200,15 @@ Begin
   Timer1.Interval := 17;
   game := TGame.Create();
   OpenGLControl1.Align := alClient;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+{$IFNDEF LEGACYMODE}
+  If OpenGLControl1.MakeCurrent Then Begin
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+  End;
+{$ENDIF}
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
