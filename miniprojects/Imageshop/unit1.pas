@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* ImageShop                                                       ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.05                                                         *)
+(* Version     : 0.06                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -36,6 +36,7 @@
 (*                      Save Result                                           *)
 (*               0.04 - Custom Operatoren / Blender (leider recht langsam)    *)
 (*               0.05 - Zoom                                                  *)
+(*               0.06 - Port to shader rendering                              *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -51,7 +52,7 @@ Uses
 
 Const
   GridSize = 5;
-  Version = 005;
+  Version = 006;
 
 Type
 
@@ -92,6 +93,7 @@ Type
     Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure ListBox1DrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
     Procedure MenuItem2Click(Sender: TObject);
@@ -122,13 +124,11 @@ Type
     fSelectedElement: TNode;
     fMouseDownDelta: TPoint;
     fConnector: TConnectorStartRecord;
-    backtex: integer;
+    backtex: TGraphikItem;
     fFilename: String;
     fdefcaption: String;
     fchanged: Boolean;
     fZoom: Single;
-    Procedure Go2d();
-    Procedure Exit2d();
     Function GetSelectedElement(x, y: integer): TNode;
     Procedure OnNodeCloseButtonClick(Sender: TObject);
     Procedure OnOutConnectorClick(Sender: TObject);
@@ -142,6 +142,7 @@ Type
     Procedure LoadScene(Const Filename: String);
     Procedure Clear;
     Procedure SetEvents(Var Element: TNode);
+    Procedure SetupFrame;
   public
     Procedure CreateListBoxMenu; // Erzeugt das Menü für die Listbox
   End;
@@ -152,7 +153,11 @@ Var
 
 Implementation
 
-Uses LCLType, math, inifiles, Unit2, LazFileUtils, uvectormath;
+Uses LCLType, math, inifiles, LazFileUtils
+  , uvectormath
+  , uopengl_shaderprimitives
+  , uopengl_legacychecker
+  , Unit2;
 
 {$R *.lfm}
 
@@ -166,26 +171,6 @@ Begin
     (p.x <= max(r.Left, r.Right)) And
     (p.y >= min(r.Top, r.Bottom)) And
     (p.y <= max(r.Top, r.Bottom));
-End;
-
-Procedure TForm1.Go2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  //  glOrtho(0, 640, 0, 480, -1, 1); // Set Up An Ortho Screen
-  glOrtho(0, OpenGLControl1.Width, OpenGLControl1.height, 0, -1, 1); // Set Up An Ortho Screen
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
-End;
-
-Procedure TForm1.Exit2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
 End;
 
 Function TForm1.GetSelectedElement(x, y: integer): TNode;
@@ -590,6 +575,12 @@ Begin
   End;
 End;
 
+Procedure TForm1.SetupFrame;
+Begin
+  glEnable(GL_DEPTH_TEST); // Tiefentest
+  glDepthFunc(gl_less);
+End;
+
 Procedure TForm1.CreateListBoxMenu;
 Var
   sl: TStringList;
@@ -654,6 +645,10 @@ Begin
     showmessage('Error, could not init dglOpenGL.pas');
     Halt;
   End;
+{$IFNDEF LEGACYMODE}
+  OpenGLControl1.AutoResizeViewport := True; // This is crucial for GTK3, don't know why, but without it the demo does not work
+  OpenGLControl1.DebugContext := True; // Required so the GL driver actually generates KHR_debug messages
+{$ENDIF}
   fConnector.Connector := ctnone;
   Panel1.Caption := '';
   ListBox1.Align := alLeft;
@@ -674,6 +669,16 @@ Begin
   If (f <> '') And FileExists(f) Then Begin
     LoadScene(f);
   End;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+{$IFNDEF LEGACYMODE}
+  If OpenGLControl1.MakeCurrent Then Begin
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+  End;
+{$ENDIF}
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: boolean);
@@ -763,6 +768,18 @@ End;
 Var
   allowcnt: Integer = 0;
 
+{$IFNDEF LEGACYMODE}
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := false;
+  showmessage(
+    format('Error, unallowed OpenGL legacy call: %d = %s', [Severity, aMessage])
+    );
+  halt;
+End;
+{$ENDIF}
+
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Var
   bma, bm: Tbitmap;
@@ -776,6 +793,9 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+{$IFNDEF LEGACYMODE}
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+{$ENDIF}
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
     (*
@@ -783,9 +803,25 @@ Begin
     Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
     *)
     OpenGL_GraphikEngine.clear;
+{$IFDEF LEGACYMODE}
     glenable(GL_TEXTURE_2D); // Texturen
-    glEnable(GL_DEPTH_TEST); // Tiefentest
-    glDepthFunc(gl_less);
+{$ENDIF}
+    SetupFrame;
+{$IFNDEF LEGACYMODE}
+    If Not Assigned(glCreateShader) Then Begin
+      // On Windows it seems that you need to "reload" the core functions for proper function
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+      // if still not available, then halt
+      If Not Assigned(glCreateShader) Then Begin
+        showmessage('glCreateShader not available, use legacy mode..');
+        halt;
+      End;
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
+{$ENDIF}
     bm := TBitmap.Create;
     bm.Width := 32;
     bm.Height := 32;
@@ -798,11 +834,14 @@ Begin
     bma.Canvas.brush.Style := bsSolid;
     bma.Canvas.Rectangle(-1, -1, 33, 33);
     ImageList1.Draw(bm.Canvas, 0, 0, 0);
-    backtex := OpenGL_GraphikEngine.LoadAlphaGraphik(bm, bma, 'backtex');
+    backtex := OpenGL_GraphikEngine.GetInfo(OpenGL_GraphikEngine.LoadAlphaGraphik(bm, bma, 'backtex'));
     bma.free;
     bm.free;
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
+{$IFNDEF LEGACYMODE}
+    ReActivateKHRDebug; // Reenable KHRDebug
+{$ENDIF}
     OpenGLControl1Resize(Nil);
   End;
   Form1.Invalidate;
@@ -827,21 +866,25 @@ Var
   dim: TPoint;
   i, j: Integer;
   v: TPixel;
+  t, l: Single;
 Begin
   If Not Initialized Then Exit;
   // Render Szene
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
+{$IFDEF LEGACYMODE}
   glLoadIdentity();
+{$ENDIF}
   dim := fResultingImage.GetImageDimension;
-  Go2d();
+  Go2d(OpenGLControl1.Width, OpenGLControl1.Height);
+{$IFDEF LEGACYMODE}
   // Hintergrund Malen
   glPushMatrix();
   glTranslatef(0, 0, -0.5);
   glColor4f(1, 1, 1, 1);
   For i := 0 To (OpenGLControl1.Width Div 32) + 1 Do Begin
     For j := 0 To (OpenGLControl1.Height Div 32) + 1 Do Begin
-      RenderQuad(v2(i * 32, j * 32), v2((i + 1) * 32, (j + 1) * 32), 0, false, backtex);
+      RenderQuad(v2(i * 32, j * 32), v2((i + 1) * 32, (j + 1) * 32), 0, false, backtex.Image);
     End;
   End;
   glPopMatrix();
@@ -865,6 +908,36 @@ Begin
     gldisable(gl_blend);
     glPopMatrix();
   End;
+{$ELSE}
+  SetupFrame;
+  // Hintergrund Malen
+  For i := 0 To (OpenGLControl1.Width Div 32) + 1 Do Begin
+    For j := 0 To (OpenGLControl1.Height Div 32) + 1 Do Begin
+      RenderQuad(i * 32, j * 32, -0.5, backtex);
+    End;
+  End;
+  // Wenn es Ein Ausgabebild gibt wird das gemalt
+  If dim.x <> 0 Then Begin
+    glenable(gl_Blend);
+    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+    l := (OpenGLControl1.Width - dim.x * fZoom) / 2;
+    t := (OpenGLControl1.Height - dim.y * fZoom) / 2;
+    UseColorShader;
+    // TODO: das geht zwar ist aber sehr "langsam", der alte legacycode war hier deutlich schneller ..
+    glShaderPointSize(fZoom * 1.45); // Die Pixelsize ein Ticken Größer, damit es weniger störungen gibt
+    For i := 0 To dim.x - 1 Do Begin
+      For j := 0 To dim.y - 1 Do Begin
+        v := fResultingImage.GetPixelValue(i / (dim.x - 1), j / (dim.y - 1));
+        SetShaderColor(v.r, v.g, v.b, v.a);
+        glShaderBegin(GL_POINTS);
+        glShaderVertex(l + i * fZoom, t + j * fZoom, 0);
+        glShaderEnd();
+      End;
+    End;
+    UseTextureShader();
+    gldisable(gl_blend);
+  End;
+{$ENDIF}
   Exit2d();
   OpenGLControl1.SwapBuffers;
 End;
@@ -872,11 +945,17 @@ End;
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
   If Initialized Then Begin
+{$IFDEF LEGACYMODE}
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
     gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
+{$ELSE}
+    If OpenGLControl1.MakeCurrent Then
+      glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+    OpenGLControl1.Invalidate;
+{$ENDIF}
   End;
 End;
 

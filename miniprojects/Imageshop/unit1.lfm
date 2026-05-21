@@ -12,6 +12,7 @@ object Form1: TForm1
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   object ListBox1: TListBox
     Left = 8
     Height = 608
