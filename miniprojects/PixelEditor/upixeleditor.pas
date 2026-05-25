@@ -86,6 +86,7 @@ Const
    * -Released- 0.13 - FIX: Cut / paste did not always take right color into account
    *                   FIX: Right mouse scroll glitch
    *            0.14 - ADD: Convert to shader rendering instead of legacy mode
+   *                   FIX: crash, when selected image has width/ height of 0
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -1787,7 +1788,7 @@ End;
 
 Procedure TPixelEditor.CutSubimageFromImageToSelection;
 Var
-  i, j: integer;
+  w, h, i, j: integer;
   tc, c: TRGBA;
   img: TPixelImage;
 Begin
@@ -1796,8 +1797,11 @@ Begin
    * und ersetzt den Inhalt durch "transparent"
    *)
   // Den Ausgewählten Inhalt aus dem Bild Ausschneiden
+  w := fCursor.Select.br.x - fCursor.Select.tl.x + 1;
+  h := fCursor.Select.br.Y - fCursor.Select.tl.Y + 1;
+  If (w <= 0) Or (h <= 0) Then exit;
   img := TPixelImage(fCursor.Select.Data);
-  img.SetSize(fCursor.Select.br.x - fCursor.Select.tl.x + 1, fCursor.Select.br.Y - fCursor.Select.tl.Y + 1);
+  img.SetSize(w, h);
   fUndo.StartNewRecording;
   img.BeginUpdate;
   fImage.BeginUpdate;

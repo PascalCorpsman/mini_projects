@@ -624,6 +624,7 @@ Var
   data: Array Of Byte;
   i, j: Integer;
 Begin
+  If (aWidth <= 0) Or (aHeight <= 0) Then exit;
   Clear();
   // 2. Neu erstellen
   setlength(fPixels, aWidth, aHeight);
