@@ -35,6 +35,7 @@ Following is a short description of all listed projects
 | [Extruder calibrator](miniprojects/3D_Printer/Extruder_Calibrator) | Application to easy calibrate the extruder steps of a 3d printer |
 | [FIR IIR](miniprojects/FIR_IIR) | Demo to apply FIR and IIR Filter onto arbiture data |
 | [Fixed comma](miniprojects/Fixed_Comma) | Demo to show how fixed comma numbers work |
+| [FPC_CPU](miniprojects/FPC_CPU) | Demo to show how a CPU works internally |
 | [Freischichtkalender](miniprojects/Freischichtkalender) | Demo to print a yeargrid on a double sided DinA5 page |
 | [GIT gui](miniprojects/GIT_gui) | Plattform independent Tortoise Git like GIT-Gui |
 | [Gorilla](miniprojects/Gorilla) | Reimplementation of gorilla.bas from DOS |
