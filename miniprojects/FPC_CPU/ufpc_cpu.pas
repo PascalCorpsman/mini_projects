@@ -28,9 +28,9 @@ Type
     cAND,
     cCMP,
     cHLT,
-    cJMP,
-    cJNZ,
-    cJZ,
+    cJMP, // Jump, without any condition
+    cJNZ, // Jump if zero flag is not set
+    cJZ, // Jump if zero flag is set
     cLabel, // Target für JMP, JNZ, JZ
     cLOAD,
     cMOV,
@@ -70,6 +70,10 @@ Function CMDToStr(aCmd: TCmd; LeftOperand, RightOperand: String): String;
 
 Procedure DrawArrowHead(Const Canvas: TCanvas; aPoint: Tpoint; Dir: TDir; aColor: TColor);
 Procedure DrawLine(Const Canvas: TCanvas; a, b: TPoint; aColor: TColor);
+
+Var
+  LastError: String;
+Function Compile(Const aCode: TStrings): TAssemblerCMDs;
 
 Implementation
 
@@ -141,7 +145,12 @@ Begin
         a := point(aPoint.x - dim, aPoint.y + dim);
         b := point(aPoint.x, aPoint.y);
         c := point(aPoint.x + dim, aPoint.y + dim);
-      End
+      End;
+    dLeft: Begin
+        a := point(aPoint.x + dim, aPoint.y - dim);
+        b := point(aPoint.x, aPoint.y);
+        c := point(aPoint.x + dim, aPoint.y + dim);
+      End;
   End;
   DrawLine(canvas, a, b, aColor);
   DrawLine(canvas, b, c, aColor);
@@ -153,6 +162,156 @@ Begin
   Canvas.Pen.Width := 3;
   Canvas.Line(a, b);
   Canvas.Pen.Width := 1;
+End;
+
+(*
+ * Diese Funktion ist mehr Heuristik, denn Compiler, aber für Assembler reichts ;)
+ *)
+
+Function LineToCode(aLine: String; Out cmd: TAssemblerCMD): Boolean;
+Var
+  pre, suf, op1, op2: String;
+Begin
+  result := false;
+  aLine := trim(UpperCase(aLine));
+  cmd.Line := -1; // Wird vom Aufrufer definiert
+  // cmd.Cmd := ?;
+  cmd.PipelineStep := psFetch;
+  cmd.JumpTarget := -1;
+  cmd.aLabel := '';
+  cmd.LeftOperand := '';
+  cmd.RightOperand := '';
+  // 1. Kommentare raus
+  If pos(';', aLine) <> 0 Then Begin
+    delete(aline, pos(';', aLine), length(aLine));
+  End;
+  aline := trim(aLine);
+  If aLine = '' Then exit; // Eine Leere Zeile ist nix, also raus
+  // Labels
+  If pos(':', aLine) <> 0 Then Begin
+    pre := trim(copy(aLine, 1, pos(':', aLine) - 1));
+    suf := trim(copy(aline, pos(':', aLine) + 1, length(aline)));
+    If (pre = '') Then Begin
+      LastError := 'invalid label';
+      exit;
+    End;
+    If (suf <> '') Then Begin
+      LastError := 'after ":" no chars allowed';
+      exit;
+    End;
+    cmd.aLabel := pre;
+    cmd.Cmd := cLabel;
+    result := true;
+    exit;
+  End;
+  // 2. Alle "Jumps"
+  If aline[1] = 'J' Then Begin
+    pre := trim(copy(aLine, 1, pos(' ', aLine) - 1));
+    suf := trim(copy(aline, pos(' ', aLine) + 1, length(aline)));
+    If pos(' ', suf) <> 0 Then Begin
+      LastError := 'invalid jump target';
+      exit;
+    End;
+    Case pre Of
+      'JMP': cmd.Cmd := cJMP;
+      'JNZ': cmd.Cmd := cJNZ;
+      'JZ': cmd.Cmd := cJZ;
+    Else Begin
+        LastError := 'unknown jump command';
+        exit;
+      End;
+    End;
+    If suf[1] In ['0'..'9'] Then Begin
+      LastError := 'invalid jump target';
+      exit;
+    End;
+    cmd.LeftOperand := suf;
+    result := true;
+    exit;
+  End;
+  // Befehle ohne Parameter
+  If aline = 'NOP' Then Begin
+    cmd.Cmd := cNOP;
+    result := true;
+    exit;
+  End;
+  If aline = 'HLT' Then Begin
+    cmd.Cmd := cHLT;
+    result := true;
+    exit;
+  End;
+  pre := trim(copy(aLine, 1, pos(' ', aLine) - 1));
+  // Alle Anderen Befehle sind der Form <CMD>" "<Register1>","<Register2>"
+  OP1 := trim(copy(aline, pos(' ', aLine) + 1, length(aline)));
+  OP2 := trim(copy(OP1, pos(',', OP1) + 1, length(OP1)));
+  OP1 := trim(copy(OP1, 1, pos(',', OP1) - 1));
+  Case Pre Of
+    'ADD': cmd.Cmd := cADD;
+    'AND': cmd.Cmd := cAND;
+    'CMP': cmd.Cmd := cCMP;
+    'LOAD': cmd.Cmd := cLOAD;
+    'MOV': cmd.Cmd := cMOV;
+    'NOT': cmd.Cmd := cNOT;
+    'OR': cmd.Cmd := cOR;
+    'SHL': cmd.Cmd := cSHL;
+    'SHR': cmd.Cmd := cSHR;
+    'STORE': cmd.Cmd := cSTORE;
+    'SUB': cmd.Cmd := cSUB;
+    'XOR': cmd.Cmd := cXOR;
+  Else Begin
+      LastError := 'unknown command';
+      exit;
+    End;
+  End;
+  cmd.LeftOperand := op1;
+  cmd.RightOperand := op2;
+  result := true;
+End;
+
+Function Compile(Const aCode: TStrings): TAssemblerCMDs;
+Var
+  i, j: Integer;
+  cmd: TAssemblerCMD;
+  found: Boolean;
+Begin
+  result := Nil;
+  LastError := '';
+  // 1. Pass Zeilenweise Code "portieren"
+  For i := 0 To aCode.Count - 1 Do Begin
+    If LineToCode(aCode[i], cmd) Then Begin
+      setlength(result, high(Result) + 2);
+      cmd.Line := i;
+      result[high(result)] := cmd;
+    End
+    Else Begin
+      If LastError <> '' Then Begin
+        lasterror := 'Line[' + inttostr(i + 1) + '] : ' + LastError;
+        setlength(result, 0);
+        exit;
+      End;
+    End;
+  End;
+  // 2. Pass die Jump's auflösen
+  For i := 0 To high(result) Do Begin
+    If result[i].Cmd In [cJMP, cJZ, cJNZ] Then Begin
+      found := false;
+      For j := 0 To high(result) Do Begin
+        If (result[j].Cmd = cLabel) And (result[j].aLabel = Result[i].LeftOperand) Then Begin
+          Result[i].JumpTarget := result[j].Line;
+          found := true;
+          break;
+        End;
+      End;
+      If Not found Then Begin
+        lasterror := 'Line[' + inttostr(result[i].Line + 1) + '] : unable to resolve label';
+        setlength(result, 0);
+        exit;
+      End;
+    End;
+  End;
+  If Not assigned(Result) Then Begin
+    LastError := 'No code.';
+  End;
 End;
 
 End.

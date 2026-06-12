@@ -49,6 +49,7 @@ Type
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
+    CheckBox5: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -63,6 +64,8 @@ Type
     Label11: TLabel;
     Label12: TLabel;
     Label13: TLabel;
+    Label14: TLabel;
+    Label15: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -84,13 +87,13 @@ Type
     Procedure FormPaint(Sender: TObject);
   private
     fCMDs: TAssemblerCMDs;
-    aCMDIndex: integer;
+    aTick, aCMDIndex: integer;
+    Function FindNextValidProgramLine(aLine: integer): integer;
   public
     Procedure ResetLCLToCompile;
     Procedure SetLCLToExecute;
     Procedure ResetCMDVisualizations;
     Procedure VisualizeCmd(Const aCMD: TAssemblerCMD; aColor: TColor);
-
   End;
 
 Var
@@ -110,13 +113,11 @@ Begin
    * TODO:
    *  - Haltepunkte
    *  - Visualisieren des PC im Synedit während der Simulation
-   *  - "Compile"
-   *  - Visualisieren der J* Befehle
    *  - Implementieren der fehlenden Befehle
    *  - STACK, via Push Pop
    *  - Subfunctions via CALL ( und seinem Gegenstück ?)
    *  - Laden / Speichern eines Programms (Achtung inclusive Memory!)
-   *  - Die Flags Sinnvol auswerten / Benutzen (da fehlen noch entsprechende Jump Befehle)
+   *  - Die Flags Sinnvoll auswerten / Benutzen (da fehlen noch entsprechende Jump Befehle)
    *  - Pipelining ;)
    *)
   caption := 'FPC_CPU ver 0.01 by Corpsman, www.Corpsman.de';
@@ -136,6 +137,15 @@ Procedure TForm1.FormPaint(Sender: TObject);
 Begin
   If (aCMDIndex >= 0) And (aCMDIndex <= high(fCMDs)) Then Begin
     VisualizeCmd(fCMDs[aCMDIndex], clBlack);
+    label14.caption := format('Clock tick: %d', [aTick]);
+  End;
+End;
+
+Function TForm1.FindNextValidProgramLine(aLine: integer): integer;
+Begin
+  result := aLine + 1;
+  While fcmds[result].Cmd = cLabel Do Begin
+    result := result + 1;
   End;
 End;
 
@@ -144,88 +154,11 @@ Begin
   // Compile
   // TODO: "Compiler" schreiben ;)
   aCMDIndex := 0;
-  setlength(fCMDs, 13);
-
-  fcmds[0].Cmd := cLOAD;
-  fcmds[0].LeftOperand := 'A';
-  fcmds[0].RightOperand := '100';
-  fcmds[0].Line := 4;
-  fcmds[0].PipelineStep := psFetch;
-
-  fcmds[1].Cmd := cADD;
-  fcmds[1].LeftOperand := 'A';
-  fcmds[1].RightOperand := '1';
-  fcmds[1].Line := 5;
-  fcmds[1].PipelineStep := psFetch;
-
-  fcmds[2].Cmd := cMOV;
-  fcmds[2].LeftOperand := 'B';
-  fcmds[2].RightOperand := '0';
-  fcmds[2].Line := 7;
-  fcmds[2].PipelineStep := psFetch;
-
-  fcmds[3].Cmd := cMOV;
-  fcmds[3].LeftOperand := 'C';
-  fcmds[3].RightOperand := '1';
-  fcmds[3].Line := 8;
-  fcmds[3].PipelineStep := psFetch;
-
-  fcmds[4].Cmd := cLabel;
-  fcmds[4].LeftOperand := 'LOOP';
-  fcmds[4].RightOperand := '';
-  fcmds[4].Line := 10;
-  fcmds[4].PipelineStep := psFetch;
-
-  fcmds[5].Cmd := cCMP;
-  fcmds[5].LeftOperand := 'C';
-  fcmds[5].RightOperand := 'A';
-  fcmds[5].Line := 11;
-  fcmds[5].PipelineStep := psFetch;
-
-  fcmds[6].Cmd := cJZ;
-  fcmds[6].LeftOperand := 'END';
-  fcmds[6].RightOperand := '';
-  fcmds[6].Line := 12;
-  fcmds[6].JumpTarget := 18;
-  fcmds[6].PipelineStep := psFetch;
-
-  fcmds[7].Cmd := cADD;
-  fcmds[7].LeftOperand := 'B';
-  fcmds[7].RightOperand := 'C';
-  fcmds[7].Line := 14;
-  fcmds[7].PipelineStep := psFetch;
-
-  fcmds[8].Cmd := cADD;
-  fcmds[8].LeftOperand := 'C';
-  fcmds[8].RightOperand := '1';
-  fcmds[8].Line := 15;
-  fcmds[8].PipelineStep := psFetch;
-
-  fcmds[9].Cmd := cJMP;
-  fcmds[9].LeftOperand := 'LOOP';
-  fcmds[9].RightOperand := '';
-  fcmds[9].Line := 16;
-  fcmds[9].JumpTarget := 10;
-  fcmds[9].PipelineStep := psFetch;
-
-  fcmds[10].Cmd := cLabel;
-  fcmds[10].LeftOperand := 'END';
-  fcmds[10].RightOperand := '';
-  fcmds[10].Line := 18;
-  fcmds[10].PipelineStep := psFetch;
-
-  fcmds[11].Cmd := cSTORE;
-  fcmds[11].LeftOperand := 'B';
-  fcmds[11].RightOperand := '101';
-  fcmds[11].Line := 19;
-  fcmds[11].PipelineStep := psFetch;
-
-  fcmds[12].Cmd := cHLT;
-  fcmds[12].LeftOperand := '';
-  fcmds[12].RightOperand := '';
-  fcmds[12].Line := 20;
-  fcmds[12].PipelineStep := psFetch;
-
+  fCMDs := Compile(SynEdit1.Lines);
+  If Not assigned(fCMDs) Then Begin
+    ShowMessage('Error: ' + LastError);
+    exit;
+  End;
   SetLCLToExecute;
   Refresh;
 End;
@@ -247,6 +180,7 @@ Begin
     psWriteBack: Begin
         Case fcmds[aCMDIndex].Cmd Of
           cHLT: Begin
+              timer1.enabled := false; // Stop Autoclicker before Message box!
               showmessage('Finished.');
               ResetLCLToCompile;
               exit;
@@ -261,6 +195,16 @@ Begin
             End;
           cJZ: Begin
               If CheckBox1.Checked Then Begin
+                For i := 0 To high(fCMDs) Do Begin
+                  If fCMDs[i].Line = fCMDs[aCMDIndex].JumpTarget Then Begin
+                    aCMDIndex := i;
+                    break;
+                  End;
+                End;
+              End;
+            End;
+          cJNZ: Begin
+              If Not CheckBox1.Checked Then Begin
                 For i := 0 To high(fCMDs) Do Begin
                   If fCMDs[i].Line = fCMDs[aCMDIndex].JumpTarget Then Begin
                     aCMDIndex := i;
@@ -297,15 +241,12 @@ Begin
          * Here comes the logic to "switch" to the next command, this is usually
          * aCMDIndex + 1, except on J* commands.
          *)
-        aCMDIndex := aCMDIndex + 1;
-        // We overread Labels, as they do not exist in real machine code.
-        While fcmds[aCMDIndex].Cmd = cLabel Do Begin
-          aCMDIndex := aCMDIndex + 1;
-        End;
+        aCMDIndex := FindNextValidProgramLine(aCMDIndex);
         fcmds[aCMDIndex].PipelineStep := psFetch;
       End;
   End;
   ResetCMDVisualizations;
+  inc(aTick);
   //  Invalidate; // Which one is better ?
   Refresh; // Which one is better ?
 End;
@@ -353,6 +294,7 @@ Begin
   CheckBox4.Checked := false;
   Timer1.Enabled := false;
   button3.caption := 'Auto step [ms]';
+  label14.caption := '';
   Refresh;
 End;
 
@@ -364,6 +306,7 @@ Begin
   Button4.Enabled := true;
   edit7.enabled := true;
   SynEdit1.ReadOnly := true;
+  aTick := 1;
 End;
 
 Procedure TForm1.ResetCMDVisualizations;
@@ -385,6 +328,9 @@ Begin
   label13.caption := '';
   label13.Font.Color := clblack;
   label13.Font.Style := [];
+  label15.caption := '';
+  label15.Font.Color := clblack;
+  label15.Font.Style := [];
   edit1.Font.Color := clBlack;
   edit1.Font.Style := [];
   edit2.Font.Color := clBlack;
@@ -393,6 +339,8 @@ Begin
   edit3.Font.Style := [];
   edit4.Font.Color := clBlack;
   edit4.Font.Style := [];
+  edit6.Font.Color := clBlack;
+  edit6.Font.Style := [];
   CheckBox1.Font.Color := clBlack;
   CheckBox1.Font.Style := [];
   CheckBox2.Font.Color := clBlack;
@@ -410,14 +358,15 @@ Var
   el, er: TEdit;
   cl, cr: Integer;
 Begin
-  (*
-   * TODO: Wie die Jump's visualisieren ?
-   *)
   Edit6.text := inttostr(aCMD.Line + 1);
   label8.caption := PipelineStepToStr(aCMD.PipelineStep);
   label7.caption := CMDToStr(aCMD.Cmd, aCMD.LeftOperand, aCMD.RightOperand);
   Case aCMD.PipelineStep Of
     psFetch: Begin
+        If Not CheckBox5.Checked Then Begin
+          aColor := clred;
+          label8.Font.Color := aColor;
+        End;
         // Load CMD from Program Memory into Decoder
         a.x := (SynEdit1.Left + SynEdit1.Width) + Scale96ToForm(8);
         a.Y := GroupBox1.Top + GroupBox1.Height Div 2;
@@ -429,7 +378,34 @@ Begin
         label7.Font.Style := [fsBold];
       End;
     psDecode: Begin
+        If Not CheckBox5.Checked Then Begin
+          aColor := clGreen;
+          label8.Font.Color := aColor;
+        End;
         Case aCMD.Cmd Of
+          cJMP, cJZ, cJNZ: Begin
+              If (aCMD.Cmd = cJMP)
+                Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
+                Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
+                Then Begin
+                label15.Caption := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+                label15.Font.Color := aColor;
+                label15.Font.Style := [fsBold];
+                a.x := GroupBox1.Left - Scale96ToForm(8);
+                a.y := GroupBox1.Top + Label15.top + GroupBox1.Height - GroupBox1.ClientHeight;
+                b.x := edit6.left + edit6.Width Div 2;
+                b.y := a.y;
+                c.X := b.x;
+                c.y := edit6.top + edit6.Height + Scale96ToForm(8);
+                DrawLine(canvas, a, b, aColor);
+                DrawLine(canvas, b, c, aColor);
+                DrawArrowHead(Canvas, c, dUp, aColor);
+              End;
+              If (aCMD.Cmd = cJZ) Or (aCMD.Cmd = cJNZ) Then Begin
+                CheckBox1.Font.Color := aColor;
+                CheckBox1.Font.Style := [fsBold];
+              End;
+            End;
           cLOAD: Begin
               c.x := StringGrid1.Left - Scale96ToForm(8);
               Case aCMD.LeftOperand Of
@@ -545,7 +521,21 @@ Begin
         End;
       End;
     psExecute: Begin
+        If Not CheckBox5.Checked Then Begin
+          aColor := clBlue;
+          label8.Font.Color := aColor;
+        End;
         Case aCMD.Cmd Of
+          cJMP, cJZ, cJNZ: Begin
+              If (aCMD.Cmd = cJMP)
+                Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
+                Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
+                Then Begin
+                edit6.Text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+                edit6.Font.Color := aColor;
+                edit6.Font.Style := [fsBold];
+              End;
+            End;
           cLOAD: Begin
               // Decode right Operand to x,y in Stringgrid
               x := (strtoint(aCMD.RightOperand) - 100) Mod 5 + 1;
@@ -673,8 +663,19 @@ Begin
         End;
       End;
     psWriteBack: Begin
-        // Needs to be done in "Step", as refresh can be fired to often..
+        If Not CheckBox5.Checked Then Begin
+          aColor := clYellow;
+          label8.Font.Color := aColor;
+        End;
         Case aCMD.Cmd Of
+          cJMP, cJZ, cJNZ: Begin
+              If (aCMD.Cmd = cJMP)
+                Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
+                Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
+                Then Begin
+                edit6.Text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+              End;
+            End;
           cSTORE: Begin
               c.x := StringGrid1.Left - Scale96ToForm(8);
               Case aCMD.LeftOperand Of
