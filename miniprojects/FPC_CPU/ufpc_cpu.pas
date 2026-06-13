@@ -45,6 +45,7 @@ Type
     );
 
   TPipelineStep = (
+    psNone, // Den gibts nicht in der CPU, hilft aber beim Rendern..
     psFetch,
     psDecode,
     psExecute,

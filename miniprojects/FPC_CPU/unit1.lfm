@@ -12,8 +12,8 @@ object Form1: TForm1
   OnPaint = FormPaint
   inline SynEdit1: TSynEdit
     Left = 8
-    Height = 488
-    Top = 8
+    Height = 456
+    Top = 40
     Width = 360
     Font.Height = -13
     Font.Name = 'Courier New'
@@ -453,26 +453,15 @@ object Form1: TForm1
     MouseTextActions = <>
     MouseSelActions = <>
     Lines.Strings = (
-      '; Reads in mem address 100 => N'
-      '; Calculates Sum = (N^2+N) / 2'
-      '; Stores result at mem address 101'
+      '; Adds the 2 values stored in'
+      '; memory on adress 100 and 101'
+      '; and stores them into memory'
+      '; adress 102'
       ''
-      'LOAD A, 100     ; A = N'
-      'ADD A, 1        ; Code below calculates to N-1, this fixes the off by 1 error ;)'
-      ''
-      'MOV B, 0        ; B = sum'
-      'MOV C, 1        ; C = counter = 1'
-      ''
-      'LOOP:'
-      'CMP C, A        ; compare counter with N'
-      'JZ END          ; if C > N -> fertig (optional, sonst anders lösen)'
-      ''
-      'ADD B, C        ; sum += counter'
-      'ADD C, 1        ; counter++'
-      'JMP LOOP'
-      ''
-      'END:'
-      'STORE B, 101    ; Ergebnis speichern'
+      'LOAD A, 100'
+      'LOAD B, 101'
+      'ADD A, B'
+      'STORE A, 102'
       'HLT'
     )
     VisibleSpecialChars = [vscSpace, vscTabAtLast]
@@ -496,6 +485,9 @@ object Form1: TForm1
     MouseLinkColor.Background = clNone
     LineHighlightColor.Foreground = clNone
     LineHighlightColor.Background = clNone
+    OnGutterClick = SynEdit1GutterClick
+    OnPaint = SynEdit1Paint
+    OnSpecialLineColors = SynEdit1SpecialLineColors
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
         Width = 24
@@ -866,8 +858,55 @@ object Form1: TForm1
     Top = 568
     Width = 108
     Caption = 'Use pipelining'
+    Checked = True
+    State = cbChecked
     TabOrder = 19
-    Visible = False
+  end
+  object Button5: TButton
+    Left = 8
+    Height = 25
+    Top = 7
+    Width = 75
+    Caption = 'Load'
+    TabOrder = 20
+    OnClick = Button5Click
+  end
+  object Button6: TButton
+    Left = 293
+    Height = 25
+    Top = 10
+    Width = 75
+    Caption = 'Save'
+    TabOrder = 21
+    OnClick = Button6Click
+  end
+  object Label16: TLabel
+    Left = 505
+    Height = 16
+    Top = 568
+    Width = 33
+    Caption = 'Fetch'
+  end
+  object Label17: TLabel
+    Left = 576
+    Height = 16
+    Top = 568
+    Width = 45
+    Caption = 'Decode'
+  end
+  object Label18: TLabel
+    Left = 640
+    Height = 16
+    Top = 568
+    Width = 48
+    Caption = 'Execute'
+  end
+  object Label19: TLabel
+    Left = 704
+    Height = 16
+    Top = 568
+    Width = 60
+    Caption = 'WriteBack'
   end
   object SynAnySyn1: TSynAnySyn
     CommentAttri.Foreground = clGrayText
@@ -905,5 +944,30 @@ object Form1: TForm1
     OnTimer = Button2Click
     Left = 408
     Top = 464
+  end
+  object DebugMarks: TImageList
+    Height = 14
+    Width = 11
+    Left = 408
+    Top = 152
+    Bitmap = {
+      4C7A040000000B0000000E000000840000000000000078DAED95D10AC0200845
+      EFA7F7E777ECA1254E4B598335327CF2207235053E6734DCE168F88D7738935F
+      8DCDE890D577DB9321265802DA9E5C6DDA882F88B3952FBBBF6FEEA9EC4E8BB1
+      4CFC5FB2C7B7F8E56E7E11D7CFD8511E6BEE2759AFCB19B58775CBE9FBDF799C
+      7F37A938766E16459C03166A2E31296FACDE65EEE60108E35FB2
+    }
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.cpu'
+    Filter = 'CPU|*.cpu|All|*'
+    Left = 216
+    Top = 16
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.cpu'
+    Filter = 'CPU|*.cpu|All|*'
+    Left = 118
+    Top = 16
   end
 end

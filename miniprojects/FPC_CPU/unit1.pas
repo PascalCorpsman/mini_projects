@@ -34,9 +34,15 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, Grids,
-  ExtCtrls, SynEdit, SynHighlighterAny, uFPC_CPU;
+  ExtCtrls, SynEdit, SynHighlighterAny, uFPC_CPU, SynGutterBase, SynEditMarks, SynEditMarkupSpecialLine;
 
 Type
+
+  TLineInfo = Record
+    isRunnable: Boolean;
+    hasBreakPoint: Boolean;
+    PipelineStep: TPipelineStep;
+  End;
 
   { TForm1 }
 
@@ -45,11 +51,14 @@ Type
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
+    Button5: TButton;
+    Button6: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
     CheckBox5: TCheckBox;
+    DebugMarks: TImageList;
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -66,6 +75,10 @@ Type
     Label13: TLabel;
     Label14: TLabel;
     Label15: TLabel;
+    Label16: TLabel;
+    Label17: TLabel;
+    Label18: TLabel;
+    Label19: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -75,6 +88,8 @@ Type
     Label8: TLabel;
     Label9: TLabel;
     ListBox1: TListBox;
+    OpenDialog1: TOpenDialog;
+    SaveDialog1: TSaveDialog;
     StringGrid1: TStringGrid;
     SynAnySyn1: TSynAnySyn;
     SynEdit1: TSynEdit;
@@ -83,12 +98,29 @@ Type
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
     Procedure Button4Click(Sender: TObject);
+    Procedure Button5Click(Sender: TObject);
+    Procedure Button6Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure FormPaint(Sender: TObject);
+    Procedure SynEdit1GutterClick(Sender: TObject; X, Y, Line: integer;
+      mark: TSynEditMark);
+    Procedure SynEdit1Paint(Sender: TObject; ACanvas: TCanvas);
+    Procedure SynEdit1SpecialLineColors(Sender: TObject; Line: integer;
+      Var Special: boolean; Var FG, BG: TColor);
   private
     fCMDs: TAssemblerCMDs;
-    aTick, aCMDIndex: integer;
+    aTick: integer;
+    PipeLine: Array[0..3] Of Integer;
+    PipeLineDepth: Integer;
+    fLineInfo: Array Of TLineInfo;
+    AktualLine: Integer;
     Function FindNextValidProgramLine(aLine: integer): integer;
+    Function IsRunableLine(aLine: integer): Boolean;
+    Function HasBreakpoint(aLine: integer): Boolean;
+    Procedure SetLinePipeLineState(aLine: integer; aStep: TPipelineStep);
+    Procedure ChangeCMDIndexTo(PipeLineIndex, aNewProgramCounter: Integer);
+    Procedure Fetch(aPipelineIndex: Integer);
+    Function WriteBack(aPipelineIndex: Integer): boolean;
   public
     Procedure ResetLCLToCompile;
     Procedure SetLCLToExecute;
@@ -103,7 +135,21 @@ Implementation
 
 {$R *.lfm}
 
-{ TForm1 }
+Const
+  IndexBreakPoint = 0;
+  IndexIsRunnable = 1;
+  IndexAktualLine = 2;
+  IndexNotDebugableLine = 3;
+
+  PipeLineFetchBGColor = clred;
+  PipeLineDecodeBGColor = clGreen;
+  PipeLineExecuteBGColor = clBlue;
+  PipeLineExecuteFGColor = clWhite;
+  PipeLineWritebackBGColor = clolive;
+
+  DefaultAutoStepTimeInMS = 100;
+
+  { TForm1 }
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Var
@@ -111,14 +157,11 @@ Var
 Begin
   (*
    * TODO:
-   *  - Haltepunkte
-   *  - Visualisieren des PC im Synedit während der Simulation
    *  - Implementieren der fehlenden Befehle
    *  - STACK, via Push Pop
    *  - Subfunctions via CALL ( und seinem Gegenstück ?)
-   *  - Laden / Speichern eines Programms (Achtung inclusive Memory!)
    *  - Die Flags Sinnvoll auswerten / Benutzen (da fehlen noch entsprechende Jump Befehle)
-   *  - Pipelining ;)
+   *  - Pipelining ;) -> Branch Prediction unit!
    *)
   caption := 'FPC_CPU ver 0.01 by Corpsman, www.Corpsman.de';
   StringGrid1.Cells[0, 0] := 'Memory';
@@ -128,16 +171,100 @@ Begin
   For i := 1 To 4 Do Begin
     StringGrid1.Cells[0, i] := inttostr((i - 1) * 5 + 100);
   End;
-  Edit7.text := '1000';
+  Edit7.text := inttostr(DefaultAutoStepTimeInMS);
   ResetLCLToCompile;
-  StringGrid1.Cells[1, 1] := '1';
+  StringGrid1.Cells[1, 1] := '20';
+  StringGrid1.Cells[2, 1] := '22';
+  label16.font.Color := PipeLineFetchBGColor;
+  label17.font.Color := PipeLineDecodeBGColor;
+  label18.font.Color := PipeLineExecuteBGColor;
+  label19.font.Color := PipeLineWritebackBGColor;
 End;
 
 Procedure TForm1.FormPaint(Sender: TObject);
+Var
+  i: Integer;
 Begin
-  If (aCMDIndex >= 0) And (aCMDIndex <= high(fCMDs)) Then Begin
-    VisualizeCmd(fCMDs[aCMDIndex], clBlack);
+  For i := 0 To PipeLineDepth - 1 Do Begin
+    If (PipeLine[i] >= 0) And (PipeLine[i] <= high(fCMDs)) Then Begin
+      VisualizeCmd(fCMDs[PipeLine[i]], clBlack);
+    End;
+  End;
+  If aTick <> 0 Then Begin
     label14.caption := format('Clock tick: %d', [aTick]);
+  End;
+End;
+
+Procedure TForm1.SynEdit1GutterClick(Sender: TObject; X, Y, Line: integer;
+  mark: TSynEditMark);
+Var
+  j, i: Integer;
+Begin
+  // Convert 1 based Lines to 0 based lines as "usual"
+  line := line - 1;
+  If Line > high(fLineInfo) Then Begin
+    j := high(fLineInfo);
+    setlength(fLineInfo, Line);
+    For i := j To high(fLineInfo) Do Begin
+      fLineInfo[i].isRunnable := false;
+      fLineInfo[i].hasBreakPoint := false;
+    End;
+  End;
+  fLineInfo[Line].hasBreakPoint := Not fLineInfo[Line].hasBreakPoint;
+  SynEdit1.Invalidate;
+End;
+
+Procedure TForm1.SynEdit1Paint(Sender: TObject; ACanvas: TCanvas);
+Var
+  index, aline, y, x: Integer;
+Begin
+  For aline := SynEdit1.TopLine - 1 To SynEdit1.TopLine + SynEdit1.Height Div SynEdit1.LineHeight Do Begin
+    y := SynEdit1.LineHeight * (aline - SynEdit1.TopLine + 1);
+    x := 0;
+    index := -1;
+    // Anzeigen aller Zeilen die der Rechner als Kompilierbar ansieht -> schwächste Prio
+    If IsRunableLine(aline) Then index := IndexIsRunnable;
+    If HasBreakpoint(aline) Then Begin
+      If index = -1 Then Begin
+        index := IndexNotDebugableLine;
+      End
+      Else Begin
+        index := IndexBreakPoint;
+      End;
+    End;
+    If (ALine = AktualLine) And Not CheckBox5.Checked Then Begin
+      index := IndexAktualLine;
+    End;
+    If index <> -1 Then Begin
+      DebugMarks.draw(SynEdit1.Canvas, x + 4, y, index);
+    End;
+  End;
+End;
+
+Procedure TForm1.SynEdit1SpecialLineColors(Sender: TObject; Line: integer;
+  Var Special: boolean; Var FG, BG: TColor);
+Begin
+  // Convert 1 based Lines to 0 based lines as "usual"
+  line := line - 1;
+  If (line < 0) Or (Line > high(fLineInfo)) Then exit;
+  Case fLineInfo[line].PipelineStep Of
+    psFetch: Begin
+        Special := true;
+        BG := PipeLineFetchBGColor;
+      End;
+    psDecode: Begin
+        Special := true;
+        BG := PipeLineDecodeBGColor;
+      End;
+    psExecute: Begin
+        Special := true;
+        BG := PipeLineExecuteBGColor;
+        FG := PipeLineExecuteFGColor;
+      End;
+    psWriteBack: Begin
+        Special := true;
+        BG := PipeLineWritebackBGColor;
+      End;
   End;
 End;
 
@@ -149,101 +276,211 @@ Begin
   End;
 End;
 
+Function TForm1.IsRunableLine(aLine: integer): Boolean;
+Begin
+  result := false;
+  If (aLine >= 0) And (aLine <= High(fLineInfo)) Then
+    result := fLineInfo[aLine].isRunnable;
+End;
+
+Function TForm1.HasBreakpoint(aLine: integer): Boolean;
+Begin
+  result := false;
+  If (aLine >= 0) And (aLine <= High(fLineInfo)) Then
+    result := fLineInfo[aLine].hasBreakPoint;
+End;
+
+Procedure TForm1.SetLinePipeLineState(aLine: integer; aStep: TPipelineStep);
+Begin
+  If (aLine >= 0) And (aLine <= High(fLineInfo)) Then
+    fLineInfo[aLine].PipelineStep := aStep;
+End;
+
+Procedure TForm1.ChangeCMDIndexTo(PipeLineIndex, aNewProgramCounter: Integer);
+Begin
+  If (PipeLine[PipeLineIndex] >= 0) And (PipeLine[PipeLineIndex] <= high(fCMDs)) Then
+    SetLinePipeLineState(fCMDs[PipeLine[PipeLineIndex]].Line, psNone);
+  PipeLine[PipeLineIndex] := aNewProgramCounter;
+End;
+
+Procedure TForm1.Fetch(aPipelineIndex: Integer);
+Begin
+  fcmds[PipeLine[aPipelineIndex]].PipelineStep := psDecode;
+  If CheckBox5.Checked Then Begin
+    // Fill the pipeline ;)
+    If aPipelineIndex <> 3 Then Begin
+      ChangeCMDIndexTo(aPipelineIndex + 1, FindNextValidProgramLine(PipeLine[aPipelineIndex]));
+      If PipeLine[aPipelineIndex + 1] <= high(fCMDs) Then Begin
+        fcmds[PipeLine[aPipelineIndex + 1]].PipelineStep := psFetch;
+        SetLinePipeLineState(fcmds[PipeLine[aPipelineIndex + 1]].Line, fcmds[PipeLine[aPipelineIndex + 1]].PipelineStep);
+      End
+      Else Begin
+        // There are no more commands to be executed
+        PipeLine[aPipelineIndex + 1] := -1;
+      End;
+    End;
+  End;
+End;
+
+Function TForm1.WriteBack(aPipelineIndex: Integer): boolean;
+Var
+  x, y, i: Integer;
+  el: TEdit;
+Begin
+  result := false;
+  If PipeLine[aPipelineIndex] = -1 Then exit;
+  Case fcmds[PipeLine[aPipelineIndex]].Cmd Of
+    cHLT: Begin
+        If Timer1.Enabled Then Button3.Click; // Stop Autoclicker before Message box!
+        showmessage('Finished.');
+        ResetLCLToCompile;
+        result := true;
+        exit;
+      End;
+    cJMP: Begin
+        For i := 0 To high(fCMDs) Do Begin
+          If fCMDs[i].Line = fCMDs[PipeLine[aPipelineIndex]].JumpTarget Then Begin
+            ChangeCMDIndexTo(aPipelineIndex, i);
+            break;
+          End;
+        End;
+      End;
+    cJZ: Begin
+        If CheckBox1.Checked Then Begin
+          For i := 0 To high(fCMDs) Do Begin
+            If fCMDs[i].Line = fCMDs[PipeLine[aPipelineIndex]].JumpTarget Then Begin
+              ChangeCMDIndexTo(aPipelineIndex, i);
+              break;
+            End;
+          End;
+        End;
+      End;
+    cJNZ: Begin
+        If Not CheckBox1.Checked Then Begin
+          For i := 0 To high(fCMDs) Do Begin
+            If fCMDs[i].Line = fCMDs[PipeLine[aPipelineIndex]].JumpTarget Then Begin
+              ChangeCMDIndexTo(aPipelineIndex, i);
+              break;
+            End;
+          End;
+        End;
+      End;
+    cADD: Begin
+        el := Nil;
+        Case fcmds[PipeLine[aPipelineIndex]].LeftOperand Of
+          'A': el := Edit1;
+          'B': el := Edit2;
+          'C': el := Edit3;
+          'D': el := Edit4;
+        End;
+        el.text := label12.caption;
+      End;
+    cSTORE: Begin
+        // Decode right Operand to x,y in Stringgrid
+        x := (strtoint(fcmds[PipeLine[aPipelineIndex]].RightOperand) - 100) Mod 5 + 1;
+        y := (strtoint(fcmds[PipeLine[aPipelineIndex]].RightOperand) - 100) Div 5 + 1;
+        el := Nil;
+        Case fcmds[PipeLine[aPipelineIndex]].LeftOperand Of
+          'A': el := Edit1;
+          'B': el := Edit2;
+          'C': el := Edit3;
+          'D': el := Edit4;
+        End;
+        StringGrid1.Cells[x, y] := inttostr(strtointdef(el.text, 0));
+      End;
+  End;
+  (*
+   * Here comes the logic to "switch" to the next command, this is usually
+   * aCMDIndex + 1, except on J* commands.
+   *)
+  SetLinePipeLineState(fcmds[PipeLine[aPipelineIndex]].Line, psNone);
+  If Not CheckBox5.Checked Then Begin
+    ChangeCMDIndexTo(aPipelineIndex, FindNextValidProgramLine(PipeLine[aPipelineIndex]));
+    fcmds[PipeLine[aPipelineIndex]].PipelineStep := psFetch;
+    // If the user sets a break point, this is the moment, where we stop the automation ;)
+    AktualLine := fcmds[PipeLine[aPipelineIndex]].Line;
+    If HasBreakpoint(AktualLine) Then Begin
+      If Timer1.Enabled Then button3.click;
+    End;
+  End;
+End;
+
 Procedure TForm1.Button1Click(Sender: TObject);
+Var
+  i: Integer;
 Begin
   // Compile
   // TODO: "Compiler" schreiben ;)
-  aCMDIndex := 0;
   fCMDs := Compile(SynEdit1.Lines);
   If Not assigned(fCMDs) Then Begin
     ShowMessage('Error: ' + LastError);
     exit;
   End;
+  setlength(fLineInfo, SynEdit1.Lines.Count);
+  For i := 0 To SynEdit1.Lines.Count - 1 Do Begin
+    fLineInfo[i].isRunnable := false;
+    fLineInfo[i].PipelineStep := psNone;
+  End;
+  For i := 0 To high(fCMDs) Do Begin
+    If fCMDs[i].Cmd <> cLabel Then
+      fLineInfo[fCMDs[i].Line].isRunnable := true;
+  End;
+  For i := 0 To 3 Do
+    ChangeCMDIndexTo(i, -1);
+  If CheckBox5.Checked Then Begin
+    PipeLineDepth := 4;
+  End
+  Else Begin
+    PipeLineDepth := 1;
+  End;
+  ChangeCMDIndexTo(0, 0);
+  AktualLine := fCMDs[PipeLine[0]].Line;
+  SetLinePipeLineState(AktualLine, psFetch);
   SetLCLToExecute;
   Refresh;
 End;
 
+Procedure Nop();
+Begin
+
+End;
+
 Procedure TForm1.Button2Click(Sender: TObject);
 Var
-  x, y, i: Integer;
-  el: TEdit;
+  i, p: Integer;
 Begin
   // Step
-  If (aCMDIndex < 0) Or (aCMDIndex > high(fCMDs)) Then Begin
-    ResetLCLToCompile;
-    exit;
-  End;
-  Case fcmds[aCMDIndex].PipelineStep Of
-    psFetch: fcmds[aCMDIndex].PipelineStep := psDecode;
-    psDecode: fcmds[aCMDIndex].PipelineStep := psExecute;
-    psExecute: fcmds[aCMDIndex].PipelineStep := psWriteBack;
-    psWriteBack: Begin
-        Case fcmds[aCMDIndex].Cmd Of
-          cHLT: Begin
-              timer1.enabled := false; // Stop Autoclicker before Message box!
-              showmessage('Finished.');
-              ResetLCLToCompile;
-              exit;
-            End;
-          cJMP: Begin
-              For i := 0 To high(fCMDs) Do Begin
-                If fCMDs[i].Line = fCMDs[aCMDIndex].JumpTarget Then Begin
-                  aCMDIndex := i;
-                  break;
-                End;
-              End;
-            End;
-          cJZ: Begin
-              If CheckBox1.Checked Then Begin
-                For i := 0 To high(fCMDs) Do Begin
-                  If fCMDs[i].Line = fCMDs[aCMDIndex].JumpTarget Then Begin
-                    aCMDIndex := i;
-                    break;
-                  End;
-                End;
-              End;
-            End;
-          cJNZ: Begin
-              If Not CheckBox1.Checked Then Begin
-                For i := 0 To high(fCMDs) Do Begin
-                  If fCMDs[i].Line = fCMDs[aCMDIndex].JumpTarget Then Begin
-                    aCMDIndex := i;
-                    break;
-                  End;
-                End;
-              End;
-            End;
-          cADD: Begin
-              el := Nil;
-              Case fcmds[aCMDIndex].LeftOperand Of
-                'A': el := Edit1;
-                'B': el := Edit2;
-                'C': el := Edit3;
-                'D': el := Edit4;
-              End;
-              el.text := label12.caption;
-            End;
-          cSTORE: Begin
-              // Decode right Operand to x,y in Stringgrid
-              x := (strtoint(fcmds[aCMDIndex].RightOperand) - 100) Mod 5 + 1;
-              y := (strtoint(fcmds[aCMDIndex].RightOperand) - 100) Div 5 + 1;
-              el := Nil;
-              Case fcmds[aCMDIndex].LeftOperand Of
-                'A': el := Edit1;
-                'B': el := Edit2;
-                'C': el := Edit3;
-                'D': el := Edit4;
-              End;
-              StringGrid1.Cells[x, y] := inttostr(strtointdef(el.text, 0));
-            End;
-        End;
-        (*
-         * Here comes the logic to "switch" to the next command, this is usually
-         * aCMDIndex + 1, except on J* commands.
-         *)
-        aCMDIndex := FindNextValidProgramLine(aCMDIndex);
-        fcmds[aCMDIndex].PipelineStep := psFetch;
+
+Geht das automatische Klicken mit Pipelining auch noch ?
+Jumps während Pipeline an ist geht definitiv noch nicht
+Fehlerhandling muss auch wieder rein ...
+
+//  If (aCMDIndex < 0) Or (aCMDIndex > high(fCMDs)) Then Begin
+//    ResetLCLToCompile;
+//    exit;
+//  End;
+  If CheckBox5.Checked Then Begin
+    // Die Pipeline ist voll
+    If aTick > 3 Then Begin
+      WriteBack(0);
+      //      SetLinePipeLineState(fcmds[PipeLine[0]].Line, psNone);
+      For i := 0 To 2 Do Begin
+        pipeline[i] := pipeline[i + 1];
       End;
+      pipeline[3] := -1;
+    End;
+  End;
+  For p := PipeLineDepth - 1 Downto 0 Do Begin
+    If PipeLine[p] = -1 Then Continue;
+    Case fcmds[PipeLine[p]].PipelineStep Of
+      psFetch: Fetch(p);
+      psDecode: fcmds[PipeLine[p]].PipelineStep := psExecute;
+      psExecute: fcmds[PipeLine[p]].PipelineStep := psWriteBack;
+      psWriteBack: Begin
+          If WriteBack(p) Then exit;
+        End;
+    End;
+    SetLinePipeLineState(fcmds[PipeLine[p]].Line, fcmds[PipeLine[p]].PipelineStep);
   End;
   ResetCMDVisualizations;
   inc(aTick);
@@ -258,7 +495,7 @@ Begin
     button3.caption := 'Auto step [ms]';
   End
   Else Begin
-    timer1.interval := strtointdef(edit7.text, 1000);
+    timer1.interval := strtointdef(edit7.text, DefaultAutoStepTimeInMS);
     Timer1.Enabled := true;
     button3.caption := 'Stop';
   End;
@@ -270,12 +507,64 @@ Begin
   ResetLCLToCompile;
 End;
 
+Procedure TForm1.Button5Click(Sender: TObject);
+Var
+  m: TMemoryStream;
+  i, j: Integer;
+Begin
+  If Not OpenDialog1.Execute Then exit;
+  m := TMemoryStream.Create;
+  m.LoadFromFile(OpenDialog1.FileName);
+  // 1. Code
+  SynEdit1.Text := m.ReadAnsiString;
+  // 2. Memory
+  For i := 1 To 5 Do
+    For j := 1 To 4 Do
+      StringGrid1.Cells[i, j] := m.ReadAnsiString;
+  // 3. Stack
+  i := 0;
+  m.Read(i, sizeof(i));
+  If i <> 0 Then Begin
+    // TODO: -- Implement Stack load Routine
+  End
+  Else Begin
+    edit5.text := '';
+    ListBox1.Clear;
+  End;
+  m.free;
+End;
+
+Procedure TForm1.Button6Click(Sender: TObject);
+Var
+  m: TMemoryStream;
+  i, j: Integer;
+Begin
+  If Not SaveDialog1.Execute Then exit;
+  m := TMemoryStream.Create;
+  // 1. Code
+  m.WriteAnsiString(SynEdit1.Text);
+  // 2. Memory
+  For i := 1 To 5 Do
+    For j := 1 To 4 Do
+      m.WriteAnsiString(StringGrid1.Cells[i, j]);
+  // 3. Stack
+  // TODO: -- Implement Stack Save Routine
+  i := 0;
+  m.write(i, sizeof(i));
+  m.SaveToFile(SaveDialog1.FileName);
+  m.free;
+End;
+
 Procedure TForm1.ResetLCLToCompile;
+Var
+  i: Integer;
 Begin
   Button1.Enabled := true;
   Button2.Enabled := false;
   Button3.Enabled := false;
   Button4.Enabled := false;
+  Button5.Enabled := true;
+  Button6.Enabled := true;
   edit7.enabled := false;
   Label7.caption := '';
   Label8.caption := '';
@@ -287,14 +576,28 @@ Begin
   Edit6.text := '';
   SynEdit1.ReadOnly := false;
   ResetCMDVisualizations;
-  aCMDIndex := -1;
+  For i := 0 To 3 Do Begin
+    PipeLine[i] := -1;
+  End;
   CheckBox1.Checked := false;
   CheckBox2.Checked := false;
   CheckBox3.Checked := false;
   CheckBox4.Checked := false;
-  Timer1.Enabled := false;
-  button3.caption := 'Auto step [ms]';
+  If Timer1.Enabled Then button3.Click;
   label14.caption := '';
+  setlength(fCMDs, 0);
+  // So überleben die Breakpoints ;)
+  For i := 0 To high(fLineInfo) Do Begin
+    fLineInfo[i].isRunnable := false;
+    fLineInfo[i].PipelineStep := psNone;
+  End;
+  AktualLine := -1;
+  aTick := 0;
+  CheckBox5.Enabled := true;
+  Label16.Visible := false;
+  Label17.Visible := false;
+  Label18.Visible := false;
+  Label19.Visible := false;
   Refresh;
 End;
 
@@ -304,9 +607,18 @@ Begin
   Button2.Enabled := true;
   Button3.Enabled := true;
   Button4.Enabled := true;
+  Button5.Enabled := false;
+  Button6.Enabled := false;
   edit7.enabled := true;
   SynEdit1.ReadOnly := true;
+  CheckBox5.Enabled := false;
   aTick := 1;
+  If CheckBox5.Checked Then Begin
+    Label16.Visible := true;
+    Label17.Visible := true;
+    Label18.Visible := true;
+    Label19.Visible := true;
+  End;
 End;
 
 Procedure TForm1.ResetCMDVisualizations;
@@ -359,14 +671,22 @@ Var
   cl, cr: Integer;
 Begin
   Edit6.text := inttostr(aCMD.Line + 1);
-  label8.caption := PipelineStepToStr(aCMD.PipelineStep);
-  label7.caption := CMDToStr(aCMD.Cmd, aCMD.LeftOperand, aCMD.RightOperand);
+  If Not CheckBox5.Checked Then Begin
+    label7.caption := CMDToStr(aCMD.Cmd, aCMD.LeftOperand, aCMD.RightOperand);
+    label8.caption := PipelineStepToStr(aCMD.PipelineStep);
+  End
+  Else Begin
+    label7.caption := '';
+    label8.caption := '';
+  End;
   Case aCMD.PipelineStep Of
     psFetch: Begin
-        If Not CheckBox5.Checked Then Begin
-          aColor := clred;
-          label8.Font.Color := aColor;
+        If CheckBox5.Checked Then Begin
+          label7.caption := CMDToStr(aCMD.Cmd, aCMD.LeftOperand, aCMD.RightOperand);
+          label8.caption := PipelineStepToStr(aCMD.PipelineStep);
         End;
+        aColor := PipeLineFetchBGColor;
+        label8.Font.Color := aColor;
         // Load CMD from Program Memory into Decoder
         a.x := (SynEdit1.Left + SynEdit1.Width) + Scale96ToForm(8);
         a.Y := GroupBox1.Top + GroupBox1.Height Div 2;
@@ -378,10 +698,8 @@ Begin
         label7.Font.Style := [fsBold];
       End;
     psDecode: Begin
-        If Not CheckBox5.Checked Then Begin
-          aColor := clGreen;
-          label8.Font.Color := aColor;
-        End;
+        aColor := PipeLineDecodeBGColor;
+        label8.Font.Color := aColor;
         Case aCMD.Cmd Of
           cJMP, cJZ, cJNZ: Begin
               If (aCMD.Cmd = cJMP)
@@ -521,10 +839,8 @@ Begin
         End;
       End;
     psExecute: Begin
-        If Not CheckBox5.Checked Then Begin
-          aColor := clBlue;
-          label8.Font.Color := aColor;
-        End;
+        aColor := PipeLineExecuteBGColor;
+        label8.Font.Color := aColor;
         Case aCMD.Cmd Of
           cJMP, cJZ, cJNZ: Begin
               If (aCMD.Cmd = cJMP)
@@ -663,10 +979,8 @@ Begin
         End;
       End;
     psWriteBack: Begin
-        If Not CheckBox5.Checked Then Begin
-          aColor := clYellow;
-          label8.Font.Color := aColor;
-        End;
+        aColor := PipeLineWritebackBGColor;
+        label8.Font.Color := aColor;
         Case aCMD.Cmd Of
           cJMP, cJZ, cJNZ: Begin
               If (aCMD.Cmd = cJMP)
