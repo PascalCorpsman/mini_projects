@@ -108,6 +108,7 @@ Begin
     cLOAD: result := 'LOAD';
     cMOV: result := 'MOV';
     cNOT: result := 'NOT';
+    cNOP: result := 'NOP';
     cOR: result := 'OR';
     cSHL: result := 'SHL';
     cSHR: result := 'SHR';
@@ -242,8 +243,15 @@ Begin
     exit;
   End;
   pre := trim(copy(aLine, 1, pos(' ', aLine) - 1));
-  // Alle Anderen Befehle sind der Form <CMD>" "<Register1>","<Register2>"
   OP1 := trim(copy(aline, pos(' ', aLine) + 1, length(aline)));
+  // Befehle mit nur einem Parameter
+  If pre = 'NOT' Then Begin
+    cmd.Cmd := cNOT;
+    cmd.LeftOperand := op1;
+    result := true;
+    exit;
+  End;
+  // Alle Anderen Befehle sind der Form <CMD>" "<Register1>","<Register2>"
   OP2 := trim(copy(OP1, pos(',', OP1) + 1, length(OP1)));
   OP1 := trim(copy(OP1, 1, pos(',', OP1) - 1));
   Case Pre Of
@@ -252,7 +260,6 @@ Begin
     'CMP': cmd.Cmd := cCMP;
     'LOAD': cmd.Cmd := cLOAD;
     'MOV': cmd.Cmd := cMOV;
-    'NOT': cmd.Cmd := cNOT;
     'OR': cmd.Cmd := cOR;
     'SHL': cmd.Cmd := cSHL;
     'SHR': cmd.Cmd := cSHR;

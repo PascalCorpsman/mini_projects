@@ -163,6 +163,10 @@ Begin
    *  - Die Flags Sinnvoll auswerten / Benutzen (da fehlen noch entsprechende Jump Befehle)
    *  - Pipelining ;) -> Branch Prediction unit!
    *)
+
+  Jumps während Pipeline an ist geht definitiv noch nicht
+  Fehlerhandling muss auch wieder rein ...
+
   caption := 'FPC_CPU ver 0.01 by Corpsman, www.Corpsman.de';
   StringGrid1.Cells[0, 0] := 'Memory';
   For i := 1 To 5 Do Begin
@@ -365,7 +369,7 @@ Begin
           End;
         End;
       End;
-    cADD: Begin
+    cADD, cAnd, cNot, cOr, cSHL, cSHR, cSub, cXOR: Begin
         el := Nil;
         Case fcmds[PipeLine[aPipelineIndex]].LeftOperand Of
           'A': el := Edit1;
@@ -450,11 +454,6 @@ Var
   i, p: Integer;
 Begin
   // Step
-
-Geht das automatische Klicken mit Pipelining auch noch ?
-Jumps während Pipeline an ist geht definitiv noch nicht
-Fehlerhandling muss auch wieder rein ...
-
 //  If (aCMDIndex < 0) Or (aCMDIndex > high(fCMDs)) Then Begin
 //    ResetLCLToCompile;
 //    exit;
@@ -946,7 +945,7 @@ Begin
               // Parity Flag (PF): Gibt an, ob die Anzahl der gesetzten Bits (1en) im niedrigsten Byte des Ergebnisses gerade oder ungerade ist.Auxiliary
               // Carry Flag (AF): Wird bei BCD-Arithmetik (Binary Coded Decimal) verwendet und zeigt einen Übertrag oder Untertrag vom niederwertigen zum höherwertigen Halb-Byte (Nibble) an.
             End;
-          cADD: Begin
+          cADD, cAND, cNot, cOr, cSHL, cSHR, cSub, cXOR: Begin
               el := Nil;
               Case aCMD.LeftOperand Of
                 'A': el := Edit1;
@@ -1020,7 +1019,7 @@ Begin
               DrawLine(canvas, b, c, aColor);
               DrawArrowHead(Canvas, c, dRight, aColor);
             End;
-          cADD: Begin
+          cADD, cAND, cNot, cOr, cSHL, cSHR, cSub, cXOR: Begin
               el := Nil;
               Case aCMD.LeftOperand Of
                 'A': el := Edit1;
@@ -1063,6 +1062,13 @@ Begin
               DrawArrowHead(Canvas, f, dUp, aColor);
               Case aCMD.Cmd Of
                 cADD: label12.Caption := inttostr(strtointdef(label10.Caption, 0) + strtointdef(label11.Caption, 0));
+                cAND: label12.Caption := inttostr(strtointdef(label10.Caption, 0) And strtointdef(label11.Caption, 0));
+                cNot: label12.Caption := inttostr(Not strtointdef(label10.Caption, 0));
+                cOr: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Or strtointdef(label11.Caption, 0));
+                cSHL: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Shl strtointdef(label11.Caption, 0));
+                cSHR: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Shr strtointdef(label11.Caption, 0));
+                cSub: label12.Caption := inttostr(strtointdef(label10.Caption, 0) - strtointdef(label11.Caption, 0));
+                cXOR: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Xor strtointdef(label11.Caption, 0));
               End;
               label12.Font.Color := aColor;
               label12.Font.Style := [fsBold];

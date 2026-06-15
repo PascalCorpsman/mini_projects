@@ -858,8 +858,6 @@ object Form1: TForm1
     Top = 568
     Width = 108
     Caption = 'Use pipelining'
-    Checked = True
-    State = cbChecked
     TabOrder = 19
   end
   object Button5: TButton
