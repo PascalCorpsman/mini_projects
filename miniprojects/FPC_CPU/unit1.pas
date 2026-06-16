@@ -34,7 +34,7 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, Grids,
-  ExtCtrls, SynEdit, SynHighlighterAny, uFPC_CPU, SynGutterBase, SynEditMarks, SynEditMarkupSpecialLine;
+  ExtCtrls, SynEdit, SynHighlighterAny, uFPC_CPU, SynEditMarks;
 
 Type
 
@@ -157,15 +157,14 @@ Var
 Begin
   (*
    * TODO:
-   *  - Implementieren der fehlenden Befehle
    *  - STACK, via Push Pop
    *  - Subfunctions via CALL ( und seinem Gegenstück ?)
    *  - Die Flags Sinnvoll auswerten / Benutzen (da fehlen noch entsprechende Jump Befehle)
    *  - Pipelining ;) -> Branch Prediction unit!
    *)
 
-  Jumps während Pipeline an ist geht definitiv noch nicht
-  Fehlerhandling muss auch wieder rein ...
+  //- Bedingte Jumps während Pipeline an ist geht definitiv noch nicht
+  //- Warum geht autostep nicht in Pipeline mode ?
 
   caption := 'FPC_CPU ver 0.01 by Corpsman, www.Corpsman.de';
   StringGrid1.Cells[0, 0] := 'Memory';
@@ -177,8 +176,24 @@ Begin
   End;
   Edit7.text := inttostr(DefaultAutoStepTimeInMS);
   ResetLCLToCompile;
+  (*
+   * Default "Simple" demo
+   * Mem[102] := mem[100] + mem[101];
+   *)
   StringGrid1.Cells[1, 1] := '20';
   StringGrid1.Cells[2, 1] := '22';
+  SynEdit1.Clear;
+  SynEdit1.Lines.Add('; Adds the 2 values stored in');
+  SynEdit1.Lines.Add('; memory on adress 100 and 101');
+  SynEdit1.Lines.Add('; and stores them into memory');
+  SynEdit1.Lines.Add('; adress 102');
+  SynEdit1.Lines.Add('');
+  SynEdit1.Lines.Add('LOAD A, 100');
+  SynEdit1.Lines.Add('LOAD B, 101');
+  SynEdit1.Lines.Add('ADD A, B');
+  SynEdit1.Lines.Add('STORE A, 102');
+  SynEdit1.Lines.Add('HLT');
+  // *)
   label16.font.Color := PipeLineFetchBGColor;
   label17.font.Color := PipeLineDecodeBGColor;
   label18.font.Color := PipeLineExecuteBGColor;
@@ -273,8 +288,19 @@ Begin
 End;
 
 Function TForm1.FindNextValidProgramLine(aLine: integer): integer;
+Var
+  i: Integer;
 Begin
   result := aLine + 1;
+  // This is a kind of Branch Prediction :)
+  If fCMDs[aLine].Cmd = cJMP Then Begin
+    For i := 0 To high(fCMDs) Do Begin
+      If fCMDs[i].Line = fCMDs[aLine].JumpTarget Then Begin
+        result := i;
+        break;
+      End;
+    End;
+  End;
   While fcmds[result].Cmd = cLabel Do Begin
     result := result + 1;
   End;
@@ -454,15 +480,14 @@ Var
   i, p: Integer;
 Begin
   // Step
-//  If (aCMDIndex < 0) Or (aCMDIndex > high(fCMDs)) Then Begin
-//    ResetLCLToCompile;
-//    exit;
-//  End;
+  If (PipeLine[0] < 0) Or (PipeLine[0] > high(fCMDs)) Then Begin
+    ResetLCLToCompile;
+    exit;
+  End;
   If CheckBox5.Checked Then Begin
     // Die Pipeline ist voll
     If aTick > 3 Then Begin
       WriteBack(0);
-      //      SetLinePipeLineState(fcmds[PipeLine[0]].Line, psNone);
       For i := 0 To 2 Do Begin
         pipeline[i] := pipeline[i + 1];
       End;
@@ -899,7 +924,12 @@ Begin
               label10.Caption := el.Text;
               label10.Font.Color := aColor;
               label10.Font.Style := [fsBold];
-              label11.Caption := er.Text;
+              If assigned(er) Then Begin
+                label11.Caption := er.Text;
+              End
+              Else Begin
+                label11.Caption := aCMD.RightOperand;
+              End;
               label11.Font.Color := aColor;
               label11.Font.Style := [fsBold];
               a.x := Image1.Left + Image1.Width + Scale96ToForm(8);
