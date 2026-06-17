@@ -76,7 +76,15 @@ Var
   LastError: String;
 Function Compile(Const aCode: TStrings): TAssemblerCMDs;
 
+Procedure Nop();
+
 Implementation
+
+Procedure Nop();
+Begin
+
+End;
+
 
 Function PipelineStepToStr(aPipelineStep: TPipelineStep): String;
 Begin
