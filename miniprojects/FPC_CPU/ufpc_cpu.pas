@@ -74,6 +74,8 @@ Procedure DrawLine(Const Canvas: TCanvas; a, b: TPoint; aColor: TColor);
 
 Var
   LastError: String;
+  LastErrorLine: integer = -1;
+
 Function Compile(Const aCode: TStrings): TAssemblerCMDs;
 
 Procedure Nop();
@@ -292,6 +294,7 @@ Var
 Begin
   result := Nil;
   LastError := '';
+  LastErrorLine := -1;
   // 1. Pass Zeilenweise Code "portieren"
   For i := 0 To aCode.Count - 1 Do Begin
     If LineToCode(aCode[i], cmd) Then Begin
@@ -302,6 +305,7 @@ Begin
     Else Begin
       If LastError <> '' Then Begin
         lasterror := 'Line[' + inttostr(i + 1) + '] : ' + LastError;
+        LastErrorLine := i;
         setlength(result, 0);
         exit;
       End;
@@ -320,6 +324,7 @@ Begin
       End;
       If Not found Then Begin
         lasterror := 'Line[' + inttostr(result[i].Line + 1) + '] : unable to resolve label';
+        LastErrorLine := result[i].Line;
         setlength(result, 0);
         exit;
       End;
@@ -327,6 +332,7 @@ Begin
   End;
   If Not assigned(Result) Then Begin
     LastError := 'No code.';
+    LastErrorLine := 0;
   End;
 End;
 

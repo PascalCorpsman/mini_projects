@@ -175,8 +175,9 @@ Begin
    *  - STACK, via Push Pop
    *  - Subfunctions via CALL ( und seinem Gegenstück ?)
    *  - Die Flags Sinnvoll auswerten / Benutzen (da fehlen noch entsprechende Jump Befehle)
-   *  - Pipelining ;) -> Branch Prediction unit!
+   *  - Branch Prediction unit!
    *)
+
   caption := 'FPC_CPU ver 0.01 by Corpsman, www.Corpsman.de';
   StringGrid1.Cells[0, 0] := 'Memory';
   For i := 1 To 5 Do Begin
@@ -187,7 +188,7 @@ Begin
   End;
   Edit7.text := inttostr(DefaultAutoStepTimeInMS);
   ResetLCLToCompile;
-  StringGrid1.Cells[1, 1] := '5'; // Debug remove
+  //StringGrid1.Cells[1, 1] := '5'; // Debug remove
   (*
    * Default "Simple" demo
    * Mem[102] := mem[100] + mem[101];
@@ -274,6 +275,11 @@ Procedure TForm1.SynEdit1SpecialLineColors(Sender: TObject; Line: integer;
 Begin
   // Convert 1 based Lines to 0 based lines as "usual"
   line := line - 1;
+  If LastErrorLine = Line Then Begin
+    Special := true;
+    BG := clRed;
+    FG := clWhite;
+  End;
   If (line < 0) Or (Line > high(fLineInfo)) Then exit;
   Case fLineInfo[line].PipelineStep Of
     psFetch: Begin
@@ -567,6 +573,7 @@ Begin
   fCMDs := Compile(SynEdit1.Lines);
   If Not assigned(fCMDs) Then Begin
     ShowMessage('Error: ' + LastError);
+    SynEdit1.Invalidate;
     exit;
   End;
   // Calculate all Jump Targets
@@ -747,6 +754,7 @@ Procedure TForm1.ResetLCLToCompile;
 Var
   i: Integer;
 Begin
+  LastErrorLine := -1;
   Button1.Enabled := true;
   Button2.Enabled := false;
   Button3.Enabled := false;
@@ -871,7 +879,6 @@ Procedure TForm1.VisualizeCmdLCL(Const aCMD: TAssemblerCMD);
 Var
   x, y: integer;
   el, er: TEdit;
-  cl, cr: Integer;
   aColor: TColor;
 Begin
   Edit6.text := inttostr(aCMD.Line + 1);
@@ -965,7 +972,19 @@ Begin
                 'C': el := Edit3;
                 'D': el := Edit4;
               End;
-              el.text := aCMD.RightOperand;
+              er := Nil;
+              Case aCMD.RightOperand Of
+                'A': er := Edit1;
+                'B': er := Edit2;
+                'C': er := Edit3;
+                'D': er := Edit4;
+              End;
+              If assigned(er) Then Begin
+                el.text := er.Text;
+              End
+              Else Begin
+                el.text := aCMD.RightOperand;
+              End;
               el.Font.Color := aColor;
               el.Font.Style := [fsBold];
             End;
@@ -1182,6 +1201,10 @@ Begin
                     a.y := edit4.top - Scale96ToForm(8);
                   End;
               End;
+
+              Hier muss noch der Register Register Fall rein
+
+
               b := a;
               b.y := a.y - Canvas.TextHeight('B');
               DrawLine(canvas, a, b, aColor);

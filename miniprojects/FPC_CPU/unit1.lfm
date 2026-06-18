@@ -453,23 +453,13 @@ object Form1: TForm1
     MouseTextActions = <>
     MouseSelActions = <>
     Lines.Strings = (
-      'LOAD A, 100     ; A = N'
-      'ADD A, 1        ; Code below calculates to N-1, this fixes the off by 1 error ;)'
-      ''
-      'MOV B, 0        ; B = sum'
-      'MOV C, 1        ; C = counter = 1'
-      ''
-      'LOOP:'
-      'CMP C, A        ; compare counter with N'
-      'JZ END          ; if C > N -> fertig (optional, sonst anders lösen)'
-      ''
-      'ADD B, C        ; sum += counter'
-      'ADD C, 1        ; counter++'
-      'JMP LOOP'
-      ''
-      'END:'
-      'STORE B, 101    ; Ergebnis speichern'
-      'HLT'
+      '; Demo taushe den Wert von Register A und B'
+      '; Durch nutzung des Stacks ;)'
+      'MOV A, 5'
+      'MOV B, 7'
+      'PUSH A'
+      'MOV A, B'
+      'POP B'
     )
     VisibleSpecialChars = [vscSpace, vscTabAtLast]
     SelectedColor.ForePriority = 50
@@ -546,21 +536,21 @@ object Form1: TForm1
   end
   object Label1: TLabel
     Left = 376
-    Height = 16
+    Height = 15
     Top = 272
-    Width = 12
+    Width = 11
     Caption = 'A:'
   end
   object Label2: TLabel
     Left = 480
-    Height = 16
+    Height = 15
     Top = 272
-    Width = 11
+    Width = 10
     Caption = 'B:'
   end
   object Edit1: TEdit
     Left = 392
-    Height = 26
+    Height = 23
     Top = 264
     Width = 80
     TabOrder = 1
@@ -568,7 +558,7 @@ object Form1: TForm1
   end
   object Edit2: TEdit
     Left = 496
-    Height = 26
+    Height = 23
     Top = 264
     Width = 80
     TabOrder = 2
@@ -576,14 +566,14 @@ object Form1: TForm1
   end
   object Label3: TLabel
     Left = 584
-    Height = 16
+    Height = 15
     Top = 272
     Width = 11
     Caption = 'C:'
   end
   object Edit3: TEdit
     Left = 600
-    Height = 26
+    Height = 23
     Top = 264
     Width = 80
     TabOrder = 3
@@ -591,14 +581,14 @@ object Form1: TForm1
   end
   object Label4: TLabel
     Left = 690
-    Height = 16
+    Height = 15
     Top = 272
-    Width = 12
+    Width = 11
     Caption = 'D:'
   end
   object Edit4: TEdit
     Left = 706
-    Height = 26
+    Height = 23
     Top = 264
     Width = 80
     TabOrder = 4
@@ -606,14 +596,14 @@ object Form1: TForm1
   end
   object Label5: TLabel
     Left = 904
-    Height = 16
+    Height = 15
     Top = 272
-    Width = 18
+    Width = 16
     Caption = 'SP:'
   end
   object Edit5: TEdit
     Left = 932
-    Height = 26
+    Height = 23
     Top = 264
     Width = 80
     TabOrder = 5
@@ -621,14 +611,14 @@ object Form1: TForm1
   end
   object Label6: TLabel
     Left = 376
-    Height = 16
+    Height = 15
     Top = 16
-    Width = 19
+    Width = 18
     Caption = 'PC:'
   end
   object Edit6: TEdit
     Left = 404
-    Height = 26
+    Height = 23
     Top = 8
     Width = 80
     TabOrder = 6
@@ -636,33 +626,33 @@ object Form1: TForm1
   end
   object CheckBox1: TCheckBox
     Left = 808
-    Height = 22
+    Height = 19
     Top = 368
-    Width = 52
+    Width = 42
     Caption = 'Zero'
     TabOrder = 7
   end
   object CheckBox2: TCheckBox
     Left = 808
-    Height = 22
+    Height = 19
     Top = 390
-    Width = 55
+    Width = 46
     Caption = 'Carry'
     TabOrder = 8
   end
   object CheckBox3: TCheckBox
     Left = 808
-    Height = 22
+    Height = 19
     Top = 414
-    Width = 77
+    Width = 65
     Caption = 'Negative'
     TabOrder = 9
   end
   object CheckBox4: TCheckBox
     Left = 808
-    Height = 22
+    Height = 19
     Top = 438
-    Width = 79
+    Width = 66
     Caption = 'Overflow'
     TabOrder = 10
   end
@@ -681,14 +671,14 @@ object Form1: TForm1
     Top = 40
     Width = 289
     Caption = ' Control Unit'
-    ClientHeight = 55
-    ClientWidth = 287
+    ClientHeight = 52
+    ClientWidth = 285
     TabOrder = 12
     object Label7: TLabel
       Left = 8
-      Height = 16
+      Height = 15
       Top = 8
-      Width = 40
+      Width = 34
       Caption = 'Label7'
     end
     object Label8: TLabel
@@ -702,9 +692,9 @@ object Form1: TForm1
     end
     object Label15: TLabel
       Left = 8
-      Height = 16
+      Height = 15
       Top = 32
-      Width = 48
+      Width = 40
       Caption = 'Label15'
     end
   end
@@ -737,7 +727,7 @@ object Form1: TForm1
   end
   object Edit7: TEdit
     Left = 288
-    Height = 26
+    Height = 23
     Top = 536
     Width = 80
     TabOrder = 16
@@ -850,20 +840,19 @@ object Form1: TForm1
     Width = 100
     ItemHeight = 0
     TabOrder = 18
-    TopIndex = -1
   end
   object Label14: TLabel
     Left = 502
-    Height = 16
+    Height = 15
     Top = 16
-    Width = 48
+    Width = 40
     Caption = 'Label14'
   end
   object CheckBox5: TCheckBox
     Left = 376
-    Height = 22
+    Height = 19
     Top = 568
-    Width = 108
+    Width = 93
     Caption = 'Use pipelining'
     Checked = True
     State = cbChecked
@@ -889,33 +878,34 @@ object Form1: TForm1
   end
   object Label16: TLabel
     Left = 505
-    Height = 16
+    Height = 15
     Top = 568
-    Width = 33
+    Width = 29
     Caption = 'Fetch'
   end
   object Label17: TLabel
     Left = 576
-    Height = 16
+    Height = 15
     Top = 568
-    Width = 45
+    Width = 40
     Caption = 'Decode'
   end
   object Label18: TLabel
     Left = 640
-    Height = 16
+    Height = 15
     Top = 568
-    Width = 48
+    Width = 40
     Caption = 'Execute'
   end
   object Label19: TLabel
     Left = 704
-    Height = 16
+    Height = 15
     Top = 568
-    Width = 60
+    Width = 53
     Caption = 'WriteBack'
   end
   object SynAnySyn1: TSynAnySyn
+    Enabled = False
     CommentAttri.Foreground = clGrayText
     Comments = [csAsmStyle]
     DetectPreprocessor = False
@@ -923,6 +913,7 @@ object Form1: TForm1
     KeyWords.Strings = (
       'ADD'
       'AND'
+      'CALL'
       'CMP'
       'HLT'
       'JMP'
@@ -933,6 +924,9 @@ object Form1: TForm1
       'NOP'
       'NOT'
       'OR'
+      'POP'
+      'PUSH'
+      'RET'
       'SHL'
       'SHR'
       'STORE'
