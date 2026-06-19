@@ -657,14 +657,39 @@ Var
   i, p: Integer;
   vLeft, vRight: Integer;
   branchTarget: Integer;
+  rawHazardStallFrom: Integer;
 Begin
   // Step
   If (PipeLine[0] < 0) Or (PipeLine[0] > high(fCMDs)) Then Begin
     ResetLCLToCompile;
     exit;
   End;
+  (*
+   * RAW (Read-After-Write) hazard detection.
+   * The loop runs PipeLineDepth-1 downto 0, so PipeLine[1] (Execute) is
+   * processed before PipeLine[0] (WriteBack).  If PipeLine[0] is an
+   * arithmetic instruction about to write a register, and PipeLine[1] is
+   * a CMP that will read that same register during Execute, CMP would see
+   * the stale value.  Fix: stall slots >= 1 for this tick so only the
+   * WriteBack at slot 0 advances; the pipeline shift then moves CMP to
+   * slot 0, where it executes correctly in the next tick.
+   *)
+  rawHazardStallFrom := PipeLineDepth; // default: no stall
+  If CheckBox5.Checked And
+     (PipeLine[0] >= 0) And (PipeLine[0] <= high(fCMDs)) And
+     (PipeLine[1] >= 0) And (PipeLine[1] <= high(fCMDs)) And
+     (fCMDs[PipeLine[0]].PipelineStep = psWriteBack) And
+     (fCMDs[PipeLine[1]].PipelineStep = psExecute) And
+     (fCMDs[PipeLine[0]].Cmd In [cADD, cAND, cDIV, cNOT, cMUL, cOR, cSHL, cSHR, cSUB, cXOR]) And
+     (fCMDs[PipeLine[1]].Cmd = cCMP) Then Begin
+    If (fCMDs[PipeLine[1]].LeftOperand  = fCMDs[PipeLine[0]].LeftOperand) Or
+       (fCMDs[PipeLine[1]].RightOperand = fCMDs[PipeLine[0]].LeftOperand) Then Begin
+      rawHazardStallFrom := 1; // stall slots 1..3; only slot 0 (WriteBack) proceeds
+    End;
+  End;
   For p := PipeLineDepth - 1 Downto 0 Do Begin
     If PipeLine[p] = -1 Then Continue;
+    If p >= rawHazardStallFrom Then Continue; // RAW hazard stall
     Case fcmds[PipeLine[p]].PipelineStep Of
       psFetch: Fetch(p);
       psDecode: fcmds[PipeLine[p]].PipelineStep := psExecute;
@@ -674,6 +699,7 @@ Begin
             vRight := OperandToInt(fcmds[PipeLine[p]].RightOperand);
             form2.CheckBox1.Checked := vLeft = vRight;
             form2.CheckBox2.Checked := vLeft < vRight;
+            // TODO: implement missing flags evaluation
             form2.CheckBox3.Checked := false;
             form2.CheckBox4.Checked := false;
           End;
