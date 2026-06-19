@@ -49,6 +49,13 @@
         <Filename Value="ufpc_cpu.pas"/>
         <UnitName Value="uFPC_CPU"/>
       </Unit>
+      <Unit>
+        <Filename Value="unit2.pas"/>
+        <ComponentName Value="Form2"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit2"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

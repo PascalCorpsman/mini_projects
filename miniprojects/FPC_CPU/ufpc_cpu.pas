@@ -21,6 +21,19 @@ Interface
 Uses
   Classes, SysUtils, Graphics;
 
+Const
+  PipeLineFetchBGColor = clred;
+  PipeLineFetchFGColor = clWhite;
+
+  PipeLineDecodeBGColor = clGreen;
+  PipeLineDecodeFGColor = clWhite;
+
+  PipeLineExecuteBGColor = clBlue;
+  PipeLineExecuteFGColor = clWhite;
+
+  PipeLineWritebackBGColor = clolive;
+  PipeLineWritebackFGColor = clWhite;
+
 Type
 
   TCmd = (
@@ -28,6 +41,7 @@ Type
     cAND,
     cCALL, // Calls a subroutine = Push PC to Stack and Jump
     cCMP,
+    cDIV,
     cHLT,
     cJMP, // Jump, without any condition
     cJNZ, // Jump if zero flag is not set
@@ -35,6 +49,7 @@ Type
     cLabel, // Target für JMP, JNZ, JZ
     cLOAD,
     cMOV,
+    cMUL,
     cNOT,
     cNOP,
     cOR,
@@ -63,12 +78,17 @@ Type
     // Weitere Attribute, nicht unbedingt für alle TPipelineStep relevant
     JumpTarget: Integer; // cJMP, cJNZ, cJZ, Angegeben ist die "Line"
     aLabel: String; // cLabel
-    LeftOperand, RightOperand: String; // cADD, cAND, cCMP, cLOAD, cMOV, cNOT, cOR, cSHL, cSHR, cSTORE, cSUB, cXOR
+    LeftOperand, RightOperand: String; // cADD, cAND, cDIV, cCMP, cLOAD, cMUL, cMOV, cNOT, cOR, cSHL, cSHR, cSTORE, cSUB, cXOR
   End;
 
   TAssemblerCMDs = Array Of TAssemblerCMD;
 
   TDir = (dUp, dDown, dLeft, dRight);
+
+Var
+  fCMDs: TAssemblerCMDs;
+  PipeLine: Array[0..3] Of Integer; // Index in fCMD
+  PipeLineDepth: Integer;
 
 Function PipelineStepToStr(aPipelineStep: TPipelineStep): String;
 Function CMDToStr(aCmd: TCmd; LeftOperand, RightOperand: String): String;
@@ -85,6 +105,9 @@ Function Compile(Const aCode: TStrings): TAssemblerCMDs;
 Procedure Nop();
 
 Function isnumber(aValue: String): Boolean;
+
+Function FindNextValidProgramLine(aLine: integer; IgnoreCalls: Boolean = false): integer;
+Function convertCodeLineToCMDIndex(aLine: integer): integer;
 
 Implementation
 
@@ -107,6 +130,46 @@ Begin
   result := true;
 End;
 
+Function FindNextValidProgramLine(aLine: integer; IgnoreCalls: Boolean
+  ): integer;
+Var
+  i: Integer;
+Begin
+  If (aLine < 0) Or (aLine > high(fCMDs)) Then Begin
+    result := high(fCMDs) + 1;
+    exit;
+  End;
+
+  result := aLine + 1;
+  If result > high(fCMDs) Then exit;
+
+  // This is a kind of simple Branch Prediction :)
+  If (fCMDs[aLine].Cmd = cJMP)
+    Or ((fCMDs[aLine].Cmd = cCALL) And (IgnoreCalls = false)) Then Begin
+    For i := 0 To high(fCMDs) Do Begin
+      If fCMDs[i].Line = fCMDs[aLine].JumpTarget Then Begin
+        result := i;
+        break;
+      End;
+    End;
+  End;
+  While (result <= high(fCMDs)) And (fcmds[result].Cmd = cLabel) Do Begin
+    result := result + 1;
+  End;
+End;
+
+Function convertCodeLineToCMDIndex(aLine: integer): integer;
+Var
+  i: Integer;
+Begin
+  result := -1;
+  For i := 0 To high(fCMDs) Do Begin
+    If fCMDs[i].Line = aLine Then Begin
+      result := i;
+      exit;
+    End;
+  End;
+End;
 
 Function PipelineStepToStr(aPipelineStep: TPipelineStep): String;
 Begin
@@ -128,6 +191,7 @@ Begin
     cAND: result := 'AND';
     cCALL: result := 'CALL';
     cCMP: result := 'CMP';
+    cDIV: result := 'DIV';
     cHLT: result := 'HLT';
     cJMP: result := 'JMP';
     cJNZ: result := 'JNZ';
@@ -138,6 +202,7 @@ Begin
       End;
     cLOAD: result := 'LOAD';
     cMOV: result := 'MOV';
+    cMUL: result := 'MUL';
     cNOT: result := 'NOT';
     cNOP: result := 'NOP';
     cOR: result := 'OR';
@@ -313,8 +378,10 @@ Begin
     'ADD': cmd.Cmd := cADD;
     'AND': cmd.Cmd := cAND;
     'CMP': cmd.Cmd := cCMP;
+    'DIV': cmd.Cmd := cDIV;
     'LOAD': cmd.Cmd := cLOAD;
     'MOV': cmd.Cmd := cMOV;
+    'MUL': cmd.Cmd := cMUL;
     'OR': cmd.Cmd := cOR;
     'SHL': cmd.Cmd := cSHL;
     'SHR': cmd.Cmd := cSHR;

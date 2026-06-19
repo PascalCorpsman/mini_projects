@@ -1,0 +1,320 @@
+object Form2: TForm2
+  Left = 1573
+  Height = 630
+  Top = 138
+  Width = 833
+  Caption = 'Form2'
+  ClientHeight = 630
+  ClientWidth = 833
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  OnPaint = FormPaint
+  OnShow = FormShow
+  object Label1: TLabel
+    Left = 8
+    Height = 15
+    Top = 304
+    Width = 11
+    Caption = 'A:'
+  end
+  object Label2: TLabel
+    Left = 112
+    Height = 15
+    Top = 304
+    Width = 10
+    Caption = 'B:'
+  end
+  object Edit1: TEdit
+    Left = 24
+    Height = 23
+    Top = 296
+    Width = 80
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Edit2: TEdit
+    Left = 128
+    Height = 23
+    Top = 296
+    Width = 80
+    TabOrder = 1
+    Text = 'Edit2'
+  end
+  object Label3: TLabel
+    Left = 216
+    Height = 15
+    Top = 304
+    Width = 11
+    Caption = 'C:'
+  end
+  object Edit3: TEdit
+    Left = 232
+    Height = 23
+    Top = 296
+    Width = 80
+    TabOrder = 2
+    Text = 'Edit3'
+  end
+  object Label4: TLabel
+    Left = 320
+    Height = 15
+    Top = 304
+    Width = 11
+    Caption = 'D:'
+  end
+  object Edit4: TEdit
+    Left = 336
+    Height = 23
+    Top = 296
+    Width = 80
+    TabOrder = 3
+    Text = 'Edit4'
+  end
+  object Label5: TLabel
+    Left = 672
+    Height = 15
+    Top = 264
+    Width = 13
+    Caption = '<-'
+  end
+  object Label6: TLabel
+    Left = 8
+    Height = 15
+    Top = 16
+    Width = 18
+    Caption = 'PC:'
+  end
+  object Edit6: TEdit
+    Left = 36
+    Height = 23
+    Top = 8
+    Width = 80
+    TabOrder = 4
+    Text = 'Edit6'
+  end
+  object CheckBox1: TCheckBox
+    Left = 432
+    Height = 19
+    Top = 400
+    Width = 42
+    Caption = 'Zero'
+    TabOrder = 5
+  end
+  object CheckBox2: TCheckBox
+    Left = 432
+    Height = 19
+    Top = 422
+    Width = 46
+    Caption = 'Carry'
+    TabOrder = 6
+  end
+  object CheckBox3: TCheckBox
+    Left = 432
+    Height = 19
+    Top = 446
+    Width = 65
+    Caption = 'Negative'
+    TabOrder = 7
+  end
+  object CheckBox4: TCheckBox
+    Left = 432
+    Height = 19
+    Top = 470
+    Width = 66
+    Caption = 'Overflow'
+    TabOrder = 8
+  end
+  object StringGrid1: TStringGrid
+    Left = 432
+    Height = 128
+    Top = 120
+    Width = 392
+    ColCount = 6
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing, goSmoothScroll]
+    TabOrder = 9
+  end
+  object GroupBox1: TGroupBox
+    Left = 129
+    Height = 72
+    Top = 40
+    Width = 289
+    Caption = ' Control Unit'
+    ClientHeight = 52
+    ClientWidth = 285
+    TabOrder = 10
+    object Label7: TLabel
+      Left = 8
+      Height = 15
+      Top = 8
+      Width = 34
+      Caption = 'Label7'
+    end
+    object Label8: TLabel
+      Left = 184
+      Height = 15
+      Top = 8
+      Width = 91
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Label8'
+    end
+    object Label15: TLabel
+      Left = 8
+      Height = 15
+      Top = 32
+      Width = 40
+      Caption = 'Label15'
+    end
+  end
+  object Image1: TImage
+    Left = 136
+    Height = 89
+    Top = 400
+    Width = 169
+    AutoSize = True
+    Picture.Data = {
+      1754506F727461626C654E6574776F726B47726170686963E303000089504E47
+      0D0A1A0A0000000D49484452000000A900000059080600000045470436000003
+      AA49444154789CED944BAEDC3010037DFF4B275002210F1D7AC6D6A729512C40
+      ABD998454E5FD75F7E1DF214613B4DE98CFD111E6A3B6C97699DB13FC0436D83
+      ED30BD2FF64778A4EF613B4CEFEABF1F95F8167E4324FB42B93E0657E35BF8CD
+      90EC2AE6FA1A5C297C01E59BBDA44948F684723D12A0C653090B2339D002C876
+      9E8402CA37694CB390EC26E6BA1EF4E2A1AE89642F28579310355AA59091EC24
+      E66A16A224A580F28D5AD22424FB40B9BAC4A8D12B2711C981164036CBF909CA
+      D739A659487610735D1DFE25055546499A88ECA100D92C0981F2F5C89A80A4FB
+      98EB1AE0DD43E520E91DE59A224C8D59D23A901C680164B3B427A07C23E53520
+      E93AE6BA2678961457992DAFD5F325E41A64B3BC37A07C3324BEF5AC42A6DFD3
+      869A8DA45F942B55A4120C99775E95DC329CCACA2CA07C1952559D127D6A0AAD
+      10A4CAFEF1092EF5A51650BE4C9F2A103C9E21B6922857F60F9FE8F03CB90594
+      2FC3A30A89FEDE0956925C48102DE92FC1DB6BE424FF24E69BE54DC9DD4467CD
+      C8CA2EA07C33BCA930D1573792C22B31DF685F4ACE26B81A86ACF402CA37D297
+      0A133C0D47527C25E61BE549C9D54047D390955F40F9ECE81F83FCA4205B4201
+      E5EBF1A3C2002FE948165189F95ABD28B9E9704243B68C02CAD7E245850E1F74
+      240BA9C47C6F7D28396970B10CB2A51450BE135DBCF4B02492C55462BE133DBC
+      70B02CB217A480F29DE4E061FE2D902DA980F27DCAAFC283DCDB21595425E6BB
+      CBAD94FD43E66D912DAB80F22967BEC92781646195984F392FC827C369C54966
+      BDC927856C7905944F29E34D3E49240B2CC46C6A19413659644B2CA86643BD51
+      D69388649115C55CB133DA721291BD388AA0BE68CB49C623DD84D8157133E9F8
+      9A6E00EA89B618121EEAC2A07E684B21E3912E4AEC86B8113ABEA60B827AA12D
+      64113CD2C5889D10B7B10CBEA60B81FAA02D63313CD245885D1037B11CBEA60B
+      807AA02D62513C5422C83F6D098BE3919288EE891B581E5F5302C83B6D019BE0
+      9126139D13BBDF065FD344906F5AF39BE19126115D133BDF0E5FD30490675AE3
+      9BE2A14E04F9A535BD391EE924A25B62C7DBE36B3A01E495D6B0081EE960A253
+      62B732F89A0E04F9A4352B86873A00E491D6A8281E6927D121B14B597C4D3B40
+      FE684D8AE3913612DD113B94C7D7B401E48DD6E02178A42F89CE88DD1D83AFE9
+      0B902F5A7387E1A13E0079A23576281EE917A2236257C7E26BFA01E487D6D4E1
+      78A4374437C48E8EC7D71480BCD01A327FB82BC5CF035D06F60076786601D823
+      58F99985608F61C527C16F7E3D29C25107E74B0000000049454E44AE426082
+    }
+  end
+  object Label9: TLabel
+    Left = 184
+    Height = 30
+    Top = 452
+    Width = 72
+    Alignment = taCenter
+    AutoSize = False
+    Caption = 'Label9'
+    Layout = tlCenter
+  end
+  object Label10: TLabel
+    Left = 136
+    Height = 30
+    Top = 400
+    Width = 72
+    Alignment = taCenter
+    AutoSize = False
+    Caption = 'Label10'
+    Layout = tlCenter
+  end
+  object Label11: TLabel
+    Left = 233
+    Height = 30
+    Top = 400
+    Width = 72
+    Alignment = taCenter
+    AutoSize = False
+    Caption = 'Label11'
+    Layout = tlCenter
+  end
+  object Label12: TLabel
+    Left = 136
+    Height = 30
+    Top = 496
+    Width = 169
+    Alignment = taCenter
+    AutoSize = False
+    Caption = 'Label12'
+    Layout = tlCenter
+  end
+  object Label13: TLabel
+    Left = 430
+    Height = 30
+    Top = 296
+    Width = 72
+    Alignment = taCenter
+    AutoSize = False
+    Caption = 'Label13'
+    Layout = tlCenter
+  end
+  object ListBox1: TListBox
+    Left = 564
+    Height = 329
+    Top = 264
+    Width = 100
+    ItemHeight = 0
+    PopupMenu = PopupMenu1
+    TabOrder = 11
+  end
+  object Label14: TLabel
+    Left = 134
+    Height = 15
+    Top = 16
+    Width = 40
+    Caption = 'Label14'
+  end
+  object Label16: TLabel
+    Left = 137
+    Height = 15
+    Top = 600
+    Width = 29
+    Caption = 'Fetch'
+  end
+  object Label17: TLabel
+    Left = 208
+    Height = 15
+    Top = 600
+    Width = 40
+    Caption = 'Decode'
+  end
+  object Label18: TLabel
+    Left = 272
+    Height = 15
+    Top = 600
+    Width = 40
+    Caption = 'Execute'
+  end
+  object Label19: TLabel
+    Left = 336
+    Height = 15
+    Top = 600
+    Width = 53
+    Caption = 'WriteBack'
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 649
+    Top = 417
+    object MenuItem2: TMenuItem
+      Caption = 'Push'
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Pop'
+    end
+    object Separator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Clear'
+    end
+  end
+end
