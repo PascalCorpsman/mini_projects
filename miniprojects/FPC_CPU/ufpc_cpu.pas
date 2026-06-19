@@ -26,6 +26,7 @@ Type
   TCmd = (
     cADD,
     cAND,
+    cCALL, // Calls a subroutine = Push PC to Stack and Jump
     cCMP,
     cHLT,
     cJMP, // Jump, without any condition
@@ -37,6 +38,9 @@ Type
     cNOT,
     cNOP,
     cOR,
+    cPOP,
+    cPUSH,
+    cRET, // Returns from subroutine = pop stack to PC
     cSHL,
     cSHR,
     cSTORE,
@@ -80,11 +84,27 @@ Function Compile(Const aCode: TStrings): TAssemblerCMDs;
 
 Procedure Nop();
 
+Function isnumber(aValue: String): Boolean;
+
 Implementation
 
 Procedure Nop();
 Begin
 
+End;
+
+Function isnumber(aValue: String): Boolean;
+Var
+  i: Integer;
+Begin
+  result := false;
+  If avalue = '' Then exit;
+  If avalue[1] = '-' Then delete(aValue, 1, 1);
+  If avalue = '' Then exit;
+  For i := 1 To length(avalue) Do Begin
+    If (Not (avalue[i] In ['0'..'9'])) Then exit;
+  End;
+  result := true;
 End;
 
 
@@ -106,6 +126,7 @@ Begin
   Case aCmd Of
     cADD: result := 'ADD';
     cAND: result := 'AND';
+    cCALL: result := 'CALL';
     cCMP: result := 'CMP';
     cHLT: result := 'HLT';
     cJMP: result := 'JMP';
@@ -120,6 +141,9 @@ Begin
     cNOT: result := 'NOT';
     cNOP: result := 'NOP';
     cOR: result := 'OR';
+    cPOP: result := 'POP';
+    cPUSH: result := 'PUSH';
+    cRET: result := 'RET';
     cSHL: result := 'SHL';
     cSHR: result := 'SHR';
     cSTORE: result := 'STORE';
@@ -217,7 +241,7 @@ Begin
     exit;
   End;
   // 2. Alle "Jumps"
-  If aline[1] = 'J' Then Begin
+  If (aline[1] = 'J') Or (pos('CALL ', aLine) = 1) Then Begin
     pre := trim(copy(aLine, 1, pos(' ', aLine) - 1));
     suf := trim(copy(aline, pos(' ', aLine) + 1, length(aline)));
     If pos(' ', suf) <> 0 Then Begin
@@ -228,11 +252,13 @@ Begin
       'JMP': cmd.Cmd := cJMP;
       'JNZ': cmd.Cmd := cJNZ;
       'JZ': cmd.Cmd := cJZ;
+      'CALL': cmd.cmd := cCALL;
     Else Begin
         LastError := 'unknown jump command';
         exit;
       End;
     End;
+    // Labels dürfen nicht mit Zahlen beginnen
     If suf[1] In ['0'..'9'] Then Begin
       LastError := 'invalid jump target';
       exit;
@@ -252,14 +278,33 @@ Begin
     result := true;
     exit;
   End;
+  If aline = 'RET' Then Begin
+    cmd.Cmd := cRET;
+    result := true;
+    exit;
+  End;
   pre := trim(copy(aLine, 1, pos(' ', aLine) - 1));
   OP1 := trim(copy(aline, pos(' ', aLine) + 1, length(aline)));
   // Befehle mit nur einem Parameter
-  If pre = 'NOT' Then Begin
-    cmd.Cmd := cNOT;
-    cmd.LeftOperand := op1;
-    result := true;
-    exit;
+  Case pre Of
+    'NOT': Begin
+        cmd.Cmd := cNOT;
+        cmd.LeftOperand := op1;
+        result := true;
+        exit;
+      End;
+    'POP': Begin
+        cmd.Cmd := cPOP;
+        cmd.LeftOperand := op1;
+        result := true;
+        exit;
+      End;
+    'PUSH': Begin
+        cmd.Cmd := cPUSH;
+        cmd.LeftOperand := op1;
+        result := true;
+        exit;
+      End;
   End;
   // Alle Anderen Befehle sind der Form <CMD>" "<Register1>","<Register2>"
   OP2 := trim(copy(OP1, pos(',', OP1) + 1, length(OP1)));
@@ -280,6 +325,10 @@ Begin
       LastError := 'unknown command';
       exit;
     End;
+  End;
+  If trim(op2) = '' Then Begin
+    LastError := 'missing second operand';
+    exit;
   End;
   cmd.LeftOperand := op1;
   cmd.RightOperand := op2;
@@ -313,7 +362,7 @@ Begin
   End;
   // 2. Pass die Jump's auflösen
   For i := 0 To high(result) Do Begin
-    If result[i].Cmd In [cJMP, cJZ, cJNZ] Then Begin
+    If result[i].Cmd In [cJMP, cJZ, cJNZ, cCALL] Then Begin
       found := false;
       For j := 0 To high(result) Do Begin
         If (result[j].Cmd = cLabel) And (result[j].aLabel = Result[i].LeftOperand) Then Begin

@@ -34,7 +34,7 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, Grids,
-  ExtCtrls, SynEdit, SynHighlighterAny, uFPC_CPU, SynEditMarks;
+  ExtCtrls, Menus, SynEdit, SynHighlighterAny, uFPC_CPU, SynEditMarks;
 
 Type
 
@@ -68,7 +68,6 @@ Type
     Edit2: TEdit;
     Edit3: TEdit;
     Edit4: TEdit;
-    Edit5: TEdit;
     Edit6: TEdit;
     Edit7: TEdit;
     GroupBox1: TGroupBox;
@@ -93,8 +92,13 @@ Type
     Label8: TLabel;
     Label9: TLabel;
     ListBox1: TListBox;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
     OpenDialog1: TOpenDialog;
+    PopupMenu1: TPopupMenu;
     SaveDialog1: TSaveDialog;
+    Separator1: TMenuItem;
     StringGrid1: TStringGrid;
     SynAnySyn1: TSynAnySyn;
     SynEdit1: TSynEdit;
@@ -107,21 +111,26 @@ Type
     Procedure Button6Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure FormPaint(Sender: TObject);
+    Procedure MenuItem1Click(Sender: TObject);
+    Procedure MenuItem2Click(Sender: TObject);
+    Procedure MenuItem3Click(Sender: TObject);
     Procedure SynEdit1GutterClick(Sender: TObject; X, Y, Line: integer;
       mark: TSynEditMark);
+    Procedure SynEdit1KeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState
+      );
     Procedure SynEdit1Paint(Sender: TObject; ACanvas: TCanvas);
     Procedure SynEdit1SpecialLineColors(Sender: TObject; Line: integer;
       Var Special: boolean; Var FG, BG: TColor);
   private
     fCMDs: TAssemblerCMDs;
     aTick: integer;
-    PipeLine: Array[0..3] Of Integer;
+    PipeLine: Array[0..3] Of Integer; // Index in fCMD
     PipeLineDepth: Integer;
     fLineInfo: Array Of TLineInfo;
     AktualLine: Integer;
     fBranchPrediction: Array Of TBranchPrediction;
     fPendingBranchTarget: Integer;
-    Function FindNextValidProgramLine(aLine: integer): integer;
+    Function FindNextValidProgramLine(aLine: integer; IgnoreCalls: Boolean = false): integer;
     Function IsRunableLine(aLine: integer): Boolean;
     Function HasBreakpoint(aLine: integer): Boolean;
     Procedure SetLinePipeLineState(aLine: integer; aStep: TPipelineStep);
@@ -134,6 +143,7 @@ Type
     Procedure EnsurePipelineHasFetch;
     Procedure Fetch(aPipelineIndex: Integer);
     Function WriteBack(aPipelineIndex: Integer): boolean;
+    Function convertCodeLineToCMDIndex(aLine: integer): integer;
   public
     Procedure ResetLCLToCompile;
     Procedure SetLCLToExecute;
@@ -149,6 +159,8 @@ Var
 Implementation
 
 {$R *.lfm}
+
+Uses LCLType;
 
 Const
   IndexBreakPoint = 0;
@@ -172,12 +184,9 @@ Var
 Begin
   (*
    * TODO:
-   *  - STACK, via Push Pop
-   *  - Subfunctions via CALL ( und seinem Gegenstück ?)
    *  - Die Flags Sinnvoll auswerten / Benutzen (da fehlen noch entsprechende Jump Befehle)
    *  - Branch Prediction unit!
    *)
-
   caption := 'FPC_CPU ver 0.01 by Corpsman, www.Corpsman.de';
   StringGrid1.Cells[0, 0] := 'Memory';
   For i := 1 To 5 Do Begin
@@ -192,7 +201,7 @@ Begin
   (*
    * Default "Simple" demo
    * Mem[102] := mem[100] + mem[101];
-   * )
+   *)
   StringGrid1.Cells[1, 1] := '20';
   StringGrid1.Cells[2, 1] := '22';
   SynEdit1.Clear;
@@ -211,6 +220,10 @@ Begin
   label17.font.Color := PipeLineDecodeBGColor;
   label18.font.Color := PipeLineExecuteBGColor;
   label19.font.Color := PipeLineWritebackBGColor;
+  Constraints.MinHeight := Height;
+  Constraints.MaxHeight := Height;
+  Constraints.MinWidth := Width;
+  Constraints.MaxWidth := Width;
 End;
 
 Procedure TForm1.FormPaint(Sender: TObject);
@@ -224,6 +237,28 @@ Begin
   End;
 End;
 
+Procedure TForm1.MenuItem1Click(Sender: TObject);
+Begin
+  ListBox1.Clear;
+End;
+
+Procedure TForm1.MenuItem2Click(Sender: TObject);
+Var
+  s: String;
+Begin
+  s := InputBox('Enter a value', 'Enter a integer value', '0');
+  If (s <> '') And isnumber(s) Then Begin
+    ListBox1.Items.Insert(0, s);
+  End;
+End;
+
+Procedure TForm1.MenuItem3Click(Sender: TObject);
+Begin
+  If ListBox1.Items.Count <> 0 Then Begin
+    ListBox1.Items.Delete(0);
+  End;
+End;
+
 Procedure TForm1.SynEdit1GutterClick(Sender: TObject; X, Y, Line: integer;
   mark: TSynEditMark);
 Var
@@ -232,8 +267,8 @@ Begin
   // Convert 1 based Lines to 0 based lines as "usual"
   line := line - 1;
   If Line > high(fLineInfo) Then Begin
-    j := high(fLineInfo);
-    setlength(fLineInfo, Line);
+    j := length(fLineInfo);
+    setlength(fLineInfo, Line + 1);
     For i := j To high(fLineInfo) Do Begin
       fLineInfo[i].isRunnable := false;
       fLineInfo[i].hasBreakPoint := false;
@@ -241,6 +276,78 @@ Begin
   End;
   fLineInfo[Line].hasBreakPoint := Not fLineInfo[Line].hasBreakPoint;
   SynEdit1.Invalidate;
+End;
+
+Procedure TForm1.SynEdit1KeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Const
+{$IFDEF Windows}
+  HashKey = 191;
+{$ELSE}
+  HashKey = 222; //ord('#');
+{$ENDIF}
+Var
+  s: String;
+  y2, y, i: Integer;
+  Add: Boolean;
+Begin
+  // Toggle Breakpoint
+  If (key = VK_F5) Then Begin
+    SynEdit1GutterClick(Nil, 0, 0, SynEdit1.CaretY, Nil);
+  End;
+  // Step
+  If (key = VK_F8) Then Begin
+    If (button2.Enabled) Then Begin
+      // Step in compiled code
+      Button2.Click;
+    End
+    Else Begin
+      // Step without a compiled code -> compile
+      Button1.Click;
+    End;
+  End;
+  // Compile
+  If (key = VK_F9) Then Begin
+    If Button1.Enabled Then Button1.Click; // Compile if needed
+    If Button3.Enabled Then Button3.Click; // Run compiled code if possible
+  End;
+  // CTRL + F2
+  If (ssCtrl In Shift) And (key = VK_F2) And (button4.enabled) Then Begin
+    button4.Click;
+  End;
+  // CTRL + # toggles comment ;)
+  If (ssCtrl In Shift) And (key = HashKey) Then Begin
+    If SynEdit1.SelAvail Then Begin
+      // There is a selection
+      y := SynEdit1.BlockBegin.y - 1;
+      y2 := SynEdit1.BlockEnd.y - 1;
+    End
+    Else Begin
+      // The cursor is in one single line, no selection
+      y := SynEdit1.CaretY;
+      dec(y);
+      y2 := Y;
+    End;
+    s := trim(SynEdit1.Lines[y]);
+    Add := false;
+    If (s <> '') Then Begin
+      If s[1] <> ';' Then Begin
+        Add := true;
+      End;
+    End;
+    For i := y To y2 Do Begin
+      If add Then Begin
+        SynEdit1.Lines[i] := ';' + SynEdit1.Lines[i];
+      End
+      Else Begin
+        If pos(';', trim(SynEdit1.Lines[i])) = 1 Then Begin
+          s := SynEdit1.Lines[i];
+          delete(s, pos(';', s), 1);
+          SynEdit1.Lines[i] := s;
+        End;
+      End;
+    End;
+  End;
 End;
 
 Procedure TForm1.SynEdit1Paint(Sender: TObject; ACanvas: TCanvas);
@@ -302,7 +409,8 @@ Begin
   End;
 End;
 
-Function TForm1.FindNextValidProgramLine(aLine: integer): integer;
+Function TForm1.FindNextValidProgramLine(aLine: integer; IgnoreCalls: Boolean
+  ): integer;
 Var
   i: Integer;
 Begin
@@ -314,8 +422,9 @@ Begin
   result := aLine + 1;
   If result > high(fCMDs) Then exit;
 
-  // This is a kind of Branch Prediction :)
-  If fCMDs[aLine].Cmd = cJMP Then Begin
+  // This is a kind of simple Branch Prediction :)
+  If (fCMDs[aLine].Cmd = cJMP)
+    Or ((fCMDs[aLine].Cmd = cCALL) And (IgnoreCalls = false)) Then Begin
     For i := 0 To high(fCMDs) Do Begin
       If fCMDs[i].Line = fCMDs[aLine].JumpTarget Then Begin
         result := i;
@@ -475,8 +584,10 @@ Var
   x, y: Integer;
   el: TEdit;
   vLeft, vRight: Integer;
+  FromRet: Boolean;
 Begin
   result := false;
+  FromRet := false;
   If PipeLine[aPipelineIndex] = -1 Then exit;
   Case fcmds[PipeLine[aPipelineIndex]].Cmd Of
     cHLT: Begin
@@ -485,6 +596,23 @@ Begin
         ResetLCLToCompile;
         result := true;
         exit;
+      End;
+    cRET: Begin
+        // In Pipeline mode, cRET is already handled in Execute phase
+        If Not CheckBox5.Checked Then Begin
+          If ListBox1.Items.Count <> 0 Then Begin
+            x := convertCodeLineToCMDIndex(strtoint(ListBox1.Items[0]) - 1);
+            ListBox1.Items.Delete(0);
+          End
+          Else Begin
+            x := -1; // Stack ist Empty -> Ungültig
+          End;
+          ChangeCMDIndexTo(aPipelineIndex, FindNextValidProgramLine(x, true));
+          FromRet := true;
+        End;
+      End;
+    cCALL: Begin
+        ChangeCMDIndexTo(aPipelineIndex, fBranchPrediction[PipeLine[aPipelineIndex]].TrueTarget);
       End;
     cJMP: Begin
         If Not CheckBox5.Checked Then Begin
@@ -542,7 +670,8 @@ Begin
    *)
   SetLinePipeLineState(fcmds[PipeLine[aPipelineIndex]].Line, psNone);
   If Not CheckBox5.Checked Then Begin
-    ChangeCMDIndexTo(aPipelineIndex, FindNextValidProgramLine(PipeLine[aPipelineIndex]));
+    If Not FromRet Then
+      ChangeCMDIndexTo(aPipelineIndex, FindNextValidProgramLine(PipeLine[aPipelineIndex]));
     fcmds[PipeLine[aPipelineIndex]].PipelineStep := psFetch;
     // If the user sets a break point, this is the moment, where we stop the automation ;)
     AktualLine := fcmds[PipeLine[aPipelineIndex]].Line;
@@ -552,20 +681,20 @@ Begin
   End;
 End;
 
-Procedure TForm1.Button1Click(Sender: TObject);
-  Function convertCodeLineToCMDIndex(aLine: integer): integer;
-  Var
-    i: Integer;
-  Begin
-    result := -1;
-    For i := 0 To high(fCMDs) Do Begin
-      If fCMDs[i].Line = aLine Then Begin
-        result := i;
-        exit;
-      End;
+Function TForm1.convertCodeLineToCMDIndex(aLine: integer): integer;
+Var
+  i: Integer;
+Begin
+  result := -1;
+  For i := 0 To high(fCMDs) Do Begin
+    If fCMDs[i].Line = aLine Then Begin
+      result := i;
+      exit;
     End;
   End;
+End;
 
+Procedure TForm1.Button1Click(Sender: TObject);
 Var
   i: Integer;
 Begin
@@ -581,7 +710,7 @@ Begin
   For i := 0 To high(fCMDs) Do Begin
     fBranchPrediction[i].TrueTarget := -1;
     fBranchPrediction[i].FalseTarget := -1;
-    If fCMDs[i].Cmd In [cJMP, cJNZ, cJZ] Then Begin
+    If fCMDs[i].Cmd In [cJMP, cJNZ, cJZ, cCALL] Then Begin
       fBranchPrediction[i].TrueTarget := convertCodeLineToCMDIndex(fCMDs[i].JumpTarget);
       fBranchPrediction[i].FalseTarget := i;
     End;
@@ -609,6 +738,7 @@ Begin
   SetLinePipeLineState(AktualLine, psFetch);
   SetLCLToExecute;
   RefreshVisualization;
+  SynEdit1.SetFocus;
 End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
@@ -655,6 +785,31 @@ Begin
               End;
             End;
           End;
+          If CheckBox5.Checked And (fcmds[PipeLine[p]].Cmd = cRET) Then Begin
+            FlushPipelineFrom(p + 1);
+            // Get RET target from stack (ListBox1)
+            If ListBox1.Items.Count <> 0 Then Begin
+              branchTarget := convertCodeLineToCMDIndex(strtoint(ListBox1.Items[0]) - 1);
+              ListBox1.Items.Delete(0);
+              // Use FindNextValidProgramLine with IgnoreCalls=true, same as in non-pipeline mode
+              branchTarget := FindNextValidProgramLine(branchTarget, true);
+              If (branchTarget >= 0) And (branchTarget <= high(fCMDs)) Then Begin
+                If p < PipeLineDepth - 1 Then Begin
+                  PipeLine[p + 1] := branchTarget;
+                  fcmds[branchTarget].PipelineStep := psFetch;
+                  SetLinePipeLineState(fcmds[branchTarget].Line, psFetch);
+                  fPendingBranchTarget := -1;
+                End
+                Else Begin
+                  fPendingBranchTarget := branchTarget;
+                End;
+              End;
+            End;
+          End;
+          If CheckBox5.Checked And (fcmds[PipeLine[p]].Cmd = cHLT) Then Begin
+            // Stop fetching new instructions after HLT
+            FlushPipelineFrom(p + 1);
+          End;
           fcmds[PipeLine[p]].PipelineStep := psWriteBack;
         End;
       psWriteBack: Begin
@@ -664,14 +819,12 @@ Begin
               pipeline[i] := pipeline[i + 1];
             End;
             pipeline[3] := -1;
-
             If (fPendingBranchTarget >= 0) And (fPendingBranchTarget <= high(fCMDs)) Then Begin
               PipeLine[PipeLineDepth - 1] := fPendingBranchTarget;
               fcmds[fPendingBranchTarget].PipelineStep := psFetch;
               SetLinePipeLineState(fcmds[fPendingBranchTarget].Line, psFetch);
               fPendingBranchTarget := -1;
             End;
-
             EnsurePipelineHasFetch;
           End;
         End;
@@ -681,6 +834,7 @@ Begin
   ResetCMDVisualizations;
   inc(aTick);
   RefreshVisualization;
+  SynEdit1.SetFocus;
 End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
@@ -694,6 +848,7 @@ Begin
     Timer1.Enabled := true;
     button3.caption := 'Stop';
   End;
+  SynEdit1.SetFocus;
 End;
 
 Procedure TForm1.Button4Click(Sender: TObject);
@@ -717,16 +872,9 @@ Begin
     For j := 1 To 4 Do
       StringGrid1.Cells[i, j] := m.ReadAnsiString;
   // 3. Stack
-  i := 0;
-  m.Read(i, sizeof(i));
-  If i <> 0 Then Begin
-    // TODO: -- Implement Stack load Routine
-  End
-  Else Begin
-    edit5.text := '';
-    ListBox1.Clear;
-  End;
+  ListBox1.Items.Text := m.ReadAnsiString;
   m.free;
+  SynEdit1.SetFocus;
 End;
 
 Procedure TForm1.Button6Click(Sender: TObject);
@@ -743,11 +891,10 @@ Begin
     For j := 1 To 4 Do
       m.WriteAnsiString(StringGrid1.Cells[i, j]);
   // 3. Stack
-  // TODO: -- Implement Stack Save Routine
-  i := 0;
-  m.write(i, sizeof(i));
+  m.WriteAnsiString(ListBox1.Items.Text);
   m.SaveToFile(SaveDialog1.FileName);
   m.free;
+  SynEdit1.SetFocus;
 End;
 
 Procedure TForm1.ResetLCLToCompile;
@@ -768,7 +915,6 @@ Begin
   Edit2.text := '';
   Edit3.text := '';
   Edit4.text := '';
-  Edit5.text := '';
   Edit6.text := '';
   SynEdit1.ReadOnly := false;
   ResetCMDVisualizations;
@@ -795,7 +941,9 @@ Begin
   Label17.Visible := false;
   Label18.Visible := false;
   Label19.Visible := false;
-  Refresh;
+  Invalidate;
+  If visible Then
+    SynEdit1.SetFocus;
 End;
 
 Procedure TForm1.SetLCLToExecute;
@@ -820,6 +968,8 @@ End;
 
 Procedure TForm1.ResetCMDVisualizations;
 Begin
+  label5.Font.Color := clblack;
+  label5.Font.Style := [];
   label7.Font.Color := clblack;
   label7.Font.Style := [];
   label9.caption := '';
@@ -905,8 +1055,9 @@ Begin
         aColor := PipeLineDecodeBGColor;
         label8.Font.Color := aColor;
         Case aCMD.Cmd Of
-          cJMP, cJZ, cJNZ: Begin
+          cJMP, cJZ, cJNZ, cCALL: Begin
               If (aCMD.Cmd = cJMP)
+                Or (aCMD.Cmd = cCALL)
                 Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
                 Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
                 Then Begin
@@ -939,6 +1090,62 @@ Begin
         aColor := PipeLineExecuteBGColor;
         label8.Font.Color := aColor;
         Case aCMD.Cmd Of
+          cRET: Begin
+              If ListBox1.Items.Count <> 0 Then Begin
+                edit6.text := inttostr(
+                  fCMDs[FindNextValidProgramLine(convertCodeLineToCMDIndex(strtoint(ListBox1.Items[0]) - 1), true)].Line + 1
+                  );
+              End
+              Else Begin
+                edit6.text := '0'; // Stack ist Empty -> Ungültig
+              End;
+              edit6.Font.Color := aColor;
+              edit6.Font.Style := [fsBold];
+            End;
+          cCALL: Begin
+              ListBox1.Items.Insert(0, Edit6.Text);
+              edit6.text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+              edit6.Font.Color := aColor;
+              edit6.Font.Style := [fsBold];
+              label5.Font.Color := aColor;
+            End;
+          cPUSH: Begin
+              el := Nil;
+              Case aCMD.LeftOperand Of
+                'A': el := Edit1;
+                'B': el := Edit2;
+                'C': el := Edit3;
+                'D': el := Edit4;
+              End;
+              If Assigned(el) Then Begin
+                ListBox1.Items.Insert(0, el.Text);
+              End
+              Else Begin
+                ListBox1.Items.Insert(0, aCMD.LeftOperand);
+              End;
+              el.Font.Color := aColor;
+              el.Font.Style := [fsBold];
+              label5.Font.Color := aColor;
+            End;
+          cPOP: Begin
+              el := Nil;
+              Case aCMD.LeftOperand Of
+                'A': el := Edit1;
+                'B': el := Edit2;
+                'C': el := Edit3;
+                'D': el := Edit4;
+              End;
+              If ListBox1.Items.Count <> 0 Then Begin
+                el.text := ListBox1.Items[0];
+                ListBox1.Items.Delete(0);
+              End
+              Else Begin
+                el.text := '0';
+              End;
+              el.Font.Color := aColor;
+              el.Font.Style := [fsBold];
+              label5.Font.Color := aColor;
+            End;
           cJMP, cJZ, cJNZ: Begin
               If (aCMD.Cmd = cJMP)
                 Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
@@ -1066,8 +1273,19 @@ Begin
         aColor := PipeLineWritebackBGColor;
         label8.Font.Color := aColor;
         Case aCMD.Cmd Of
-          cJMP, cJZ, cJNZ: Begin
+          cRET: Begin
+              If ListBox1.Items.Count <> 0 Then Begin
+                edit6.text := inttostr(
+                  fCMDs[FindNextValidProgramLine(convertCodeLineToCMDIndex(strtoint(ListBox1.Items[0]) - 1), true)].Line + 1
+                  );
+              End
+              Else Begin
+                edit6.text := '0'; // Stack ist Empty -> Ungültig
+              End;
+            End;
+          cJMP, cJZ, cJNZ, cCALL: Begin
               If (aCMD.Cmd = cJMP)
+                Or (aCMD.Cmd = cCALL)
                 Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
                 Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
                 Then Begin
@@ -1116,6 +1334,17 @@ Begin
 End;
 
 Procedure TForm1.VisualizeCmdDraw(Const aCMD: TAssemblerCMD);
+  Function GetEditPoint(Const e: TEdit; Above: Boolean = true): TPoint;
+  Begin
+    result.x := e.Left + e.Width Div 2;
+    If above Then Begin
+      result.y := e.top - Scale96ToForm(8);
+    End
+    Else Begin
+      result.y := e.top + e.height + Scale96ToForm(8);
+    End;
+  End;
+
 Var
   a, b, c, d, e, f: TPoint;
   el: TEdit;
@@ -1136,6 +1365,71 @@ Begin
     psDecode: Begin
         aColor := PipeLineDecodeBGColor;
         Case aCMD.Cmd Of
+          cRET: Begin
+              // Der Pfeil Stack -> PC
+              a.x := edit6.left + edit6.Width Div 4;
+              a.y := edit6.top + edit6.Height + Scale96ToForm(8);
+              c.x := ListBox1.Left - Scale96ToForm(8);
+              c.y := ListBox1.Top;
+              b.x := a.x;
+              b.y := c.y;
+              DrawLine(canvas, a, b, aColor);
+              DrawLine(canvas, b, c, aColor);
+              DrawArrowHead(Canvas, a, dUp, aColor);
+            End;
+          cCALL: Begin
+              // Der Pfeil "aufgelöster" Jump to PC
+              a.x := GroupBox1.Left - Scale96ToForm(8);
+              a.y := GroupBox1.Top + Label15.top + GroupBox1.Height - GroupBox1.ClientHeight;
+              b.x := edit6.left + edit6.Width * 3 Div 4;
+              b.y := a.y;
+              c.X := b.x;
+              c.y := edit6.top + edit6.Height + Scale96ToForm(8);
+              DrawLine(canvas, a, b, aColor);
+              DrawLine(canvas, b, c, aColor);
+              DrawArrowHead(Canvas, c, dUp, aColor);
+              // Der Pfeil PC -> Stack
+              a.x := edit6.left + edit6.Width Div 4;
+              a.y := edit6.top + edit6.Height + Scale96ToForm(8);
+              c.x := ListBox1.Left - Scale96ToForm(8);
+              c.y := ListBox1.Top;
+              b.x := a.x;
+              b.y := c.y;
+              DrawLine(canvas, a, b, aColor);
+              DrawLine(canvas, b, c, aColor);
+              DrawArrowHead(Canvas, c, dRight, aColor);
+            End;
+          cPUSH: Begin
+              Case aCMD.LeftOperand Of
+                'A': a := GetEditPoint(edit1);
+                'B': a := GetEditPoint(edit2);
+                'C': a := GetEditPoint(edit3);
+                'D': a := GetEditPoint(edit4);
+              End;
+              c.X := ListBox1.Left - Scale96ToForm(8);
+              c.Y := ListBox1.Top;
+              b.x := a.x;
+              b.y := c.y;
+              DrawLine(canvas, a, b, aColor);
+              DrawLine(canvas, b, c, aColor);
+              DrawArrowHead(Canvas, c, dRight, aColor);
+            End;
+          cPop: Begin
+              Case aCMD.LeftOperand Of
+                'A': a := GetEditPoint(edit1);
+                'B': a := GetEditPoint(edit2);
+                'C': a := GetEditPoint(edit3);
+                'D': a := GetEditPoint(edit4);
+              End;
+              c.X := ListBox1.Left - Scale96ToForm(8);
+              c.Y := ListBox1.Top;
+              b.x := a.x;
+              b.y := c.y;
+              DrawLine(canvas, a, b, aColor);
+              DrawLine(canvas, b, c, aColor);
+              DrawArrowHead(Canvas, a, dDown, aColor);
+            End;
+          // TODO: cCall, cRet
           cJMP, cJZ, cJNZ: Begin
               If (aCMD.Cmd = cJMP)
                 Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
@@ -1156,23 +1450,19 @@ Begin
               c.x := StringGrid1.Left - Scale96ToForm(8);
               Case aCMD.LeftOperand Of
                 'A': Begin
-                    a.x := Edit1.Left + edit1.Width Div 2;
-                    a.y := edit1.top - Scale96ToForm(8);
+                    a := GetEditPoint(edit1);
                     c.y := StringGrid1.Top + Scale96ToForm(2);
                   End;
                 'B': Begin
-                    a.x := Edit2.Left + edit2.Width Div 2;
-                    a.y := edit2.top - Scale96ToForm(8);
+                    a := GetEditPoint(edit2);
                     c.y := StringGrid1.Top + Scale96ToForm(2 + StringGrid1.DefaultRowHeight Div 3);
                   End;
                 'C': Begin
-                    a.x := Edit3.Left + edit3.Width Div 2;
-                    a.y := edit3.top - Scale96ToForm(8);
+                    a := GetEditPoint(edit3);
                     c.y := StringGrid1.Top + Scale96ToForm(2 + (StringGrid1.DefaultRowHeight * 2) Div 3);
                   End;
                 'D': Begin
-                    a.x := Edit4.Left + edit4.Width Div 2;
-                    a.y := edit4.top - Scale96ToForm(8);
+                    a := GetEditPoint(edit4);
                     c.y := StringGrid1.Top + Scale96ToForm(2 + StringGrid1.DefaultRowHeight);
                   End;
               End;
@@ -1184,37 +1474,35 @@ Begin
             End;
           cMOV: Begin
               Case aCMD.LeftOperand Of
-                'A': Begin
-                    a.x := Edit1.Left + edit1.Width Div 2;
-                    a.y := edit1.top - Scale96ToForm(8);
-                  End;
-                'B': Begin
-                    a.x := Edit2.Left + edit2.Width Div 2;
-                    a.y := edit2.top - Scale96ToForm(8);
-                  End;
-                'C': Begin
-                    a.x := Edit3.Left + edit3.Width Div 2;
-                    a.y := edit3.top - Scale96ToForm(8);
-                  End;
-                'D': Begin
-                    a.x := Edit4.Left + edit4.Width Div 2;
-                    a.y := edit4.top - Scale96ToForm(8);
-                  End;
+                'A': a := GetEditPoint(edit1);
+                'B': a := GetEditPoint(edit2);
+                'C': a := GetEditPoint(edit3);
+                'D': a := GetEditPoint(edit4);
               End;
-
-              Hier muss noch der Register Register Fall rein
-
-
               b := a;
               b.y := a.y - Canvas.TextHeight('B');
+              If (length(aCMD.RightOperand) = 1) And (aCMD.RightOperand[1] In ['A'..'D']) Then Begin
+                Case aCMD.RightOperand Of
+                  'A': d := GetEditPoint(edit1);
+                  'B': d := GetEditPoint(edit2);
+                  'C': d := GetEditPoint(edit3);
+                  'D': d := GetEditPoint(edit4);
+                End;
+                c.x := d.x;
+                c.y := b.y;
+                DrawLine(canvas, b, c, aColor);
+                DrawLine(canvas, c, d, aColor);
+              End
+              Else Begin
+                canvas.Font.Color := aColor;
+                canvas.Font.Style := [fsBold];
+                canvas.Brush.Style := bsClear;
+                canvas.TextOut(b.x - canvas.TextWidth(aCMD.RightOperand) Div 2, b.y - Canvas.TextHeight('B') * 2 + Scale96ToForm(8), aCMD.RightOperand);
+                canvas.Font.Style := [];
+                canvas.Font.Color := clBlack;
+              End;
               DrawLine(canvas, a, b, aColor);
               DrawArrowHead(Canvas, a, dDown, aColor);
-              canvas.Font.Color := aColor;
-              canvas.Font.Style := [fsBold];
-              canvas.Brush.Style := bsClear;
-              canvas.TextOut(b.x - canvas.TextWidth(aCMD.RightOperand) Div 2, b.y - Canvas.TextHeight('B') * 2 + Scale96ToForm(8), aCMD.RightOperand);
-              canvas.Font.Style := [];
-              canvas.Font.Color := clBlack;
             End;
           cCMP, cADD: Begin
               el := Nil;
@@ -1232,8 +1520,7 @@ Begin
                 'D': er := Edit4;
               End;
               // Left Operand Arrow
-              a.x := el.Left + el.Width Div 2;
-              a.y := el.Top + el.Height + Scale96ToForm(8);
+              a := GetEditPoint(el, false);
               d.x := Image1.Left + Image1.Width Div 6;
               d.y := Image1.Top - Scale96ToForm(8);
               b.x := a.x;
@@ -1247,8 +1534,7 @@ Begin
 
               // Right Operand Arrow
               If assigned(er) Then Begin
-                a.x := er.Left + er.Width Div 2;
-                a.y := er.Top + er.Height + Scale96ToForm(8);
+                a := GetEditPoint(er, false);
               End
               Else Begin
                 a.x := label13.Left + label13.Width Div 2;
@@ -1287,23 +1573,19 @@ Begin
               c.x := StringGrid1.Left - Scale96ToForm(8);
               Case aCMD.LeftOperand Of
                 'A': Begin
-                    a.x := Edit1.Left + edit1.Width Div 2;
-                    a.y := edit1.top - Scale96ToForm(8);
+                    a := GetEditPoint(edit1);
                     c.y := StringGrid1.Top + Scale96ToForm(2);
                   End;
                 'B': Begin
-                    a.x := Edit2.Left + edit2.Width Div 2;
-                    a.y := edit2.top - Scale96ToForm(8);
+                    a := GetEditPoint(edit2);
                     c.y := StringGrid1.Top + Scale96ToForm(2 + StringGrid1.DefaultRowHeight Div 3);
                   End;
                 'C': Begin
-                    a.x := Edit3.Left + edit3.Width Div 2;
-                    a.y := edit3.top - Scale96ToForm(8);
+                    a := GetEditPoint(edit3);
                     c.y := StringGrid1.Top + Scale96ToForm(2 + (StringGrid1.DefaultRowHeight * 2) Div 3);
                   End;
                 'D': Begin
-                    a.x := Edit4.Left + edit4.Width Div 2;
-                    a.y := edit4.top - Scale96ToForm(8);
+                    a := GetEditPoint(edit4);
                     c.y := StringGrid1.Top + Scale96ToForm(2 + StringGrid1.DefaultRowHeight);
                   End;
               End;
