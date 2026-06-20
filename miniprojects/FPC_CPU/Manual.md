@@ -34,7 +34,9 @@ The left operand must always be a register. The right operand can be a register 
 | CMP     | Compares the left and right operands and updates the flags accordingly.
 | DIV     | Performs a integer division
 | HLT     | Halts program execution.
+| JC      | Jumps to the specified label if the carry flag is set.
 | JMP     | Jumps unconditionally to the specified label.
+| JNC     | Jumps to the specified label if the carry flag is not set.
 | JNZ     | Jumps to the specified label if the zero flag is not set.
 | JZ      | Jumps to the specified label if the zero flag is set.
 | LOAD    | Loads the value from the memory address in the right operand into the left register.

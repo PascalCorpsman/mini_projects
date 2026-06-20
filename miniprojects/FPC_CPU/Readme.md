@@ -1,6 +1,6 @@
 # FPC_CPU
 
-Demo that visualized the execution of assembler code in a CPU (using a 4 stage pipeline). This also means, if no pipelining is used each and every command needs 4 clock ticks.
+Demo that visualize the execution of assembler code in a CPU (using a 4 stage pipeline). This also means, if no pipelining is used each command needs 4 clock ticks.
 
 ![](preview.png)
 
@@ -35,11 +35,12 @@ See the [Manual](Manual.md) for more.
 If you need inspiration of what to implement with the CPU maybe you take a look [here](Practice_tasks.md).
 
 Features:
-- Execution of ASSEMBLER Code (step by step or automatic mode)
-- Optional Pipelining
+- Execution of assembler code (step by step or automatic mode)
+- Optional pipelining
 - Breakpoints
-- Memory / Stack
-- Function Calls
+- Memory
+- Stack
+- Function calls
 
 Dependencies:
 - none
