@@ -147,9 +147,14 @@ Begin
 End;
 
 Procedure TForm1.FormShow(Sender: TObject);
+Var
+  w: Integer;
 Begin
   If FormShowOnce Then Begin
     FormShowOnce := false;
+    w := width + form2.Width + Scale96ToScreen(8);
+    left := (Screen.Width - w) Div 2;
+    form2.Left := left + Width + Scale96ToScreen(8);
     ResetLCLToCompile;
     form2.Show;
   End;
@@ -392,6 +397,8 @@ Begin
     cJMP: result := true;
     cJZ: result := form2.CheckBox1.Checked;
     cJNZ: result := Not form2.CheckBox1.Checked;
+    cJC: result := form2.CheckBox2.Checked;
+    cJNC: result := Not form2.CheckBox2.Checked;
   End;
 End;
 
@@ -544,6 +551,16 @@ Begin
           ChangeCMDIndexTo(aPipelineIndex, fBranchPrediction[PipeLine[aPipelineIndex]].TrueTarget);
         End;
       End;
+    cJC: Begin
+        If form2.CheckBox2.Checked And (Not CheckBox5.Checked) Then Begin
+          ChangeCMDIndexTo(aPipelineIndex, fBranchPrediction[PipeLine[aPipelineIndex]].TrueTarget);
+        End;
+      End;
+    cJNC: Begin
+        If (Not form2.CheckBox2.Checked) And (Not CheckBox5.Checked) Then Begin
+          ChangeCMDIndexTo(aPipelineIndex, fBranchPrediction[PipeLine[aPipelineIndex]].TrueTarget);
+        End;
+      End;
     cJZ: Begin
         If form2.CheckBox1.Checked And (Not CheckBox5.Checked) Then Begin
           ChangeCMDIndexTo(aPipelineIndex, fBranchPrediction[PipeLine[aPipelineIndex]].TrueTarget);
@@ -619,7 +636,7 @@ Begin
   For i := 0 To high(fCMDs) Do Begin
     fBranchPrediction[i].TrueTarget := -1;
     fBranchPrediction[i].FalseTarget := -1;
-    If fCMDs[i].Cmd In [cJMP, cJNZ, cJZ, cCALL] Then Begin
+    If fCMDs[i].Cmd In [cJMP, cJC, cJNC, cJNZ, cJZ, cCALL] Then Begin
       fBranchPrediction[i].TrueTarget := convertCodeLineToCMDIndex(fCMDs[i].JumpTarget);
       fBranchPrediction[i].FalseTarget := i;
     End;
@@ -676,14 +693,14 @@ Begin
    *)
   rawHazardStallFrom := PipeLineDepth; // default: no stall
   If CheckBox5.Checked And
-     (PipeLine[0] >= 0) And (PipeLine[0] <= high(fCMDs)) And
-     (PipeLine[1] >= 0) And (PipeLine[1] <= high(fCMDs)) And
-     (fCMDs[PipeLine[0]].PipelineStep = psWriteBack) And
-     (fCMDs[PipeLine[1]].PipelineStep = psExecute) And
-     (fCMDs[PipeLine[0]].Cmd In [cADD, cAND, cDIV, cNOT, cMUL, cOR, cSHL, cSHR, cSUB, cXOR]) And
-     (fCMDs[PipeLine[1]].Cmd = cCMP) Then Begin
-    If (fCMDs[PipeLine[1]].LeftOperand  = fCMDs[PipeLine[0]].LeftOperand) Or
-       (fCMDs[PipeLine[1]].RightOperand = fCMDs[PipeLine[0]].LeftOperand) Then Begin
+    (PipeLine[0] >= 0) And (PipeLine[0] <= high(fCMDs)) And
+    (PipeLine[1] >= 0) And (PipeLine[1] <= high(fCMDs)) And
+    (fCMDs[PipeLine[0]].PipelineStep = psWriteBack) And
+    (fCMDs[PipeLine[1]].PipelineStep = psExecute) And
+    (fCMDs[PipeLine[0]].Cmd In [cADD, cAND, cDIV, cNOT, cMUL, cOR, cSHL, cSHR, cSUB, cXOR]) And
+    (fCMDs[PipeLine[1]].Cmd = cCMP) Then Begin
+    If (fCMDs[PipeLine[1]].LeftOperand = fCMDs[PipeLine[0]].LeftOperand) Or
+      (fCMDs[PipeLine[1]].RightOperand = fCMDs[PipeLine[0]].LeftOperand) Then Begin
       rawHazardStallFrom := 1; // stall slots 1..3; only slot 0 (WriteBack) proceeds
     End;
   End;
@@ -703,7 +720,7 @@ Begin
             form2.CheckBox3.Checked := false;
             form2.CheckBox4.Checked := false;
           End;
-          If CheckBox5.Checked And (fcmds[PipeLine[p]].Cmd In [cJMP, cJZ, cJNZ]) Then Begin
+          If CheckBox5.Checked And (fcmds[PipeLine[p]].Cmd In [cJMP, cJC, cJNC, cJZ, cJNZ]) Then Begin
             If IsBranchTaken(PipeLine[p]) Then Begin
               FlushPipelineFrom(p + 1);
               branchTarget := ResolveRunnableCmdIndex(fBranchPrediction[PipeLine[p]].TrueTarget);

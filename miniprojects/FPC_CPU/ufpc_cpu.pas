@@ -43,6 +43,8 @@ Type
     cCMP,
     cDIV,
     cHLT,
+    cJC, // Jump if carry flag is set
+    cJNC, // Jump if carry flag is not set
     cJMP, // Jump, without any condition
     cJNZ, // Jump if zero flag is not set
     cJZ, // Jump if zero flag is set
@@ -193,6 +195,8 @@ Begin
     cCMP: result := 'CMP';
     cDIV: result := 'DIV';
     cHLT: result := 'HLT';
+    cJC: result := 'JC';
+    cJNC: result := 'JNC';
     cJMP: result := 'JMP';
     cJNZ: result := 'JNZ';
     cJZ: result := 'JZ';
@@ -317,6 +321,8 @@ Begin
       'JMP': cmd.Cmd := cJMP;
       'JNZ': cmd.Cmd := cJNZ;
       'JZ': cmd.Cmd := cJZ;
+      'JNC': cmd.Cmd := cJNC;
+      'JC': cmd.Cmd := cJC;
       'CALL': cmd.cmd := cCALL;
     Else Begin
         LastError := 'unknown jump command';
@@ -429,7 +435,7 @@ Begin
   End;
   // 2. Pass die Jump's auflösen
   For i := 0 To high(result) Do Begin
-    If result[i].Cmd In [cJMP, cJZ, cJNZ, cCALL] Then Begin
+    If result[i].Cmd In [cJMP, cJC, cJNC, cJZ, cJNZ, cCALL] Then Begin
       found := false;
       For j := 0 To high(result) Do Begin
         If (result[j].Cmd = cLabel) And (result[j].aLabel = Result[i].LeftOperand) Then Begin
