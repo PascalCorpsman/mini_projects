@@ -136,8 +136,11 @@ Procedure TFPC_CPU_tests.TestCompile_Comment;
 Var
   cmds: TAssemblerCMDs;
 Begin
-  // Inline comment should be stripped; only one instruction compiled
-  cmds := Compile('MOV A, 1 ; this is a comment');
+  cmds := Compile(
+    '; Empty line with a comment before ' + LineEnding +
+    'MOV A, 1 ; this is a comment' + LineEnding +
+    '; Empty line with a comment after'
+    );
   AssertTrue('Compile returned nil', Assigned(cmds));
   AssertEquals('Expected 1 command', 1, Length(cmds));
   AssertEquals('RightOperand should be 1', '1', cmds[0].RightOperand);
@@ -148,7 +151,11 @@ Var
   cmds: TAssemblerCMDs;
   i, labelLine, jmpIdx: Integer;
 Begin
-  cmds := Compile('JMP END_LABEL' + LineEnding + 'NOP' + LineEnding + 'END_LABEL:');
+  cmds := Compile(
+    'JMP END_LABEL' + LineEnding +
+    'NOP' + LineEnding +
+    'END_LABEL:'
+    );
   AssertTrue('Compile returned nil', Assigned(cmds));
   // Find JMP and label
   jmpIdx := -1;
@@ -186,10 +193,14 @@ Procedure TFPC_CPU_tests.TestExec_MOV_Immediate;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 99' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 99' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 99', 99, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -197,11 +208,16 @@ Procedure TFPC_CPU_tests.TestExec_MOV_Register;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 7' + LineEnding + 'MOV B, A' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 7' + LineEnding +
+    'MOV B, A' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 7', 7, eng.RegA);
     AssertEquals('B = 7', 7, eng.RegB);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -209,10 +225,16 @@ Procedure TFPC_CPU_tests.TestExec_ADD;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 3' + LineEnding + 'MOV B, 4' + LineEnding + 'ADD A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 3' + LineEnding +
+    'MOV B, 4' + LineEnding +
+    'ADD A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 7', 7, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -220,10 +242,16 @@ Procedure TFPC_CPU_tests.TestExec_SUB;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 10' + LineEnding + 'MOV B, 3' + LineEnding + 'SUB A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 10' + LineEnding +
+    'MOV B, 3' + LineEnding +
+    'SUB A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 7', 7, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -231,10 +259,16 @@ Procedure TFPC_CPU_tests.TestExec_MUL;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 6' + LineEnding + 'MOV B, 7' + LineEnding + 'MUL A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 6' + LineEnding +
+    'MOV B, 7' + LineEnding +
+    'MUL A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 42', 42, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -242,10 +276,16 @@ Procedure TFPC_CPU_tests.TestExec_DIV;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 20' + LineEnding + 'MOV B, 4' + LineEnding + 'DIV A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 20' + LineEnding +
+    'MOV B, 4' + LineEnding +
+    'DIV A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 5', 5, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -253,10 +293,16 @@ Procedure TFPC_CPU_tests.TestExec_AND;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 12' + LineEnding + 'MOV B, 10' + LineEnding + 'AND A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 12' + LineEnding +
+    'MOV B, 10' + LineEnding +
+    'AND A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 8', 8, eng.RegA); // 1100 AND 1010 = 1000
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -264,10 +310,16 @@ Procedure TFPC_CPU_tests.TestExec_OR;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 12' + LineEnding + 'MOV B, 10' + LineEnding + 'OR A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 12' + LineEnding +
+    'MOV B, 10' + LineEnding +
+    'OR A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 14', 14, eng.RegA); // 1100 OR 1010 = 1110
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -275,10 +327,16 @@ Procedure TFPC_CPU_tests.TestExec_XOR;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 12' + LineEnding + 'MOV B, 10' + LineEnding + 'XOR A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 12' + LineEnding +
+    'MOV B, 10' + LineEnding +
+    'XOR A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 6', 6, eng.RegA); // 1100 XOR 1010 = 0110
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -286,10 +344,16 @@ Procedure TFPC_CPU_tests.TestExec_SHL;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 3' + LineEnding + 'MOV B, 2' + LineEnding + 'SHL A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 3' + LineEnding +
+    'MOV B, 2' + LineEnding +
+    'SHL A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 12', 12, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -297,10 +361,16 @@ Procedure TFPC_CPU_tests.TestExec_SHR;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 12' + LineEnding + 'MOV B, 2' + LineEnding + 'SHR A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 12' + LineEnding +
+    'MOV B, 2' + LineEnding +
+    'SHR A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = 3', 3, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -308,10 +378,15 @@ Procedure TFPC_CPU_tests.TestExec_NOT;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 0' + LineEnding + 'NOT A' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 0' + LineEnding +
+    'NOT A' + LineEnding +
+    'HLT'
+    );
   Try
     AssertEquals('A = NOT 0 = -1', -1, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -321,11 +396,17 @@ Procedure TFPC_CPU_tests.TestExec_CMP_Equal;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 5' + LineEnding + 'MOV B, 5' + LineEnding + 'CMP A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 5' + LineEnding +
+    'MOV B, 5' + LineEnding +
+    'CMP A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertTrue('Zero flag should be set', eng.FlagZero);
     AssertFalse('Carry flag should not be set', eng.FlagCarry);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -333,11 +414,17 @@ Procedure TFPC_CPU_tests.TestExec_CMP_Less;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 3' + LineEnding + 'MOV B, 7' + LineEnding + 'CMP A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 3' + LineEnding +
+    'MOV B, 7' + LineEnding +
+    'CMP A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertFalse('Zero flag should not be set', eng.FlagZero);
     AssertTrue('Carry flag should be set (A < B)', eng.FlagCarry);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -345,16 +432,28 @@ Procedure TFPC_CPU_tests.TestExec_CMP_Negative;
 Var
   eng: TCPUEngine;
 Begin
-  eng := Run('MOV A, 3' + LineEnding + 'MOV B, 7' + LineEnding + 'CMP A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 3' + LineEnding +
+    'MOV B, 7' + LineEnding +
+    'CMP A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertTrue('Negative flag should be set (A-B < 0)', eng.FlagNegative);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 
-  eng := Run('MOV A, 7' + LineEnding + 'MOV B, 3' + LineEnding + 'CMP A, B' + LineEnding + 'HLT');
+  eng := Run(
+    'MOV A, 7' + LineEnding +
+    'MOV B, 3' + LineEnding +
+    'CMP A, B' + LineEnding +
+    'HLT'
+    );
   Try
     AssertFalse('Negative flag should not be set (A-B >= 0)', eng.FlagNegative);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -370,10 +469,12 @@ Begin
     'JZ DONE' + LineEnding +
     'MOV A, 99' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should stay 5 (jump taken)', 5, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -388,10 +489,12 @@ Begin
     'JZ DONE' + LineEnding +
     'MOV A, 42' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should be 42 (jump not taken)', 42, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -406,10 +509,12 @@ Begin
     'JNZ DONE' + LineEnding +
     'MOV A, 99' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should stay 1 (JNZ taken)', 1, eng.RegA);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -424,7 +529,8 @@ Begin
     'JNZ DONE' + LineEnding +
     'MOV A, 77' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should be 77 (JNZ not taken, equal)', 77, eng.RegA);
   Finally
@@ -443,7 +549,8 @@ Begin
     'JN DONE' + LineEnding +
     'MOV A, 99' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should stay 1 (JN taken)', 1, eng.RegA);
   Finally
@@ -462,7 +569,8 @@ Begin
     'JN DONE' + LineEnding +
     'MOV A, 77' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should be 77 (JN not taken)', 77, eng.RegA);
   Finally
@@ -481,7 +589,8 @@ Begin
     'JNN DONE' + LineEnding +
     'MOV A, 99' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should stay 5 (JNN taken)', 5, eng.RegA);
   Finally
@@ -500,7 +609,8 @@ Begin
     'JNN DONE' + LineEnding +
     'MOV A, 66' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should be 66 (JNN not taken)', 66, eng.RegA);
   Finally
@@ -516,7 +626,8 @@ Begin
     'JMP DONE' + LineEnding +
     'MOV A, 99' + LineEnding +
     'DONE:' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('A should be 0 (skipped by JMP)', 0, eng.RegA);
   Finally
@@ -534,7 +645,8 @@ Begin
     'MOV A, 42' + LineEnding +
     'STORE A, 100' + LineEnding +
     'LOAD B, 100' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('Memory[100] should be 42', 42, eng.GetMemoryValue(100));
     AssertEquals('B should be loaded with Memory[100]', 42, eng.RegB);
@@ -552,7 +664,8 @@ Begin
     'PUSH A' + LineEnding +
     'MOV A, 0' + LineEnding +
     'POP A' + LineEnding +
-    'HLT');
+    'HLT'
+    );
   Try
     AssertEquals('Stack should be empty after POP', 0, eng.StackCount);
     AssertEquals('A should be restored to 42', 42, eng.RegA);
@@ -571,7 +684,8 @@ Begin
     'HLT' + LineEnding +
     'MYSUB:' + LineEnding +
     'MOV A, 99' + LineEnding +
-    'RET');
+    'RET'
+    );
   Try
     AssertEquals('A should be 99 after CALL/RET', 99, eng.RegA);
     AssertEquals('Stack should be empty after RET', 0, eng.StackCount);
@@ -612,7 +726,8 @@ Begin
     'POP A' + LineEnding +
     'PUSH D' + LineEnding +
     'PUSH A' + LineEnding +
-    'RET');
+    'RET'
+    );
   AssertTrue('Compile failed: ' + LastError, Assigned(cmds));
 
   eng := TCPUEngine.Create;
@@ -663,7 +778,8 @@ Begin
     'POP A' + LineEnding +
     'PUSH D' + LineEnding +
     'PUSH A' + LineEnding +
-    'RET');
+    'RET'
+    );
   AssertTrue('Compile failed: ' + LastError, Assigned(cmds));
 
   eng := TCPUEngine.Create;
@@ -700,7 +816,8 @@ Begin
   Try
     AssertEquals('Stack should have 1 entry', 1, eng.StackCount);
     AssertEquals('Stack top must be 3 (non-pipeline)', 3, eng.StackTop);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -720,7 +837,8 @@ Begin
   Try
     AssertEquals('Stack should have 1 entry', 1, eng.StackCount);
     AssertEquals('Stack top must be 3 (pipeline hazard fixed)', 3, eng.StackTop);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
@@ -739,7 +857,8 @@ Begin
   Try
     AssertFalse('ZF should be 0 (10 <> 5)', eng.FlagZero);
     AssertFalse('CF should be 0 (10 >= 5)', eng.FlagCarry);
-  Finally eng.Free;
+  Finally
+    eng.Free;
   End;
 End;
 
