@@ -31,18 +31,18 @@ Type
     cDIV,
     cHLT,
     cJC, // Jump if carry flag is set
+    cJMP, // Jump, without any condition
     cJN, // Jump if negative flag is set
     cJNC, // Jump if carry flag is not set
     cJNN, // Jump if negative flag is not set
-    cJMP, // Jump, without any condition
     cJNZ, // Jump if zero flag is not set
     cJZ, // Jump if zero flag is set
     cLabel, // Target für JMP, JNZ, JZ
     cLOAD,
     cMOV,
     cMUL,
-    cNOT,
     cNOP,
+    cNOT,
     cOR,
     cPOP,
     cPUSH,
