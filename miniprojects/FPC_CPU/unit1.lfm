@@ -1,22 +1,23 @@
 object Form1: TForm1
   Left = 334
-  Height = 632
+  Height = 948
   Top = 113
-  Width = 723
+  Width = 1084
   Caption = 'Form1'
-  ClientHeight = 632
-  ClientWidth = 723
+  ClientHeight = 948
+  ClientWidth = 1084
+  DesignTimePPI = 144
   Position = poScreenCenter
   LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
   inline SynEdit1: TSynEdit
-    Left = 8
-    Height = 456
-    Top = 40
-    Width = 704
+    Left = 12
+    Height = 684
+    Top = 60
+    Width = 1056
     Anchors = [akTop, akLeft, akRight, akBottom]
-    Font.Height = -13
+    Font.Height = -20
     Font.Name = 'Courier New'
     Font.Pitch = fpFixed
     Font.Quality = fqNonAntialiased
@@ -25,7 +26,7 @@ object Form1: TForm1
     ParentFont = False
     TabOrder = 0
     OnKeyDown = SynEdit1KeyDown
-    Gutter.Width = 57
+    Gutter.Width = 85
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -561,7 +562,7 @@ object Form1: TForm1
     OnSpecialLineColors = SynEdit1SpecialLineColors
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
-        Width = 24
+        Width = 36
         MouseActions = <>
         MaxExtraMarksColums = 0
         Options = [sgmoDeDuplicateMarksOnOverflow]
@@ -570,7 +571,7 @@ object Form1: TForm1
         MarkupInfoCurrentLine.Background = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
-        Width = 17
+        Width = 25
         MouseActions = <>
         MarkupInfo.Background = clBtnFace
         MarkupInfoCurrentLine.Foreground = clNone
@@ -581,7 +582,7 @@ object Form1: TForm1
         LeadingZeros = False
       end
       object SynGutterChanges1: TSynGutterChanges
-        Width = 4
+        Width = 6
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
@@ -591,7 +592,7 @@ object Form1: TForm1
         MarkupInfoCurrentLine.Background = clNone
       end
       object SynGutterSeparator1: TSynGutterSeparator
-        Width = 2
+        Width = 3
         MouseActions = <>
         MarkupInfo.Foreground = clGray
         MarkupInfo.Background = clWhite
@@ -599,6 +600,7 @@ object Form1: TForm1
         MarkupInfoCurrentLine.Background = clNone
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
+        Width = 15
         MouseActions = <>
         MarkupInfo.Foreground = clGray
         MarkupInfoCurrentLine.Foreground = clNone
@@ -609,78 +611,78 @@ object Form1: TForm1
     end
   end
   object Button1: TButton
-    Left = 8
-    Height = 25
-    Top = 530
-    Width = 704
+    Left = 12
+    Height = 37
+    Top = 795
+    Width = 1056
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Compile'
     TabOrder = 1
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 8
-    Height = 25
-    Top = 562
-    Width = 131
+    Left = 12
+    Height = 37
+    Top = 843
+    Width = 196
     Anchors = [akLeft, akBottom]
     Caption = 'Step'
     TabOrder = 2
     OnClick = Button2Click
   end
   object Button3: TButton
-    Left = 488
-    Height = 25
-    Top = 562
-    Width = 131
+    Left = 732
+    Height = 37
+    Top = 843
+    Width = 196
     Anchors = [akRight, akBottom]
     Caption = 'Auto step [ms]'
     TabOrder = 3
     OnClick = Button3Click
   end
   object Edit7: TEdit
-    Left = 632
-    Height = 26
-    Top = 559
-    Width = 80
+    Left = 948
+    Height = 33
+    Top = 845
+    Width = 120
     Anchors = [akRight, akBottom]
     TabOrder = 4
     Text = 'Edit7'
   end
   object Button4: TButton
-    Left = 8
-    Height = 25
-    Top = 594
-    Width = 704
+    Left = 12
+    Height = 37
+    Top = 891
+    Width = 1056
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Halt'
     TabOrder = 5
     OnClick = Button4Click
   end
   object Button5: TButton
-    Left = 8
-    Height = 25
-    Top = 7
-    Width = 75
+    Left = 12
+    Height = 38
+    Top = 10
+    Width = 112
     Caption = 'Load'
     TabOrder = 6
     OnClick = Button5Click
   end
   object Button6: TButton
-    Left = 637
-    Height = 25
-    Top = 7
-    Width = 75
+    Left = 956
+    Height = 38
+    Top = 10
+    Width = 112
     Anchors = [akTop, akRight]
     Caption = 'Save'
     TabOrder = 7
     OnClick = Button6Click
   end
   object CheckBox5: TCheckBox
-    Left = 8
-    Height = 22
-    Top = 501
-    Width = 108
+    Left = 12
+    Height = 29
+    Top = 755
+    Width = 137
     Anchors = [akLeft, akBottom]
     Caption = 'Use pipelining'
     Checked = True
@@ -701,7 +703,9 @@ object Form1: TForm1
       'HLT'
       'JC'
       'JMP'
+      'JN'
       'JNC'
+      'JNN'
       'JNZ'
       'JZ'
       'LOAD'
@@ -723,26 +727,26 @@ object Form1: TForm1
     Entity = False
     DollarVariables = False
     ActiveDot = False
-    Left = 576
-    Top = 128
+    Left = 864
+    Top = 192
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.cpu'
     Filter = 'CPU|*.cpu|All|*'
-    Left = 216
-    Top = 16
+    Left = 324
+    Top = 24
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.cpu'
     Filter = 'CPU|*.cpu|All|*'
-    Left = 118
-    Top = 16
+    Left = 177
+    Top = 24
   end
   object DebugMarks: TImageList
     Height = 14
     Width = 11
-    Left = 384
-    Top = 128
+    Left = 576
+    Top = 192
     Bitmap = {
       4C7A040000000B0000000E000000840000000000000078DAED95D10AC0200845
       EFA7F7E777ECA1254E4B598335327CF2207235053E6734DCE168F88D7738935F
@@ -754,7 +758,7 @@ object Form1: TForm1
   object Timer1: TTimer
     Enabled = False
     OnTimer = Button2Click
-    Left = 488
-    Top = 128
+    Left = 732
+    Top = 192
   end
 end

@@ -20,31 +20,31 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, Grids,
-  ExtCtrls, Menus, uFPC_CPU;
+  ExtCtrls, Menus, uFPC_CPU, uFPC_CPU_LCL;
 
 Type
 
   { TForm2 }
 
   TForm2 = Class(TForm)
-    CheckBox1: TCheckBox;
-    CheckBox2: TCheckBox;
-    CheckBox3: TCheckBox;
-    CheckBox4: TCheckBox;
-    Edit1: TEdit;
-    Edit2: TEdit;
-    Edit3: TEdit;
-    Edit4: TEdit;
-    Edit6: TEdit;
+    ALU_out_flag_zero: TCheckBox;
+    ALU_out_flag_carry: TCheckBox;
+    ALU_out_flag_negative: TCheckBox;
+    ALU_out_flag_overflow: TCheckBox;
+    RegisterA: TEdit;
+    RegisterB: TEdit;
+    RegisterC: TEdit;
+    RegisterD: TEdit;
+    Programcounter: TEdit;
     GroupBox1: TGroupBox;
     Image1: TImage;
     Label1: TLabel;
-    Label10: TLabel;
-    Label11: TLabel;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
-    Label15: TLabel;
+    ALU_in_Left_OP: TLabel;
+    ALU_in_Right_OP: TLabel;
+    ALU_out_result: TLabel;
+    Const_in_For_ALU: TLabel;
+    Actual_tick: TLabel;
+    CU_Target_ProgramCounter: TLabel;
     Label16: TLabel;
     Label17: TLabel;
     Label18: TLabel;
@@ -52,21 +52,24 @@ Type
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
-    Label5: TLabel;
+    StackPointer: TLabel;
     Label6: TLabel;
-    Label7: TLabel;
-    Label8: TLabel;
-    Label9: TLabel;
-    ListBox1: TListBox;
+    CU_Fetched_CMD: TLabel;
+    CU_Pipeline_State: TLabel;
+    ALU_Operation: TLabel;
+    Stack: TListBox;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     PopupMenu1: TPopupMenu;
     Separator1: TMenuItem;
-    StringGrid1: TStringGrid;
+    Memory: TStringGrid;
     Procedure FormCreate(Sender: TObject);
     Procedure FormPaint(Sender: TObject);
     Procedure FormShow(Sender: TObject);
+    Procedure MenuItem1Click(Sender: TObject);
+    Procedure MenuItem2Click(Sender: TObject);
+    Procedure MenuItem3Click(Sender: TObject);
   private
 
   public
@@ -93,17 +96,17 @@ Var
 Begin
   caption := 'FPC-CPU';
 
-  StringGrid1.Cells[0, 0] := 'Memory';
+  Memory.Cells[0, 0] := 'Memory';
   For i := 1 To 5 Do Begin
-    StringGrid1.Cells[i, 0] := inttostr(i - 1);
+    Memory.Cells[i, 0] := inttostr(i - 1);
   End;
   For i := 1 To 4 Do Begin
-    StringGrid1.Cells[0, i] := inttostr((i - 1) * 5 + 100);
+    Memory.Cells[0, i] := inttostr((i - 1) * 5 + 100);
   End;
-  StringGrid1.Cells[1, 1] := '3';
-  StringGrid1.Cells[2, 1] := '1';
-  StringGrid1.Cells[3, 1] := '2';
-  StringGrid1.Cells[4, 1] := '3';
+  Memory.Cells[1, 1] := '3';
+  Memory.Cells[2, 1] := '1';
+  Memory.Cells[3, 1] := '2';
+  Memory.Cells[4, 1] := '3';
   label16.font.Color := PipeLineFetchBGColor;
   label17.font.Color := PipeLineDecodeBGColor;
   label18.font.Color := PipeLineExecuteBGColor;
@@ -130,132 +133,159 @@ Procedure TForm2.FormShow(Sender: TObject);
 Begin
   left := form1.Left + form1.Width + Scale96ToScreen(8);
   top := form1.top;
+  image1.width := ALU_in_Right_OP.left + ALU_in_Right_OP.Width - ALU_in_Left_OP.left;
+  image1.height := ALU_Operation.top + ALU_Operation.Height - ALU_in_Left_OP.top;
+End;
+
+Procedure TForm2.MenuItem1Click(Sender: TObject);
+Begin
+  // Display-only mode: stack is owned by engine state sync.
+End;
+
+Procedure TForm2.MenuItem2Click(Sender: TObject);
+Begin
+  // Display-only mode: stack is owned by engine state sync.
+End;
+
+Procedure TForm2.MenuItem3Click(Sender: TObject);
+Begin
+  // Display-only mode: stack is owned by engine state sync.
 End;
 
 Function TForm2.OperandToEdit(aOperand: String): TEdit;
 Begin
   result := Nil;
   Case aOperand Of
-    'A': result := Edit1;
-    'B': result := Edit2;
-    'C': result := Edit3;
-    'D': result := Edit4;
+    'A': result := RegisterA;
+    'B': result := RegisterB;
+    'C': result := RegisterC;
+    'D': result := RegisterD;
   End;
 End;
 
 Procedure TForm2.VisualizeCmdLCL(Const aCMD: TAssemblerCMD);
+  Function OperandValueFromUI(Const aOperand: String): Integer;
+  Var
+    aEdit: TEdit;
+  Begin
+    aEdit := OperandToEdit(aOperand);
+    If Assigned(aEdit) Then Begin
+      result := StrToIntDef(aEdit.Text, 0);
+    End
+    Else Begin
+      result := StrToIntDef(aOperand, 0);
+    End;
+  End;
+
 Var
   x, y: integer;
+  vLeft, vRight: Integer;
   el, er: TEdit;
   aColor: TColor;
   s: String;
 Begin
-  Edit6.text := inttostr(aCMD.Line + 1);
+  Programcounter.text := inttostr(aCMD.Line + 1);
   If Not Form1.CheckBox5.Checked Then Begin
-    label7.caption := CMDToStr(aCMD.Cmd, aCMD.LeftOperand, aCMD.RightOperand);
-    label8.caption := PipelineStepToStr(aCMD.PipelineStep);
+    CU_Fetched_CMD.caption := CMDToStr(aCMD.Cmd, aCMD.LeftOperand, aCMD.RightOperand);
+    CU_Pipeline_State.caption := PipelineStepToStr(aCMD.PipelineStep);
   End
   Else Begin
-    label7.caption := '';
-    label8.caption := '';
+    CU_Fetched_CMD.caption := '';
+    CU_Pipeline_State.caption := '';
   End;
   Case aCMD.PipelineStep Of
     psFetch: Begin
         If Form1.CheckBox5.Checked Then Begin
-          label7.caption := CMDToStr(aCMD.Cmd, aCMD.LeftOperand, aCMD.RightOperand);
-          label8.caption := PipelineStepToStr(aCMD.PipelineStep);
+          CU_Fetched_CMD.caption := CMDToStr(aCMD.Cmd, aCMD.LeftOperand, aCMD.RightOperand);
+          CU_Pipeline_State.caption := PipelineStepToStr(aCMD.PipelineStep);
         End;
         aColor := PipeLineFetchBGColor;
-        label8.Font.Color := aColor;
-        label7.Font.Color := aColor;
-        label7.Font.Style := [fsBold];
+        CU_Pipeline_State.Font.Color := aColor;
+        CU_Fetched_CMD.Font.Color := aColor;
+        CU_Fetched_CMD.Font.Style := [fsBold];
       End;
     psDecode: Begin
         aColor := PipeLineDecodeBGColor;
-        label8.Font.Color := aColor;
+        CU_Pipeline_State.Font.Color := aColor;
         Case aCMD.Cmd Of
-          cJMP, cJZ, cJNZ, cCALL: Begin
+          cJMP, cJZ, cJNZ, cJN, cJNN, cCALL: Begin
               If (aCMD.Cmd = cJMP)
                 Or (aCMD.Cmd = cCALL)
-                Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
-                Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
+                Or ((aCMD.Cmd = cJZ) And ALU_out_flag_zero.Checked)
+                Or ((aCMD.Cmd = cJNZ) And (Not ALU_out_flag_zero.Checked))
+                Or ((aCMD.Cmd = cJN) And ALU_out_flag_negative.Checked)
+                Or ((aCMD.Cmd = cJNN) And (Not ALU_out_flag_negative.Checked))
                 Then Begin
-                label15.Caption := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
-                label15.Font.Color := aColor;
-                label15.Font.Style := [fsBold];
+                CU_Target_ProgramCounter.Caption := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+                CU_Target_ProgramCounter.Font.Color := aColor;
+                CU_Target_ProgramCounter.Font.Style := [fsBold];
               End;
               If (aCMD.Cmd = cJZ) Or (aCMD.Cmd = cJNZ) Then Begin
-                CheckBox1.Font.Color := aColor;
-                CheckBox1.Font.Style := [fsBold];
+                ALU_out_flag_zero.Font.Color := aColor;
+                ALU_out_flag_zero.Font.Style := [fsBold];
+              End;
+              If (aCMD.Cmd = cJN) Or (aCMD.Cmd = cJNN) Then Begin
+                ALU_out_flag_negative.Font.Color := aColor;
+                ALU_out_flag_negative.Font.Style := [fsBold];
               End;
             End;
           // All CMD's that go through the ALU
           cADD, cAnd, cCMP, cDIV, cMUL, cNot, cOr, cSHL, cSHR, cSUB, cXOR: Begin
               er := OperandToEdit(aCMD.RightOperand);
               If Not assigned(er) Then Begin
-                label13.caption := aCMD.RightOperand;
-                label13.Font.Color := aColor;
-                label13.Font.Style := [fsBold];
+                Const_in_For_ALU.caption := aCMD.RightOperand;
+                Const_in_For_ALU.Font.Color := aColor;
+                Const_in_For_ALU.Font.Style := [fsBold];
               End;
             End;
         End;
       End;
     psExecute: Begin
         aColor := PipeLineExecuteBGColor;
-        label8.Font.Color := aColor;
+        CU_Pipeline_State.Font.Color := aColor;
         Case aCMD.Cmd Of
           cRET: Begin
-              If ListBox1.Items.Count <> 0 Then Begin
-                edit6.text := inttostr(
-                  fCMDs[FindNextValidProgramLine(convertCodeLineToCMDIndex(strtoint(ListBox1.Items[0]) - 1), true)].Line + 1
+              If Stack.Items.Count <> 0 Then Begin
+                Programcounter.text := inttostr(
+                  fCMDs[FindNextValidProgramLine(convertCodeLineToCMDIndex(strtoint(Stack.Items[0]) - 1), true)].Line + 1
                   );
               End
               Else Begin
-                edit6.text := '0'; // Stack ist Empty -> Ungültig
+                Programcounter.text := '0'; // Stack ist Empty -> Ungültig
               End;
-              edit6.Font.Color := aColor;
-              edit6.Font.Style := [fsBold];
+              Programcounter.Font.Color := aColor;
+              Programcounter.Font.Style := [fsBold];
             End;
           cCALL: Begin
-              ListBox1.Items.Insert(0, Edit6.Text);
-              edit6.text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
-              edit6.Font.Color := aColor;
-              edit6.Font.Style := [fsBold];
-              label5.Font.Color := aColor;
+              Programcounter.text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+              Programcounter.Font.Color := aColor;
+              Programcounter.Font.Style := [fsBold];
+              StackPointer.Font.Color := aColor;
             End;
           cPUSH: Begin
               el := OperandToEdit(aCMD.LeftOperand);
               If Assigned(el) Then Begin
-                ListBox1.Items.Insert(0, el.Text);
                 el.Font.Color := aColor;
                 el.Font.Style := [fsBold];
-              End
-              Else Begin
-                ListBox1.Items.Insert(0, aCMD.LeftOperand);
               End;
-              label5.Font.Color := aColor;
+              StackPointer.Font.Color := aColor;
             End;
           cPOP: Begin
               el := OperandToEdit(aCMD.LeftOperand);
-              If ListBox1.Items.Count <> 0 Then Begin
-                el.text := ListBox1.Items[0];
-                ListBox1.Items.Delete(0);
-              End
-              Else Begin
-                el.text := '0';
-              End;
               el.Font.Color := aColor;
               el.Font.Style := [fsBold];
-              label5.Font.Color := aColor;
+              StackPointer.Font.Color := aColor;
             End;
-          cJMP, cJZ, cJNZ: Begin
+          cJMP, cJZ, cJNZ, cJN, cJNN: Begin
               If (aCMD.Cmd = cJMP)
-                Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
-                Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
+                Or ((aCMD.Cmd = cJZ) And ALU_out_flag_zero.Checked)
+                Or ((aCMD.Cmd = cJNZ) And (Not ALU_out_flag_zero.Checked))
+                Or ((aCMD.Cmd = cJN) And ALU_out_flag_negative.Checked)
+                Or ((aCMD.Cmd = cJNN) And (Not ALU_out_flag_negative.Checked))
                 Then Begin
-                edit6.Text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
-                edit6.Font.Color := aColor;
-                edit6.Font.Style := [fsBold];
+                Programcounter.Text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+                Programcounter.Font.Color := aColor;
+                Programcounter.Font.Style := [fsBold];
               End;
             End;
           cLOAD: Begin
@@ -267,50 +297,72 @@ Begin
               Else Begin
                 s := aCMD.RightOperand;
               End;
-              x := (strtoint(s) - 100) Mod 5 + 1;
-              y := (strtoint(s) - 100) Div 5 + 1;
+              x := (StrToIntDef(s, 100) - 100) Mod 5 + 1;
+              y := (StrToIntDef(s, 100) - 100) Div 5 + 1;
+              ALU_Operation.Caption := CMDToStr(aCMD.Cmd, '', '');
+              ALU_Operation.Font.Color := aColor;
+              ALU_Operation.Font.Style := [fsBold];
+              ALU_in_Left_OP.Caption := s;
+              ALU_in_Left_OP.Font.Color := aColor;
+              ALU_in_Left_OP.Font.Style := [fsBold];
+              If (x >= 1) And (x <= 5) And (y >= 1) And (y <= 4) Then Begin
+                ALU_in_Right_OP.Caption := Memory.Cells[x, y];
+              End
+              Else Begin
+                ALU_in_Right_OP.Caption := '0';
+              End;
+              ALU_in_Right_OP.Font.Color := aColor;
+              ALU_in_Right_OP.Font.Style := [fsBold];
               el := OperandToEdit(aCMD.LeftOperand);
-              el.text := inttostr(strtointdef(StringGrid1.Cells[x, y], 0));
-              el.Font.Color := aColor;
-              el.Font.Style := [fsBold];
+              If Assigned(el) Then Begin
+                el.Font.Color := aColor;
+                el.Font.Style := [fsBold];
+              End;
             End;
           cMOV: Begin
               el := OperandToEdit(aCMD.LeftOperand);
               er := OperandToEdit(aCMD.RightOperand);
-              If assigned(er) Then Begin
-                el.text := er.Text;
-              End
-              Else Begin
-                el.text := aCMD.RightOperand;
+              // MOV bypasses ALU: only highlight source/destination path.
+              If Assigned(er) Then Begin
+                er.Font.Color := aColor;
+                er.Font.Style := [fsBold];
+                If Assigned(el) Then Begin
+                  el.Text := er.Text;
+                End;
               End;
-              el.Font.Color := aColor;
-              el.Font.Style := [fsBold];
+              If (Not Assigned(er)) And Assigned(el) Then Begin
+                el.Text := aCMD.RightOperand;
+              End;
+              If Assigned(el) Then Begin
+                el.Font.Color := aColor;
+                el.Font.Style := [fsBold];
+              End;
             End;
           cCMP: Begin
               el := OperandToEdit(aCMD.LeftOperand);
               er := OperandToEdit(aCMD.RightOperand);
-              label9.Caption := CMDToStr(aCMD.Cmd, '', '');
-              label9.Font.Color := aColor;
-              label9.Font.Style := [fsBold];
-              label10.Caption := el.Text;
-              label10.Font.Color := aColor;
-              label10.Font.Style := [fsBold];
+              ALU_Operation.Caption := CMDToStr(aCMD.Cmd, '', '');
+              ALU_Operation.Font.Color := aColor;
+              ALU_Operation.Font.Style := [fsBold];
+              ALU_in_Left_OP.Caption := el.Text;
+              ALU_in_Left_OP.Font.Color := aColor;
+              ALU_in_Left_OP.Font.Style := [fsBold];
               If assigned(er) Then Begin
-                label11.Caption := er.Text;
+                ALU_in_Right_OP.Caption := er.Text;
               End
               Else Begin
-                label11.Caption := aCMD.RightOperand;
+                ALU_in_Right_OP.Caption := aCMD.RightOperand;
               End;
-              label11.Font.Color := aColor;
-              label11.Font.Style := [fsBold];
-              CheckBox1.Font.Color := aColor;
-              CheckBox1.Font.Style := [fsBold];
-              CheckBox2.Font.Color := aColor;
-              CheckBox2.Font.Style := [fsBold];
-              CheckBox3.Font.Color := aColor;
-              CheckBox3.Font.Style := [fsBold];
-              CheckBox4.Font.Color := aColor;
-              CheckBox4.Font.Style := [fsBold];
+              ALU_in_Right_OP.Font.Color := aColor;
+              ALU_in_Right_OP.Font.Style := [fsBold];
+              ALU_out_flag_zero.Font.Color := aColor;
+              ALU_out_flag_zero.Font.Style := [fsBold];
+              ALU_out_flag_carry.Font.Color := aColor;
+              ALU_out_flag_carry.Font.Style := [fsBold];
+              ALU_out_flag_negative.Font.Color := aColor;
+              ALU_out_flag_negative.Font.Style := [fsBold];
+              ALU_out_flag_overflow.Font.Color := aColor;
+              ALU_out_flag_overflow.Font.Style := [fsBold];
 
               // Sign Flag (SF): Entspricht dem höchstwertigen Bit des Subtraktionsergebnisses. Ist das Ergebnis negativ (das zweite Register ist größer), wird das Flag auf 1 gesetzt, andernfalls auf 0.
               // Parity Flag (PF): Gibt an, ob die Anzahl der gesetzten Bits (1en) im niedrigsten Byte des Ergebnisses gerade oder ungerade ist.Auxiliary
@@ -320,71 +372,171 @@ Begin
           cADD, cAND, cDIV, cMUL, cNot, cOr, cSHL, cSHR, cSub, cXOR: Begin
               el := OperandToEdit(aCMD.LeftOperand);
               er := OperandToEdit(aCMD.RightOperand);
-              label9.Caption := CMDToStr(aCMD.Cmd, '', '');
-              label9.Font.Color := aColor;
-              label9.Font.Style := [fsBold];
-              label10.Caption := el.Text;
-              label10.Font.Color := aColor;
-              label10.Font.Style := [fsBold];
-              If assigned(er) Then Begin
-                label11.Caption := er.Text;
-              End
-              Else Begin
-                label11.Caption := aCMD.RightOperand;
+              vLeft := OperandValueFromUI(aCMD.LeftOperand);
+              vRight := OperandValueFromUI(aCMD.RightOperand);
+              ALU_Operation.Caption := CMDToStr(aCMD.Cmd, '', '');
+              ALU_Operation.Font.Color := aColor;
+              ALU_Operation.Font.Style := [fsBold];
+              ALU_in_Left_OP.Caption := aCMD.LeftOperand;
+              ALU_in_Left_OP.Font.Color := aColor;
+              ALU_in_Left_OP.Font.Style := [fsBold];
+              ALU_in_Right_OP.Caption := aCMD.RightOperand;
+              ALU_in_Right_OP.Font.Color := aColor;
+              ALU_in_Right_OP.Font.Style := [fsBold];
+              Case aCMD.Cmd Of
+                cADD: ALU_out_result.Caption := IntToStr(vLeft + vRight);
+                cAND: ALU_out_result.Caption := IntToStr(vLeft And vRight);
+                cDIV: If vRight <> 0 Then ALU_out_result.Caption := IntToStr(vLeft Div vRight) Else ALU_out_result.Caption := IntToStr(vLeft);
+                cNot: ALU_out_result.Caption := IntToStr(Not vLeft);
+                cOr: ALU_out_result.Caption := IntToStr(vLeft Or vRight);
+                cMul: ALU_out_result.Caption := IntToStr(vLeft * vRight);
+                cSHL: ALU_out_result.Caption := IntToStr(vLeft Shl vRight);
+                cSHR: ALU_out_result.Caption := IntToStr(vLeft Shr vRight);
+                cSub: ALU_out_result.Caption := IntToStr(vLeft - vRight);
+                cXOR: ALU_out_result.Caption := IntToStr(vLeft Xor vRight);
               End;
-              label11.Font.Color := aColor;
-              label11.Font.Style := [fsBold];
+              ALU_out_result.Font.Color := aColor;
+              ALU_out_result.Font.Style := [fsBold];
+              If Assigned(el) Then Begin
+                el.Font.Color := aColor;
+                el.Font.Style := [fsBold];
+              End;
             End;
         End;
       End;
     psWriteBack: Begin
         aColor := PipeLineWritebackBGColor;
-        label8.Font.Color := aColor;
+        CU_Pipeline_State.Font.Color := aColor;
         Case aCMD.Cmd Of
+          cCALL: Begin
+              Programcounter.Text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+              StackPointer.Font.Color := aColor;
+            End;
+          cPOP: Begin
+              el := OperandToEdit(aCMD.LeftOperand);
+              ALU_Operation.Caption := CMDToStr(aCMD.Cmd, '', '');
+              ALU_in_Left_OP.Caption := 'STACK';
+              ALU_in_Left_OP.Font.Color := aColor;
+              ALU_in_Left_OP.Font.Style := [fsBold];
+              If Stack.Items.Count <> 0 Then Begin
+                ALU_out_result.Caption := Stack.Items[0];
+              End
+              Else Begin
+                ALU_out_result.Caption := '0';
+              End;
+              If Assigned(el) Then Begin
+                el.Font.Color := aColor;
+                el.Font.Style := [fsBold];
+              End;
+              ALU_out_result.Font.Color := aColor;
+              ALU_out_result.Font.Style := [fsBold];
+              StackPointer.Font.Color := aColor;
+            End;
+          cPUSH: Begin
+              el := OperandToEdit(aCMD.LeftOperand);
+              If Assigned(el) Then ALU_out_result.Caption := el.Text
+              Else ALU_out_result.Caption := aCMD.LeftOperand;
+              ALU_out_result.Font.Color := aColor;
+              ALU_out_result.Font.Style := [fsBold];
+              StackPointer.Font.Color := aColor;
+            End;
           cRET: Begin
-              If ListBox1.Items.Count <> 0 Then Begin
-                edit6.text := inttostr(
-                  fCMDs[FindNextValidProgramLine(convertCodeLineToCMDIndex(strtoint(ListBox1.Items[0]) - 1), true)].Line + 1
+              If Stack.Items.Count <> 0 Then Begin
+                Programcounter.text := inttostr(
+                  fCMDs[FindNextValidProgramLine(convertCodeLineToCMDIndex(strtoint(Stack.Items[0]) - 1), true)].Line + 1
                   );
               End
               Else Begin
-                edit6.text := '0'; // Stack ist Empty -> Ungültig
+                Programcounter.text := '0'; // Stack ist Empty -> Ungültig
               End;
             End;
-          cJMP, cJZ, cJNZ, cCALL: Begin
+          cJMP, cJZ, cJNZ, cJN, cJNN: Begin
               If (aCMD.Cmd = cJMP)
-                Or (aCMD.Cmd = cCALL)
-                Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
-                Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
+                Or ((aCMD.Cmd = cJZ) And ALU_out_flag_zero.Checked)
+                Or ((aCMD.Cmd = cJNZ) And (Not ALU_out_flag_zero.Checked))
+                Or ((aCMD.Cmd = cJN) And ALU_out_flag_negative.Checked)
+                Or ((aCMD.Cmd = cJNN) And (Not ALU_out_flag_negative.Checked))
                 Then Begin
-                edit6.Text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
+                Programcounter.Text := inttostr(FindNextValidProgramLine(aCMD.JumpTarget) + 1);
               End;
             End;
           cADD, cAND, cDIV, cNot, cOr, cMUL, cSHL, cSHR, cSub, cXOR: Begin
               el := OperandToEdit(aCMD.LeftOperand);
-              er := OperandToEdit(aCMD.RightOperand);
-              label9.Caption := CMDToStr(aCMD.Cmd, '', '');
-              label10.Caption := el.Text;
-              If assigned(er) Then Begin
-                label11.Caption := er.Text;
+              ALU_Operation.Caption := CMDToStr(aCMD.Cmd, '', '');
+              ALU_in_Left_OP.Caption := aCMD.LeftOperand;
+              ALU_in_Left_OP.Font.Color := aColor;
+              ALU_in_Left_OP.Font.Style := [fsBold];
+              ALU_in_Right_OP.Caption := aCMD.RightOperand;
+              ALU_in_Right_OP.Font.Color := aColor;
+              ALU_in_Right_OP.Font.Style := [fsBold];
+              If Assigned(el) Then Begin
+                ALU_out_result.Caption := el.Text;
               End
               Else Begin
-                label11.Caption := aCMD.RightOperand;
+                ALU_out_result.Caption := '0';
               End;
-              Case aCMD.Cmd Of
-                cADD: label12.Caption := inttostr(strtointdef(label10.Caption, 0) + strtointdef(label11.Caption, 0));
-                cAND: label12.Caption := inttostr(strtointdef(label10.Caption, 0) And strtointdef(label11.Caption, 0));
-                cDIV: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Div strtointdef(label11.Caption, 0));
-                cNot: label12.Caption := inttostr(Not strtointdef(label10.Caption, 0));
-                cOr: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Or strtointdef(label11.Caption, 0));
-                cMul: label12.Caption := inttostr(strtointdef(label10.Caption, 0) * strtointdef(label11.Caption, 0));
-                cSHL: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Shl strtointdef(label11.Caption, 0));
-                cSHR: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Shr strtointdef(label11.Caption, 0));
-                cSub: label12.Caption := inttostr(strtointdef(label10.Caption, 0) - strtointdef(label11.Caption, 0));
-                cXOR: label12.Caption := inttostr(strtointdef(label10.Caption, 0) Xor strtointdef(label11.Caption, 0));
+              ALU_out_result.Font.Color := aColor;
+              ALU_out_result.Font.Style := [fsBold];
+              If Assigned(el) Then Begin
+                el.Font.Color := aColor;
+                el.Font.Style := [fsBold];
               End;
-              label12.Font.Color := aColor;
-              label12.Font.Style := [fsBold];
+            End;
+          cMOV: Begin
+              el := OperandToEdit(aCMD.LeftOperand);
+              er := OperandToEdit(aCMD.RightOperand);
+              // MOV bypasses ALU: keep ALU panel untouched.
+              If Assigned(er) Then Begin
+                er.Font.Color := aColor;
+                er.Font.Style := [fsBold];
+                If Assigned(el) Then Begin
+                  el.Text := er.Text;
+                End;
+              End
+              Else Begin
+                If Assigned(el) Then Begin
+                  el.Text := aCMD.RightOperand;
+                End;
+              End;
+              If Assigned(el) Then Begin
+                el.Font.Color := aColor;
+                el.Font.Style := [fsBold];
+              End;
+            End;
+          cLOAD: Begin
+              er := OperandToEdit(aCMD.RightOperand);
+              If Assigned(er) Then Begin
+                s := er.Text;
+              End
+              Else Begin
+                s := aCMD.RightOperand;
+              End;
+              x := (StrToIntDef(s, 100) - 100) Mod 5 + 1;
+              y := (StrToIntDef(s, 100) - 100) Div 5 + 1;
+              ALU_Operation.Caption := CMDToStr(aCMD.Cmd, '', '');
+              ALU_in_Left_OP.Caption := s;
+              ALU_in_Left_OP.Font.Color := aColor;
+              ALU_in_Left_OP.Font.Style := [fsBold];
+              If (x >= 1) And (x <= 5) And (y >= 1) And (y <= 4) Then Begin
+                el := OperandToEdit(aCMD.LeftOperand);
+                ALU_out_result.Caption := Memory.Cells[x, y];
+                ALU_out_result.Font.Color := aColor;
+                ALU_out_result.Font.Style := [fsBold];
+                If Assigned(el) Then Begin
+                  el.Font.Color := aColor;
+                  el.Font.Style := [fsBold];
+                End;
+              End
+              Else Begin
+                el := OperandToEdit(aCMD.LeftOperand);
+                ALU_out_result.Caption := '0';
+                ALU_out_result.Font.Color := aColor;
+                ALU_out_result.Font.Style := [fsBold];
+                If Assigned(el) Then Begin
+                  el.Font.Color := aColor;
+                  el.Font.Style := [fsBold];
+                End;
+              End;
             End;
         End;
       End;
@@ -425,10 +577,10 @@ Begin
         Case aCMD.Cmd Of
           cRET: Begin
               // Der Pfeil Stack -> PC
-              a.x := edit6.left + edit6.Width Div 4;
-              a.y := edit6.top + edit6.Height + Scale96ToForm(8);
-              c.x := ListBox1.Left - Scale96ToForm(8);
-              c.y := ListBox1.Top;
+              a.x := Programcounter.left + Programcounter.Width Div 4;
+              a.y := Programcounter.top + Programcounter.Height + Scale96ToForm(8);
+              c.x := Stack.Left - Scale96ToForm(8);
+              c.y := Stack.Top;
               b.x := a.x;
               b.y := c.y;
               DrawLine(canvas, a, b, aColor);
@@ -438,19 +590,19 @@ Begin
           cCALL: Begin
               // Der Pfeil "aufgelöster" Jump to PC
               a.x := GroupBox1.Left - Scale96ToForm(8);
-              a.y := GroupBox1.Top + Label15.top + GroupBox1.Height - GroupBox1.ClientHeight;
-              b.x := edit6.left + edit6.Width * 3 Div 4;
+              a.y := GroupBox1.Top + CU_Target_ProgramCounter.top + GroupBox1.Height - GroupBox1.ClientHeight;
+              b.x := Programcounter.left + Programcounter.Width * 3 Div 4;
               b.y := a.y;
               c.X := b.x;
-              c.y := edit6.top + edit6.Height + Scale96ToForm(8);
+              c.y := Programcounter.top + Programcounter.Height + Scale96ToForm(8);
               DrawLine(canvas, a, b, aColor);
               DrawLine(canvas, b, c, aColor);
               DrawArrowHead(Canvas, c, dUp, aColor);
               // Der Pfeil PC -> Stack
-              a.x := edit6.left + edit6.Width Div 4;
-              a.y := edit6.top + edit6.Height + Scale96ToForm(8);
-              c.x := ListBox1.Left - Scale96ToForm(8);
-              c.y := ListBox1.Top;
+              a.x := Programcounter.left + Programcounter.Width Div 4;
+              a.y := Programcounter.top + Programcounter.Height + Scale96ToForm(8);
+              c.x := Stack.Left - Scale96ToForm(8);
+              c.y := Stack.Top;
               b.x := a.x;
               b.y := c.y;
               DrawLine(canvas, a, b, aColor);
@@ -463,8 +615,8 @@ Begin
                 a := GetEditPoint(el);
               End
               Else Begin
-                a.x := StringGrid1.Left;
-                a.y := ListBox1.Top;
+                a.x := Memory.Left;
+                a.y := Stack.Top;
                 canvas.Font.Color := aColor;
                 canvas.Font.Style := [fsBold];
                 canvas.Brush.Style := bsClear;
@@ -472,8 +624,8 @@ Begin
                 canvas.Font.Style := [];
                 canvas.Font.Color := clBlack;
               End;
-              c.X := ListBox1.Left - Scale96ToForm(8);
-              c.Y := ListBox1.Top;
+              c.X := Stack.Left - Scale96ToForm(8);
+              c.Y := Stack.Top;
               b.x := a.x;
               b.y := c.y;
               DrawLine(canvas, a, b, aColor);
@@ -482,53 +634,55 @@ Begin
             End;
           cPop: Begin
               Case aCMD.LeftOperand Of
-                'A': a := GetEditPoint(edit1);
-                'B': a := GetEditPoint(edit2);
-                'C': a := GetEditPoint(edit3);
-                'D': a := GetEditPoint(edit4);
+                'A': a := GetEditPoint(RegisterA);
+                'B': a := GetEditPoint(RegisterB);
+                'C': a := GetEditPoint(RegisterC);
+                'D': a := GetEditPoint(RegisterD);
               End;
-              c.X := ListBox1.Left - Scale96ToForm(8);
-              c.Y := ListBox1.Top;
+              c.X := Stack.Left - Scale96ToForm(8);
+              c.Y := Stack.Top;
               b.x := a.x;
               b.y := c.y;
               DrawLine(canvas, a, b, aColor);
               DrawLine(canvas, b, c, aColor);
               DrawArrowHead(Canvas, a, dDown, aColor);
             End;
-          cJMP, cJZ, cJNZ: Begin
+              cJMP, cJZ, cJNZ, cJN, cJNN: Begin
               If (aCMD.Cmd = cJMP)
-                Or ((aCMD.Cmd = cJZ) And CheckBox1.Checked)
-                Or ((aCMD.Cmd = cJNZ) And (Not CheckBox1.Checked))
+                Or ((aCMD.Cmd = cJZ) And ALU_out_flag_zero.Checked)
+                Or ((aCMD.Cmd = cJNZ) And (Not ALU_out_flag_zero.Checked))
+                Or ((aCMD.Cmd = cJN) And ALU_out_flag_negative.Checked)
+                Or ((aCMD.Cmd = cJNN) And (Not ALU_out_flag_negative.Checked))
                 Then Begin
                 a.x := GroupBox1.Left - Scale96ToForm(8);
-                a.y := GroupBox1.Top + Label15.top + GroupBox1.Height - GroupBox1.ClientHeight;
-                b.x := edit6.left + edit6.Width Div 2;
+                a.y := GroupBox1.Top + CU_Target_ProgramCounter.top + GroupBox1.Height - GroupBox1.ClientHeight;
+                b.x := Programcounter.left + Programcounter.Width Div 2;
                 b.y := a.y;
                 c.X := b.x;
-                c.y := edit6.top + edit6.Height + Scale96ToForm(8);
+                c.y := Programcounter.top + Programcounter.Height + Scale96ToForm(8);
                 DrawLine(canvas, a, b, aColor);
                 DrawLine(canvas, b, c, aColor);
                 DrawArrowHead(Canvas, c, dUp, aColor);
               End;
             End;
           cLOAD: Begin
-              c.x := StringGrid1.Left - Scale96ToForm(8);
+              c.x := Memory.Left - Scale96ToForm(8);
               Case aCMD.LeftOperand Of
                 'A': Begin
-                    a := GetEditPoint(edit1);
-                    c.y := StringGrid1.Top + Scale96ToForm(2);
+                    a := GetEditPoint(RegisterA);
+                    c.y := Memory.Top + Scale96ToForm(2);
                   End;
                 'B': Begin
-                    a := GetEditPoint(edit2);
-                    c.y := StringGrid1.Top + Scale96ToForm(2 + StringGrid1.DefaultRowHeight Div 3);
+                    a := GetEditPoint(RegisterB);
+                    c.y := Memory.Top + Scale96ToForm(2 + Memory.DefaultRowHeight Div 3);
                   End;
                 'C': Begin
-                    a := GetEditPoint(edit3);
-                    c.y := StringGrid1.Top + Scale96ToForm(2 + (StringGrid1.DefaultRowHeight * 2) Div 3);
+                    a := GetEditPoint(RegisterC);
+                    c.y := Memory.Top + Scale96ToForm(2 + (Memory.DefaultRowHeight * 2) Div 3);
                   End;
                 'D': Begin
-                    a := GetEditPoint(edit4);
-                    c.y := StringGrid1.Top + Scale96ToForm(2 + StringGrid1.DefaultRowHeight);
+                    a := GetEditPoint(RegisterD);
+                    c.y := Memory.Top + Scale96ToForm(2 + Memory.DefaultRowHeight);
                   End;
               End;
               b.x := a.x;
@@ -546,19 +700,19 @@ Begin
             End;
           cMOV: Begin
               Case aCMD.LeftOperand Of
-                'A': a := GetEditPoint(edit1);
-                'B': a := GetEditPoint(edit2);
-                'C': a := GetEditPoint(edit3);
-                'D': a := GetEditPoint(edit4);
+                'A': a := GetEditPoint(RegisterA);
+                'B': a := GetEditPoint(RegisterB);
+                'C': a := GetEditPoint(RegisterC);
+                'D': a := GetEditPoint(RegisterD);
               End;
               b := a;
               b.y := a.y - Canvas.TextHeight('B');
               If (length(aCMD.RightOperand) = 1) And (aCMD.RightOperand[1] In ['A'..'D']) Then Begin
                 Case aCMD.RightOperand Of
-                  'A': d := GetEditPoint(edit1);
-                  'B': d := GetEditPoint(edit2);
-                  'C': d := GetEditPoint(edit3);
-                  'D': d := GetEditPoint(edit4);
+                  'A': d := GetEditPoint(RegisterA);
+                  'B': d := GetEditPoint(RegisterB);
+                  'C': d := GetEditPoint(RegisterC);
+                  'D': d := GetEditPoint(RegisterD);
                 End;
                 c.x := d.x;
                 c.y := b.y;
@@ -579,17 +733,17 @@ Begin
           cADD, cAND, cCMP, cDiv, cMUL, cNOT, cOR, cSHL, cSHR, cSUB, cXOR: Begin
               el := Nil;
               Case aCMD.LeftOperand Of
-                'A': el := Edit1;
-                'B': el := Edit2;
-                'C': el := Edit3;
-                'D': el := Edit4;
+                'A': el := RegisterA;
+                'B': el := RegisterB;
+                'C': el := RegisterC;
+                'D': el := RegisterD;
               End;
               er := Nil;
               Case aCMD.RightOperand Of
-                'A': er := Edit1;
-                'B': er := Edit2;
-                'C': er := Edit3;
-                'D': er := Edit4;
+                'A': er := RegisterA;
+                'B': er := RegisterB;
+                'C': er := RegisterC;
+                'D': er := RegisterD;
               End;
               // Left Operand Arrow
               a := GetEditPoint(el, false);
@@ -609,8 +763,8 @@ Begin
                 a := GetEditPoint(er, false);
               End
               Else Begin
-                a.x := label13.Left + label13.Width Div 2;
-                a.y := label13.Top + label13.Height + Scale96ToForm(8);
+                a.x := Const_in_For_ALU.Left + Const_in_For_ALU.Width Div 2;
+                a.y := Const_in_For_ALU.Top + Const_in_For_ALU.Height + Scale96ToForm(8);
               End;
               d.x := Image1.Left + (Image1.Width * 5) Div 6;
               d.y := Image1.Top - Scale96ToForm(8);
@@ -631,7 +785,7 @@ Begin
           cCMP: Begin
               a.x := Image1.Left + Image1.Width + Scale96ToForm(8);
               a.Y := Image1.Top + Image1.Height Div 2;
-              b.x := CheckBox1.Left - Scale96ToForm(8);
+              b.x := ALU_out_flag_zero.Left - Scale96ToForm(8);
               b.Y := a.y;
               DrawLine(canvas, a, b, aColor);
               DrawArrowHead(Canvas, b, dRight, aColor);
@@ -642,23 +796,23 @@ Begin
         aColor := PipeLineWritebackBGColor;
         Case aCMD.Cmd Of
           cSTORE: Begin
-              c.x := StringGrid1.Left - Scale96ToForm(8);
+              c.x := Memory.Left - Scale96ToForm(8);
               Case aCMD.LeftOperand Of
                 'A': Begin
-                    a := GetEditPoint(edit1);
-                    c.y := StringGrid1.Top + Scale96ToForm(2);
+                    a := GetEditPoint(RegisterA);
+                    c.y := Memory.Top + Scale96ToForm(2);
                   End;
                 'B': Begin
-                    a := GetEditPoint(edit2);
-                    c.y := StringGrid1.Top + Scale96ToForm(2 + StringGrid1.DefaultRowHeight Div 3);
+                    a := GetEditPoint(RegisterB);
+                    c.y := Memory.Top + Scale96ToForm(2 + Memory.DefaultRowHeight Div 3);
                   End;
                 'C': Begin
-                    a := GetEditPoint(edit3);
-                    c.y := StringGrid1.Top + Scale96ToForm(2 + (StringGrid1.DefaultRowHeight * 2) Div 3);
+                    a := GetEditPoint(RegisterC);
+                    c.y := Memory.Top + Scale96ToForm(2 + (Memory.DefaultRowHeight * 2) Div 3);
                   End;
                 'D': Begin
-                    a := GetEditPoint(edit4);
-                    c.y := StringGrid1.Top + Scale96ToForm(2 + StringGrid1.DefaultRowHeight);
+                    a := GetEditPoint(RegisterD);
+                    c.y := Memory.Top + Scale96ToForm(2 + Memory.DefaultRowHeight);
                   End;
               End;
               b.x := a.x;
@@ -670,13 +824,13 @@ Begin
           cADD, cAND, cDIV, cNot, cMUL, cOr, cSHL, cSHR, cSub, cXOR: Begin
               el := Nil;
               Case aCMD.LeftOperand Of
-                'A': el := Edit1;
-                'B': el := Edit2;
-                'C': el := Edit3;
-                'D': el := Edit4;
+                'A': el := RegisterA;
+                'B': el := RegisterB;
+                'C': el := RegisterC;
+                'D': el := RegisterD;
               End;
               a.x := Image1.Left + Image1.Width Div 2;
-              a.y := label12.top + label12.height + Scale96ToForm(8);
+              a.y := ALU_out_result.top + ALU_out_result.height + Scale96ToForm(8);
               b.x := a.x;
               b.y := a.y + Scale96ToForm(16);
               c.x := Image1.Left - Scale96ToForm(8);
