@@ -56,6 +56,10 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
       </Unit>
+      <Unit>
+        <Filename Value="uFPC_CPU_LCL.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
