@@ -112,42 +112,42 @@ Function convertCodeLineToCMDIndex(aLine: integer): integer;
 
 Type
   TCPUEngine = Class
-  Private
-    fCmds            : TAssemblerCMDs;
-    fBranchTargets   : Array Of Integer; // resolved jump target (cmd index)
+  private
+    fCmds: TAssemblerCMDs;
+    fBranchTargets: Array Of Integer; // resolved jump target (cmd index)
 
-    fRegA, fRegB, fRegC, fRegD : Integer;
-    fFlagZero, fFlagCarry, fFlagNegative : Boolean;
-    fStack                     : Array Of Integer; // stores 1-based CALL line numbers
-    fMemory                    : Array[100..119] Of Integer;
+    fRegA, fRegB, fRegC, fRegD: Integer;
+    fFlagZero, fFlagCarry, fFlagNegative: Boolean;
+    fStack: Array Of Integer; // stores 1-based CALL line numbers
+    fMemory: Array[100..119] Of Integer;
 
-    fPipelineMode    : Boolean;
-    fPipeline        : Array[0..3] Of Integer;
-    fPipelineDepth   : Integer;
-    fPendingTarget   : Integer;
-    fHalted          : Boolean;
+    fPipelineMode: Boolean;
+    fPipeline: Array[0..3] Of Integer;
+    fPipelineDepth: Integer;
+    fPendingTarget: Integer;
+    fHalted: Boolean;
 
-    Function  GetReg(Const aName: String): Integer;
+    Function GetReg(Const aName: String): Integer;
     Procedure SetReg(Const aName: String; aValue: Integer);
-    Function  OperandValue(Const aOp: String): Integer;
-    Function  CmdIndexFromLine(aLine: Integer): Integer;
+    Function OperandValue(Const aOp: String): Integer;
+    Function CmdIndexFromLine(aLine: Integer): Integer;
 
-    Function  FindNextCmd(aCmdIdx: Integer; IgnoreCalls: Boolean = false): Integer;
-    Function  ResolveRunnable(aCmdIdx: Integer): Integer;
-    Function  IsBranchTaken(aCmdIdx: Integer): Boolean;
+    Function FindNextCmd(aCmdIdx: Integer; IgnoreCalls: Boolean = false): Integer;
+    Function ResolveRunnable(aCmdIdx: Integer): Integer;
+    Function IsBranchTaken(aCmdIdx: Integer): Boolean;
     Procedure ChangePipeline(aSlot, aNewIdx: Integer);
     Procedure FlushFrom(aFromSlot: Integer);
     Procedure DoFetch(aSlot: Integer);
     Procedure EnsureFetch;
     Procedure DoExecute(aSlot: Integer);
-    Function  DoWriteBack(aSlot: Integer): Boolean;
+    Function DoWriteBack(aSlot: Integer): Boolean;
     Procedure PushStack(aValue: Integer);
-    Function  PopStack: Integer;
-    Function  GetMemory(aAddress: Integer): Integer;
+    Function PopStack: Integer;
+    Function GetMemory(aAddress: Integer): Integer;
     Procedure SetMemory(aAddress, aValue: Integer);
-  Public
+  public
     Constructor Create;
-    Destructor  Destroy; Override;
+    Destructor Destroy; override;
 
     // Load a compiled program and reset all CPU state.
     Procedure LoadProgram(Const aCmds: TAssemblerCMDs; aPipelineMode: Boolean = false);
@@ -159,16 +159,16 @@ Type
     // Run until halted or aMaxSteps ticks have elapsed (safety valve).
     Procedure RunToHalt(aMaxSteps: Integer = 10000);
 
-    Property RegA  : Integer Read fRegA  Write fRegA;
-    Property RegB  : Integer Read fRegB  Write fRegB;
-    Property RegC  : Integer Read fRegC  Write fRegC;
-    Property RegD  : Integer Read fRegD  Write fRegD;
-    Property FlagZero  : Boolean Read fFlagZero;
-    Property FlagCarry : Boolean Read fFlagCarry;
-    Property FlagNegative : Boolean Read fFlagNegative;
-    Property Halted    : Boolean Read fHalted;
+    Property RegA: Integer read fRegA write fRegA;
+    Property RegB: Integer read fRegB write fRegB;
+    Property RegC: Integer read fRegC write fRegC;
+    Property RegD: Integer read fRegD write fRegD;
+    Property FlagZero: Boolean read fFlagZero;
+    Property FlagCarry: Boolean read fFlagCarry;
+    Property FlagNegative: Boolean read fFlagNegative;
+    Property Halted: Boolean read fHalted;
     Function StackCount: Integer;
-    Function StackTop  : Integer; // top = most recently pushed
+    Function StackTop: Integer; // top = most recently pushed
     Function GetStackValue(aIndex: Integer): Integer;
     Function GetMemoryValue(aAddress: Integer): Integer;
     Procedure SetMemoryValue(aAddress, aValue: Integer);
@@ -658,7 +658,10 @@ End;
 Function TCPUEngine.ResolveRunnable(aCmdIdx: Integer): Integer;
 Begin
   result := aCmdIdx;
-  If (result < 0) Or (result > High(fCmds)) Then Begin result := -1; exit; End;
+  If (result < 0) Or (result > High(fCmds)) Then Begin
+    result := -1;
+    exit;
+  End;
   While (result <= High(fCmds)) And (fCmds[result].Cmd = cLabel) Do
     Inc(result);
   If result > High(fCmds) Then result := -1;
@@ -669,13 +672,13 @@ Begin
   result := false;
   If (aCmdIdx < 0) Or (aCmdIdx > High(fCmds)) Then exit;
   Case fCmds[aCmdIdx].Cmd Of
-    cJMP : result := true;
-    cJZ  : result := fFlagZero;
-    cJNZ : result := Not fFlagZero;
-    cJC  : result := fFlagCarry;
-    cJN  : result := fFlagNegative;
-    cJNC : result := Not fFlagCarry;
-    cJNN : result := Not fFlagNegative;
+    cJMP: result := true;
+    cJZ: result := fFlagZero;
+    cJNZ: result := Not fFlagZero;
+    cJC: result := fFlagCarry;
+    cJN: result := fFlagNegative;
+    cJNC: result := Not fFlagCarry;
+    cJNN: result := Not fFlagNegative;
   End;
 End;
 
@@ -745,7 +748,7 @@ Begin
 
   // CMP always evaluated at Execute phase (matching hardware semantics)
   If cmd.Cmd = cCMP Then Begin
-    fFlagZero  := OperandValue(cmd.LeftOperand) = OperandValue(cmd.RightOperand);
+    fFlagZero := OperandValue(cmd.LeftOperand) = OperandValue(cmd.RightOperand);
     fFlagCarry := OperandValue(cmd.LeftOperand) < OperandValue(cmd.RightOperand);
     fFlagNegative := (OperandValue(cmd.LeftOperand) - OperandValue(cmd.RightOperand)) < 0;
   End;
@@ -796,7 +799,7 @@ End;
 Function TCPUEngine.DoWriteBack(aSlot: Integer): Boolean;
 Var
   cmd: TAssemblerCMD;
-  vLeft, vRight, retTarget: Integer;
+  vRight, retTarget: Integer;
   fromRet: Boolean;
 Begin
   result := false;
@@ -903,26 +906,26 @@ Begin
         End;
       End;
 
-    cMOV : SetReg(cmd.LeftOperand, OperandValue(cmd.RightOperand));
+    cMOV: SetReg(cmd.LeftOperand, OperandValue(cmd.RightOperand));
     cLOAD: SetReg(cmd.LeftOperand, GetMemory(OperandValue(cmd.RightOperand)));
-    cADD : SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) + OperandValue(cmd.RightOperand));
-    cSUB : SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) - OperandValue(cmd.RightOperand));
-    cAND : SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) And OperandValue(cmd.RightOperand));
-    cOR  : SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Or  OperandValue(cmd.RightOperand));
-    cXOR : SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Xor OperandValue(cmd.RightOperand));
-    cMUL : SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) *   OperandValue(cmd.RightOperand));
-    cDIV : Begin
+    cADD: SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) + OperandValue(cmd.RightOperand));
+    cSUB: SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) - OperandValue(cmd.RightOperand));
+    cAND: SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) And OperandValue(cmd.RightOperand));
+    cOR: SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Or OperandValue(cmd.RightOperand));
+    cXOR: SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Xor OperandValue(cmd.RightOperand));
+    cMUL: SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) * OperandValue(cmd.RightOperand));
+    cDIV: Begin
         vRight := OperandValue(cmd.RightOperand);
         If vRight <> 0 Then
           SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Div vRight);
       End;
-    cSHL : SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Shl OperandValue(cmd.RightOperand));
-    cSHR : SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Shr OperandValue(cmd.RightOperand));
-    cNOT : SetReg(cmd.LeftOperand, Not GetReg(cmd.LeftOperand));
+    cSHL: SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Shl OperandValue(cmd.RightOperand));
+    cSHR: SetReg(cmd.LeftOperand, GetReg(cmd.LeftOperand) Shr OperandValue(cmd.RightOperand));
+    cNOT: SetReg(cmd.LeftOperand, Not GetReg(cmd.LeftOperand));
     cSTORE: SetMemory(OperandValue(cmd.RightOperand), OperandValue(cmd.LeftOperand));
 
     cPUSH: PushStack(OperandValue(cmd.LeftOperand));
-    cPOP : Begin
+    cPOP: Begin
         If Length(fStack) > 0 Then
           SetReg(cmd.LeftOperand, PopStack);
       End;
@@ -947,8 +950,13 @@ Begin
   fPipelineDepth := IfThen(aPipelineMode, 4, 1);
 
   // Reset CPU state
-  fRegA := 0; fRegB := 0; fRegC := 0; fRegD := 0;
-  fFlagZero := false; fFlagCarry := false; fFlagNegative := false;
+  fRegA := 0;
+  fRegB := 0;
+  fRegC := 0;
+  fRegD := 0;
+  fFlagZero := false;
+  fFlagCarry := false;
+  fFlagNegative := false;
   SetLength(fStack, 0);
   For memAddr := Low(fMemory) To High(fMemory) Do
     fMemory[memAddr] := 0;
@@ -956,7 +964,8 @@ Begin
   fPendingTarget := -1;
 
   // Reset pipeline
-  For i := 0 To 3 Do fPipeline[i] := -1;
+  For i := 0 To 3 Do
+    fPipeline[i] := -1;
   For i := 0 To High(fCmds) Do
     fCmds[i].PipelineStep := psNone;
 
@@ -975,7 +984,10 @@ Begin
   End;
 
   // Place first instruction into pipeline slot 0
-  If Length(fCmds) = 0 Then Begin fHalted := true; exit; End;
+  If Length(fCmds) = 0 Then Begin
+    fHalted := true;
+    exit;
+  End;
   fPipeline[0] := 0;
   fCmds[0].PipelineStep := psFetch;
 End;
@@ -984,13 +996,17 @@ Function TCPUEngine.Step(): Boolean;
 Var
   p, i: Integer;
   rawHazardStallFrom: Integer;
-  branchTarget: Integer;
   stackHazard: Boolean;
 Begin
   result := false;
-  If fHalted Then Begin result := true; exit; End;
+  If fHalted Then Begin
+    result := true;
+    exit;
+  End;
   If (fPipeline[0] < 0) Or (fPipeline[0] > High(fCmds)) Then Begin
-    fHalted := true; result := true; exit;
+    fHalted := true;
+    result := true;
+    exit;
   End;
 
   // RAW hazard: stall slots >= 1 when register WriteBack and CMP/PUSH are in Execute
@@ -1002,8 +1018,8 @@ Begin
     (fCmds[fPipeline[1]].PipelineStep = psExecute) And
     (fCmds[fPipeline[0]].Cmd In [cADD, cAND, cDIV, cNOT, cMUL, cOR, cSHL, cSHR, cSUB, cXOR, cMOV, cLOAD, cPOP]) Then Begin
     If fCmds[fPipeline[1]].Cmd = cCMP Then Begin
-      If (fCmds[fPipeline[1]].LeftOperand  = fCmds[fPipeline[0]].LeftOperand) Or
-         (fCmds[fPipeline[1]].RightOperand = fCmds[fPipeline[0]].LeftOperand) Then
+      If (fCmds[fPipeline[1]].LeftOperand = fCmds[fPipeline[0]].LeftOperand) Or
+        (fCmds[fPipeline[1]].RightOperand = fCmds[fPipeline[0]].LeftOperand) Then
         rawHazardStallFrom := 1;
     End;
     If fCmds[fPipeline[1]].Cmd = cPUSH Then Begin
@@ -1023,19 +1039,23 @@ Begin
     stackHazard := true;
   End;
 
-  For p := fPipelineDepth - 1 DownTo 0 Do Begin
+  For p := fPipelineDepth - 1 Downto 0 Do Begin
     If fPipeline[p] = -1 Then Continue;
     If p >= rawHazardStallFrom Then Continue;
     If stackHazard And (p = 1) Then Continue;
     Case fCmds[fPipeline[p]].PipelineStep Of
-      psFetch  : DoFetch(p);
-      psDecode : fCmds[fPipeline[p]].PipelineStep := psExecute;
+      psFetch: DoFetch(p);
+      psDecode: fCmds[fPipeline[p]].PipelineStep := psExecute;
       psExecute: DoExecute(p);
       psWriteBack: Begin
-          If DoWriteBack(p) Then Begin result := true; exit; End;
+          If DoWriteBack(p) Then Begin
+            result := true;
+            exit;
+          End;
           If fPipelineMode And (p = 0) Then Begin
             // Shift pipeline left
-            For i := 0 To 2 Do fPipeline[i] := fPipeline[i + 1];
+            For i := 0 To 2 Do
+              fPipeline[i] := fPipeline[i + 1];
             fPipeline[3] := -1;
             If (fPendingTarget >= 0) And (fPendingTarget <= High(fCmds)) Then Begin
               fPipeline[fPipelineDepth - 1] := fPendingTarget;
