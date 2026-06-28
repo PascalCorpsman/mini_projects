@@ -134,7 +134,7 @@ Use multiple function calls (CALL/RET) and verify correct return behavior.
 
 # 🟣 Level 6 – Memory Operations (LOAD / STORE)
 
-## Task: Load a Value from Memory
+## Task 15: Load a Value from Memory
 Load a value from a memory address into a register.
 
 **Example:** Memory[100] = 5 → A = 5
@@ -145,7 +145,7 @@ Load a value from a memory address into a register.
 
 ---
 
-## Task: Store a Value in Memory
+## Task 16: Store a Value in Memory
 Store a value from a register into memory.
 
 **Example:** A = 42 → Memory[101] = 42
@@ -156,28 +156,28 @@ Store a value from a register into memory.
 
 ---
 
-## Task: Copy Memory Value
+## Task 17: Copy Memory Value
 Load a value from one memory address and store it into another.
 
 **Example:** Memory[100] → Memory[101]
 
 ---
 
-## Task: Add Value from Memory
+## Task 18: Add Value from Memory
 Load a value from memory and add it to a register.
 
 **Example:** A = 3 Memory[100] = 5 → A = 8
 
 ---
 
-## Task: Sum Two Memory Values
+## Task 19: Sum Two Memory Values
 Read two values from memory, add them, and store the result back in memory.
 
 **Example:** Memory[100] = 4 Memory[101] = 6 → Memory[102] = 10
 
 ---
 
-## Task: Sum 1..N from Memory
+## Task 20: Sum 1..N from Memory
 Load N from memory, compute the sum from 1 to N, and store the result back in memory.
 
 **Concepts:**
