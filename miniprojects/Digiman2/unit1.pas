@@ -112,6 +112,7 @@ Begin
    *    - "Zoom"
    *
    * Known Bugs:
+   *    - Wenn Ein Element verschoben wird, werden häufig alle Leitungen gelöscht und nicht nur die welche mit dem bewegten Element verbunden sind.
    *)
   defcaption := 'Digiman2 ver. 0.01, by Corpsman, www.Corpsman.de';
   caption := defcaption;
@@ -399,6 +400,11 @@ Begin
   // Clear
   ScrollBar1.Position := 0;
   ScrollBar2.Position := 0;
+  fSelectedElement := Nil;
+  While fLineCreateHelper.Mode <> lcmIdle Do
+    fLineCreateHelper.DelLastCorner;
+  fAdderElement := Nil;
+  PaintBox1.Cursor := crDefault;
   fEngine.clear;
   PaintBox1.Invalidate;
   caption := defcaption;
@@ -415,6 +421,7 @@ End;
 Procedure TForm1.Button1Click(Sender: TObject);
 Begin
   If OpenDialog1.Execute Then Begin
+    Button3.Click; // Clear
     caption := ExtractFileName(OpenDialog1.FileName);
     fEngine.LoadFromFile(OpenDialog1.FileName, PaintBox1);
     PaintBox1.Invalidate;
