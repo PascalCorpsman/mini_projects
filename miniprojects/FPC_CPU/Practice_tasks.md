@@ -123,7 +123,7 @@ Compute the factorial of N using a loop.
 ## Task 13: Fibonacci Sequence
 Generate the Fibonacci sequence up to N.
 
-**Example:** 0, 1, 1, 2, 3, 5, 8, ...
+**Example:** f0 = 0, f1=1, f2=1, 2, 3, 5, 8, ...
 
 ---
 
