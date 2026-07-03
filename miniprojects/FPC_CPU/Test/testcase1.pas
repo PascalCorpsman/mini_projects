@@ -70,6 +70,9 @@ Type
     Procedure TestPipeline_PushAfterADD_NoPipeline;
     Procedure TestPipeline_PushAfterADD_Pipeline;
     Procedure TestPipeline_CMPAfterADD;
+
+    // ---- Arbiture Tests -------------------------------------------------
+    Procedure ProgramWithNoHaltCMD;
   End;
 
 Implementation
@@ -859,6 +862,32 @@ Begin
     AssertFalse('CF should be 0 (10 >= 5)', eng.FlagCarry);
   Finally
     eng.Free;
+  End;
+End;
+
+Procedure TFPC_CPU_tests.ProgramWithNoHaltCMD;
+Var
+  eng: TCPUEngine;
+  i: Integer;
+Begin
+
+  For i := 0 To 1 Do Begin
+    eng := Run(
+      'MOV A, 42' + LineEnding +
+      'MOV B, 43' + LineEnding +
+      'MOV C, 44' + LineEnding +
+      'MOV D, 45',
+      i = 0);
+    Try
+      AssertEquals('Register A = 42', 42, eng.RegA);
+      AssertEquals('Register B = 43', 43, eng.RegB);
+      AssertEquals('Register C = 44', 44, eng.RegC);
+      AssertEquals('Register D = 45', 45, eng.RegD);
+      AssertTrue('Engine should be halted at end of code', eng.Halted);
+      AssertTrue('Engine should report end-of-code without HLT', eng.EndedWithoutHalt);
+    Finally
+      eng.Free;
+    End;
   End;
 End;
 

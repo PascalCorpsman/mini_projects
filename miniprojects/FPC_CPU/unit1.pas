@@ -491,7 +491,10 @@ Begin
 
   If halted Then Begin
     If Timer1.Enabled Then Button3.Click;
-    ShowMessage('Finished.');
+    If fEngine.EndedWithoutHalt Then
+      ShowMessage('Finished without HLT statement.')
+    Else
+      ShowMessage('Finished.');
     ResetLCLToCompile;
     exit;
   End;

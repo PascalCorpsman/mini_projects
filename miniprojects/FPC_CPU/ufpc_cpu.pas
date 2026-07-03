@@ -126,6 +126,7 @@ Type
     fPipelineDepth: Integer;
     fPendingTarget: Integer;
     fHalted: Boolean;
+    fEndedWithoutHalt: Boolean;
 
     Function GetReg(Const aName: String): Integer;
     Procedure SetReg(Const aName: String; aValue: Integer);
@@ -167,6 +168,7 @@ Type
     Property FlagCarry: Boolean read fFlagCarry;
     Property FlagNegative: Boolean read fFlagNegative;
     Property Halted: Boolean read fHalted;
+    Property EndedWithoutHalt: Boolean read fEndedWithoutHalt;
     Function StackCount: Integer;
     Function StackTop: Integer; // top = most recently pushed
     Function GetStackValue(aIndex: Integer): Integer;
@@ -935,7 +937,16 @@ Begin
   If Not fPipelineMode Then Begin
     If Not fromRet Then
       ChangePipeline(aSlot, FindNextCmd(fPipeline[aSlot]));
-    fCmds[fPipeline[aSlot]].PipelineStep := psFetch;
+
+    // End of program without explicit HLT: stop cleanly.
+    If (fPipeline[aSlot] >= 0) And (fPipeline[aSlot] <= High(fCmds)) Then
+      fCmds[fPipeline[aSlot]].PipelineStep := psFetch
+    Else Begin
+      fEndedWithoutHalt := true;
+      fHalted := true;
+      result := true;
+      exit;
+    End;
   End;
 End;
 
@@ -961,6 +972,7 @@ Begin
   For memAddr := Low(fMemory) To High(fMemory) Do
     fMemory[memAddr] := 0;
   fHalted := false;
+  fEndedWithoutHalt := false;
   fPendingTarget := -1;
 
   // Reset pipeline
@@ -1004,6 +1016,7 @@ Begin
     exit;
   End;
   If (fPipeline[0] < 0) Or (fPipeline[0] > High(fCmds)) Then Begin
+    fEndedWithoutHalt := true;
     fHalted := true;
     result := true;
     exit;
