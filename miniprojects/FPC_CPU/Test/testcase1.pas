@@ -13,10 +13,12 @@ Type
 
   TFPC_CPU_tests = Class(TTestCase)
   private
+    fCurrentPipeline: Boolean;
     // Helper: compile one or more lines separated by line-feed
     Function Compile(Const aCode: String): TAssemblerCMDs;
     // Helper: run the code through the engine and return it
     Function Run(Const aCode: String; Pipeline: Boolean = false): TCPUEngine;
+    Function Msg(Const aText: String): String;
   protected
     Procedure SetUp; override;
     Procedure TearDown; override;
@@ -92,12 +94,18 @@ Begin
   End;
 End;
 
+Function TFPC_CPU_tests.Msg(Const aText: String): String;
+Begin
+  result := aText + ' [Pipeline=' + BoolToStr(fCurrentPipeline, true) + ']';
+End;
+
 Function TFPC_CPU_tests.Run(Const aCode: String; Pipeline: Boolean): TCPUEngine;
 Var
   cmds: TAssemblerCMDs;
 Begin
+  fCurrentPipeline := Pipeline;
   cmds := Compile(aCode);
-  AssertTrue('Compile failed: ' + LastError, Assigned(cmds));
+  AssertTrue(Msg('Compile failed: ' + LastError), Assigned(cmds));
   result := TCPUEngine.Create;
   result.LoadProgram(cmds, Pipeline);
   result.RunToHalt;
@@ -107,6 +115,7 @@ End;
 
 Procedure TFPC_CPU_tests.SetUp;
 Begin
+  fCurrentPipeline := false;
 End;
 
 Procedure TFPC_CPU_tests.TearDown;
@@ -120,7 +129,7 @@ Var
   cmds: TAssemblerCMDs;
 Begin
   cmds := Compile('');
-  AssertFalse('Empty source should yield nil/empty result', Assigned(cmds) And (Length(cmds) > 0));
+  AssertFalse(Msg('Empty source should yield nil/empty result'), Assigned(cmds) And (Length(cmds) > 0));
 End;
 
 Procedure TFPC_CPU_tests.TestCompile_SingleMOV;
@@ -128,11 +137,11 @@ Var
   cmds: TAssemblerCMDs;
 Begin
   cmds := Compile('MOV A, 42');
-  AssertTrue('Compile returned nil', Assigned(cmds));
-  AssertEquals('Expected 1 command', 1, Length(cmds));
-  AssertTrue('Command should be cMOV', cmds[0].Cmd = cMOV);
-  AssertEquals('LeftOperand', 'A', cmds[0].LeftOperand);
-  AssertEquals('RightOperand', '42', cmds[0].RightOperand);
+  AssertTrue(Msg('Compile returned nil'), Assigned(cmds));
+  AssertEquals(Msg('Expected 1 command'), 1, Length(cmds));
+  AssertTrue(Msg('Command should be cMOV'), cmds[0].Cmd = cMOV);
+  AssertEquals(Msg('LeftOperand'), 'A', cmds[0].LeftOperand);
+  AssertEquals(Msg('RightOperand'), '42', cmds[0].RightOperand);
 End;
 
 Procedure TFPC_CPU_tests.TestCompile_Comment;
@@ -144,9 +153,9 @@ Begin
     'MOV A, 1 ; this is a comment' + LineEnding +
     '; Empty line with a comment after'
     );
-  AssertTrue('Compile returned nil', Assigned(cmds));
-  AssertEquals('Expected 1 command', 1, Length(cmds));
-  AssertEquals('RightOperand should be 1', '1', cmds[0].RightOperand);
+  AssertTrue(Msg('Compile returned nil'), Assigned(cmds));
+  AssertEquals(Msg('Expected 1 command'), 1, Length(cmds));
+  AssertEquals(Msg('RightOperand should be 1'), '1', cmds[0].RightOperand);
 End;
 
 Procedure TFPC_CPU_tests.TestCompile_LabelAndJump;
@@ -159,7 +168,7 @@ Begin
     'NOP' + LineEnding +
     'END_LABEL:'
     );
-  AssertTrue('Compile returned nil', Assigned(cmds));
+  AssertTrue(Msg('Compile returned nil'), Assigned(cmds));
   // Find JMP and label
   jmpIdx := -1;
   labelLine := -1;
@@ -167,9 +176,9 @@ Begin
     If cmds[i].Cmd = cJMP Then jmpIdx := i;
     If cmds[i].Cmd = cLabel Then labelLine := cmds[i].Line;
   End;
-  AssertTrue('JMP not found', jmpIdx >= 0);
-  AssertTrue('Label not found', labelLine >= 0);
-  AssertEquals('JMP target line should point to label line', labelLine, cmds[jmpIdx].JumpTarget);
+  AssertTrue(Msg('JMP not found'), jmpIdx >= 0);
+  AssertTrue(Msg('Label not found'), labelLine >= 0);
+  AssertEquals(Msg('JMP target line should point to label line'), labelLine, cmds[jmpIdx].JumpTarget);
 End;
 
 Procedure TFPC_CPU_tests.TestCompile_InvalidCommand;
@@ -177,8 +186,8 @@ Var
   cmds: TAssemblerCMDs;
 Begin
   cmds := Compile('FOOBAR A, B');
-  AssertFalse('Invalid command should return nil/empty', Assigned(cmds) And (Length(cmds) > 0));
-  AssertTrue('LastError should be set', LastError <> '');
+  AssertFalse(Msg('Invalid command should return nil/empty'), Assigned(cmds) And (Length(cmds) > 0));
+  AssertTrue(Msg('LastError should be set'), LastError <> '');
 End;
 
 Procedure TFPC_CPU_tests.TestCompile_UnresolvedLabel;
@@ -186,8 +195,8 @@ Var
   cmds: TAssemblerCMDs;
 Begin
   cmds := Compile('JMP NONEXISTENT');
-  AssertFalse('Unresolved label should return nil/empty', Assigned(cmds) And (Length(cmds) > 0));
-  AssertTrue('LastError should mention the label', LastError <> '');
+  AssertFalse(Msg('Unresolved label should return nil/empty'), Assigned(cmds) And (Length(cmds) > 0));
+  AssertTrue(Msg('LastError should mention the label'), LastError <> '');
 End;
 
 { ---- Basic execution tests ------------------------------------------------ }
@@ -201,7 +210,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 99', 99, eng.RegA);
+    AssertEquals(Msg('A = 99'), 99, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -217,8 +226,8 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 7', 7, eng.RegA);
-    AssertEquals('B = 7', 7, eng.RegB);
+    AssertEquals(Msg('A = 7'), 7, eng.RegA);
+    AssertEquals(Msg('B = 7'), 7, eng.RegB);
   Finally
     eng.Free;
   End;
@@ -235,7 +244,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 7', 7, eng.RegA);
+    AssertEquals(Msg('A = 7'), 7, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -252,7 +261,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 7', 7, eng.RegA);
+    AssertEquals(Msg('A = 7'), 7, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -269,7 +278,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 42', 42, eng.RegA);
+    AssertEquals(Msg('A = 42'), 42, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -286,7 +295,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 5', 5, eng.RegA);
+    AssertEquals(Msg('A = 5'), 5, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -303,7 +312,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 8', 8, eng.RegA); // 1100 AND 1010 = 1000
+    AssertEquals(Msg('A = 8'), 8, eng.RegA); // 1100 AND 1010 = 1000
   Finally
     eng.Free;
   End;
@@ -320,7 +329,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 14', 14, eng.RegA); // 1100 OR 1010 = 1110
+    AssertEquals(Msg('A = 14'), 14, eng.RegA); // 1100 OR 1010 = 1110
   Finally
     eng.Free;
   End;
@@ -337,7 +346,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 6', 6, eng.RegA); // 1100 XOR 1010 = 0110
+    AssertEquals(Msg('A = 6'), 6, eng.RegA); // 1100 XOR 1010 = 0110
   Finally
     eng.Free;
   End;
@@ -354,7 +363,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 12', 12, eng.RegA);
+    AssertEquals(Msg('A = 12'), 12, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -371,7 +380,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = 3', 3, eng.RegA);
+    AssertEquals(Msg('A = 3'), 3, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -387,7 +396,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A = NOT 0 = -1', -1, eng.RegA);
+    AssertEquals(Msg('A = NOT 0 = -1'), -1, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -406,8 +415,8 @@ Begin
     'HLT'
     );
   Try
-    AssertTrue('Zero flag should be set', eng.FlagZero);
-    AssertFalse('Carry flag should not be set', eng.FlagCarry);
+    AssertTrue(Msg('Zero flag should be set'), eng.FlagZero);
+    AssertFalse(Msg('Carry flag should not be set'), eng.FlagCarry);
   Finally
     eng.Free;
   End;
@@ -424,8 +433,8 @@ Begin
     'HLT'
     );
   Try
-    AssertFalse('Zero flag should not be set', eng.FlagZero);
-    AssertTrue('Carry flag should be set (A < B)', eng.FlagCarry);
+    AssertFalse(Msg('Zero flag should not be set'), eng.FlagZero);
+    AssertTrue(Msg('Carry flag should be set (A < B)'), eng.FlagCarry);
   Finally
     eng.Free;
   End;
@@ -442,7 +451,7 @@ Begin
     'HLT'
     );
   Try
-    AssertTrue('Negative flag should be set (A-B < 0)', eng.FlagNegative);
+    AssertTrue(Msg('Negative flag should be set (A-B < 0)'), eng.FlagNegative);
   Finally
     eng.Free;
   End;
@@ -454,7 +463,7 @@ Begin
     'HLT'
     );
   Try
-    AssertFalse('Negative flag should not be set (A-B >= 0)', eng.FlagNegative);
+    AssertFalse(Msg('Negative flag should not be set (A-B >= 0)'), eng.FlagNegative);
   Finally
     eng.Free;
   End;
@@ -475,7 +484,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should stay 5 (jump taken)', 5, eng.RegA);
+    AssertEquals(Msg('A should stay 5 (jump taken)'), 5, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -495,7 +504,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should be 42 (jump not taken)', 42, eng.RegA);
+    AssertEquals(Msg('A should be 42 (jump not taken)'), 42, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -515,7 +524,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should stay 1 (JNZ taken)', 1, eng.RegA);
+    AssertEquals(Msg('A should stay 1 (JNZ taken)'), 1, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -535,7 +544,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should be 77 (JNZ not taken, equal)', 77, eng.RegA);
+    AssertEquals(Msg('A should be 77 (JNZ not taken, equal)'), 77, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -555,7 +564,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should stay 1 (JN taken)', 1, eng.RegA);
+    AssertEquals(Msg('A should stay 1 (JN taken)'), 1, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -575,7 +584,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should be 77 (JN not taken)', 77, eng.RegA);
+    AssertEquals(Msg('A should be 77 (JN not taken)'), 77, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -595,7 +604,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should stay 5 (JNN taken)', 5, eng.RegA);
+    AssertEquals(Msg('A should stay 5 (JNN taken)'), 5, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -615,7 +624,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should be 66 (JNN not taken)', 66, eng.RegA);
+    AssertEquals(Msg('A should be 66 (JNN not taken)'), 66, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -632,7 +641,7 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('A should be 0 (skipped by JMP)', 0, eng.RegA);
+    AssertEquals(Msg('A should be 0 (skipped by JMP)'), 0, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -651,8 +660,8 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('Memory[100] should be 42', 42, eng.GetMemoryValue(100));
-    AssertEquals('B should be loaded with Memory[100]', 42, eng.RegB);
+    AssertEquals(Msg('Memory[100] should be 42'), 42, eng.GetMemoryValue(100));
+    AssertEquals(Msg('B should be loaded with Memory[100]'), 42, eng.RegB);
   Finally
     eng.Free;
   End;
@@ -670,8 +679,8 @@ Begin
     'HLT'
     );
   Try
-    AssertEquals('Stack should be empty after POP', 0, eng.StackCount);
-    AssertEquals('A should be restored to 42', 42, eng.RegA);
+    AssertEquals(Msg('Stack should be empty after POP'), 0, eng.StackCount);
+    AssertEquals(Msg('A should be restored to 42'), 42, eng.RegA);
   Finally
     eng.Free;
   End;
@@ -690,8 +699,8 @@ Begin
     'RET'
     );
   Try
-    AssertEquals('A should be 99 after CALL/RET', 99, eng.RegA);
-    AssertEquals('Stack should be empty after RET', 0, eng.StackCount);
+    AssertEquals(Msg('A should be 99 after CALL/RET'), 99, eng.RegA);
+    AssertEquals(Msg('Stack should be empty after RET'), 0, eng.StackCount);
   Finally
     eng.Free;
   End;
@@ -731,7 +740,7 @@ Begin
     'PUSH A' + LineEnding +
     'RET'
     );
-  AssertTrue('Compile failed: ' + LastError, Assigned(cmds));
+  AssertTrue(Msg('Compile failed: ' + LastError), Assigned(cmds));
 
   eng := TCPUEngine.Create;
   Try
@@ -742,8 +751,8 @@ Begin
     eng.SetMemoryValue(103, 3);
     eng.RunToHalt;
 
-    AssertEquals('Result at Memory[119] should be 6', 6, eng.GetMemoryValue(119));
-    AssertEquals('Stack should be empty at end', 0, eng.StackCount);
+    AssertEquals(Msg('Result at Memory[119] should be 6'), 6, eng.GetMemoryValue(119));
+    AssertEquals(Msg('Stack should be empty at end'), 0, eng.StackCount);
   Finally
     eng.Free;
   End;
@@ -783,7 +792,7 @@ Begin
     'PUSH A' + LineEnding +
     'RET'
     );
-  AssertTrue('Compile failed: ' + LastError, Assigned(cmds));
+  AssertTrue(Msg('Compile failed: ' + LastError), Assigned(cmds));
 
   eng := TCPUEngine.Create;
   Try
@@ -794,8 +803,8 @@ Begin
     eng.SetMemoryValue(103, 3);
     eng.RunToHalt;
 
-    AssertEquals('Result at Memory[119] should be 6 (pipeline)', 6, eng.GetMemoryValue(119));
-    AssertEquals('Stack should be empty at end (pipeline)', 0, eng.StackCount);
+    AssertEquals(Msg('Result at Memory[119] should be 6 (pipeline)'), 6, eng.GetMemoryValue(119));
+    AssertEquals(Msg('Stack should be empty at end (pipeline)'), 0, eng.StackCount);
   Finally
     eng.Free;
   End;
@@ -817,8 +826,8 @@ Begin
     'HLT',
     {Pipeline=} false);
   Try
-    AssertEquals('Stack should have 1 entry', 1, eng.StackCount);
-    AssertEquals('Stack top must be 3 (non-pipeline)', 3, eng.StackTop);
+    AssertEquals(Msg('Stack should have 1 entry'), 1, eng.StackCount);
+    AssertEquals(Msg('Stack top must be 3 (non-pipeline)'), 3, eng.StackTop);
   Finally
     eng.Free;
   End;
@@ -838,8 +847,8 @@ Begin
     'HLT',
     {Pipeline=} true);
   Try
-    AssertEquals('Stack should have 1 entry', 1, eng.StackCount);
-    AssertEquals('Stack top must be 3 (pipeline hazard fixed)', 3, eng.StackTop);
+    AssertEquals(Msg('Stack should have 1 entry'), 1, eng.StackCount);
+    AssertEquals(Msg('Stack top must be 3 (pipeline hazard fixed)'), 3, eng.StackTop);
   Finally
     eng.Free;
   End;
@@ -858,8 +867,8 @@ Begin
     'HLT',
     {Pipeline=} true);
   Try
-    AssertFalse('ZF should be 0 (10 <> 5)', eng.FlagZero);
-    AssertFalse('CF should be 0 (10 >= 5)', eng.FlagCarry);
+    AssertFalse(Msg('ZF should be 0 (10 <> 5)'), eng.FlagZero);
+    AssertFalse(Msg('CF should be 0 (10 >= 5)'), eng.FlagCarry);
   Finally
     eng.Free;
   End;
@@ -879,12 +888,12 @@ Begin
       'MOV D, 45',
       i = 0);
     Try
-      AssertEquals('Register A = 42', 42, eng.RegA);
-      AssertEquals('Register B = 43', 43, eng.RegB);
-      AssertEquals('Register C = 44', 44, eng.RegC);
-      AssertEquals('Register D = 45', 45, eng.RegD);
-      AssertTrue('Engine should be halted at end of code', eng.Halted);
-      AssertTrue('Engine should report end-of-code without HLT', eng.EndedWithoutHalt);
+      AssertEquals(Msg('Register A = 42'), 42, eng.RegA);
+      AssertEquals(Msg('Register B = 43'), 43, eng.RegB);
+      AssertEquals(Msg('Register C = 44'), 44, eng.RegC);
+      AssertEquals(Msg('Register D = 45'), 45, eng.RegD);
+      AssertTrue(Msg('Engine should be halted at end of code'), eng.Halted);
+      AssertTrue(Msg('Engine should report end-of-code without HLT'), eng.EndedWithoutHalt);
     Finally
       eng.Free;
     End;

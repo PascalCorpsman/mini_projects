@@ -1,177 +1,176 @@
 object Form2: TForm2
   Left = 401
-  Height = 945
+  Height = 630
   Top = 262
-  Width = 1250
+  Width = 833
   Caption = 'Form2'
-  ClientHeight = 945
-  ClientWidth = 1250
-  DesignTimePPI = 144
+  ClientHeight = 630
+  ClientWidth = 833
   LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   OnPaint = FormPaint
   OnShow = FormShow
   object Label1: TLabel
-    Left = 12
-    Height = 25
-    Top = 456
-    Width = 16
+    Left = 8
+    Height = 16
+    Top = 304
+    Width = 12
     Caption = 'A:'
   end
   object Label2: TLabel
-    Left = 168
-    Height = 25
-    Top = 456
-    Width = 14
+    Left = 112
+    Height = 16
+    Top = 304
+    Width = 11
     Caption = 'B:'
   end
   object RegisterA: TEdit
-    Left = 36
+    Left = 24
     Height = 33
-    Top = 444
-    Width = 120
+    Top = 296
+    Width = 80
     TabOrder = 0
     Text = 'RegisterA'
   end
   object RegisterB: TEdit
-    Left = 192
+    Left = 128
     Height = 33
-    Top = 444
-    Width = 120
+    Top = 296
+    Width = 80
     TabOrder = 1
     Text = 'RegisterB'
   end
   object Label3: TLabel
-    Left = 324
-    Height = 25
-    Top = 456
-    Width = 15
+    Left = 216
+    Height = 16
+    Top = 304
+    Width = 11
     Caption = 'C:'
   end
   object RegisterC: TEdit
-    Left = 348
+    Left = 232
     Height = 33
-    Top = 444
-    Width = 120
+    Top = 296
+    Width = 80
     TabOrder = 2
     Text = 'RegisterC'
   end
   object Label4: TLabel
-    Left = 480
-    Height = 25
-    Top = 456
-    Width = 17
+    Left = 320
+    Height = 16
+    Top = 304
+    Width = 12
     Caption = 'D:'
   end
   object RegisterD: TEdit
-    Left = 504
+    Left = 336
     Height = 33
-    Top = 444
-    Width = 120
+    Top = 296
+    Width = 80
     TabOrder = 3
     Text = 'RegisterD'
   end
   object StackPointer: TLabel
-    Left = 1008
-    Height = 25
-    Top = 396
-    Width = 19
+    Left = 672
+    Height = 16
+    Top = 264
+    Width = 11
     Caption = '<-'
   end
   object Label6: TLabel
-    Left = 12
-    Height = 25
-    Top = 24
-    Width = 25
+    Left = 8
+    Height = 16
+    Top = 16
+    Width = 19
     Caption = 'PC:'
   end
   object Programcounter: TEdit
-    Left = 54
+    Left = 36
     Height = 33
-    Top = 12
-    Width = 120
+    Top = 8
+    Width = 80
     TabOrder = 4
     Text = 'Programcounter'
   end
   object ALU_out_flag_zero: TCheckBox
-    Left = 648
-    Height = 29
-    Top = 600
-    Width = 61
+    Left = 432
+    Height = 21
+    Top = 400
+    Width = 56
     Caption = 'Zero'
     TabOrder = 5
   end
   object ALU_out_flag_carry: TCheckBox
-    Left = 648
-    Height = 29
-    Top = 633
-    Width = 66
+    Left = 432
+    Height = 21
+    Top = 422
+    Width = 59
     Caption = 'Carry'
     TabOrder = 6
   end
   object ALU_out_flag_negative: TCheckBox
-    Left = 648
-    Height = 29
-    Top = 669
-    Width = 95
+    Left = 432
+    Height = 21
+    Top = 446
+    Width = 81
     Caption = 'Negative'
     TabOrder = 7
   end
   object ALU_out_flag_overflow: TCheckBox
-    Left = 648
-    Height = 29
-    Top = 705
-    Width = 97
+    Left = 432
+    Height = 21
+    Top = 470
+    Width = 83
     Caption = 'Overflow'
     TabOrder = 8
   end
   object Memory: TStringGrid
-    Left = 648
-    Height = 192
-    Top = 180
-    Width = 588
+    Left = 432
+    Height = 128
+    Top = 120
+    Width = 392
     ColCount = 6
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing, goSmoothScroll]
     TabOrder = 9
   end
   object GroupBox1: TGroupBox
-    Left = 194
-    Height = 108
-    Top = 60
-    Width = 433
+    Left = 129
+    Height = 72
+    Top = 40
+    Width = 289
     Caption = ' Control Unit'
-    ClientHeight = 78
-    ClientWidth = 429
+    ClientHeight = 54
+    ClientWidth = 287
     TabOrder = 10
     object CU_Fetched_CMD: TLabel
-      Left = 12
-      Height = 25
-      Top = 12
-      Width = 51
+      Left = 8
+      Height = 16
+      Top = 8
+      Width = 104
       Caption = 'CU_Fetched_CMD'
     end
     object CU_Pipeline_State: TLabel
-      Left = 276
-      Height = 22
-      Top = 12
-      Width = 136
+      Left = 184
+      Height = 15
+      Top = 8
+      Width = 91
       Alignment = taRightJustify
       AutoSize = False
       Caption = 'CU_Pipeline_State'
     end
     object CU_Target_ProgramCounter: TLabel
-      Left = 12
-      Height = 25
-      Top = 48
-      Width = 61
+      Left = 8
+      Height = 16
+      Top = 32
+      Width = 165
       Caption = 'CU_Target_ProgramCounter'
     end
   end
   object Image1: TImage
-    Left = 204
-    Height = 120
-    Top = 600
-    Width = 259
+    Left = 136
+    Height = 80
+    Top = 400
+    Width = 173
     Picture.Data = {
       1754506F727461626C654E6574776F726B47726170686963E303000089504E47
       0D0A1A0A0000000D49484452000000A900000059080600000045470436000003
@@ -209,102 +208,103 @@ object Form2: TForm2
     Stretch = True
   end
   object ALU_Operation: TLabel
-    Left = 276
-    Height = 45
-    Top = 678
-    Width = 108
+    Left = 184
+    Height = 30
+    Top = 452
+    Width = 72
     Alignment = taCenter
     AutoSize = False
     Caption = 'ALU_Operation'
     Layout = tlCenter
   end
   object ALU_in_Left_OP: TLabel
-    Left = 204
-    Height = 45
-    Top = 600
-    Width = 108
+    Left = 136
+    Height = 30
+    Top = 400
+    Width = 72
     Alignment = taCenter
     AutoSize = False
     Caption = 'ALU_in_Left_OP'
     Layout = tlCenter
   end
   object ALU_in_Right_OP: TLabel
-    Left = 350
-    Height = 45
-    Top = 600
-    Width = 108
+    Left = 233
+    Height = 30
+    Top = 400
+    Width = 72
     Alignment = taCenter
     AutoSize = False
     Caption = 'ALU_in_Right_OP'
     Layout = tlCenter
   end
   object ALU_out_result: TLabel
-    Left = 204
-    Height = 45
-    Top = 744
-    Width = 254
+    Left = 136
+    Height = 30
+    Top = 496
+    Width = 169
     Alignment = taCenter
     AutoSize = False
     Caption = 'ALU_out_result'
     Layout = tlCenter
   end
   object Const_in_For_ALU: TLabel
-    Left = 645
-    Height = 45
-    Top = 444
-    Width = 108
+    Left = 430
+    Height = 30
+    Top = 296
+    Width = 72
     Alignment = taCenter
     AutoSize = False
     Caption = 'Const_in_For_ALU'
     Layout = tlCenter
   end
   object Stack: TListBox
-    Left = 846
-    Height = 494
-    Top = 396
-    Width = 150
+    Left = 564
+    Height = 329
+    Top = 264
+    Width = 100
     ItemHeight = 0
     PopupMenu = PopupMenu1
     TabOrder = 11
+    TopIndex = -1
   end
   object Actual_tick: TLabel
-    Left = 201
-    Height = 25
-    Top = 24
-    Width = 61
+    Left = 134
+    Height = 16
+    Top = 16
+    Width = 63
     Caption = 'Actual_tick'
   end
   object Label16: TLabel
-    Left = 206
-    Height = 25
-    Top = 900
-    Width = 42
+    Left = 137
+    Height = 16
+    Top = 600
+    Width = 32
     Caption = 'Fetch'
   end
   object Label17: TLabel
-    Left = 312
-    Height = 25
-    Top = 900
-    Width = 61
+    Left = 208
+    Height = 16
+    Top = 600
+    Width = 45
     Caption = 'Decode'
   end
   object Label18: TLabel
-    Left = 408
-    Height = 25
-    Top = 900
-    Width = 59
+    Left = 272
+    Height = 16
+    Top = 600
+    Width = 45
     Caption = 'Execute'
   end
   object Label19: TLabel
-    Left = 504
-    Height = 25
-    Top = 900
-    Width = 78
+    Left = 336
+    Height = 16
+    Top = 600
+    Width = 60
     Caption = 'WriteBack'
   end
   object PopupMenu1: TPopupMenu
-    Left = 974
-    Top = 626
+    Left = 649
+    Top = 417
     object MenuItem2: TMenuItem
       Caption = 'Push'
       OnClick = MenuItem2Click

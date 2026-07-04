@@ -832,13 +832,16 @@ Begin
         // Push return address (1-based line of CALL = aCMD.Line+1)
         PushStack(cmd.Line + 1);
         // Redirect pipeline slot to call target
-        ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]]);
+        If fPipelineMode Then
+          ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]])
+        Else
+          ChangePipeline(aSlot, ResolveRunnable(fBranchTargets[fPipeline[aSlot]]));
         fromRet := true; // suppress standard PC advance below
       End;
 
     cJMP: Begin
         If Not fPipelineMode Then
-          ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]]);
+          ChangePipeline(aSlot, ResolveRunnable(fBranchTargets[fPipeline[aSlot]]));
         fromRet := true; // JMP never "falls through"
       End;
     cJZ: Begin
@@ -847,7 +850,7 @@ Begin
         End
         Else Begin
           If fFlagZero Then Begin
-            ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]]);
+            ChangePipeline(aSlot, ResolveRunnable(fBranchTargets[fPipeline[aSlot]]));
             fromRet := true;
           End;
         End;
@@ -858,7 +861,7 @@ Begin
         End
         Else Begin
           If Not fFlagZero Then Begin
-            ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]]);
+            ChangePipeline(aSlot, ResolveRunnable(fBranchTargets[fPipeline[aSlot]]));
             fromRet := true;
           End;
         End;
@@ -869,7 +872,7 @@ Begin
         End
         Else Begin
           If fFlagCarry Then Begin
-            ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]]);
+            ChangePipeline(aSlot, ResolveRunnable(fBranchTargets[fPipeline[aSlot]]));
             fromRet := true;
           End;
         End;
@@ -880,7 +883,7 @@ Begin
         End
         Else Begin
           If Not fFlagCarry Then Begin
-            ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]]);
+            ChangePipeline(aSlot, ResolveRunnable(fBranchTargets[fPipeline[aSlot]]));
             fromRet := true;
           End;
         End;
@@ -891,7 +894,7 @@ Begin
         End
         Else Begin
           If fFlagNegative Then Begin
-            ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]]);
+            ChangePipeline(aSlot, ResolveRunnable(fBranchTargets[fPipeline[aSlot]]));
             fromRet := true;
           End;
         End;
@@ -902,7 +905,7 @@ Begin
         End
         Else Begin
           If Not fFlagNegative Then Begin
-            ChangePipeline(aSlot, fBranchTargets[fPipeline[aSlot]]);
+            ChangePipeline(aSlot, ResolveRunnable(fBranchTargets[fPipeline[aSlot]]));
             fromRet := true;
           End;
         End;

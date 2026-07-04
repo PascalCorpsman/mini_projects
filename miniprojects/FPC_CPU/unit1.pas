@@ -128,14 +128,41 @@ Begin
    *  - Die Flags Sinnvoll auswerten / Benutzen (da fehlen noch entsprechende Jump Befehle)
    *  - Branch Prediction unit!
    *)
-  //Der Demo Code macht nun Murks
-   (* Start with Debug
-  // BUG: Was auch immer grad aus der ALU Raus kommt wird nur mit NOP korrekt gepusht
+  (* Start with Debug
   SynEdit1.Clear;
+  synedit1.lines.add('; Visual regression program (focus: stage rendering, not arithmetic coverage)');
   synedit1.lines.add('MOV A, 1');
   synedit1.lines.add('MOV B, 2');
-  synedit1.lines.add('ADD A, B; Not matter which operand, inserting a NOP before push, fixes it');
-  synedit1.lines.add('PUSH A ; BUG must be 3');
+  synedit1.lines.add('MOV C, 100');
+  synedit1.lines.add('STORE B, 100');
+  synedit1.lines.add('LOAD D, 100');
+  synedit1.lines.add('LOAD A, C');
+  synedit1.lines.add('ADD A, B');
+  synedit1.lines.add('SUB A, 1');
+  synedit1.lines.add('CMP D, B');
+  synedit1.lines.add('JNZ NOT_TAKEN_Z');
+  synedit1.lines.add('JZ TAKEN_Z');
+  synedit1.lines.add('NOT_TAKEN_Z:');
+  synedit1.lines.add('NOP');
+  synedit1.lines.add('TAKEN_Z:');
+  synedit1.lines.add('CMP B, A');
+  synedit1.lines.add('JNN NOT_TAKEN_N');
+  synedit1.lines.add('JN TAKEN_N');
+  synedit1.lines.add('NOT_TAKEN_N:');
+  synedit1.lines.add('NOP');
+  synedit1.lines.add('TAKEN_N:');
+  synedit1.lines.add('NOP');
+  synedit1.lines.add('PUSH A');
+  synedit1.lines.add('PUSH 42');
+  synedit1.lines.add('POP C');
+  synedit1.lines.add('POP D');
+  synedit1.lines.add('CALL SUB1');
+  synedit1.lines.add('JMP DONE');
+  synedit1.lines.add('SUB1:');
+  synedit1.lines.add('MOV A, D');
+  synedit1.lines.add('RET');
+  synedit1.lines.add('DONE:');
+  synedit1.lines.add('HLT');
   // End of Debug *)
   defcaption := 'FPC_CPU ver 0.01 by Corpsman, www.Corpsman.de';
   caption := defcaption;
@@ -751,7 +778,6 @@ Begin
   If hasControlCmd Then Begin
     form2.CU_Fetched_CMD.Caption := CMDToStr(controlCmd.Cmd, controlCmd.LeftOperand, controlCmd.RightOperand);
     form2.CU_Pipeline_State.Caption := PipelineStepToStr(controlCmd.PipelineStep);
-    form2.Programcounter.Text := inttostr(controlCmd.Line + 1);
 
     If CheckBox5.Checked Then Begin
       form2.CU_Fetched_CMD.Font.Color := PipeLineFetchBGColor;
