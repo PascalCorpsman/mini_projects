@@ -237,8 +237,6 @@ End;
 { TForm1 }
 
 Procedure TForm1.FormCreate(Sender: TObject);
-Var
-  i, j: Integer;
 Begin
   caption := 'Gradient Maker ver. 0.01 by Corpsman, www.Corpsman.de';
   Constraints.MinHeight := Height;
@@ -255,6 +253,7 @@ Begin
   Knobs[1].X := PaintBox1.Width - PanelBorder;
   Knobs[1].Color := clRed;
   Knobs[1].Sigma := 10;
+
   SliderBmp.Width := PaintBox1.Width - PanelBorder;
   SliderBmp.Height := PanelBorder;
   SliderBmp.Canvas.Brush.Color := clFuchsia;
@@ -264,7 +263,10 @@ Begin
   SliderBmp.Canvas.Rectangle(PanelBorder_d_2, 0, SliderBmp.Width - PanelBorder_d_2, SliderBmp.Height);
   SliderBmp.Canvas.Ellipse(0, 0, PanelBorder, SliderBmp.Height);
   SliderBmp.Canvas.Ellipse(SliderBmp.Width - PanelBorder, 0, SliderBmp.Width, SliderBmp.Height);
+{$IFNDEF LCLGTK3}
+  // Temporarly deactivated due to not working in GTK3
   SliderBmp.Mask(clFuchsia);
+{$ENDIF}
   edit2.text := '0';
   edit3.text := '256';
   edit4.text := '256';
