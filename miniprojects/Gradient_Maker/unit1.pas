@@ -263,10 +263,7 @@ Begin
   SliderBmp.Canvas.Rectangle(PanelBorder_d_2, 0, SliderBmp.Width - PanelBorder_d_2, SliderBmp.Height);
   SliderBmp.Canvas.Ellipse(0, 0, PanelBorder, SliderBmp.Height);
   SliderBmp.Canvas.Ellipse(SliderBmp.Width - PanelBorder, 0, SliderBmp.Width, SliderBmp.Height);
-{$IFNDEF LCLGTK3}
-  // Temporarly deactivated due to not working in GTK3
   SliderBmp.Mask(clFuchsia);
-{$ENDIF}
   edit2.text := '0';
   edit3.text := '256';
   edit4.text := '256';
@@ -668,6 +665,7 @@ Begin
     Edit5.text := format('%0.1f', [Knobs[KnobIndex].Percent]);
     ScrollBar3.Position := round(Knobs[KnobIndex].Sigma * 100);
     Edit6.text := format('%0.2f', [Knobs[KnobIndex].Sigma]);
+    PaintBox1.Invalidate;
   End;
 End;
 
