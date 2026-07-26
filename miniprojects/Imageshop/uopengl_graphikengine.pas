@@ -1870,9 +1870,9 @@ Begin
       For j := 0 To b.height - 1 Do Begin
         For i := 0 To b.width - 1 Do Begin
           CurColor := IntfImg1.Colors[i, j];
-          OpenGLData[c, 0] := CurColor.Red Div 256;
-          OpenGLData[c, 1] := CurColor.green Div 256;
-          OpenGLData[c, 2] := CurColor.blue Div 256;
+          OpenGLData[c, 0] := CurColor.Red Shr 8;
+          OpenGLData[c, 1] := CurColor.green Shr 8;
+          OpenGLData[c, 2] := CurColor.blue Shr 8;
           inc(c);
         End;
       End;
@@ -2007,9 +2007,9 @@ Begin
     For j := 0 To b.height - 1 Do Begin
       For i := 0 To b.width - 1 Do Begin
         CurColor := IntfImg1.Colors[i, j];
-        OpenGLData[c, 0] := CurColor.Red Div 256;
-        OpenGLData[c, 1] := CurColor.green Div 256;
-        OpenGLData[c, 2] := CurColor.blue Div 256;
+        OpenGLData[c, 0] := CurColor.Red Shr 8;
+        OpenGLData[c, 1] := CurColor.green Shr 8;
+        OpenGLData[c, 2] := CurColor.blue Shr 8;
         inc(c);
       End;
     End;
@@ -2246,9 +2246,9 @@ Var
   Data: String;
   b2, b: Tbitmap;
   img, ow, oh, nw, nh, j, i: Integer;
-  pSrc: PRGBA;
   pDst, pStart: PByte;
-  Line: Pointer;
+  CurColor: TFPColor;
+  IntfImgLoad: TLazIntfImage;
 {$IFDEF LEGACYMODE}
   bool: {$IFDEF USE_GL}Byte{$ELSE}Boolean{$ENDIF};
 {$ENDIF}
@@ -2346,28 +2346,29 @@ Begin
 {$ENDIF}
   If IsPowerOfTwo(b.width) And IsPowerOfTwo(b.Height) Then Begin
     // Laden der Graphikdaten
+    IntfImgLoad := TLazIntfImage.Create(0, 0);
+    IntfImgLoad.LoadFromBitmap(b.Handle, b.MaskHandle);
     GetMem(pStart, b.Width * b.Height * 4);
     pDst := pStart;
     For j := 0 To b.Height - 1 Do Begin
-      Line := b.ScanLine[j];
-      pSrc := PRGBA(Line);
       For i := 0 To b.Width - 1 Do Begin
-        pDst^ := pSrc^.R;
+        CurColor := IntfImgLoad.Colors[i, j];
+        pDst^ := CurColor.Red Shr 8;
         Inc(pDst);
-        pDst^ := pSrc^.G;
+        pDst^ := CurColor.Green Shr 8;
         Inc(pDst);
-        pDst^ := pSrc^.B;
+        pDst^ := CurColor.Blue Shr 8;
         Inc(pDst);
-        If (pSrc^.R = Color.r) And
-          (pSrc^.G = Color.g) And
-          (pSrc^.B = Color.b) Then
+        If (CurColor.Red Shr 8 = Color.r) And
+          (CurColor.Green Shr 8 = Color.g) And
+          (CurColor.Blue Shr 8 = Color.b) Then
           pDst^ := 255
         Else
           pDst^ := 0;
         Inc(pDst);
-        Inc(pSrc);
       End;
     End;
+    IntfImgLoad.Free;
     // Übergeben an OpenGL
     glGenTextures(1, @img);
 {$IFDEF LEGACYMODE}
@@ -2712,9 +2713,9 @@ Begin
       For j := 0 To b.height - 1 Do Begin
         For i := 0 To b.width - 1 Do Begin
           CurColor := IntfImg1.Colors[i, j];
-          OpenGLData[c, 0] := CurColor.Red Div 256;
-          OpenGLData[c, 1] := CurColor.green Div 256;
-          OpenGLData[c, 2] := CurColor.blue Div 256;
+          OpenGLData[c, 0] := CurColor.Red Shr 8;
+          OpenGLData[c, 1] := CurColor.green Shr 8;
+          OpenGLData[c, 2] := CurColor.blue Shr 8;
           If assigned(AlphaMask) Then Begin
             OpenGLData[c, 3] := 255 - AlphaMask[i, j];
           End
@@ -2894,9 +2895,9 @@ Begin
     For j := 0 To g.height - 1 Do Begin
       For i := 0 To g.width - 1 Do Begin
         CurColor := Graphik_intf.Colors[i, j];
-        OpenGLData[c, 0] := CurColor.Red Div 256;
-        OpenGLData[c, 1] := CurColor.green Div 256;
-        OpenGLData[c, 2] := CurColor.blue Div 256;
+        OpenGLData[c, 0] := CurColor.Red Shr 8;
+        OpenGLData[c, 1] := CurColor.green Shr 8;
+        OpenGLData[c, 2] := CurColor.blue Shr 8;
 
         CurColor := Alpha_intf.Colors[i, j];
         OpenGLData[c, 3] := FPColortoLuminanz(CurColor);
@@ -3098,9 +3099,9 @@ Begin
     For j := 0 To b.height - 1 Do Begin
       For i := 0 To b.width - 1 Do Begin
         CurColor := IntfImg1.Colors[i, j];
-        OpenGLData[c, 0] := CurColor.Red Div 256;
-        OpenGLData[c, 1] := CurColor.green Div 256;
-        OpenGLData[c, 2] := CurColor.blue Div 256;
+        OpenGLData[c, 0] := CurColor.Red Shr 8;
+        OpenGLData[c, 1] := CurColor.green Shr 8;
+        OpenGLData[c, 2] := CurColor.blue Shr 8;
         OpenGLData[c, 3] := FPColortoLuminanz(IntfImg2.Colors[i, j]);
         inc(c);
       End;
@@ -3192,9 +3193,9 @@ Begin
        *                Weiß = Opak
        *)
       CurColor := IntfImg1.Colors[i, j];
-      AlphaColor.red := (255 - CurColor.alpha Div 256) * 256;
-      AlphaColor.green := (255 - CurColor.alpha Div 256) * 256;
-      AlphaColor.blue := (255 - CurColor.alpha Div 256) * 256;
+      AlphaColor.red := (255 - (CurColor.alpha Shr 8)) * 256;
+      AlphaColor.green := (255 - (CurColor.alpha Shr 8)) * 256;
+      AlphaColor.blue := (255 - (CurColor.alpha Shr 8)) * 256;
       AlphaColor.alpha := 255 * 256;
       IntfImg2.Colors[i, j] := AlphaColor;
     End;

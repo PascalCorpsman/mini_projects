@@ -136,6 +136,7 @@ Type
     Procedure OnInConnector2Click(Sender: TObject);
     Procedure AddOperatorToList(aName: String; Op: TNodeClass);
     Procedure OnHint(Sender: TObject; aHint: String);
+    Procedure OnNodeChange(Sender: TObject);
     Procedure SetCaption;
     Procedure SetChanged;
     Procedure SaveScene(Const Filename: String);
@@ -207,8 +208,7 @@ Begin
         fNodes[j] := fNodes[j + 1];
       End;
       setlength(fNodes, high(fNodes));
-      PaintBox1.Invalidate;
-      OpenGLControl1Paint(Nil);
+      OnNodeChange(Nil);
     End;
   End;
 End;
@@ -250,8 +250,7 @@ Begin
           End;
         End;
       End;
-      PaintBox1.Invalidate;
-      OpenGLControl1Paint(Nil);
+      OnNodeChange(Nil);
       fConnector.Connector := ctnone;
     End;
   End;
@@ -288,8 +287,7 @@ Begin
           (sender As TNode).InNode := Nil;
         End;
       End;
-      PaintBox1.Invalidate;
-      OpenGLControl1Paint(Nil);
+      OnNodeChange(Nil);
       fConnector.Connector := ctnone;
     End;
   End
@@ -318,8 +316,7 @@ Begin
           (sender As TNode).In2Node := Nil;
         End;
       End;
-      PaintBox1.Invalidate;
-      OpenGLControl1Paint(Nil);
+      OnNodeChange(Nil);
       fConnector.Connector := ctnone;
     End;
   End
@@ -355,6 +352,14 @@ Begin
       aHint
       );
   End;
+End;
+
+Procedure TForm1.OnNodeChange(Sender: TObject);
+Begin
+  // Keep rendering inside regular paint cycle. Direct GL drawing from
+  // arbitrary callbacks may overdraw outside control bounds on GTK backends.
+  PaintBox1.Invalidate;
+  OpenGLControl1.Invalidate;
 End;
 
 Procedure TForm1.SetCaption;
@@ -541,8 +546,7 @@ Begin
   f.free;
   fchanged := false;
   SetCaption;
-  PaintBox1.Invalidate;
-  OpenGLControl1Paint(Nil);
+  OnNodeChange(Nil);
 End;
 
 Procedure TForm1.Clear;
@@ -564,7 +568,7 @@ Procedure TForm1.SetEvents(Var Element: TNode);
 Begin
   Element.OnCloseButtonClick := @OnNodeCloseButtonClick;
   Element.OnOutConnectClick := @OnOutConnectorClick;
-  Element.OnChange := @OpenGLControl1Paint;
+  Element.OnChange := @OnNodeChange;
   Element.OnHint := @OnHint;
   If Element Is TTwoInputNode Then Begin
     (Element As TTwoInputNode).OnInButtonClick := @OnInConnectorClick;
@@ -617,8 +621,7 @@ Begin
     End;
   End;
   sl.free;
-  PaintBox1.Invalidate;
-  OpenGLControl1Paint(Nil);
+  OnNodeChange(Nil);
 End;
 
 { TForm1 }
@@ -658,7 +661,7 @@ Begin
   OpenGLControl1.Align := alClient;
   fResultingImage := TImageDest.Create(PaintBox1, 50, 50);
   fResultingImage.OnInButtonClick := @OnInConnectorClick;
-  fResultingImage.OnChange := @OpenGLControl1Paint;
+  fResultingImage.OnChange := @OnNodeChange;
   fNodes := Nil;
   fSelectedElement := Nil;
   CreateListBoxMenu;
@@ -723,8 +726,7 @@ Procedure TForm1.MenuItem2Click(Sender: TObject);
 Begin
   // Clear All
   clear;
-  PaintBox1.Invalidate;
-  OpenGLControl1Paint(Nil);
+  OnNodeChange(Nil);
 End;
 
 Procedure TForm1.MenuItem3Click(Sender: TObject);
@@ -851,14 +853,14 @@ Procedure TForm1.OpenGLControl1MouseWheelDown(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
 Begin
   fZoom := fZoom * 1.1;
-  OpenGLControl1Paint(Nil);
+  OpenGLControl1.Invalidate;
 End;
 
 Procedure TForm1.OpenGLControl1MouseWheelUp(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; Var Handled: Boolean);
 Begin
   fZoom := fZoom / 1.1;
-  OpenGLControl1Paint(Nil);
+  OpenGLControl1.Invalidate;
 End;
 
 Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
@@ -869,6 +871,8 @@ Var
   t, l: Single;
 Begin
   If Not Initialized Then Exit;
+  If Not OpenGLControl1.MakeCurrent Then Exit;
+  glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
   // Render Szene
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
