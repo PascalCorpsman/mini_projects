@@ -36,6 +36,7 @@ Type
     Edit2: TEdit;
     Edit3: TEdit;
     Edit4: TEdit;
+    Edit5: TEdit;
     GroupBox1: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
@@ -43,6 +44,7 @@ Type
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
+    Label7: TLabel;
     RadioGroup1: TRadioGroup;
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
@@ -122,6 +124,7 @@ Begin
   RadioGroup1.ItemIndex := 1;
   RadioGroup1.OnClick(Nil);
   Edit4.text := GetRepoSSHCommand(aProjectRoot);
+  Edit5.text := GetRepoRemoteURL(aProjectRoot);
 End;
 
 End.

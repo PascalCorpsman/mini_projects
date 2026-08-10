@@ -114,6 +114,7 @@ Function GetEffectiveRepoSettings(Const aDir: String): TRepoSettings; // Leitet 
 Procedure SetRepoSettings(Const aDir: String; aSource: String; Const aValue: TRepoSettings);
 
 Function GetRepoSSHCommand(Const aDir: String): String;
+Function GetRepoRemoteURL(Const aDir: String): String;
 Procedure SetRepoSSHCommand(Const aDir: String; CMD: String);
 
 (*
@@ -489,6 +490,15 @@ Var
   res: TStringList;
 Begin
   res := RunCommand(adir, 'git', ['config', 'core.sshCommand']);
+  result := trim(res.text);
+  res.free;
+End;
+
+Function GetRepoRemoteURL(Const aDir: String): String;
+Var
+  res: TStringList;
+Begin
+  res := RunCommand(adir, 'git', ['remote', 'get-url', 'origin']);
   result := trim(res.text);
   res.free;
 End;
