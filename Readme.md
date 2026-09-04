@@ -23,6 +23,7 @@ Following is a short description of all listed projects
 | [Bitverknuepfungen](miniprojects/Bitverknuepfungen) | Program that evaluates boolean operator formulas |
 | [Bridge Builder](miniprojects/Bridge_Builder)| Game inspired by the famoues Bridge Builder game ideas |
 | [Button Tool](miniprojects/Button_Tool)| Program to create graphics with textured texts |
+| [CardRows](miniprojects/CardRows) | Program to calculate a starting card order |
 | [Clickomania](miniprojects/Clickomania) | Linux / OpenGL Version of Clickomania |
 | [Client server demo](miniprojects/Client_server_demo) | Demo for a multiple client one server application |
 | [Color Test](miniprojects/Color_Test) | Color capturing tool |
