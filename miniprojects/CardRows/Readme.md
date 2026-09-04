@@ -18,3 +18,6 @@ Features:
 - Binary mode
 - Full mode
 - Freely define the final order by clicking the cards
+
+Dependencies:
+- [Playingcards](https://github.com/PascalCorpsman/Examples/tree/master/graphics/Playingcards)
