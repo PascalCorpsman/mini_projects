@@ -157,7 +157,8 @@ Begin
         index := pos(#10, InBuffer); // Git nutzt immer #10 als CRT ;)
         While index <> 0 Do Begin
           t := copy(InBuffer, 1, index - 1);
-          Memo1.Lines.Append(t);
+          Memo1.Append(t);
+          Memo1.SelStart := MaxInt; // Scroll to Bottom
           delete(InBuffer, 1, index);
           index := pos(#10, InBuffer);
         End;
@@ -175,7 +176,8 @@ Begin
       End;
     End;
     If InBuffer <> '' Then Begin
-      Memo1.Lines.Append(InBuffer);
+      Memo1.Append(InBuffer);
+      Memo1.SelStart := MaxInt; // Scroll to Bottom
     End;
     result := p.ExitCode = 0;
     p.free;
@@ -199,12 +201,14 @@ Begin
     ProgressBar1.Position := ProgressBar1.Max;
     Memo1.Append('');
     Memo1.Append('Success (' + inttostr(GetTickCount64 - t) + ' ms @ ' + FormatDateTime('dd.mm.yyyy hh:nn:ss', Now) + ')');
+    Memo1.SelStart := MaxInt; // Scroll to Bottom
     ProgressBar1.Color := clGreen;
     Button3.Enabled := true;
   End
   Else Begin
     Memo1.Append('');
     Memo1.Append('Failed (' + inttostr(GetTickCount64 - t) + ' ms @ ' + FormatDateTime('dd.mm.yyyy hh:nn:ss', Now) + ')');
+    Memo1.SelStart := MaxInt; // Scroll to Bottom
     ProgressBar1.Color := clRed;
   End;
   // Wir Warten bis der User Beendet
