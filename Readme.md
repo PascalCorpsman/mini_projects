@@ -64,6 +64,7 @@ Following is a short description of all listed projects
 | [Raytracer](miniprojects/Raytracer) | Demo that shows how to write a raytracer (including a parser for the scenes) |
 | [RGB_Jumper](miniprojects/RGB_Jumper) | Tiny jump and run game |
 | [SFXR](miniprojects/SFXR) | FPC-Port of the CPP version of [SFXR](https://www.drpetter.se/project_sfxr.html) from Tomas Pettersson |
+| [Shader_Lab](miniprojects/Shader_Lab) | Educational app to test and run shader programs |
 | [Screenreader](miniprojects/Screenreader) | Application to take multiple partly screenshots |
 | [Sequoia](miniprojects/Sequoia) | Application to easy find large files in a folder structure |
 | [Simple Search](miniprojects/Simple_Search) | Win98 style search dialog |
