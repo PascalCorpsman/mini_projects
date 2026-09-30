@@ -89,9 +89,9 @@ object Form1: TForm1
     Height = 384
     Top = 40
     Width = 520
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 4
     object TabSheet1: TTabSheet
       Caption = 'Fragment Shader'
@@ -111,6 +111,7 @@ object Form1: TForm1
         ParentColor = False
         ParentFont = False
         TabOrder = 0
+        OnKeyDown = SynEdit1KeyDown
         Gutter.Width = 57
         Gutter.MouseActions = <>
         RightGutter.Width = 0
@@ -632,11 +633,12 @@ object Form1: TForm1
         ParentColor = False
         ParentFont = False
         TabOrder = 0
+        OnKeyDown = SynEdit2KeyDown
         Gutter.Width = 57
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
-        Highlighter = SynAnySyn1
+        Highlighter = SynAnySyn2
         Keystrokes = <        
           item
             Command = ecUp
@@ -1172,11 +1174,26 @@ object Form1: TForm1
     Top = 128
   end
   object OpenDialog1: TOpenDialog
+    DefaultExt = '.shd'
+    Filter = 'Shader Document|*.shd|All|*'
     Left = 320
     Top = 28
   end
   object SaveDialog1: TSaveDialog
+    DefaultExt = '.shd'
+    Filter = 'Shader Document|*.shd|All|*'
     Left = 407
     Top = 28
+  end
+  object SynAnySyn2: TSynAnySyn
+    Comments = []
+    DetectPreprocessor = False
+    IdentifierChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz'
+    Markup = False
+    Entity = False
+    DollarVariables = False
+    ActiveDot = False
+    Left = 304
+    Top = 128
   end
 end

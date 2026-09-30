@@ -2,7 +2,7 @@
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
-(* This file is part of OpenGL Clear Engine                                   *)
+(* This file is part of Shader_Lab                                            *)
 (*                                                                            *)
 (*  See the file license.md, located under:                                   *)
 (*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
@@ -21,7 +21,7 @@ Uses
   cthreads,
 {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, imagesforlazarus, Unit1, dglopengl;
+  Forms, imagesforlazarus, Unit1;
 
 Begin
   Application.Initialize;

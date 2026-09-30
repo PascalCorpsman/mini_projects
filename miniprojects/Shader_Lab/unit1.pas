@@ -61,6 +61,7 @@ Type
     PageControl1: TPageControl;
     SaveDialog1: TSaveDialog;
     SynAnySyn1: TSynAnySyn;
+    SynAnySyn2: TSynAnySyn;
     SynEdit1: TSynEdit;
     SynEdit2: TSynEdit;
     TabSheet1: TTabSheet;
@@ -75,9 +76,14 @@ Type
     Procedure OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     Procedure OpenGLControl1Paint(Sender: TObject);
     Procedure OpenGLControl1Resize(Sender: TObject);
+    Procedure SynEdit1KeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState
+      );
+    Procedure SynEdit2KeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState
+      );
     Procedure Timer1Timer(Sender: TObject);
   private
     { private declarations }
+    defcaption: String;
     Function LoadTextBlock(Ini: TCustomIniFile; Const Section, DefaultText: String): String;
     Procedure SaveTextBlock(Ini: TCustomIniFile; Const Section, aText: String);
     Procedure LoadProjectFromFile(Const AFileName: String);
@@ -104,6 +110,8 @@ Var
 Implementation
 
 {$R *.lfm}
+
+Uses LCLType;
 
 { TForm1 }
 
@@ -189,45 +197,13 @@ Const
     'out vec2 fragCoord;'#10 +
     'uniform vec2 uResolution;'#10 +
     'uniform float uTime;'#10 +
-    '// /* -- Standard: just transform to NDC'#10 +
-    'void main() {'#10 +
+    '// most simple transformation'#10 +
+    'void main()'#10 +
+    '{'#10 +
     '  fragCoord = aPos * uResolution;'#10 +
     '  vec2 ndc = aPos * 2.0 - 1.0;'#10 +
     '  gl_Position = vec4(ndc, 0.0, 1.0);'#10 +
-    '} // */'#10 +
-    '/* Wave: distort vertices with sin'#10 +
-    'void main() {'#10 +
-    '  vec2 distorted = aPos;'#10 +
-    '  distorted.y += sin(aPos.x * 10.0 + uTime) * 0.1;'#10 +
-    '  fragCoord = distorted * uResolution;'#10 +
-    '  vec2 ndc = distorted * 2.0 - 1.0;'#10 +
-    '  gl_Position = vec4(ndc, 0.0, 1.0);'#10 +
-    '}'#10 +
-    '// */'#10 +
-    '/* Rotate: spin the quad'#10 +
-    'void main() {'#10 +
-    '  vec2 centered = aPos - 0.5;'#10 +
-    '  float s = sin(uTime);'#10 +
-    '  float c = cos(uTime);'#10 +
-    '  vec2 rotated = vec2('#10 +
-    '    centered.x * c - centered.y * s,'#10 +
-    '    centered.x * s + centered.y * c'#10 +
-    '  ) + 0.5;'#10 +
-    '  fragCoord = rotated * uResolution;'#10 +
-    '  vec2 ndc = rotated * 2.0 - 1.0;'#10 +
-    '  gl_Position = vec4(ndc, 0.0, 1.0);'#10 +
-    '}'#10 +
-    '// */'#10 +
-    '/* Pulse: scale up and down'#10 +
-    'void main() {'#10 +
-    '  vec2 centered = aPos - 0.5;'#10 +
-    '  float scale = 0.5 + 0.5 * sin(uTime);'#10 +
-    '  vec2 pulsed = centered * scale + 0.5;'#10 +
-    '  fragCoord = pulsed * uResolution;'#10 +
-    '  vec2 ndc = pulsed * 2.0 - 1.0;'#10 +
-    '  gl_Position = vec4(ndc, 0.0, 1.0);'#10 +
-    '}'#10 +
-    '// */'
+    '}'
     ;
 
   DefaultFragmentSrc: PChar =
@@ -236,29 +212,12 @@ Const
     'uniform vec2 uResolution;'#10 +
     'uniform float uTime;'#10 +
     'out vec4 FragColor;'#10 +
-    '// /* -- Default shader'#10 +
-    'void main() {'#10 +
+    '// demo shader'#10 +
+    'void main()'#10 +
+    '{'#10 +
     '  vec2 uv = fragCoord / uResolution;'#10 +
     '  FragColor = vec4(uv, 0.5, 1.0);'#10 +
-    '} // */'#10#10 +
-    '/* all red'#10 +
-    'void main() {'#10 +
-    'FragColor = vec4(1.0, 0.0, 0.0, 1.0);'#10 +
-    '}'#10 +
-    '// */'#10#10 +
-    '/* gray circle'#10 +
-    'void main() {'#10 +
-    'vec2 uv = fragCoord / uResolution;'#10 +
-    'float circle = 1.0 - distance(uv, vec2(0.5));'#10 +
-    'FragColor = vec4(circle);'#10 +
-    '}'#10 +
-    '// */'#10#10 +
-    '/* Sine wave'#10 +
-    'void main() {'#10 +
-    'float wave = sin(fragCoord.x * 0.01 + uTime) * 0.5 + 0.5;'#10 +
-    'FragColor = vec4(wave, 0.0, 0.0, 1.0);'#10 +
-    '}'#10 +
-    '// */'
+    '}'
     ;
 
 Function CompileShader(Src: PChar; ShaderType: GLenum): GLuint;
@@ -406,6 +365,18 @@ Begin
   End;
 End;
 
+Procedure TForm1.SynEdit1KeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  If key = VK_F9 Then Button1.Click;
+End;
+
+Procedure TForm1.SynEdit2KeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  If key = VK_F9 Then Button1.Click;
+End;
+
 Procedure TForm1.OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 Begin
   MouseX := X;
@@ -484,6 +455,7 @@ Begin
     Memo1.Clear;
     Memo1.Lines.Add('Loaded project: ' + ExtractFileName(AFileName));
     UpdateUniformPanel;
+
     If Initialized Then
       Button1Click(Self);
   Finally
@@ -512,16 +484,23 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  caption := 'Shader Lab ver.: 0.01 by Corpsman, www.Corpsman.de';
+  (*
+   * Missing features:
+   * - Code formater
+   *)
+  defcaption := 'Shader Lab ver.: 0.01 by Corpsman, www.Corpsman.de';
+  caption := defcaption;
+  Application.Title := defcaption;
   Constraints.MinWidth := Width;
   Constraints.MinHeight := Height;
   Memo1.Clear;
-  // Configure GLSL Syntax Highlighter
+
+  // Configure Fragment Shader Highlighter
   With SynAnySyn1 Do Begin
     Comments := [csCStyle, csAnsiStyle]; // // und /* */ comments
     KeyWords.Clear; // GLSL Keywords
     KeyWords.AddCommaText(
-      'void,main,in,out,uniform,if,else,for,while,do,return,true,false,discard,' +
+      'const,void,main,in,out,uniform,if,else,for,while,do,return,true,false,discard,' +
       'float,int,uint,bool,vec2,vec3,vec4,ivec2,ivec3,ivec4,bvec2,bvec3,bvec4,' +
       'mat2,mat3,mat4,mat2x2,mat2x3,mat2x4,mat3x2,mat3x3,mat3x4,mat4x2,mat4x3,mat4x4,' +
       'sampler1D,sampler2D,sampler3D,samplerCube,samplerShadow,' +
@@ -532,8 +511,27 @@ Begin
       'lessThan,lessThanEqual,greaterThan,greaterThanEqual,equal,notEqual,any,all,not,' +
       'texture,textureLod,textureProj');
   End;
+
+  // Configure Vertex Shader Highlighter
+  With SynAnySyn2 Do Begin
+    Comments := [csCStyle, csAnsiStyle]; // // und /* */ comments
+    KeyWords.Clear; // GLSL Keywords + Vertex-specific
+    KeyWords.AddCommaText(
+      'layout,location,' +
+      'void,main,in,out,uniform,if,else,for,while,do,return,true,false,discard,' +
+      'float,int,uint,bool,vec2,vec3,vec4,ivec2,ivec3,ivec4,bvec2,bvec3,bvec4,' +
+      'mat2,mat3,mat4,mat2x2,mat2x3,mat2x4,mat3x2,mat3x3,mat3x4,mat4x2,mat4x3,mat4x4,' +
+      'sampler1D,sampler2D,sampler3D,samplerCube,samplerShadow,' +
+      'gl_Position,gl_PointSize,gl_VertexID,gl_InstanceID,' +
+      'abs,acos,asin,atan,cos,sin,tan,cosh,sinh,tanh,pow,exp,exp2,log,log2,sqrt,inversesqrt,' +
+      'sign,floor,ceil,fract,mod,min,max,clamp,mix,step,smoothstep,' +
+      'length,distance,dot,cross,normalize,faceforward,reflect,refract,' +
+      'lessThan,lessThanEqual,greaterThan,greaterThanEqual,equal,notEqual,any,all,not,' +
+      'texture,textureLod,textureProj');
+  End;
+
   SynEdit1.Highlighter := SynAnySyn1;
-  SynEdit2.Highlighter := SynAnySyn1;
+  SynEdit2.Highlighter := SynAnySyn2;
 
   // Init dglOpenGL.pas , Teil 1
   If Not InitOpenGl Then Begin
@@ -552,10 +550,6 @@ Begin
   Timer1.Interval := 17;
   MouseX := 0;
   MouseY := 0;
-  OpenDialog1.Filter := 'Shader Lab Project (*.ini)|*.ini|All files (*.*)|*.*';
-  OpenDialog1.DefaultExt := 'ini';
-  SaveDialog1.Filter := 'Shader Lab Project (*.ini)|*.ini|All files (*.*)|*.*';
-  SaveDialog1.DefaultExt := 'ini';
 
   // Initialize both editors with default shaders
   SynEdit1.Text := DefaultFragmentSrc;
