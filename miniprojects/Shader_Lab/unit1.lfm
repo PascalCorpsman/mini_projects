@@ -8,7 +8,7 @@ object Form1: TForm1
   ClientHeight = 654
   ClientWidth = 1184
   Position = poScreenCenter
-  LCLVersion = '4.99.0.0'
+  LCLVersion = '5.99.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   object OpenGLControl1: TOpenGLControl
@@ -39,35 +39,35 @@ object Form1: TForm1
     Width = 640
     Anchors = [akRight, akBottom]
     Caption = ' Uniforms'
-    ClientHeight = 124
-    ClientWidth = 636
+    ClientHeight = 126
+    ClientWidth = 638
     TabOrder = 2
     object Label1: TLabel
       Left = 16
-      Height = 15
+      Height = 16
       Top = 8
-      Width = 61
+      Width = 66
       Caption = 'uTime: 0.00'
     end
     object Label2: TLabel
       Left = 16
-      Height = 15
+      Height = 16
       Top = 32
-      Width = 92
+      Width = 102
       Caption = 'uResolution: 0 x 0'
     end
     object Label3: TLabel
       Left = 16
-      Height = 15
+      Height = 16
       Top = 56
-      Width = 72
+      Width = 77
       Caption = 'uMouse: 0 / 0'
     end
     object Label4: TLabel
       Left = 16
-      Height = 15
+      Height = 16
       Top = 80
-      Width = 167
+      Width = 184
       Caption = 'Active shader: Fragment Shader'
     end
   end
@@ -89,35 +89,29 @@ object Form1: TForm1
     Height = 384
     Top = 40
     Width = 520
-    ActivePage = TabSheet2
+    ActivePage = TabSheet1
     Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 1
     TabOrder = 4
-    object TabSheet1: TTabSheet
-      Caption = 'Fragment Shader'
-      ClientHeight = 356
-      ClientWidth = 512
-      inline SynEdit1: TSynEdit
+    object TabSheet2: TTabSheet
+      Caption = 'Vertex Shader'
+      ClientHeight = 357
+      ClientWidth = 518
+      inline SynEdit2: TSynEdit
         Left = 0
-        Height = 356
+        Height = 357
         Top = 0
-        Width = 512
+        Width = 518
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
-        Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
         Font.Style = [fsBold]
-        ParentColor = False
-        ParentFont = False
         TabOrder = 0
-        OnKeyDown = SynEdit1KeyDown
-        Gutter.Width = 57
-        Gutter.MouseActions = <>
-        RightGutter.Width = 0
-        RightGutter.MouseActions = <>
-        Highlighter = SynAnySyn1
-        Keystrokes = <        
+        OnKeyDown = SynEdit2KeyDown
+        Highlighter = SynAnySyn2
+        KeyStrokes.ForceSaveToLfm = True
+        KeyStrokes = <        
           item
             Command = ecUp
             ShortCut = 38
@@ -538,108 +532,42 @@ object Form1: TForm1
             Command = ecColSelEditorBottom
             ShortCut = 57379
           end>
-        MouseActions = <>
-        MouseTextActions = <>
-        MouseSelActions = <>
         Lines.Strings = (
-          'SynEdit1'
+          'SynEdit2'
         )
-        VisibleSpecialChars = [vscSpace, vscTabAtLast]
-        SelectedColor.ForePriority = 50
-        SelectedColor.BackPriority = 50
-        SelectedColor.FramePriority = 50
-        SelectedColor.BoldPriority = 50
-        SelectedColor.ItalicPriority = 50
-        SelectedColor.UnderlinePriority = 50
-        SelectedColor.StrikeOutPriority = 50
-        SelectedColor.ExtendPastEol = True
-        IncrementColor.ExtendPastEol = False
-        BracketHighlightStyle = sbhsBoth
-        BracketMatchColor.Foreground = clNone
-        BracketMatchColor.Background = clNone
-        BracketMatchColor.Style = [fsBold]
-        FoldedCodeColor.Foreground = clGray
-        FoldedCodeColor.Background = clNone
-        FoldedCodeColor.FrameColor = clGray
-        MouseLinkColor.Foreground = clBlue
-        MouseLinkColor.Background = clNone
-        LineHighlightColor.Foreground = clNone
-        LineHighlightColor.Background = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 24
-            MouseActions = <>
-            MaxExtraMarksColums = 0
-            Options = [sgmoDeDuplicateMarksOnOverflow]
-            MarkupInfo.Background = clBtnFace
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 17
-            MouseActions = <>
-            MarkupInfo.Background = clBtnFace
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
-            DigitCount = 2
-            ShowOnlyLineNumbersMultiplesOf = 1
-            ZeroStart = False
-            LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 4
-            MouseActions = <>
-            ModifiedColor = 59900
-            SavedColor = clGreen
-            MarkupInfo.Foreground = clGreen
-            MarkupInfo.FrameColor = 59900
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 2
-            MouseActions = <>
-            MarkupInfo.Foreground = clGray
-            MarkupInfo.Background = clWhite
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            MouseActions = <>
-            MarkupInfo.Foreground = clGray
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
-            MouseActionsExpanded = <>
-            MouseActionsCollapsed = <>
           end
         end
       end
     end
-    object TabSheet2: TTabSheet
-      Caption = 'Vertex Shader'
-      ClientHeight = 356
-      ClientWidth = 512
-      inline SynEdit2: TSynEdit
+    object TabSheet1: TTabSheet
+      Caption = 'Fragment Shader'
+      ClientHeight = 357
+      ClientWidth = 518
+      inline SynEdit1: TSynEdit
         Left = 0
-        Height = 356
+        Height = 357
         Top = 0
-        Width = 512
+        Width = 518
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
-        Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
         Font.Style = [fsBold]
-        ParentColor = False
-        ParentFont = False
         TabOrder = 0
-        OnKeyDown = SynEdit2KeyDown
-        Gutter.Width = 57
-        Gutter.MouseActions = <>
-        RightGutter.Width = 0
-        RightGutter.MouseActions = <>
-        Highlighter = SynAnySyn2
-        Keystrokes = <        
+        OnKeyDown = SynEdit1KeyDown
+        Highlighter = SynAnySyn1
+        KeyStrokes.ForceSaveToLfm = True
+        KeyStrokes = <        
           item
             Command = ecUp
             ShortCut = 38
@@ -1060,79 +988,19 @@ object Form1: TForm1
             Command = ecColSelEditorBottom
             ShortCut = 57379
           end>
-        MouseActions = <>
-        MouseTextActions = <>
-        MouseSelActions = <>
         Lines.Strings = (
-          'SynEdit2'
+          'SynEdit1'
         )
-        VisibleSpecialChars = [vscSpace, vscTabAtLast]
-        SelectedColor.ForePriority = 50
-        SelectedColor.BackPriority = 50
-        SelectedColor.FramePriority = 50
-        SelectedColor.BoldPriority = 50
-        SelectedColor.ItalicPriority = 50
-        SelectedColor.UnderlinePriority = 50
-        SelectedColor.StrikeOutPriority = 50
-        SelectedColor.ExtendPastEol = True
-        IncrementColor.ExtendPastEol = False
-        BracketHighlightStyle = sbhsBoth
-        BracketMatchColor.Foreground = clNone
-        BracketMatchColor.Background = clNone
-        BracketMatchColor.Style = [fsBold]
-        FoldedCodeColor.Foreground = clGray
-        FoldedCodeColor.Background = clNone
-        FoldedCodeColor.FrameColor = clGray
-        MouseLinkColor.Foreground = clBlue
-        MouseLinkColor.Background = clNone
-        LineHighlightColor.Foreground = clNone
-        LineHighlightColor.Background = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 24
-            MouseActions = <>
-            MaxExtraMarksColums = 0
-            Options = [sgmoDeDuplicateMarksOnOverflow]
-            MarkupInfo.Background = clBtnFace
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 17
-            MouseActions = <>
-            MarkupInfo.Background = clBtnFace
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
-            DigitCount = 2
-            ShowOnlyLineNumbersMultiplesOf = 1
-            ZeroStart = False
-            LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 4
-            MouseActions = <>
-            ModifiedColor = 59900
-            SavedColor = clGreen
-            MarkupInfo.Foreground = clGreen
-            MarkupInfo.FrameColor = 59900
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 2
-            MouseActions = <>
-            MarkupInfo.Foreground = clGray
-            MarkupInfo.Background = clWhite
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            MouseActions = <>
-            MarkupInfo.Foreground = clGray
-            MarkupInfoCurrentLine.Foreground = clNone
-            MarkupInfoCurrentLine.Background = clNone
-            MouseActionsExpanded = <>
-            MouseActionsCollapsed = <>
           end
         end
       end

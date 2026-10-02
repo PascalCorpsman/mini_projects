@@ -101,29 +101,44 @@ Var
   ShaderProgram: GLuint;
   VAO: GLuint; // Vertex Array Object
   VBO: GLuint; // Vertex Buffer Object
+  DemoTexture: GLuint;
   StartTime: Double;
   CurrentVertexShader: GLuint;
   CurrentFragmentShader: GLuint;
   MouseX: Integer;
   MouseY: Integer;
+  MouseXNorm: Single;
+  MouseYNorm: Single;
 
 Implementation
 
 {$R *.lfm}
 
-Uses LCLType;
+Uses LCLType, math;
 
 { TForm1 }
 
 Procedure Tform1.Go2d();
 Var
   LocRes: GLint;
+  LocMouse: GLint;
+  LocTex: GLint;
 Begin
   If ShaderProgram <> 0 Then Begin
     glUseProgram(ShaderProgram);
     LocRes := glGetUniformLocation(ShaderProgram, 'uResolution');
     If LocRes >= 0 Then
       glUniform2f(LocRes, OpenGLControl1.Width, OpenGLControl1.Height);
+    LocMouse := glGetUniformLocation(ShaderProgram, 'uMouse');
+    If LocMouse >= 0 Then
+      glUniform2f(LocMouse, MouseXNorm, MouseYNorm);
+    If DemoTexture <> 0 Then Begin
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, DemoTexture);
+      LocTex := glGetUniformLocation(ShaderProgram, 'uTexture');
+      If LocTex >= 0 Then
+        glUniform1i(LocTex, 0);
+    End;
   End;
   glBindVertexArray(VAO);
 End;
@@ -134,12 +149,78 @@ Begin
   glUseProgram(0);
 End;
 
+Function CreateCheckerTexture: GLuint;
+Var
+  Pixels: Array Of Byte;
+  X, Y: Integer;
+  QuadX, QuadY: Integer;
+  TileIsWhite: Boolean;
+  Index: Integer;
+  R, G, B: Byte;
+  Tex: GLuint;
+Begin
+  SetLength(Pixels, 256 * 256 * 4);
+  For Y := 0 To 255 Do Begin
+    For X := 0 To 255 Do Begin
+      TileIsWhite := (((X Div 16) + (Y Div 16)) Mod 2) = 0;
+      QuadX := X Div 128;
+      QuadY := Y Div 128;
+
+      If TileIsWhite Then Begin
+        Case (QuadY * 2) + QuadX Of
+          0: Begin
+              R := 255;
+              G := 0;
+              B := 0;
+            End; // top-left: red
+          1: Begin
+              R := 0;
+              G := 0;
+              B := 255;
+            End; // top-right: blue
+          2: Begin
+              R := 0;
+              G := 255;
+              B := 0;
+            End; // bottom-left: green
+        Else
+          R := 255;
+          G := 255;
+          B := 255; // bottom-right: white
+        End;
+      End
+      Else Begin
+        R := 0;
+        G := 0;
+        B := 0;
+      End;
+
+      Index := ((Y * 256) + X) * 4;
+      Pixels[Index + 0] := R;
+      Pixels[Index + 1] := G;
+      Pixels[Index + 2] := B;
+      Pixels[Index + 3] := 255;
+    End;
+  End;
+
+  glGenTextures(1, @Tex);
+  glBindTexture(GL_TEXTURE_2D, Tex);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, @Pixels[0]);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  Result := Tex;
+End;
+
 Function TForm1.LoadTextBlock(Ini: TCustomIniFile; Const Section, DefaultText: String): String;
 Var
   LineCount: Integer;
   Lines: TStringList;
   I: Integer;
-  KeyName: String;
+  s, KeyName: String;
 Begin
   LineCount := Ini.ReadInteger(Section, 'LineCount', -1);
   If LineCount < 0 Then Begin
@@ -151,7 +232,12 @@ Begin
   Try
     For I := 0 To LineCount - 1 Do Begin
       KeyName := Format('Line%.4d', [I]);
-      Lines.Add(Ini.ReadString(Section, KeyName, ''));
+      s := Ini.ReadString(Section, KeyName, '');
+      If pos('"', s) = 1 Then Begin
+        delete(s, 1, 1);
+        delete(s, length(s), 1);
+      End;
+      Lines.Add(s);
     End;
     Result := Lines.Text;
   Finally
@@ -170,7 +256,7 @@ Begin
     Ini.EraseSection(Section);
     Ini.WriteInteger(Section, 'LineCount', Lines.Count);
     For I := 0 To Lines.Count - 1 Do
-      Ini.WriteString(Section, Format('Line%.4d', [I]), Lines[I]);
+      Ini.WriteString(Section, Format('Line%.4d', [I]), '"' + Lines[I] + '"');
   Finally
     Lines.Free;
   End;
@@ -183,7 +269,7 @@ Begin
   elapsed := (GetTickCount64 - StartTime) / 1000.0;
   Label1.Caption := 'uTime: ' + FormatFloat('0.00', elapsed);
   Label2.Caption := 'uResolution: ' + IntToStr(OpenGLControl1.Width) + ' x ' + IntToStr(OpenGLControl1.Height);
-  Label3.Caption := 'uMouse: ' + IntToStr(MouseX) + ' / ' + IntToStr(MouseY);
+  Label3.Caption := 'uMouse: ' + FormatFloat('0.000', MouseXNorm) + ' / ' + FormatFloat('0.000', MouseYNorm);
   If Assigned(PageControl1.ActivePage) Then
     Label4.Caption := 'Active shader: ' + PageControl1.ActivePage.Caption
   Else
@@ -195,12 +281,15 @@ Const
   '#version 330 core'#10 +
     'layout(location = 0) in vec2 aPos;'#10 +
     'out vec2 fragCoord;'#10 +
+    'out vec2 texCoord;'#10 +
     'uniform vec2 uResolution;'#10 +
+    'uniform vec2 uMouse;'#10 +
     'uniform float uTime;'#10 +
     '// most simple transformation'#10 +
     'void main()'#10 +
     '{'#10 +
     '  fragCoord = aPos * uResolution;'#10 +
+    '  texCoord = aPos;'#10 +
     '  vec2 ndc = aPos * 2.0 - 1.0;'#10 +
     '  gl_Position = vec4(ndc, 0.0, 1.0);'#10 +
     '}'
@@ -209,8 +298,11 @@ Const
   DefaultFragmentSrc: PChar =
   '#version 330 core'#10 +
     'in vec2 fragCoord;'#10 +
+    'in vec2 texCoord;'#10 +
     'uniform vec2 uResolution;'#10 +
+    'uniform vec2 uMouse;'#10 +
     'uniform float uTime;'#10 +
+    'uniform sampler2D uTexture;'#10 +
     'out vec4 FragColor;'#10 +
     '// demo shader'#10 +
     'void main()'#10 +
@@ -305,6 +397,7 @@ Begin
     ShaderProgram := CreateShaderProgram(DefaultVertexSrc, DefaultFragmentSrc);
     glGenVertexArrays(1, @VAO);
     glGenBuffers(1, @VBO);
+    DemoTexture := CreateCheckerTexture;
 
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
@@ -315,7 +408,7 @@ End;
 
 Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
 Var
-  vertices: Array[0..7] Of GLfloat;
+  vertices: Array[0..15] Of GLfloat;
   locTime: GLint;
   elapsed: Double;
 Begin
@@ -331,18 +424,28 @@ Begin
 
   // Fullscreen Quad (0,0)-(1,1)
   vertices[0] := 0.0;
-  vertices[1] := 0.0; // bottom-left
-  vertices[2] := 1.0;
-  vertices[3] := 0.0; // bottom-right
-  vertices[4] := 0.0;
-  vertices[5] := 1.0; // top-left
+  vertices[1] := 0.0;
+  vertices[2] := 0.0;
+  vertices[3] := 0.0; // bottom-left
+  vertices[4] := 1.0;
+  vertices[5] := 0.0;
   vertices[6] := 1.0;
-  vertices[7] := 1.0; // top-right
+  vertices[7] := 0.0; // bottom-right
+  vertices[8] := 0.0;
+  vertices[9] := 1.0;
+  vertices[10] := 0.0;
+  vertices[11] := 1.0; // top-left
+  vertices[12] := 1.0;
+  vertices[13] := 1.0;
+  vertices[14] := 1.0;
+  vertices[15] := 1.0; // top-right
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, SizeOf(vertices), @vertices[0], GL_DYNAMIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, Nil);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Nil);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * SizeOf(GLfloat), Pointer(2 * SizeOf(GLfloat)));
 
   // Pass time to shader
   elapsed := (GetTickCount64 - StartTime) / 1000.0;
@@ -368,19 +471,33 @@ End;
 Procedure TForm1.SynEdit1KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Begin
-  If key = VK_F9 Then Button1.Click;
+  If key = VK_F9 Then Begin
+    Button1.Click;
+  End;
 End;
 
 Procedure TForm1.SynEdit2KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Begin
-  If key = VK_F9 Then Button1.Click;
+  If key = VK_F9 Then Begin
+    Button1.Click;
+  End;
 End;
 
 Procedure TForm1.OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 Begin
   MouseX := X;
   MouseY := Y;
+  If OpenGLControl1.Width > 0 Then
+    MouseXNorm := X / OpenGLControl1.Width
+  Else
+    MouseXNorm := 0;
+  If OpenGLControl1.Height > 0 Then
+    MouseYNorm := Y / OpenGLControl1.Height
+  Else
+    MouseYNorm := 0;
+  MouseXNorm := EnsureRange(MouseXNorm, 0, 1);
+  MouseYNorm := EnsureRange(MouseYNorm, 0, 1);
   UpdateUniformPanel;
 End;
 
@@ -433,14 +550,17 @@ End;
 
 Procedure TForm1.Button2Click(Sender: TObject);
 Begin
-  If OpenDialog1.Execute Then
+  If OpenDialog1.Execute Then Begin
     LoadProjectFromFile(OpenDialog1.FileName);
+  End;
 End;
 
 Procedure TForm1.Button3Click(Sender: TObject);
 Begin
-  If SaveDialog1.Execute Then
+  SaveDialog1.FileName := OpenDialog1.FileName;
+  If SaveDialog1.Execute Then Begin
     SaveProjectToFile(SaveDialog1.FileName);
+  End;
 End;
 
 Procedure TForm1.LoadProjectFromFile(Const AFileName: String);
@@ -455,7 +575,7 @@ Begin
     Memo1.Clear;
     Memo1.Lines.Add('Loaded project: ' + ExtractFileName(AFileName));
     UpdateUniformPanel;
-
+    caption := defcaption + ': ' + ExtractFileName(AFileName);
     If Initialized Then
       Button1Click(Self);
   Finally
@@ -477,6 +597,7 @@ Begin
     Ini.UpdateFile;
     Memo1.Clear;
     Memo1.Lines.Add('Saved project: ' + ExtractFileName(AFileName));
+    caption := defcaption + ': ' + ExtractFileName(AFileName);
   Finally
     Ini.Free;
   End;
@@ -487,6 +608,7 @@ Begin
   (*
    * Missing features:
    * - Code formater
+   * - Maus Koordinaten via universal zur Verfügung stellen
    *)
   defcaption := 'Shader Lab ver.: 0.01 by Corpsman, www.Corpsman.de';
   caption := defcaption;
@@ -530,9 +652,6 @@ Begin
       'texture,textureLod,textureProj');
   End;
 
-  SynEdit1.Highlighter := SynAnySyn1;
-  SynEdit2.Highlighter := SynAnySyn2;
-
   // Init dglOpenGL.pas , Teil 1
   If Not InitOpenGl Then Begin
     showmessage('Error, could not init dglOpenGL.pas');
@@ -555,12 +674,12 @@ Begin
   SynEdit1.Text := DefaultFragmentSrc;
   SynEdit2.Text := DefaultVertexSrc;
 
-  // Set tab titles
-  PageControl1.ActivePageIndex := 0;
-  TabSheet1.Caption := 'Fragment Shader';
-  TabSheet2.Caption := 'Vertex Shader';
+  PageControl1.ActivePageIndex := 1; // Default Fragment Shader
 
   StartTime := GetTickCount64;
+  MouseXNorm := 0;
+  MouseYNorm := 0;
+  DemoTexture := 0;
   UpdateUniformPanel;
 End;
 
@@ -573,6 +692,8 @@ Begin
       glDeleteVertexArrays(1, @VAO);
     If VBO <> 0 Then
       glDeleteBuffers(1, @VBO);
+    If DemoTexture <> 0 Then
+      glDeleteTextures(1, @DemoTexture);
   End;
 End;
 
