@@ -24,5 +24,7 @@ Try these tasks directly in the app to get a feel for how shaders work:
 4. Draw a circle with `distance()`.
 5. Use `step()` or `smoothstep()` to create a mask.
 6. Animate a value with `uTime` and `sin()`.
-7. Modify the vertex shader to scale, move, or rotate the quad.
-8. Compare `fragCoord`, `uv`, and `gl_FragCoord` to understand where each coordinate comes from.
+7. Drive color or shape changes with `uMouse`.
+8. Modify the vertex shader to scale, move, or rotate the quad.
+9. Compare `fragCoord`, `uv`, `uMouse`, and `gl_FragCoord` to understand where each coordinate comes from.
+10. Display the generated checkerboard texture by sampling a `sampler2D`.
