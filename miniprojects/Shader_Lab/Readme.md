@@ -13,6 +13,13 @@ It is intentionally kept compact so you can change shader code, compile it immed
 - Basic GLSL syntax highlighting
 - Uniforms for time and resolution
 - A minimal OpenGL 2D preview setup
+- Simple code formater (press CTRL +D)
+
+Dependencies:
+- OpenGL ([dglOpenGL](https://github.com/saschawillems/dglopengl) and TOpenGLControl from the LCL)
+  
+Needed Lazarus packages:
+- LazOpenGLContext
 
 ## First Exercises
 

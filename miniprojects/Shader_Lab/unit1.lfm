@@ -89,9 +89,9 @@ object Form1: TForm1
     Height = 384
     Top = 40
     Width = 520
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 4
     object TabSheet2: TTabSheet
       Caption = 'Vertex Shader'
@@ -1024,6 +1024,15 @@ object Form1: TForm1
     TabOrder = 6
     OnClick = Button3Click
   end
+  object Button4: TButton
+    Left = 368
+    Height = 25
+    Top = 8
+    Width = 160
+    Caption = 'Replace texture with'
+    TabOrder = 7
+    OnClick = Button4Click
+  end
   object Timer1: TTimer
     OnTimer = Timer1Timer
     Left = 112
@@ -1063,5 +1072,11 @@ object Form1: TForm1
     ActiveDot = False
     Left = 304
     Top = 128
+  end
+  object OpenDialog2: TOpenDialog
+    DefaultExt = '.png; .jpg; .bmp'
+    Filter = 'Image|*.png; *.JPG; *.bmp|All|*'
+    Left = 464
+    Top = 16
   end
 end

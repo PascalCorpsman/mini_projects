@@ -36,6 +36,7 @@ Uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, IniFiles,
   OpenGlcontext, SynEdit, SynHighlighterAny,
+  FPImage,
   (*
    * Kommt ein Linkerfehler wegen OpenGL dann: sudo apt-get install freeglut3-dev
    *)
@@ -50,6 +51,7 @@ Type
     Button1: TButton;
     Button2: TButton;
     Button3: TButton;
+    Button4: TButton;
     GroupBox1: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
@@ -57,6 +59,7 @@ Type
     Label4: TLabel;
     Memo1: TMemo;
     OpenDialog1: TOpenDialog;
+    OpenDialog2: TOpenDialog;
     OpenGLControl1: TOpenGLControl;
     PageControl1: TPageControl;
     SaveDialog1: TSaveDialog;
@@ -70,6 +73,7 @@ Type
     Procedure Button1Click(Sender: TObject);
     Procedure Button2Click(Sender: TObject);
     Procedure Button3Click(Sender: TObject);
+    Procedure Button4Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
@@ -89,6 +93,7 @@ Type
     Procedure LoadProjectFromFile(Const AFileName: String);
     Procedure SaveProjectToFile(Const AFileName: String);
     Procedure UpdateUniformPanel;
+    Function LoadImageAsTexture(Const AFileName: String): GLuint;
   public
     { public declarations }
     Procedure Go2d();
@@ -114,7 +119,7 @@ Implementation
 
 {$R *.lfm}
 
-Uses LCLType, math;
+Uses LCLType, math, ushader_formator;
 
 { TForm1 }
 
@@ -470,17 +475,31 @@ End;
 
 Procedure TForm1.SynEdit1KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
+Var
+  p: TPoint;
 Begin
   If key = VK_F9 Then Begin
     Button1.Click;
+  End;
+  If (ssCtrl In Shift) And (key = VK_D) Then Begin
+    p := SynEdit1.CaretXY;
+    SynEdit1.Text := FormatShaderProgramm(SynEdit1.Text);
+    SynEdit1.CaretXY := p;
   End;
 End;
 
 Procedure TForm1.SynEdit2KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
+Var
+  p: TPoint;
 Begin
   If key = VK_F9 Then Begin
     Button1.Click;
+  End;
+  If (ssCtrl In Shift) And (key = VK_D) Then Begin
+    p := SynEdit2.CaretXY;
+    SynEdit2.Text := FormatShaderProgramm(SynEdit2.Text);
+    SynEdit2.CaretXY := p;
   End;
 End;
 
@@ -560,6 +579,78 @@ Begin
   SaveDialog1.FileName := OpenDialog1.FileName;
   If SaveDialog1.Execute Then Begin
     SaveProjectToFile(SaveDialog1.FileName);
+  End;
+End;
+
+Procedure TForm1.Button4Click(Sender: TObject);
+Var
+  NewTex: GLuint;
+Begin
+  // Der User kann eine "eigene" Graphik laden
+  If OpenDialog2.Execute Then Begin
+    If Initialized Then Begin
+      NewTex := LoadImageAsTexture(OpenDialog2.FileName);
+      If NewTex <> 0 Then Begin
+        If DemoTexture <> 0 Then Begin
+          If OpenGLControl1.MakeCurrent Then
+            glDeleteTextures(1, @DemoTexture);
+        End;
+        DemoTexture := NewTex;
+        Memo1.Clear;
+        Memo1.Append('Loaded texture: ' + ExtractFileName(OpenDialog2.FileName));
+        OpenGLControl1.Invalidate;
+      End
+      Else Begin
+        Memo1.Clear;
+        Memo1.Append('Failed to load image: ' + ExtractFileName(OpenDialog2.FileName));
+      End;
+    End;
+  End;
+End;
+
+Function TForm1.LoadImageAsTexture(Const AFileName: String): GLuint;
+Var
+  Image: TFPMemoryImage;
+  X, Y, Idx: Integer;
+  Pixels: Array Of Byte;
+  C: TFPColor;
+  Tex: GLuint;
+  W, H: Integer;
+Begin
+  Result := 0;
+  Image := TFPMemoryImage.Create(0, 0);
+  Try
+    Try
+      Image.LoadFromFile(AFileName);
+      W := Image.Width;
+      H := Image.Height;
+      If (W = 0) Or (H = 0) Then
+        Exit;
+      SetLength(Pixels, W * H * 4);
+      For Y := 0 To H - 1 Do Begin
+        For X := 0 To W - 1 Do Begin
+          C := Image.Colors[X, Y];
+          Idx := ((Y * W) + X) * 4;
+          Pixels[Idx + 0] := C.Red Shr 8;
+          Pixels[Idx + 1] := C.Green Shr 8;
+          Pixels[Idx + 2] := C.Blue Shr 8;
+          Pixels[Idx + 3] := C.Alpha Shr 8;
+        End;
+      End;
+      glGenTextures(1, @Tex);
+      glBindTexture(GL_TEXTURE_2D, Tex);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, W, H, 0, GL_RGBA, GL_UNSIGNED_BYTE, @Pixels[0]);
+      glBindTexture(GL_TEXTURE_2D, 0);
+      Result := Tex;
+    Except
+      Result := 0;
+    End;
+  Finally
+    Image.Free;
   End;
 End;
 
