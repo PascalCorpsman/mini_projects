@@ -87,6 +87,7 @@ Const
    *                   FIX: Right mouse scroll glitch
    *            0.14 - ADD: Convert to shader rendering instead of legacy mode
    *                   FIX: crash, when selected image has width/ height of 0
+   *                   ADD: Speedup Floodfill operation
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -114,6 +115,7 @@ Type
 
   TPixelEditor = Class
   private
+    Form1CaptionChanged: Boolean; // Merkt sich ob wir den * in der Form Caption gesetzt haben, true wenn gesetzt, das spart bei Pixelintensiven Operationen irre viel (floodfill mit 1000x1000 Bild braucht dann 1000ms anstatt 1700ms)
     fCriticalError: String; // Der Kommt wenn beim Laden eine Graphik nicht geladen werden konnte
 
     fDarkBrightMask: Array Of Array Of Boolean; // Während eines MouseDown Zyklus kann jeder Pixel nur 1 mal heller / Dunkler gemacht werden !
@@ -839,7 +841,12 @@ Begin
         tEraser, tPen, tMirror,
           tLine, tEllipse, tBucket,
           tRectangle: Begin
-            fUndo.StartNewRecording;
+            If fCursor.Tool = tBucket Then Begin
+              fUndo.StartNewRecording(fImage.Width * fImage.Height);
+            End
+            Else Begin
+              fUndo.StartNewRecording;
+            End;
             If PencilButton.Style = bsRaised Then
               CursorToPixelOperation(@SetImagePixelByCursor);
           End;
@@ -1856,9 +1863,9 @@ End;
 
 Procedure TPixelEditor.Change;
 Begin
-  If fImage.Changed And (pos('*', form1.caption) = 0) Then Begin
-    form1.caption := form1.caption + '*';
-  End;
+  If Form1CaptionChanged Then exit;
+  Form1CaptionChanged := true;
+  form1.caption := form1.caption + '*';
 End;
 
 Procedure TPixelEditor.RescaleImageTo(aWidth, aHeight: integer; sm: TScaleMode);
@@ -2122,6 +2129,7 @@ Begin
   fUndo.Clear;
   SetZoom(1000);
   fImage.SetSize(aWidth, aHeight);
+  OpenGL_ShaderPrimitives_IncreaseVertexBufferToAtLeast(aWidth * aHeight);
   setlength(fDarkBrightMask, aWidth, aHeight);
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
@@ -2482,6 +2490,7 @@ Procedure TPixelEditor.SaveImage(Const aFilename: String);
 Begin
   If SaveTImage(fImage, aFileName) Then Begin
     form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
+    Form1CaptionChanged := false;
     Application.Title := ExtractFileName(aFilename);
   End;
 End;
@@ -2607,6 +2616,7 @@ Begin
     End;
   End;
   form1.caption := defcaption + ', ' + ExtractFileName(aFilename);
+  Form1CaptionChanged := false;
   Application.Title := ExtractFileName(aFilename);
   fScrollInfo.GlobalXOffset := 0;
   fScrollInfo.GlobalYOffset := 0;
@@ -2851,6 +2861,7 @@ End;
 Constructor TPixelEditor.Create;
 Begin
   Inherited Create;
+  Form1CaptionChanged := false;
   fCriticalError := '';
   fImage := TPixelImage.Create();
   fUndo := TUndoEngine.Create();

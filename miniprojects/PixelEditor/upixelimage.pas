@@ -114,18 +114,37 @@ Var
   Visited: Array Of Array Of Boolean;
   Fifo: TPointFifo;
 Var
-  i, j: Integer;
+  i, LeftX, RightX, j: Integer;
   p: TPoint;
+
+  Procedure QueueSpans(RowY: Integer);
+  Var
+    ScanX: Integer;
+    InSpan: Boolean;
+  Begin
+    If (RowY < 0) Or (RowY >= Height) Then exit;
+    InSpan := false;
+    For ScanX := LeftX To RightX Do Begin
+      If Visited[ScanX, RowY] Then Begin
+        InSpan := false;
+      End
+      Else If ColorMatch(SourceColor, GetColorAt(ScanX, RowY), Toleranz) Then Begin
+        If Not InSpan Then Begin
+          Fifo.Push(point(ScanX, RowY));
+          InSpan := true;
+        End;
+      End
+      Else Begin
+        InSpan := false;
+      End;
+    End;
+  End;
+
 Begin
   BeginUpdate;
   Visited := Nil;
   Fifo := TPointFifo.create(Width * Height);
   setlength(Visited, Width, Height);
-  For i := 0 To Width - 1 Do Begin
-    For j := 0 To Height - 1 Do Begin
-      Visited[i, j] := false;
-    End;
-  End;
   fifo.Push(point(aPos.X, aPos.y));
   While Not fifo.isempty Do Begin
     p := Fifo.Pop;
@@ -134,11 +153,24 @@ Begin
       (Not Visited[p.x, p.y]) Then Begin
       Visited[p.x, p.y] := true;
       If ColorMatch(SourceColor, GetColorAt(p.x, p.y), Toleranz) Then Begin
-        Callback(p.x, p.y);
-        fifo.Push(point(p.x + 1, p.y));
-        fifo.Push(point(p.x - 1, p.y));
-        fifo.Push(point(p.x, p.y - 1));
-        fifo.Push(point(p.x, p.y + 1));
+        LeftX := p.x;
+        While LeftX > 0 Do Begin
+          If Visited[LeftX - 1, p.y] Then break;
+          If Not ColorMatch(SourceColor, GetColorAt(LeftX - 1, p.y), Toleranz) Then break;
+          dec(LeftX);
+        End;
+        RightX := p.x;
+        While RightX < Width - 1 Do Begin
+          If Visited[RightX + 1, p.y] Then break;
+          If Not ColorMatch(SourceColor, GetColorAt(RightX + 1, p.y), Toleranz) Then break;
+          inc(RightX);
+        End;
+        For i := LeftX To RightX Do Begin
+          Visited[i, p.y] := true;
+          Callback(i, p.y);
+        End;
+        QueueSpans(p.y - 1);
+        QueueSpans(p.y + 1);
       End;
     End;
   End;

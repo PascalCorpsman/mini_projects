@@ -21,9 +21,6 @@ Interface
 Uses
   Classes, SysUtils, ugraphics, upixelimage, upixeleditor_types;
 
-Const
-  RecordChunkSize = 1024;
-
 Type
 
   TRecordingKind = (rkUnknown, rkPixelChange, rkSizeChange);
@@ -52,6 +49,7 @@ Type
     faRecord: TRecord;
     // Hilfen für den Aufbau des Aktuellen Record
     fPixelChangeRecordCount: integer;
+    FRecordChunkSize: integer;
   public
     Constructor Create(); virtual;
     Destructor Destroy(); override;
@@ -61,7 +59,7 @@ Type
     (*
      * Startet ein neues Recording, mus also immer als 1. aufgerufen werden
      *)
-    Procedure StartNewRecording;
+    Procedure StartNewRecording(aRecordChunkSize: integer = 1024);
 
     Procedure RecordPixelChange(x, y: integer; from: TRGBA); // Zeichnet eine Pixeländerung auf
     Procedure RecordSizeChange(NewHeight, NewWidth: Integer; ScaleMode: TScaleMode; Const Image: TPixelImage);
@@ -86,6 +84,7 @@ Uses math;
 Constructor TUndoEngine.Create;
 Begin
   Inherited Create;
+  FRecordChunkSize := 1024;
   fRecordings := Nil;
   faRecord.Kind := rkUnknown;
   faRecord.PixelChange := Nil;
@@ -107,14 +106,15 @@ Begin
   setlength(faRecord.PixelChange, 0);
   fRecordings := Nil;
   faRecord.Kind := rkUnknown;
-  setlength(faRecord.PixelChange, RecordChunkSize);
+  setlength(faRecord.PixelChange, fRecordChunkSize);
   fPixelChangeRecordCount := 0;
 End;
 
-Procedure TUndoEngine.StartNewRecording;
+Procedure TUndoEngine.StartNewRecording(aRecordChunkSize: integer);
 Begin
   faRecord.Kind := rkUnknown;
-  setlength(faRecord.PixelChange, RecordChunkSize);
+  fRecordChunkSize := aRecordChunkSize;
+  setlength(faRecord.PixelChange, fRecordChunkSize);
   fPixelChangeRecordCount := 0;
 End;
 
@@ -133,7 +133,7 @@ Begin
   faRecord.PixelChange[fPixelChangeRecordCount].From := from;
   inc(fPixelChangeRecordCount);
   If (fPixelChangeRecordCount > high(faRecord.PixelChange)) Then Begin
-    setlength(faRecord.PixelChange, length(faRecord.PixelChange) + RecordChunkSize);
+    setlength(faRecord.PixelChange, length(faRecord.PixelChange) + fRecordChunkSize);
   End;
 End;
 

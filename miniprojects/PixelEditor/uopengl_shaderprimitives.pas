@@ -54,6 +54,7 @@ Uses
  * Call once during Make Current
  *)
 Procedure OpenGL_ShaderPrimitives_InitializeShaderSystem;
+Procedure OpenGL_ShaderPrimitives_IncreaseVertexBufferToAtLeast(aNewSize: Integer); // This is a speed optimization function, its call is optional
 
 (*
  * Call once during destroy
@@ -109,6 +110,7 @@ Implementation
 
 Const
   VertexBufferBlockSize = 1024;
+  PointBatchSize = 16384;
 
 Type
   PVector3 = ^TVector3;
@@ -119,6 +121,7 @@ Var
   aShaderMode: GLenum;
   RenderVertexBuffer: Array Of TVector3;
   RenderVertexBufferCnt: integer;
+  PointVertexBuffer: Array Of TVector3;
   ShaderLineWidth: GLfloat;
   ShaderPointSize: GLfloat;
 
@@ -130,6 +133,14 @@ Begin
     glGenBuffers(1, @ShaderVBO);
   ShaderLineWidth := 1;
   ShaderPointSize := 1;
+End;
+
+Procedure OpenGL_ShaderPrimitives_IncreaseVertexBufferToAtLeast(
+  aNewSize: Integer);
+Begin
+  If aNewSize > length(RenderVertexBuffer) Then Begin
+    setlength(RenderVertexBuffer, aNewSize);
+  End;
 End;
 
 Procedure OpenGL_ShaderPrimitives_FinalizeShaderSystem;
@@ -174,16 +185,36 @@ Begin
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 End;
 
-Procedure RenderPoint(Const v: TVector3);
+Procedure RenderPoints(Const aData: PVector3; aLen: Integer);
 Var
-  Vertices: Array[0..3] Of TVector3;
+  PointOffset, BatchCount, PointIndex, VertexIndex: Integer;
+  HalfSize: Single;
+  PointValue: TVector3;
 Begin
-  Vertices[0] := v3(v.x - ShaderPointSize / 2, v.y - ShaderPointSize / 2, v.z);
-  Vertices[1] := v3(v.x - ShaderPointSize / 2, v.y + ShaderPointSize / 2, v.z);
-  Vertices[3] := v3(v.x + ShaderPointSize / 2, v.y + ShaderPointSize / 2, v.z);
-  Vertices[2] := v3(v.x + ShaderPointSize / 2, v.y - ShaderPointSize / 2, v.z);
-  glBufferData(GL_ARRAY_BUFFER, SizeOf(TVector3) * 4, @Vertices[0], GL_DYNAMIC_DRAW);
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  If aLen <= 0 Then exit;
+  BatchCount := aLen;
+  If BatchCount > PointBatchSize Then BatchCount := PointBatchSize;
+  If length(PointVertexBuffer) < BatchCount * 6 Then
+    setlength(PointVertexBuffer, BatchCount * 6);
+  HalfSize := ShaderPointSize / 2;
+  PointOffset := 0;
+  While PointOffset < aLen Do Begin
+    BatchCount := aLen - PointOffset;
+    If BatchCount > PointBatchSize Then BatchCount := PointBatchSize;
+    For PointIndex := 0 To BatchCount - 1 Do Begin
+      PointValue := aData[PointOffset + PointIndex];
+      VertexIndex := PointIndex * 6;
+      PointVertexBuffer[VertexIndex] := v3(PointValue.x - HalfSize, PointValue.y - HalfSize, PointValue.z);
+      PointVertexBuffer[VertexIndex + 1] := v3(PointValue.x - HalfSize, PointValue.y + HalfSize, PointValue.z);
+      PointVertexBuffer[VertexIndex + 2] := v3(PointValue.x + HalfSize, PointValue.y - HalfSize, PointValue.z);
+      PointVertexBuffer[VertexIndex + 3] := PointVertexBuffer[VertexIndex + 2];
+      PointVertexBuffer[VertexIndex + 4] := PointVertexBuffer[VertexIndex + 1];
+      PointVertexBuffer[VertexIndex + 5] := v3(PointValue.x + HalfSize, PointValue.y + HalfSize, PointValue.z);
+    End;
+    glBufferData(GL_ARRAY_BUFFER, SizeOf(TVector3) * BatchCount * 6, @PointVertexBuffer[0], GL_DYNAMIC_DRAW);
+    glDrawArrays(GL_TRIANGLES, 0, BatchCount * 6);
+    inc(PointOffset, BatchCount);
+  End;
 End;
 
 Procedure DoShaderData(Const aData: PVector3; aLen: Integer);
@@ -212,9 +243,7 @@ Begin
     exit;
   End;
   If (aShaderMode = GL_POINTS) Then Begin
-    For i := 0 To aLen - 1 Do Begin
-      RenderPoint(aData[i]);
-    End;
+    RenderPoints(aData, aLen);
     exit;
   End;
   //  If (ShaderLineWidth <> 1) Then Begin
@@ -292,11 +321,13 @@ End;
 Initialization
   ShaderVAO := 0;
   RenderVertexBuffer := Nil;
+  PointVertexBuffer := Nil;
   setlength(RenderVertexBuffer, VertexBufferBlockSize);
   RenderVertexBufferCnt := 0;
 
 Finalization
   setlength(RenderVertexBuffer, 0);
+  setlength(PointVertexBuffer, 0);
 
 End.
 
