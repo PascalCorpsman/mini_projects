@@ -5,6 +5,8 @@
 Shader Lab is a small experimental playground for learning modern 2D shader programming with FreePascal and OpenGL.
 It is intentionally kept compact so you can change shader code, compile it immediately, and see the result without distractions.
 
+If you are searching for a good tutorial to start you may find [this](https://www.youtube.com/watch?v=3mfvZ-mdtZQ) youtube video usefull (attention it uses GLSL 1.3, see comments below the video).
+
 ## Features
 
 - Live shader editing
