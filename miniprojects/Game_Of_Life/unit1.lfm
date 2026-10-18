@@ -1,0 +1,39 @@
+object Form1: TForm1
+  Left = 351
+  Height = 600
+  Top = 108
+  Width = 800
+  ActiveControl = OpenGLControl1
+  Caption = 'Form1'
+  ClientHeight = 600
+  ClientWidth = 800
+  Position = poScreenCenter
+  LCLVersion = '5.99.0.0'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object OpenGLControl1: TOpenGLControl
+    Left = 16
+    Height = 232
+    Top = 8
+    Width = 280
+    Anchors = [akTop, akRight]
+    OnKeyDown = OpenGLControl1KeyDown
+    OnMakeCurrent = OpenGLControl1MakeCurrent
+    OnMouseDown = OpenGLControl1MouseDown
+    OnMouseMove = OpenGLControl1MouseMove
+    OnMouseUp = OpenGLControl1MouseUp
+    OnPaint = OpenGLControl1Paint
+    OnResize = OpenGLControl1Resize
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 168
+    Top = 128
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.bmp'
+    Filter = 'Windows Bitmap|*.bmp|All|*'
+    Left = 168
+    Top = 192
+  end
+end
