@@ -93,6 +93,7 @@ Procedure OpenGL_ShaderPrimitives_FinalizeShaderSystem;
 Procedure glShaderBegin(aMode: GLenum);
 Procedure glShaderRender(Const aData: Array Of TVector3);
 Procedure glShaderVertex(Const aData: TVector3); overload;
+Procedure glShaderVertex(x, y: Single); overload;
 Procedure glShaderVertex(x, y, z: Single); overload;
 Procedure glShaderEnd();
 
@@ -290,6 +291,11 @@ Begin
   If RenderVertexBufferCnt > high(RenderVertexBuffer) Then Begin
     setlength(RenderVertexBuffer, length(RenderVertexBuffer) + VertexBufferBlockSize);
   End;
+End;
+
+Procedure glShaderVertex(x, y: Single);
+Begin
+  glShaderVertex(v3(x, y, 0));
 End;
 
 Procedure glShaderVertex(x, y, z: Single);
