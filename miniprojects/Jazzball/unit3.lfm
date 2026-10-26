@@ -1,0 +1,45 @@
+object Form3: TForm3
+  Left = 333
+  Height = 408
+  Top = 114
+  Width = 368
+  ActiveControl = Memo1
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Highscore'
+  ClientHeight = 408
+  ClientWidth = 368
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnPaint = FormPaint
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Memo1: TMemo
+    Left = 8
+    Height = 352
+    Top = 8
+    Width = 353
+    Alignment = taCenter
+    OnEnter = Memo1Enter
+    ReadOnly = True
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 368
+    Width = 161
+    Caption = '&OK'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 192
+    Height = 25
+    Top = 368
+    Width = 161
+    Caption = '&Delete'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+end
