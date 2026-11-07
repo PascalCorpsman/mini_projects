@@ -66,6 +66,7 @@ Type
     SaveDialog1: TSaveDialog;
     Timer1: TTimer;
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
     Procedure MenuItem4Click(Sender: TObject);
@@ -81,6 +82,7 @@ Type
     Procedure SwitchToEditor(Sender: TObject);
     Procedure LeaveEditor(Sender: TObject);
     Procedure LoadLevel(Sender: TObject);
+    Procedure SetupFrame;
   public
     { public declarations }
     game: TBridgeBuilder;
@@ -92,12 +94,30 @@ Var
 
 Implementation
 
+Uses uopengl_legacychecker, uopengl_shaderprimitives;
+
 {$R *.lfm}
 
 { TForm1 }
 
 Var
   allowcnt: Integer = 0;
+  ShaderInitialized: Boolean = False;
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := False;
+  ShowMessage('OpenGL Error (' + IntToStr(Severity) + '):' + LineEnding +
+    aMessage + LineEnding + 'Application will be terminated.');
+  Halt(1);
+End;
+
+Procedure TForm1.SetupFrame;
+Begin
+  glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
+End;
 
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
@@ -110,22 +130,35 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
     (*
     Man bedenke, jedesmal wenn der Renderingcontext neu erstellt wird, müssen sämtliche Graphiken neu Geladen werden.
     Bei Nutzung der TOpenGLGraphikengine, bedeutet dies, das hier ein clear durchgeführt werden mus !!
     *)
-//    {
-    OpenGL_GraphikEngine.clear;
-    glenable(GL_TEXTURE_2D); // Texturen
-    //    glEnable(GL_DEPTH_TEST); // Tiefentest
-    //    glDepthFunc(gl_less);
-    Create_ASCII_Font;
-    game.InitOpenGL(OpenGLControl1);
-    //    }
-        // Der Anwendung erlauben zu Rendern.
+    OpenGL_GraphikEngine.Clear;
+    SetupFrame;
+    If Not Assigned(glCreateShader) Then Begin
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+    End;
+    If Not Assigned(glCreateShader) Then
+      OnOpenGLLegacyCall(0, 'OpenGL shader support is required. No legacy fallback is available.');
+    Try
+      OpenGL_GraphikEngine_InitializeShaderSystem;
+      OpenGL_ShaderPrimitives_InitializeShaderSystem;
+      ShaderInitialized := True;
+      Create_ASCII_Font;
+      game.InitOpenGL(OpenGLControl1);
+    Except
+      On E: Exception Do
+        OnOpenGLLegacyCall(0, E.Message);
+    End;
+    // Der Anwendung erlauben zu Rendern.
     Initialized := True;
+    ReActivateKHRDebug;
     OpenGLControl1Resize(Nil);
   End;
   Form1.Invalidate;
@@ -135,9 +168,8 @@ Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
 Begin
   If Not Initialized Then Exit;
   // Render Szene
-  glClearColor(0.0, 0.0, 0.0, 0.0);
-  glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
+  SetupFrame;
+  ResetShaderTransform;
   WidgetSetGo2d(ScreenWidth, ScreenHeight);
   game.render();
   WidgetSetExit2d();
@@ -146,12 +178,9 @@ End;
 
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
-  If Initialized Then Begin
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+  If Initialized And OpenGLControl1.MakeCurrent Then Begin
     glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
-    gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
-    glMatrixMode(GL_MODELVIEW);
+    OpenGLControl1.Invalidate;
   End;
 End;
 
@@ -160,9 +189,12 @@ Begin
   caption := 'Bridge builder ver. ' + Version + ' by Corpsman';
   // Init dglOpenGL.pas , Teil 1
   If Not InitOpenGl Then Begin
-    showmessage('Error, could not init dglOpenGL.pas');
-    Halt;
+    OnOpenGLLegacyCall(0, 'Could not initialize dglOpenGL.');
   End;
+  OpenGLControl1.AutoResizeViewport := True;
+  OpenGLControl1.OpenGLMajorVersion := 3;
+  OpenGLControl1.OpenGLMinorVersion := 3;
+  OpenGLControl1.DebugContext := True;
   game := TBridgeBuilder.create;
   game.OnSwitchToEditor := @SwitchToEditor;
   game.OnLeaveEditor := @LeaveEditor;
@@ -178,6 +210,25 @@ Begin
   Generell sollte die Interval Zahl also dynamisch zum Rechenaufwand, mindestens aber immer 17 sein.
   *)
   Timer1.Interval := 17;
+  OpenGLControl1.Invalidate;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+  Timer1.Enabled := False;
+  Initialized := False;
+  If ShaderInitialized Then Begin
+    If Not OpenGLControl1.MakeCurrent Then
+      OnOpenGLLegacyCall(0, 'Could not make the OpenGL context current for resource cleanup.');
+    FreeAndNil(game);
+    FreeAndNil(OpenGL_ASCII_Font);
+    OpenGL_GraphikEngine.Clear;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+    ShaderInitialized := False;
+  End
+  Else
+    FreeAndNil(game);
 End;
 
 Procedure TForm1.MenuItem2Click(Sender: TObject);
@@ -234,14 +285,13 @@ Begin
   If Initialized Then Begin
     OpenGLControl1.Invalidate;
 {$IFDEF DebuggMode}
+    If Not OpenGLControl1.MakeCurrent Then
+      OnOpenGLLegacyCall(0, 'Could not make the OpenGL context current for error checking.');
     i := glGetError();
     If i <> 0 Then Begin
       Timer1.Enabled := false;
       p := gluErrorString(i);
-      showmessage('OpenGL Error (' + inttostr(i) + ') occured.' + LineEnding + LineEnding +
-        'OpenGL Message : "' + p + '"' + LineEnding + LineEnding +
-        'Applikation will be terminated.');
-      close;
+      OnOpenGLLegacyCall(i, 'OpenGL Message: "' + p + '"');
     End;
 {$ENDIF}
   End;
@@ -266,4 +316,3 @@ Begin
 End;
 
 End.
-

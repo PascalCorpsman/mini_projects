@@ -24,8 +24,9 @@ Uses
 Const
   (*
    * History: 0.01 - Initialversion
+   *          0.02 - OpenGL Shader-Rendering, GTK3 und Legacy-Diagnose
    *)
-  Version = '0.01';
+  Version = '0.02';
   ScreenWidth = 800;
   ScreenHeight = 600;
   GridSize = 5;
@@ -114,16 +115,15 @@ Type
 
 Implementation
 
-Uses unit1, math, uvectormath, uopengl_widgetset, dglOpenGL;
+Uses unit1, math, uvectormath, uopengl_widgetset, dglOpenGL,
+  uopengl_graphikengine, uopengl_shaderprimitives, ueventer;
 
 Function TransformRoutine(x, y: integer): TPoint;
 Var
-  dim: Array[0..3] Of Integer;
   xx, yy: integer;
 Begin
-  glGetIntegerv(GL_VIEWPORT, @dim[0]);
-  xx := round(ConvertDimension(0, dim[2], x, 0, ScreenWidth));
-  yy := round(ConvertDimension(0, dim[3], y, 0, ScreenHeight));
+  xx := round(ConvertDimension(0, Form1.OpenGLControl1.Width, x, 0, ScreenWidth));
+  yy := round(ConvertDimension(0, Form1.OpenGLControl1.Height, y, 0, ScreenHeight));
   result := Point(xx, yy);
 End;
 
@@ -454,6 +454,7 @@ End;
 
 Procedure TBridgeBuilder.InitOpenGL(Owner: TOpenGLControl);
 Begin
+  ueventer.TransformRoutine := @TransformRoutine;
   OnMouseDownCapture := owner.OnMouseDown;
   owner.OnMouseDown := @OnMouseDown;
   OnMouseMoveCapture := owner.OnMouseMove;
@@ -504,17 +505,15 @@ Begin
           v := Map.GetPointByIndex(StartNode);
           len := sqrt(sqr(v.x - gx) + sqr(v.y - gy));
           If len <= MaxEdgeLen Then Begin
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glLineWidth(3);
-            glColor3f(0.25, 0.25, 0.75);
-            glPushMatrix;
-            glTranslatef(-map.Offset.x, -map.Offset.y, 0);
-            glBegin(GL_LINES);
-            glVertex2f(v.x * map.Zoom, v.y * map.Zoom);
-            glVertex2f(LastMousePos.x + map.Offset.x, LastMousePos.y + map.Offset.y);
-            glEnd;
-            glPopMatrix;
-            glLineWidth(1);
+            UseColorShader;
+            glShaderLineWidth(3);
+            SetShaderColor(0.25, 0.25, 0.75);
+            glShaderBegin(GL_LINES);
+            glShaderVertex(v.x * Map.Zoom - Map.Offset.x, v.y * Map.Zoom - Map.Offset.y);
+            glShaderVertex(LastMousePos.x, LastMousePos.y);
+            glShaderEnd;
+            glShaderLineWidth(1);
+            UseTextureShader;
           End;
         End;
         InGameScreen.Render;
@@ -531,17 +530,16 @@ Begin
           gy := (gy - gy Mod GridSize) + GridSize Div 2;
           len := sqrt(sqr(map.fFixedBolts[StartNode].pos.x - gx) + sqr(map.fFixedBolts[StartNode].pos.y - gy));
           If len <= MaxEdgeLen Then Begin
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glLineWidth(3);
-            glColor3f(0.25, 0.25, 0.25);
-            glPushMatrix;
-            glTranslatef(-map.Offset.x, -map.Offset.y, 0);
-            glBegin(GL_LINES);
-            glVertex2f(map.fFixedBolts[StartNode].pos.x * map.Zoom, map.fFixedBolts[StartNode].pos.y * map.Zoom);
-            glVertex2f(LastMousePos.x + map.Offset.x, LastMousePos.y + map.Offset.y);
-            glEnd;
-            glPopMatrix;
-            glLineWidth(1);
+            UseColorShader;
+            glShaderLineWidth(3);
+            SetShaderColor(0.25, 0.25, 0.25);
+            glShaderBegin(GL_LINES);
+            glShaderVertex(Map.fFixedBolts[StartNode].pos.x * Map.Zoom - Map.Offset.x,
+              Map.fFixedBolts[StartNode].pos.y * Map.Zoom - Map.Offset.y);
+            glShaderVertex(LastMousePos.x, LastMousePos.y);
+            glShaderEnd;
+            glShaderLineWidth(1);
+            UseTextureShader;
           End;
         End;
         If EditorScreen.EditCollider.Checked Then Begin
@@ -549,36 +547,36 @@ Begin
           gy := round((LastMousePos.y + map.Offset.y) / map.Zoom);
           gx := (gx - gx Mod GridSize) + GridSize Div 2;
           gy := (gy - gy Mod GridSize) + GridSize Div 2;
-          glBindTexture(GL_TEXTURE_2D, 0);
-          glLineWidth(3);
-          glColor3f(0.5, 0.5, 0.5);
-          glPushMatrix;
-          glTranslatef(-map.Offset.x, -map.Offset.y, 0);
-          glBegin(GL_LINE_STRIP);
-          If ColliderEdit.PointCount >= 1 Then glVertex2f(ColliderEdit.P1.x * map.Zoom, ColliderEdit.P1.y * map.Zoom);
-          If ColliderEdit.PointCount >= 2 Then glVertex2f(ColliderEdit.P2.x * map.Zoom, ColliderEdit.P2.y * map.Zoom);
-          glVertex2f(LastMousePos.x + map.Offset.x, LastMousePos.y + map.Offset.y);
-          glEnd;
-          glPopMatrix;
-          glLineWidth(1);
+          UseColorShader;
+          glShaderLineWidth(3);
+          SetShaderColor(0.5, 0.5, 0.5);
+          glShaderBegin(GL_LINE_STRIP);
+          If ColliderEdit.PointCount >= 1 Then
+            glShaderVertex(ColliderEdit.P1.x * Map.Zoom - Map.Offset.x, ColliderEdit.P1.y * Map.Zoom - Map.Offset.y);
+          If ColliderEdit.PointCount >= 2 Then
+            glShaderVertex(ColliderEdit.P2.x * Map.Zoom - Map.Offset.x, ColliderEdit.P2.y * Map.Zoom - Map.Offset.y);
+          glShaderVertex(LastMousePos.x, LastMousePos.y);
+          glShaderEnd;
+          glShaderLineWidth(1);
+          UseTextureShader;
         End;
         If EditorScreen.EditDeadZones.Checked Then Begin
           gx := round((LastMousePos.x + map.Offset.x) / map.Zoom);
           gy := round((LastMousePos.y + map.Offset.y) / map.Zoom);
           gx := (gx - gx Mod GridSize) + GridSize Div 2;
           gy := (gy - gy Mod GridSize) + GridSize Div 2;
-          glBindTexture(GL_TEXTURE_2D, 0);
-          glLineWidth(3);
-          glColor3f(1, 0.5, 0.5);
-          glPushMatrix;
-          glTranslatef(-map.Offset.x, -map.Offset.y, 0);
-          glBegin(GL_LINE_STRIP);
-          If DeadzoneEdit.PointCount >= 1 Then glVertex2f(DeadzoneEdit.P1.x * map.Zoom, DeadzoneEdit.P1.y * map.Zoom);
-          If DeadzoneEdit.PointCount >= 2 Then glVertex2f(DeadzoneEdit.P2.x * map.Zoom, DeadzoneEdit.P2.y * map.Zoom);
-          glVertex2f(LastMousePos.x + map.Offset.x, LastMousePos.y + map.Offset.y);
-          glEnd;
-          glPopMatrix;
-          glLineWidth(1);
+          UseColorShader;
+          glShaderLineWidth(3);
+          SetShaderColor(1, 0.5, 0.5);
+          glShaderBegin(GL_LINE_STRIP);
+          If DeadzoneEdit.PointCount >= 1 Then
+            glShaderVertex(DeadzoneEdit.P1.x * Map.Zoom - Map.Offset.x, DeadzoneEdit.P1.y * Map.Zoom - Map.Offset.y);
+          If DeadzoneEdit.PointCount >= 2 Then
+            glShaderVertex(DeadzoneEdit.P2.x * Map.Zoom - Map.Offset.x, DeadzoneEdit.P2.y * Map.Zoom - Map.Offset.y);
+          glShaderVertex(LastMousePos.x, LastMousePos.y);
+          glShaderEnd;
+          glShaderLineWidth(1);
+          UseTextureShader;
         End;
         EditorScreen.Render;
       End;
@@ -630,4 +628,3 @@ Begin
 End;
 
 End.
-

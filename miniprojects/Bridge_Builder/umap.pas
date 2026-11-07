@@ -117,7 +117,8 @@ Type
 
 Implementation
 
-Uses dglOpenGL, IniFiles, ubridge_builder, uOpenGL_ASCII_Font;
+Uses dglOpenGL, IniFiles, ubridge_builder, uOpenGL_ASCII_Font,
+  uopengl_shaderprimitives;
 
 { TMap }
 
@@ -201,174 +202,182 @@ Var
   v: TVector2;
   n: QWord;
   s: String;
+  Transform: TMatrix4x4;
+  FontSize: Single;
+
+  Procedure RenderBolt(Const Position: TVector2; r, g, b: Single);
+  Begin
+    SetShaderTransform(Transform);
+    UseTextureShader(v4(r, g, b, 1));
+    RenderAlphaQuad(Position.x - fFixedBoltTex.OrigWidth Div 2,
+      Position.y - fFixedBoltTex.OrigHeight Div 2, 0, fFixedBoltTex);
+  End;
 Begin
   If assigned(fEngine) Then Begin
     n := GetTickCount64;
     fEngine.Simulate((n - fLastTick) / 1000);
     fLastTick := n;
   End;
-  glColor4f(1, 1, 1, 1);
-  glPushMatrix;
-  glTranslatef(-Offset.x, -Offset.y, 0);
-  glScalef(zoom, zoom, zoom);
+  Transform := TranslateMatrix4x4(IdentityMatrix4x4, -Offset.x, -Offset.y, 0);
+  Transform := ScaleMatrix4x4(Transform, Zoom, Zoom, Zoom);
+  SetShaderTransform(Transform);
+  UseTextureShader;
   If fBackTex.Image <> -1 Then Begin
-    RenderQuad(0, 0, fBackTex);
+    RenderQuad(0, 0, 0, fBackTex);
   End;
   If fSimState = ssCountdown Then Begin
     n := GetTickCount64 - fsimStartTime;
     s := inttostr(n Div 1000);
     glBindTexture(GL_TEXTURE_2D, 0);
     OpenGL_ASCII_Font.ColorV3 := v3(1, 1, 1);
-    // Da die Karte ja eigentlich gezoomt und mit Offset ist, muss für die "gemittelte" Zeitanzeige, dass hier alles "zurück" gerechnet werden
-    glPushMatrix();
-    glTranslatef(Offset.x / zoom, Offset.y / zoom, 0);
-    OpenGL_ASCII_Font.Size := OpenGL_ASCII_Font.Size * 2 / zoom;
-    glTranslatef((ScreenWidth - OpenGL_ASCII_Font.TextWidth(s)) / (2 * zoom), 15 / Zoom, 0);
+    FontSize := OpenGL_ASCII_Font.Size;
+    OpenGL_ASCII_Font.Size := FontSize * 2 / Zoom;
+    Transform := TranslateMatrix4x4(Transform, Offset.x / Zoom, Offset.y / Zoom, 0);
+    Transform := TranslateMatrix4x4(Transform,
+      (ScreenWidth - OpenGL_ASCII_Font.TextWidth(s)) / (2 * Zoom), 15 / Zoom, 0);
+    SetShaderTransform(Transform);
     OpenGL_ASCII_Font.Textout(0, 0, s);
-    OpenGL_ASCII_Font.Size := OpenGL_ASCII_Font.Size / (2 / zoom);
-    glPopMatrix();
+    OpenGL_ASCII_Font.Size := FontSize;
+    Transform := TranslateMatrix4x4(IdentityMatrix4x4, -Offset.x, -Offset.y, 0);
+    Transform := ScaleMatrix4x4(Transform, Zoom, Zoom, Zoom);
+    SetShaderTransform(Transform);
     // TODO: Zeit Dynamisch einstellen
     If n >= 5000 Then Begin
       // TODO: Nun geht der Belastungstest los ..
       StartSimulation;
     End;
   End;
+  UseColorShader;
+  glShaderLineWidth(1);
   If ShowGrid Then Begin
-    glPushMatrix;
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glColor3f(0.5, 0.5, 0.5);
-    glBegin(GL_LINES);
+    SetShaderColor(0.5, 0.5, 0.5);
+    glShaderBegin(GL_LINES);
     For i := 0 To Dim.x Div GridSize Do Begin
-      glVertex2f(GridSize * i, 0);
-      glVertex2f(GridSize * i, dim.Y);
+      glShaderVertex(GridSize * i, 0);
+      glShaderVertex(GridSize * i, Dim.Y);
     End;
     For i := 0 To Dim.Y Div GridSize Do Begin
-      glVertex2f(0, GridSize * i);
-      glVertex2f(dim.x, GridSize * i);
+      glShaderVertex(0, GridSize * i);
+      glShaderVertex(Dim.x, GridSize * i);
     End;
-    glend;
-    glPopMatrix;
+    glShaderEnd;
   End;
   glBindTexture(GL_TEXTURE_2D, 0);
   If EditMode Then Begin
-    glColor3f(0.5, 0.75, 0.5);
-    glBegin(GL_POLYGON);
-    glVertex2f(FinalZone[0].x, FinalZone[0].y);
-    glVertex2f(FinalZone[1].x, FinalZone[1].y);
-    glVertex2f(FinalZone[2].x, FinalZone[2].y);
-    glVertex2f(FinalZone[3].x, FinalZone[3].y);
-    glend;
-    glColor3f(0.25, 0.75, 0.25);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(FinalZone[0].x, FinalZone[0].y);
-    glVertex2f(FinalZone[1].x, FinalZone[1].y);
-    glVertex2f(FinalZone[2].x, FinalZone[2].y);
-    glVertex2f(FinalZone[3].x, FinalZone[3].y);
-    glend;
-    RenderAlphaQuad(FinalZone[0].y - fFixedBoltTex.OrigWidth Div 2, FinalZone[0].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
-    RenderAlphaQuad(FinalZone[1].y - fFixedBoltTex.OrigWidth Div 2, FinalZone[1].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
-    RenderAlphaQuad(FinalZone[2].y - fFixedBoltTex.OrigWidth Div 2, FinalZone[2].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
-    RenderAlphaQuad(FinalZone[3].y - fFixedBoltTex.OrigWidth Div 2, FinalZone[3].x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+    SetShaderColor(0.5, 0.75, 0.5);
+    glShaderBegin(GL_TRIANGLE_FAN);
+    For i := 0 To 3 Do
+      glShaderVertex(FinalZone[i].x, FinalZone[i].y);
+    glShaderEnd;
+    SetShaderColor(0.25, 0.75, 0.25);
+    glShaderBegin(GL_LINE_LOOP);
+    For i := 0 To 3 Do
+      glShaderVertex(FinalZone[i].x, FinalZone[i].y);
+    glShaderEnd;
+    For i := 0 To 3 Do
+      RenderBolt(FinalZone[i], 0.25, 0.75, 0.25);
+    UseColorShader;
     If ShowCollider Then Begin
       glBindTexture(GL_TEXTURE_2D, 0);
-      glColor3f(0.25, 0.25, 0.25);
+      SetShaderColor(0.25, 0.25, 0.25);
       For i := 0 To high(fColliders) Do Begin
-        glBegin(GL_TRIANGLES);
-        glVertex2f(fColliders[i].p1.x, fColliders[i].p1.y);
-        glVertex2f(fColliders[i].p2.x, fColliders[i].p2.y);
-        glVertex2f(fColliders[i].p3.x, fColliders[i].p3.y);
-        glend();
+        glShaderBegin(GL_TRIANGLES);
+        glShaderVertex(fColliders[i].p1.x, fColliders[i].p1.y);
+        glShaderVertex(fColliders[i].p2.x, fColliders[i].p2.y);
+        glShaderVertex(fColliders[i].p3.x, fColliders[i].p3.y);
+        glShaderEnd;
       End;
-      glColor3f(0.5, 0.5, 0.5);
+      SetShaderColor(0.5, 0.5, 0.5);
       For i := 0 To high(fColliders) Do Begin
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(fColliders[i].p1.x, fColliders[i].p1.y);
-        glVertex2f(fColliders[i].p2.x, fColliders[i].p2.y);
-        glVertex2f(fColliders[i].p3.x, fColliders[i].p3.y);
-        glend();
+        glShaderBegin(GL_LINE_LOOP);
+        glShaderVertex(fColliders[i].p1.x, fColliders[i].p1.y);
+        glShaderVertex(fColliders[i].p2.x, fColliders[i].p2.y);
+        glShaderVertex(fColliders[i].p3.x, fColliders[i].p3.y);
+        glShaderEnd;
       End;
     End;
     If ShowDeadZones Then Begin
       glBindTexture(GL_TEXTURE_2D, 0);
-      glColor3f(0.75, 0.5, 0.5);
+      SetShaderColor(0.75, 0.5, 0.5);
       For i := 0 To high(fDeadZone) Do Begin
-        glBegin(GL_TRIANGLES);
-        glVertex2f(fDeadZone[i].p1.x, fDeadZone[i].p1.y);
-        glVertex2f(fDeadZone[i].p2.x, fDeadZone[i].p2.y);
-        glVertex2f(fDeadZone[i].p3.x, fDeadZone[i].p3.y);
-        glend();
+        glShaderBegin(GL_TRIANGLES);
+        glShaderVertex(fDeadZone[i].p1.x, fDeadZone[i].p1.y);
+        glShaderVertex(fDeadZone[i].p2.x, fDeadZone[i].p2.y);
+        glShaderVertex(fDeadZone[i].p3.x, fDeadZone[i].p3.y);
+        glShaderEnd;
       End;
-      glColor3f(0.75, 0.25, 0.25);
+      SetShaderColor(0.75, 0.25, 0.25);
       For i := 0 To high(fDeadZone) Do Begin
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(fDeadZone[i].p1.x, fDeadZone[i].p1.y);
-        glVertex2f(fDeadZone[i].p2.x, fDeadZone[i].p2.y);
-        glVertex2f(fDeadZone[i].p3.x, fDeadZone[i].p3.y);
-        glend();
+        glShaderBegin(GL_LINE_LOOP);
+        glShaderVertex(fDeadZone[i].p1.x, fDeadZone[i].p1.y);
+        glShaderVertex(fDeadZone[i].p2.x, fDeadZone[i].p2.y);
+        glShaderVertex(fDeadZone[i].p3.x, fDeadZone[i].p3.y);
+        glShaderEnd;
       End;
     End;
   End;
   glBindTexture(GL_TEXTURE_2D, 0);
-  glLineWidth(3);
-  glColor3f(0.25, 0.25, 0.25);
-  glBegin(GL_LINES);
+  ResetShaderTransform;
+  glShaderLineWidth(3);
+  SetShaderColor(0.25, 0.25, 0.25);
+  glShaderBegin(GL_LINES);
   For i := 0 To high(fFixedEdges) Do Begin
-    glVertex2f(fFixedBolts[fFixedEdges[i].X].pos.x, fFixedBolts[fFixedEdges[i].X].pos.y);
-    glVertex2f(fFixedBolts[fFixedEdges[i].y].pos.x, fFixedBolts[fFixedEdges[i].y].pos.y);
+    glShaderVertex(fFixedBolts[fFixedEdges[i].X].pos.x * Zoom - Offset.x,
+      fFixedBolts[fFixedEdges[i].X].pos.y * Zoom - Offset.y);
+    glShaderVertex(fFixedBolts[fFixedEdges[i].y].pos.x * Zoom - Offset.x,
+      fFixedBolts[fFixedEdges[i].y].pos.y * Zoom - Offset.y);
   End;
-  glEnd;
-  glColor3f(0.25, 0.25, 0.75);
-  glBegin(GL_LINES);
+  glShaderEnd;
+  SetShaderColor(0.25, 0.25, 0.75);
+  glShaderBegin(GL_LINES);
   If assigned(fEngine) Then Begin
     For i := 0 To fEngine.SpringCount - 1 Do Begin
       //If (fEngine.GridPoint[fEngine.Spring[i].P1].UserData >= Length(fFixedBolts)) Or
         //(fEngine.GridPoint[fEngine.Spring[i].P2].UserData >= Length(fFixedBolts)) Then Begin
       v := fEngine.GridPoint[fEngine.Spring[i].P1].Pos;
-      glVertex2f(v.x, v.y);
+      glShaderVertex(v.x * Zoom - Offset.x, v.y * Zoom - Offset.y);
       v := fEngine.GridPoint[fEngine.Spring[i].P2].Pos;
-      glVertex2f(v.x, v.y);
+      glShaderVertex(v.x * Zoom - Offset.x, v.y * Zoom - Offset.y);
       //End;
     End;
   End
   Else Begin
     For i := 0 To high(fUserEdges) Do Begin
       v := GetPointByIndex(fUserEdges[i].x);
-      glVertex2f(v.x, v.y);
+      glShaderVertex(v.x * Zoom - Offset.x, v.y * Zoom - Offset.y);
       v := GetPointByIndex(fUserEdges[i].Y);
-      glVertex2f(v.x, v.y);
+      glShaderVertex(v.x * Zoom - Offset.x, v.y * Zoom - Offset.y);
     End;
   End;
-  glEnd;
-  glLineWidth(1);
-  glColor3f(1, 0, 0);
-  RenderAlphaQuad(fFixedBolts[0].pos.y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[0].pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+  glShaderEnd;
+  glShaderLineWidth(1);
+  RenderBolt(fFixedBolts[0].pos, 1, 0, 0);
   For i := 1 To high(fFixedBolts) Do Begin // Index 0 ist der StartPunkt !
-    glColor4f(1, 1, 1, 1);
     If assigned(fEngine) And (fFixedBolts[i].isFinalBolt) Then Begin
-      glColor4f(0.25, 0.75, 0.25, 1);
-    End;
-    RenderAlphaQuad(fFixedBolts[i].pos.y - fFixedBoltTex.OrigWidth Div 2, fFixedBolts[i].pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+      RenderBolt(fFixedBolts[i].pos, 0.25, 0.75, 0.25);
+    End
+    Else
+      RenderBolt(fFixedBolts[i].pos, 1, 1, 1);
   End;
   If assigned(fEngine) Then Begin
     For i := 0 To fEngine.GridPointCount - 1 Do Begin
       If fEngine.GridPoint[i].UserData >= Length(fFixedBolts) Then Begin
         If (fUserBolts[fEngine.GridPoint[i].UserData - Length(fFixedBolts)].isFinalBolt) Then Begin
-          glColor4f(0.25, 0.75, 0.25, 1);
+          RenderBolt(fEngine.GridPoint[i].Pos, 0.25, 0.75, 0.25);
         End
         Else Begin
-          glColor4f(0.25, 0.25, 0.75, 1);
+          RenderBolt(fEngine.GridPoint[i].Pos, 0.25, 0.25, 0.75);
         End;
-        RenderAlphaQuad(fEngine.GridPoint[i].Pos.y - fFixedBoltTex.OrigWidth Div 2, fEngine.GridPoint[i].Pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
       End;
     End;
   End
   Else Begin
-    glColor4f(0.25, 0.25, 0.75, 1);
     For i := 0 To high(fUserBolts) Do Begin
-      RenderAlphaQuad(fUserBolts[i].pos.y - fFixedBoltTex.OrigWidth Div 2, fUserBolts[i].pos.x - fFixedBoltTex.OrigHeight Div 2, fFixedBoltTex);
+      RenderBolt(fUserBolts[i].pos, 0.25, 0.25, 0.75);
     End;
   End;
-  glPopMatrix;
+  ResetShaderTransform;
+  UseTextureShader;
 End;
 
 Procedure TMap.Reset;
@@ -850,7 +859,7 @@ End;
 
 Procedure TMap.InitOpenGL;
 Begin
-  fFixedBoltTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem('GFX' + PathDelim + 'fixed_bolt.png');
+  fFixedBoltTex := OpenGL_GraphikEngine.LoadAlphaGraphikItem('GFX' + PathDelim + 'fixed_bolt.png', smClamp);
   // Die Original Textur ist 16x16, aber das ist zu Groß, wenn man das so "hinhackt"
   // dann bleibt die Textur Hochauflösend ;), das geht hier aber nur weil die
   // Textur eine 2^X größe hat ordentlich !
@@ -861,4 +870,3 @@ Begin
 End;
 
 End.
-

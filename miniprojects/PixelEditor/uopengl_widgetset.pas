@@ -41,6 +41,7 @@
 (*               0.13 = TOpenGl_BaseClass.Hint                                *)
 (*               0.14 = .click für buttons                                    *)
 (*               0.15 = Start with shader support                             *)
+(*                      Shader paths for buttons and radiobuttons             *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -365,6 +366,10 @@ Procedure WidgetSetExit2d();
 Function ColorToVector(Color: TColor): TVector3;
 
 Implementation
+
+{$IFNDEF LEGACYMODE}
+Uses uopengl_shaderprimitives;
+{$ENDIF}
 
 Var
   _2DWidth: integer = 0;
@@ -1116,20 +1121,38 @@ End;
 Procedure TOpenGl_Button.OnRender;
 Var
   tex: String;
+  Procedure RenderBorder(r, g, b: Single);
+  Begin
+{$IFDEF LEGACYMODE}
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glColor3f(r, g, b);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(Left, Top + Height);
+    glVertex2f(Left + Width, Top + Height);
+    glVertex2f(Left + Width, Top);
+    glVertex2f(Left, Top);
+    glEnd;
+{$ELSE}
+    UseColorShader;
+    SetShaderColor(r, g, b);
+    glShaderBegin(GL_LINE_LOOP);
+    glShaderVertex(Left, Top + Height, Depth);
+    glShaderVertex(Left + Width, Top + Height, Depth);
+    glShaderVertex(Left + Width, Top, Depth);
+    glShaderVertex(Left, Top, Depth);
+    glShaderEnd;
+    UseTextureShader;
+{$ENDIF}
+  End;
 Begin
 {$IFDEF LEGACYMODE}
   glColor4f(1, 1, 1, 1);
+{$ELSE}
+  UseTextureShader;
 {$ENDIF}
   If fMouseDown Then Begin
     If fDownTex.Image = 0 Then Begin
-      glBindTexture(GL_TEXTURE_2D, 0);
-      glcolor3f(0.8, 0, 0); // TODO: das könnte Konfigurierbar sein ..
-      glbegin(GL_LINE_LOOP);
-      glVertex2f(left, top + Height);
-      glVertex2f(left + Width, top + Height);
-      glVertex2f(left + Width, Top);
-      glVertex2f(left, top);
-      glend;
+      RenderBorder(0.8, 0, 0);
     End
     Else Begin
 {$IFDEF LEGACYMODE}
@@ -1142,14 +1165,7 @@ Begin
   Else Begin
     If FMouseHover Then Begin
       If fHoverTex.Image = 0 Then Begin
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glcolor3f(0.8, 0.8, 0.0); // TODO: das könnte Konfigurierbar sein ..
-        glbegin(GL_LINE_LOOP);
-        glVertex2f(left, top + Height);
-        glVertex2f(left + Width, top + Height);
-        glVertex2f(left + Width, Top);
-        glVertex2f(left, top);
-        glend;
+        RenderBorder(0.8, 0.8, 0.0);
       End
       Else Begin
 {$IFDEF LEGACYMODE}
@@ -1161,14 +1177,7 @@ Begin
     End
     Else Begin
       If FNormalTex.Image = 0 Then Begin
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glcolor3f(0.8, 0.8, 0.8); // TODO: das könnte Konfigurierbar sein ..
-        glbegin(GL_LINE_LOOP);
-        glVertex2f(left, top + Height);
-        glVertex2f(left + Width, top + Height);
-        glVertex2f(left + Width, Top);
-        glVertex2f(left, top);
-        glend;
+        RenderBorder(0.8, 0.8, 0.8);
       End
       Else Begin
 {$IFDEF LEGACYMODE}
@@ -1446,6 +1455,7 @@ Procedure TOpenGL_Radiobutton.OnRender;
     s, c: single;
     i: Integer;
   Begin
+{$IFDEF LEGACYMODE}
     glPushMatrix();
     glTranslatef(x, y, 0);
     glScalef(r, r, 0);
@@ -1457,6 +1467,15 @@ Procedure TOpenGL_Radiobutton.OnRender;
     End;
     glend;
     glPopMatrix();
+{$ELSE}
+    glShaderBegin(GL_TRIANGLE_FAN);
+    glShaderVertex(x, y, Depth);
+    For i := 0 To 36 Do Begin
+      SinCos(2 * pi * i / 36, s, c);
+      glShaderVertex(x + r * c, y + r * s, Depth);
+    End;
+    glShaderEnd;
+{$ENDIF}
   End;
 
 Var
@@ -1466,10 +1485,19 @@ Begin
   glBindTexture(GL_TEXTURE_2D, 0);
   ch := FFont.TextHeight('A');
   // Zuerst den "Punkt" sammt Hintergrund
-  glcolor3f(CircleBackColor.x, CircleBackColor.y, CircleBackColor.z);
+{$IFDEF LEGACYMODE}
+  glColor3f(CircleBackColor.x, CircleBackColor.y, CircleBackColor.z);
+{$ELSE}
+  UseColorShader;
+  SetShaderColor(CircleBackColor.x, CircleBackColor.y, CircleBackColor.z);
+{$ENDIF}
   RenderCircle(left + round(ch / 2), top + round(ch / 2), round(ch / 2) - 1);
   If fChecked Then Begin
-    glcolor3f(CircleColor.x, CircleColor.y, CircleColor.z);
+{$IFDEF LEGACYMODE}
+    glColor3f(CircleColor.x, CircleColor.y, CircleColor.z);
+{$ELSE}
+    SetShaderColor(CircleColor.x, CircleColor.y, CircleColor.z);
+{$ENDIF}
     RenderCircle(left + round(ch / 2), top + round(ch / 2), round(ch / 3) - 1);
   End;
   // Dann den Text
@@ -1478,7 +1506,13 @@ Begin
     delete(tex, length(tex), 1);
   End;
   FFont.Colorv3 := FontColor;
+{$IFDEF LEGACYMODE}
   FFont.Textout(left + 2 + round(ch), top + 2, tex);
+{$ELSE}
+  UseTextureShader;
+  FFont.Textout(Left + 2 + round(ch), Top + 2, tex);
+  UseTextureShader;
+{$ENDIF}
 End;
 
 Procedure TOpenGL_Radiobutton.Click;
@@ -1638,4 +1672,3 @@ Initialization
   ueventer.TransformRoutine := @WidgetSetTransformRoutine;
 
 End.
-

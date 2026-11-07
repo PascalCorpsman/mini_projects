@@ -101,6 +101,8 @@ End;
 
 Destructor TMainScreen.Destroy;
 Begin
+  LoadButton.Free;
+  EditorButton.Free;
   ExitButton.Free;
 End;
 
@@ -115,7 +117,8 @@ Procedure TMainScreen.Render;
 Var
   s: String;
 Begin
-  RenderAlphaQuad(0, 0, fTexture);
+  UseTextureShader;
+  RenderAlphaQuad(0, 0, 0, fTexture);
   LoadButton.Render();
   EditorButton.Render();
   ExitButton.Render();
@@ -243,4 +246,3 @@ Begin
 End;
 
 End.
-
