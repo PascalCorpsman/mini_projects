@@ -197,6 +197,10 @@ Type
      * result > 0 => Gültige UID gefunden
      *)
     Function SocketToUID(Const aSocket: TLSocket): integer; // Macht nur für Server Sinn.
+    (*
+     * Ermittelt zu einer UID den passenden socket, NIL, wenn keiner gefunden werden konnte
+     *)
+    Function UIDToSocket(UID: Integer): TLSocket; // Macht nur für Server Sinn.
 
     (*
      * Beim Versenden von Daten wartet das OS typischerweise ca. 100ms wenn die zu sendenden
@@ -896,7 +900,7 @@ Begin
       // Suchen des Sockets mit der UserDefinedID
       While fconnection.IterNext Do Begin // Skipt Root Socket
         pu := fconnection.Iterator.UserData;
-        If pu^.UID = UID Then Begin
+        If assigned(pu) And (pu^.UID = UID) Then Begin
           AddChunkForSendToSocketQueue(fconnection.Iterator, UserDefinedID, Data);
           result := true;
           b := true;
@@ -937,6 +941,25 @@ Begin
         exit;
       End;
     End;
+  End;
+End;
+
+Function TChunkManager.UIDToSocket(UID: Integer): TLSocket;
+Var
+  pu: PUserData;
+Begin
+  result := Nil;
+  If fIsServer Then Begin
+    fconnection.IterReset;
+    Repeat
+      pu := fconnection.Iterator.UserData;
+      If assigned(pu) Then Begin
+        If (PU^.UID = UID) Then Begin
+          result := fconnection.Iterator;
+          exit;
+        End;
+      End;
+    Until Not fconnection.IterNext;
   End;
 End;
 

@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* ALT_F2                                                          ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.55                                                         *)
+(* Version     : 0.56                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -104,6 +104,7 @@
 (*                      ADD support for .png graphics                         *)
 (* - Released -  0.54 - Nichts :(                                             *)
 (*               0.55 - ADD MonitorApp "Einstellbar"                          *)
+(*               0.56 - FIX: GTK3 sizing                                      *)
 (*                                                                            *)
 (* Feature Request:     Ein "freifeld" mit dem man Infos zur Anwendung mit    *)
 (*                      ablegen kann ??                                       *)
@@ -238,7 +239,11 @@ Implementation
 
 {$R *.lfm}
 
-Uses unit2, Unit3, lcltype, lazutf8, LazFileUtils, process, utf8process;
+Uses
+{$IFDEF LCLGTK3}
+  Gtk3Widgets, LazGtk3, LazGdk3,
+{$ENDIF}
+  unit2, Unit3, lcltype, lazutf8, LazFileUtils, process, utf8process;
 
 Type
   TExecParam = Record
@@ -327,7 +332,11 @@ Begin
   ListBox1.Color := Back_Color;
   ImageList1.DrawingStyle := dsTransparent;
   ListBox1.ScrollWidth := 0; //ListBox1.Width - Scale96ToForm(50); // Definitiv Deaktivieren des Horizontalen Scrollbalkens
+{$IFDEF LCLGTK3}
+  height := ListBox1.Top;
+{$ELSE}
   height := Scale96ToForm(38);
+{$ENDIF}
 {$IFDEF Windows}
   // Register Hotkey ALT + F2
   id1 := GlobalAddAtom('Hotkey1');
@@ -831,6 +840,13 @@ Begin
   Application.ProcessMessages;
   Application.RestoreStayOnTop(true);
   CenterForm;
+{$IFDEF LCLGTK3}
+  ListBox1.Top := ListBox1.Top + Scale96ToForm(4);
+  SpeedButton1.Top := SpeedButton1.Top + Scale96ToForm(4);
+  SpeedButton2.Top := SpeedButton2.Top + Scale96ToForm(4);
+  SpeedButton3.Top := SpeedButton3.Top + Scale96ToForm(4);
+  SpeedButton4.Top := SpeedButton4.Top + Scale96ToForm(4);
+{$ENDIF}
 End;
 
 Procedure TForm1.Hide_App();
@@ -858,7 +874,11 @@ Begin
     Height := def_Height;
   End
   Else Begin
+{$IFDEF LCLGTK3}
+    Height := min(screen.Height Div 2, def_Height + Scale96ToForm(10 + 32 * ListBox1.Items.Count));
+{$ELSE}
     Height := min(screen.Height Div 2, def_Height + Scale96ToForm(12 + 32 * ListBox1.Items.Count));
+{$ENDIF}
   End;
   ListBox1.Height := Height - Scale96ToForm(44);
 End;

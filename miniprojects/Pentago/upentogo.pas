@@ -27,10 +27,10 @@ Uses
   SysUtils,
   LCLIntf, IntfGraphics, LResources,
   ugraphics,
-  dglOpenGL, uOpenGL_ASCII_Font;
+  dglOpenGL, uOpenGL_ASCII_Font, uopengl_graphikengine;
 
 Const
-  PentagoVersion = '1.0';
+  PentagoVersion = '1.1';
 
 Type
 
@@ -59,8 +59,7 @@ Type
     fAnimationStep: Integer;
     fAnimLastTimeStep: DWord;
     FNachAnimState: TPentagostate;
-    FMouseInfo: gluint;
-    FMouseInfo_cnt: integer;
+    FMouseInfo: TGraphikItem;
     FPentagostate: TPentagostate;
     FField: TPentagoField;
     Procedure fGetWinner();
@@ -86,14 +85,14 @@ Const
 
 Implementation
 
-//Uses unit1; // Debugg
+Uses uopengl_shaderprimitives, uvectormath;
 
 Procedure SetColor(Const Value: Shortint);
 Begin
   Case Value Of
-    -1: glcolor3f(0, 0, 0);
-    0: glcolor3f(0.5, 0.5, 0.5);
-    1: glcolor3f(1, 1, 1);
+    -1: SetShaderColor(0, 0, 0);
+    0: SetShaderColor(0.5, 0.5, 0.5);
+    1: SetShaderColor(1, 1, 1);
   End;
 End;
 
@@ -101,15 +100,22 @@ Procedure RenderCircle(x, y, radius: Double; Filled: Boolean);
 Const
   Count = 20;
 Var
-  i: Integer;
+  VertexIndex: Integer;
 Begin
-  If Filled Then
-    glBegin(GL_POLYGON)
-  Else
-    glBegin(GL_Line_Loop);
-  For i := 0 To Count - 1 Do
-    glvertex3f(x + cos((2 * i * pi) / Count) * Radius, y + sin((2 * i * pi) / count) * Radius, 0);
-  glend;
+  If Filled Then Begin
+    glShaderBegin(GL_TRIANGLE_FAN);
+    glShaderVertex(x, y, 0);
+    For VertexIndex := 0 To Count Do
+      glShaderVertex(x + Cos((2 * VertexIndex * Pi) / Count) * radius,
+        y + Sin((2 * VertexIndex * Pi) / Count) * radius, 0);
+  End
+  Else Begin
+    glShaderBegin(GL_LINE_LOOP);
+    For VertexIndex := 0 To Count - 1 Do
+      glShaderVertex(x + Cos((2 * VertexIndex * Pi) / Count) * radius,
+        y + Sin((2 * VertexIndex * Pi) / Count) * radius, 0);
+  End;
+  glShaderEnd;
 End;
 
 Procedure RenderQuad(Const Value: TPentagoField; Offx, Offy: Integer);
@@ -120,13 +126,14 @@ Var
 Begin
   ItemSize15 := ItemSize * 3 / 2;
   Itemradius := 0.45 * ItemSize;
-  glcolor3f(0.25, 0.25, 0.25);
-  glbegin(gl_quads);
-  glvertex3f(-ItemSize15, -ItemSize15, 0);
-  glvertex3f(-ItemSize15, ItemSize15, 0);
-  glvertex3f(ItemSize15, ItemSize15, 0);
-  glvertex3f(ItemSize15, -ItemSize15, 0);
-  glend;
+  UseColorShader;
+  SetShaderColor(0.25, 0.25, 0.25);
+  glShaderBegin(GL_TRIANGLE_FAN);
+  glShaderVertex(-ItemSize15, -ItemSize15, 0);
+  glShaderVertex(-ItemSize15, ItemSize15, 0);
+  glShaderVertex(ItemSize15, ItemSize15, 0);
+  glShaderVertex(ItemSize15, -ItemSize15, 0);
+  glShaderEnd;
   For i := -1 To 1 Do
     For j := -1 To 1 Do Begin
       SetColor(Value[offx + i, offy + j]);
@@ -138,40 +145,24 @@ End;
 
 Constructor TPentago.create;
 Var
-  b: Tbitmap;
-  i, j: integer;
-  TempIntfImg: TLazIntfImage;
-  c: TRGB;
+  Bitmap: TBitmap;
 Begin
   Inherited Create;
   FPentagostate := psMainMenu;
-  b := Tbitmap.Create;
-  b.LoadFromLazarusResource('mouse_info');
-  TempIntfImg := TLazIntfImage.Create(0, 0);
-  TempIntfImg.LoadFromBitmap(B.Handle, B.MaskHandle);
-  FMouseInfo := glGenLists(1);
-  FMouseInfo_cnt := 0;
-  glNewList(FMouseInfo, GL_COMPILE);
-  glbegin(GL_points);
-  For i := 0 To b.Width - 1 Do Begin
-    For j := 0 To b.Height - 1 Do Begin
-      If FPColorToColor(TempIntfImg.colors[i, j]) <> clfuchsia Then Begin
-        c := ColorToRGB(FPColorToColor(TempIntfImg.colors[i, j]));
-        glColor3ubv(@c);
-        glVertex2i(i, j);
-        inc(FMouseInfo_cnt);
-      End;
-    End;
+  Bitmap := TBitmap.Create;
+  Try
+    Bitmap.LoadFromLazarusResource('mouse_info');
+    FMouseInfo := OpenGL_GraphikEngine.LoadAlphaColorGraphikItem(
+      Bitmap, 'mouse_info', ugraphics.ColorToRGB(clFuchsia), smClamp);
+  Finally
+    Bitmap.Free;
   End;
-  glend;
-  glEndList();
-  b.free;
-  TempIntfImg.free;
 End;
 
 Destructor TPentago.destroy;
 Begin
-  glDeleteLists(FMouseInfo, FMouseInfo_cnt); // Delete All Display Lists
+  OpenGL_GraphikEngine.RemoveGraphik(FMouseInfo);
+  Inherited Destroy;
 End;
 
 Procedure TPentago.fGetWinner;
@@ -440,157 +431,50 @@ End;
 Procedure TPentago.fRenderRotField(Offx, Offy, Step: integer; DrehSinn: Boolean
   );
 Var
-  TranslationVektorx,
-    TranslationVektory: Double;
-  Angle, Dist: Double;
+  BlockX, BlockY, FieldX, FieldY: Integer;
+  DirectionX, DirectionY, Angle, Dist, Displacement, Progress: Double;
+  Transform: TMatrix4x4;
 Begin
-  Dist := 3 * Itemsize / 2 + FieldSpace / 2;
-  glpushmatrix;
-  gltranslatef(320, 240, 0);
-  TranslationVektorx := sqrt(2) * ItemSize / 2;
-  TranslationVektory := TranslationVektorx;
-  // Rendern Feld 1
-  glpushmatrix;
-  If (Offx = 1) And (offy = 1) Then Begin
-    TranslationVektorx := -TranslationVektorx;
-    TranslationVektory := -TranslationVektory;
-    Case Step Of
-      0..25: Begin
-          gltranslatef(-Dist, -Dist, 0);
-          gltranslatef(TranslationVektorx * Step / 25, TranslationVektory * Step / 25, 0);
+  Dist := 3 * ItemSize / 2 + FieldSpace / 2;
+  Displacement := Sqrt(2) * ItemSize / 2;
+  For BlockY := 0 To 1 Do
+    For BlockX := 0 To 1 Do Begin
+      FieldX := 1 + BlockX * 3;
+      FieldY := 1 + BlockY * 3;
+      DirectionX := 2 * BlockX - 1;
+      DirectionY := 2 * BlockY - 1;
+      Transform := TranslateMatrix4x4(IdentityMatrix4x4,
+        320 + DirectionX * Dist, 240 + DirectionY * Dist, 0);
+      If (Offx = FieldX) And (Offy = FieldY) Then Begin
+        Progress := 0;
+        Angle := 0;
+        Case Step Of
+          0..25: Progress := Step / 25;
+          26..75: Begin
+              Progress := 1;
+              Angle := ((Step - 26) / 49) * 90;
+            End;
+          76..100: Begin
+              Progress := (25 - (Step - 76)) / 25;
+              Angle := 90;
+            End;
         End;
-      26..75: Begin
-          angle := ((Step - 26) / 49) * 90;
-          gltranslatef(-Dist, -Dist, 0);
-          gltranslatef(TranslationVektorx, TranslationVektory, 0);
-          If Drehsinn Then
-            glrotatef(angle, 0, 0, 1)
-          Else
-            glrotatef(-angle, 0, 0, 1);
-        End;
-      76..100: Begin
-          Step := 25 - (Step - 76);
-          gltranslatef(-Dist, -Dist, 0);
-          gltranslatef(TranslationVektorx * Step / 25, TranslationVektory * Step / 25, 0);
-          If Drehsinn Then
-            glrotatef(90, 0, 0, 1)
-          Else
-            glrotatef(-90, 0, 0, 1);
-        End;
+        If Not DrehSinn Then Angle := -Angle;
+        Transform := TranslateMatrix4x4(Transform,
+          DirectionX * Displacement * Progress,
+          DirectionY * Displacement * Progress, 0);
+        Transform := MulMatrix(
+          TransposeMatrix(CalculateRotationMatrix(Angle, V3(0, 0, 1))), Transform);
+      End;
+      SetShaderTransform(Transform);
+      RenderQuad(FField, FieldX, FieldY);
     End;
-  End
-  Else Begin
-    gltranslatef(-Dist, -Dist, 0);
-  End;
-  RenderQuad(ffield, 1, 1);
-  glpopmatrix;
-  // Rendern Feld 2
-  glpushmatrix;
-  If (Offx = 4) And (offy = 1) Then Begin
-    TranslationVektory := -TranslationVektory;
-    Case Step Of
-      0..25: Begin
-          gltranslatef(Dist, -Dist, 0);
-          gltranslatef(TranslationVektorx * Step / 25, TranslationVektory * Step / 25, 0);
-        End;
-      26..75: Begin
-          angle := ((Step - 26) / 49) * 90;
-          gltranslatef(Dist, -Dist, 0);
-          gltranslatef(TranslationVektorx, TranslationVektory, 0);
-          If Drehsinn Then
-            glrotatef(angle, 0, 0, 1)
-          Else
-            glrotatef(-angle, 0, 0, 1);
-        End;
-      76..100: Begin
-          Step := 25 - (Step - 76);
-          gltranslatef(Dist, -Dist, 0);
-          gltranslatef(TranslationVektorx * Step / 25, TranslationVektory * Step / 25, 0);
-          If Drehsinn Then
-            glrotatef(90, 0, 0, 1)
-          Else
-            glrotatef(-90, 0, 0, 1);
-        End;
-    End;
-  End
-  Else Begin
-    gltranslatef(Dist, -Dist, 0);
-  End;
-  RenderQuad(ffield, 4, 1);
-  glpopmatrix;
-  // Rendern Feld 3
-  glpushmatrix;
-  If (Offx = 1) And (offy = 4) Then Begin
-    TranslationVektorx := -TranslationVektorx;
-    Case Step Of
-      0..25: Begin
-          gltranslatef(-Dist, Dist, 0);
-          gltranslatef(TranslationVektorx * Step / 25, TranslationVektory * Step / 25, 0);
-        End;
-      26..75: Begin
-          angle := ((Step - 26) / 49) * 90;
-          gltranslatef(-Dist, Dist, 0);
-          gltranslatef(TranslationVektorx, TranslationVektory, 0);
-          If Drehsinn Then
-            glrotatef(angle, 0, 0, 1)
-          Else
-            glrotatef(-angle, 0, 0, 1);
-        End;
-      76..100: Begin
-          Step := 25 - (Step - 76);
-          gltranslatef(-Dist, Dist, 0);
-          gltranslatef(TranslationVektorx * Step / 25, TranslationVektory * Step / 25, 0);
-          If Drehsinn Then
-            glrotatef(90, 0, 0, 1)
-          Else
-            glrotatef(-90, 0, 0, 1);
-        End;
-    End;
-  End
-  Else Begin
-    gltranslatef(-Dist, Dist, 0);
-  End;
-  RenderQuad(ffield, 1, 4);
-  glpopmatrix;
-  // Rendern Feld 4
-  glpushmatrix;
-  If (Offx = 4) And (offy = 4) Then Begin
-    Case Step Of
-      0..25: Begin
-          gltranslatef(Dist, Dist, 0);
-          gltranslatef(TranslationVektorx * Step / 25, TranslationVektory * Step / 25, 0);
-        End;
-      26..75: Begin
-          angle := ((Step - 26) / 49) * 90;
-          gltranslatef(Dist, Dist, 0);
-          gltranslatef(TranslationVektorx, TranslationVektory, 0);
-          If Drehsinn Then
-            glrotatef(angle, 0, 0, 1)
-          Else
-            glrotatef(-angle, 0, 0, 1);
-        End;
-      76..100: Begin
-          Step := 25 - (Step - 76);
-          gltranslatef(Dist, Dist, 0);
-          gltranslatef(TranslationVektorx * Step / 25, TranslationVektory * Step / 25, 0);
-          If Drehsinn Then
-            glrotatef(90, 0, 0, 1)
-          Else
-            glrotatef(-90, 0, 0, 1);
-        End;
-    End;
-  End
-  Else Begin
-    gltranslatef(Dist, Dist, 0);
-  End;
-  RenderQuad(ffield, 4, 4);
-  glpopmatrix;
-  glpopmatrix;
+  ResetShaderTransform;
+  UseTextureShader;
 End;
 
 Procedure TPentago.Render;
 Var
-  Dist: Double;
   t: Dword;
   //diff: Integer;
 Begin
@@ -636,26 +520,7 @@ Begin
       psPlayer_Weiss_Rotieren,
       psPlayer_Weiss_Zug: Begin
         // Rendern Des Spielfeldes !!
-        Dist := 3 * Itemsize / 2 + FieldSpace / 2;
-        glpushmatrix;
-        gltranslatef(320, 240, 0);
-        glpushmatrix;
-        gltranslatef(-Dist, -Dist, 0);
-        RenderQuad(FField, 1, 1);
-        glpopmatrix;
-        glpushmatrix;
-        gltranslatef(Dist, -Dist, 0);
-        RenderQuad(FField, 4, 1);
-        glpopmatrix;
-        glpushmatrix;
-        gltranslatef(-Dist, Dist, 0);
-        RenderQuad(FField, 1, 4);
-        glpopmatrix;
-        glpushmatrix;
-        gltranslatef(Dist, Dist, 0);
-        RenderQuad(FField, 4, 4);
-        glpopmatrix;
-        glpopmatrix;
+        fRenderRotField(0, 0, 0, True);
         If FPentagostate = psPlayer_Schwarz_Zug Then Begin
           OpenGL_ASCII_Font.Textout(10, 50, 'black turn');
         End;
@@ -664,17 +529,11 @@ Begin
         End;
         If FPentagostate = psPlayer_Weiss_Rotieren Then Begin
           OpenGL_ASCII_Font.Textout(10, 50, 'white rotate');
-          glPushMatrix();
-          glTranslatef(10, 60, 0);
-          glCallList(FMouseInfo);
-          glPopMatrix();
+          RenderAlphaQuad(9.5, 59.5, 0, FMouseInfo);
         End;
         If FPentagostate = psPlayer_Schwarz_Rotieren Then Begin
           OpenGL_ASCII_Font.Textout(10, 50, 'black rotate');
-          glPushMatrix();
-          glTranslatef(10, 60, 0);
-          glCallList(FMouseInfo);
-          glPopMatrix();
+          RenderAlphaQuad(9.5, 59.5, 0, FMouseInfo);
         End;
       End;
   End;

@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Pentago                                                         ??.??.???? *)
 (*                                                                            *)
-(* Version     : 0.01                                                         *)
+(* Version     : 0.02                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -24,6 +24,7 @@
 (* Known Issues: none                                                         *)
 (*                                                                            *)
 (* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Migrate rendering to shaders and GTK3                 *)
 (*                                                                            *)
 (******************************************************************************)
 Unit Unit1;
@@ -54,6 +55,7 @@ Type
     Timer1: TTimer;
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: boolean);
     Procedure FormCreate(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
     Procedure OpenGLControl1KeyDown(Sender: TObject; Var Key: Word;
       Shift: TShiftState);
     Procedure OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
@@ -64,10 +66,9 @@ Type
     Procedure Timer1Timer(Sender: TObject);
   private
     { private declarations }
+    Procedure SetupFrame;
   public
     { public declarations }
-    Procedure Go2d();
-    Procedure Exit2d();
   End;
 
 Var
@@ -79,30 +80,26 @@ Implementation
 
 {$R *.lfm}
 
+Uses uopengl_graphikengine, uopengl_shaderprimitives, uopengl_legacychecker;
+
 { TForm1 }
-
-Procedure Tform1.Go2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix(); // Store The Projection Matrix
-  glLoadIdentity(); // Reset The Projection Matrix
-  //  glOrtho(0, 640, 480,0, -1, 1); // Set Up An Ortho Screen
-  glOrtho(0, OpenGLControl1.Width, OpenGLControl1.height, 0, -1, 1); // Set Up An Ortho Screen
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix(); // Store old Modelview Matrix
-  glLoadIdentity(); // Reset The Modelview Matrix
-End;
-
-Procedure Tform1.Exit2d();
-Begin
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix(); // Restore old Projection Matrix
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix(); // Restore old Projection Matrix
-End;
 
 Var
   allowcnt: Integer = 0;
+
+Procedure OnOpenGLLegacyCall(Severity: GLuint; aMessage: String);
+Begin
+  Initialized := False;
+  ShowMessage('OpenGL error (' + IntToStr(Severity) + '): ' + aMessage +
+    LineEnding + 'Application will be terminated.');
+  Halt(1);
+End;
+
+Procedure TForm1.SetupFrame;
+Begin
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
+End;
 
 Procedure TForm1.OpenGLControl1MakeCurrent(Sender: TObject; Var Allow: boolean);
 Begin
@@ -115,12 +112,26 @@ Begin
     // Init dglOpenGL.pas , Teil 2
     ReadExtensions; // Anstatt der Extentions kann auch nur der Core geladen werden. ReadOpenGLCore;
     ReadImplementationProperties;
+    RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
   End;
   If allowcnt = 2 Then Begin // Dieses If Sorgt mit dem obigen dafür, dass der Code nur 1 mal ausgeführt wird.
+    OpenGL_GraphikEngine.Clear;
+    SetupFrame;
+    If Not Assigned(glCreateShader) Then Begin
+      ReadExtensions;
+      ReadImplementationProperties;
+      RegisterLegacyCheckerCallback(@OnOpenGLLegacyCall);
+    End;
+    If Not Assigned(glCreateShader) Then Begin
+      OnOpenGLLegacyCall(0, 'Shader support is required.');
+    End;
+    OpenGL_GraphikEngine_InitializeShaderSystem;
+    OpenGL_ShaderPrimitives_InitializeShaderSystem;
     Create_ASCII_Font();
-    Pentago := TPentago.create;
+    Pentago := TPentago.Create;
     // Der Anwendung erlauben zu Rendern.
     Initialized := True;
+    ReActivateKHRDebug;
     OpenGLControl1Resize(Nil);
   End;
   Form1.Invalidate;
@@ -129,31 +140,26 @@ End;
 Procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 Begin
-  Pentago.OnMouseDown(Button, Shift, x, y);
+  If Initialized Then Pentago.OnMouseDown(Button, Shift, X, Y);
 End;
 
 Procedure TForm1.OpenGLControl1Paint(Sender: TObject);
 Begin
   If Not Initialized Then Exit;
   // Render Szene
-  glClearColor(0.0, 0.0, 0.0, 0.0);
-  glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
-  uOpenGL_ASCII_Font.go2d(640, 480);
-  Pentago.render();
-  uOpenGL_ASCII_Font.exit2d;
+  SetupFrame;
+  Go2d(640, 480);
+  Pentago.Render();
+  Exit2d;
   OpenGLControl1.SwapBuffers;
 End;
 
 Procedure TForm1.OpenGLControl1Resize(Sender: TObject);
 Begin
-  If Initialized Then Begin
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+  If Initialized And OpenGLControl1.MakeCurrent Then Begin
     glViewport(0, 0, OpenGLControl1.Width, OpenGLControl1.Height);
-    gluPerspective(45.0, OpenGLControl1.Width / OpenGLControl1.Height, 0.1, 100.0);
-    glMatrixMode(GL_MODELVIEW);
-    glPointSize(max(OpenGLControl1.Width / 640, OpenGLControl1.Height / 480));
+    glShaderPointSize(Max(OpenGLControl1.Width / 640, OpenGLControl1.Height / 480));
+    OpenGLControl1.Invalidate;
   End;
 End;
 
@@ -163,8 +169,12 @@ Begin
   caption := 'Pentago ver. ' + PentagoVersion + ' by Corpsman www.Corpsman.de';
   If Not InitOpenGl Then Begin
     showmessage('Error, could not init dglOpenGL.pas');
-    Halt;
+    Halt(1);
   End;
+  OpenGLControl1.AutoResizeViewport := True;
+  OpenGLControl1.DebugContext := True;
+  OpenGLControl1.OpenGLMajorVersion := 3;
+  OpenGLControl1.OpenGLMinorVersion := 3;
   (*
   60 - FPS entsprechen
   0.01666666 ms
@@ -176,19 +186,32 @@ Begin
   ClientHeight := 480;
   Randomize;
   Timer1.Interval := 17;
+  OpenGLControl1.Invalidate;
+End;
+
+Procedure TForm1.FormDestroy(Sender: TObject);
+Begin
+  Timer1.Enabled := False;
+  Initialized := False;
+  If OpenGLControl1.MakeCurrent Then Begin
+    FreeAndNil(Pentago);
+    FreeAndNil(OpenGL_ASCII_Font);
+    OpenGL_GraphikEngine.Clear;
+    OpenGL_ShaderPrimitives_FinalizeShaderSystem;
+    OpenGL_GraphikEngine_FinalizeShaderSystem;
+  End;
 End;
 
 Procedure TForm1.OpenGLControl1KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Begin
-  pentago.OnKeyDown(key, Shift);
+  If Initialized Then Pentago.OnKeyDown(Key, Shift);
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: boolean);
 Begin
   Timer1.Enabled := false;
   Initialized := false;
-  Pentago.Free;
 End;
 
 Procedure TForm1.Timer1Timer(Sender: TObject);
@@ -205,10 +228,7 @@ Begin
     If i <> 0 Then Begin
       Timer1.Enabled := false;
       p := gluErrorString(i);
-      showmessage('OpenGL Error (' + inttostr(i) + ') occured.' + #13#13 +
-        'OpenGL Message : "' + p + '"'#13#13 +
-        'Applikation will be terminated.');
-      close;
+      OnOpenGLLegacyCall(i, 'OpenGL Message: "' + p + '"');
     End;
 {$ENDIF}
   End;
