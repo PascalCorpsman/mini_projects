@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="13"/>
     <General>
-      <Flags>
-        <CompatibilityMode Value="True"/>
-      </Flags>
       <SessionStorage Value="InProjectDir"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -17,8 +14,8 @@
       <Language Value=""/>
       <CharSet Value=""/>
     </VersionInfo>
-    <BuildModes Count="1">
-      <Item1 Name="default" Default="True"/>
+    <BuildModes>
+      <Item Name="default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -28,88 +25,88 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
       <FormatVersion Value="2"/>
-      <Modes Count="1">
-        <Mode0 Name="default">
+      <Modes>
+        <Mode Name="default">
           <local>
             <LaunchingApplication PathPlusParams="/usr/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
           </local>
-        </Mode0>
+        </Mode>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="2">
-      <Item1>
+    <RequiredPackages>
+      <Item>
         <PackageName Value="LazOpenGLContext"/>
         <MinVersion Release="1" Valid="True"/>
-      </Item1>
-      <Item2>
+      </Item>
+      <Item>
         <PackageName Value="LCL"/>
-      </Item2>
+      </Item>
     </RequiredPackages>
-    <Units Count="12">
-      <Unit0>
+    <Units>
+      <Unit>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
-      </Unit0>
-      <Unit1>
+      </Unit>
+      <Unit>
         <Filename Value="unit1.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form1"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-      </Unit1>
-      <Unit2>
+      </Unit>
+      <Unit>
         <Filename Value="uparken.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit2>
-      <Unit3>
+      </Unit>
+      <Unit>
         <Filename Value="unit5.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form5"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit5"/>
-      </Unit3>
-      <Unit4>
+      </Unit>
+      <Unit>
         <Filename Value="../../DatenSteuerung/uvectormath.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit4>
-      <Unit5>
+      </Unit>
+      <Unit>
         <Filename Value="../../Graphik/ugraphics.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit5>
-      <Unit6>
+      </Unit>
+      <Unit>
         <Filename Value="unit2.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form2"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
-      </Unit6>
-      <Unit7>
+      </Unit>
+      <Unit>
         <Filename Value="unit3.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form3"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit3"/>
-      </Unit7>
-      <Unit8>
+      </Unit>
+      <Unit>
         <Filename Value="unit4.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form4"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit4"/>
-      </Unit8>
-      <Unit9>
+      </Unit>
+      <Unit>
         <Filename Value="../../DatenSteuerung/ufifo.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit9>
-      <Unit10>
+      </Unit>
+      <Unit>
         <Filename Value="../uopengl_legacychecker.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit10>
-      <Unit11>
+      </Unit>
+      <Unit>
         <Filename Value="../uopengl_shaderprimitives.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit11>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -119,7 +116,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung;/sda5/sda5/Tools/Projects/Sample/Graphik;../../DatenSteuerung;..;../../Graphik"/>
+      <OtherUnitFiles Value="/sda5/sda5/Tools/Projects/Sample/OpenGL/;/sda5/sda5/Tools/Projects/Sample/DatenSteuerung/;/sda5/sda5/Tools/Projects/Sample/Graphik/;../../DatenSteuerung;..;../../Graphik"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
@@ -134,16 +131,16 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
-      <Item1>
+    <Exceptions>
+      <Item>
         <Name Value="EAbort"/>
-      </Item1>
-      <Item2>
+      </Item>
+      <Item>
         <Name Value="ECodetoolError"/>
-      </Item2>
-      <Item3>
+      </Item>
+      <Item>
         <Name Value="EFOpenError"/>
-      </Item3>
+      </Item>
     </Exceptions>
   </Debugging>
 </CONFIG>
