@@ -1064,15 +1064,21 @@ Begin
    * sich durch die Größenänderung nicht verändern, sonst stimmt das Rendern
    * nachher nicht mehr ..
    *)
-  s := FNormalTex.OrigHeight / FNormalTex.StretchedHeight;
+  s := 1;
+  If FNormalTex.StretchedHeight <> 0 Then
+    s := FNormalTex.OrigHeight / FNormalTex.StretchedHeight;
   FNormalTex.OrigHeight := AValue;
   FNormalTex.StretchedHeight := round(FNormalTex.OrigHeight / s);
 
-  s := fDownTex.OrigHeight / fDownTex.StretchedHeight;
+  s := 1;
+  If fDownTex.StretchedHeight <> 0 Then
+    s := fDownTex.OrigHeight / fDownTex.StretchedHeight;
   fDownTex.OrigHeight := AValue;
   fDownTex.StretchedHeight := round(fDownTex.OrigHeight / s);
 
-  s := fHoverTex.OrigHeight / fHoverTex.StretchedHeight;
+  s := 1;
+  If fHoverTex.StretchedHeight <> 0 Then
+    s := fHoverTex.OrigHeight / fHoverTex.StretchedHeight;
   fHoverTex.OrigHeight := AValue;
   fHoverTex.StretchedHeight := round(fHoverTex.OrigHeight / s);
 End;
@@ -1087,15 +1093,22 @@ Begin
    * sich durch die Größenänderung nicht verändern, sonst stimmt das Rendern
    * nachher nicht mehr ..
    *)
-  s := FNormalTex.OrigWidth / FNormalTex.StretchedWidth;
+  s := 1;
+  If FNormalTex.StretchedWidth <> 0 Then
+    s := FNormalTex.OrigWidth / FNormalTex.StretchedWidth;
+
   FNormalTex.OrigWidth := AValue;
   FNormalTex.StretchedWidth := round(FNormalTex.OrigWidth / s);
 
-  s := fDownTex.OrigWidth / fDownTex.StretchedWidth;
+  s := 1;
+  If fDownTex.StretchedWidth <> 0 Then
+    s := fDownTex.OrigWidth / fDownTex.StretchedWidth;
   fDownTex.OrigWidth := AValue;
   fDownTex.StretchedWidth := round(fDownTex.OrigWidth / s);
 
-  s := fHoverTex.OrigWidth / fHoverTex.StretchedWidth;
+  s := 1;
+  If fHoverTex.StretchedWidth <> 0 Then
+    s := fHoverTex.OrigWidth / fHoverTex.StretchedWidth;
   fHoverTex.OrigWidth := AValue;
   fHoverTex.StretchedWidth := round(fHoverTex.OrigWidth / s);
 End;
