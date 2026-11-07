@@ -7,10 +7,10 @@ object Form1: TForm1
   ClientHeight = 656
   ClientWidth = 657
   Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '5.99.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
-  Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
   object PaintBox1: TPaintBox
     Left = 8
     Height = 529
@@ -27,99 +27,99 @@ object Form1: TForm1
     Width = 641
     Anchors = [akLeft, akRight, akBottom]
     Caption = ' Info '
-    ClientHeight = 61
-    ClientWidth = 637
+    ClientHeight = 63
+    ClientWidth = 639
     TabOrder = 0
     object Label1: TLabel
       Left = 14
-      Height = 15
+      Height = 16
       Top = 8
-      Width = 66
+      Width = 74
       Caption = 'Your power :'
     end
     object Label2: TLabel
       Left = 14
-      Height = 15
+      Height = 16
       Top = 32
-      Width = 75
+      Width = 82
       Caption = 'Comp power :'
     end
     object Label3: TLabel
       Left = 534
-      Height = 15
+      Height = 16
       Top = 8
-      Width = 32
+      Width = 34
       Anchors = [akTop, akRight]
       Caption = 'Cash :'
     end
     object Label4: TLabel
-      Left = 533
-      Height = 15
+      Left = 531
+      Height = 16
       Top = 24
-      Width = 33
+      Width = 37
       Anchors = [akTop, akRight]
       Caption = 'Food :'
     end
     object Label5: TLabel
       Left = 97
-      Height = 15
+      Height = 16
       Top = 5
-      Width = 34
+      Width = 39
       Caption = 'Label5'
     end
     object Label6: TLabel
       Left = 97
-      Height = 15
+      Height = 16
       Top = 32
-      Width = 34
+      Width = 39
       Caption = 'Label6'
     end
     object Label7: TLabel
-      Left = 588
-      Height = 15
+      Left = 585
+      Height = 16
       Top = 8
-      Width = 34
+      Width = 39
       Anchors = [akTop, akRight]
       Caption = 'Label7'
     end
     object Label8: TLabel
-      Left = 588
-      Height = 15
+      Left = 585
+      Height = 16
       Top = 24
-      Width = 34
+      Width = 39
       Anchors = [akTop, akRight]
       Caption = 'Label8'
     end
     object Label9: TLabel
       Left = 166
-      Height = 45
+      Height = 38
       Top = 8
-      Width = 95
+      Width = 99
       Caption = 'Label9'
       Font.Height = -33
       ParentFont = False
     end
     object Label10: TLabel
-      Left = 534
-      Height = 15
+      Left = 533
+      Height = 16
       Top = 40
-      Width = 32
+      Width = 35
       Anchors = [akTop, akRight]
       Caption = 'Bank :'
     end
     object Label11: TLabel
-      Left = 582
-      Height = 15
+      Left = 578
+      Height = 16
       Top = 40
-      Width = 40
+      Width = 46
       Anchors = [akTop, akRight]
       Caption = 'Label11'
     end
     object Label12: TLabel
       Left = 150
-      Height = 30
+      Height = 24
       Top = 5
-      Width = 71
+      Width = 76
       Caption = 'Label12'
       Font.Height = -21
       ParentFont = False
@@ -132,8 +132,8 @@ object Form1: TForm1
     Width = 641
     Max = 15
     Min = -15
-    OnChange = TrackBar1Change
     Position = 0
+    OnChange = TrackBar1Change
     Anchors = [akLeft, akRight, akBottom]
     ParentShowHint = False
     TabOrder = 1

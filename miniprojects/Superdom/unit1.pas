@@ -705,8 +705,11 @@ Begin
       End;
     End;
     Superdom.SelectCell(x, y);
-    //PaintBox1.Invalidate; // Eigentlich würde ich ja Invalidate nehmen, aber unter Windoof flackert das, mit OnPaint(nil) tuts das nicht..
+{$IFDEF LINUX}
+    PaintBox1.Invalidate; // Eigentlich würde ich ja Invalidate nehmen, aber unter Windoof flackert das, mit OnPaint(nil) tuts das nicht..
+{$ELSE}
     PaintBox1.OnPaint(Nil);
+{$ENDIF}
     Application.ProcessMessages;
     If SuperDom.State = gsBuyRessources Then Begin
       SetPopupMenu(PopupMenu1);
