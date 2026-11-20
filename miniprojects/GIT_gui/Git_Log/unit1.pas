@@ -36,12 +36,14 @@ Uses
   *                 ADD: Ability to create branches / tags
   *                 ADD: Bold font for current Head branch
   *                 ADD: Switch/Checkout dialog
+  *          0.07 = FIX: Keep merge nodes on their incoming lane
+  *                 ADD: Offline ref labels and batched history loading
   *
   * Icons geladen von: https://peacocksoftware.com/silk
   *)
 
 Const
-  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.06';
+  DefCaption = ' - Log Messages - CorpsmanGit ver. 0.07';
 
   IndexActionFileModified = 0; // If a revision modified a file or directory, the modified icon is shown in the first column.
   IndexActionFileAdded = 1; // If a revision added a File Or directory, the added icon Is shown In the second column.
@@ -203,7 +205,10 @@ Uses
   unit2 // Create Branch Dialog
   , unit3 // Switch to Branch Dialog
   , LCLType
-  , uGITOptions, ugit_common, LazFileUtils, LazUTF8, math, DateUtils, LCLIntf;
+  , uGITOptions, ugit_common, LazFileUtils, LazUTF8, math, DateUtils, LCLIntf, fgl;
+
+Type
+  THashRows = specialize TFPGMap<String, Integer>;
 
 { TForm1 }
 
@@ -446,6 +451,25 @@ Var
   r: TRect;
   offset, h, j: integer;
   bc, fc: TColor;
+
+  Procedure DrawRefLabel(Const Name: String; Color: TColor);
+  Var
+    LabelRect: TRect;
+    Padding: Integer;
+  Begin
+    Padding := Scale96ToForm(4);
+    LabelRect := Rect(aRect.Left + offset, aRect.Top + Scale96ToForm(2),
+      aRect.Left + offset + StringGrid1.Canvas.TextWidth(Name) + 2 * Padding,
+      aRect.Bottom - Scale96ToForm(2));
+    StringGrid1.Canvas.Brush.Color := Color;
+    StringGrid1.Canvas.Pen.Color := $00606060;
+    StringGrid1.Canvas.Font.Color := clBlack;
+    StringGrid1.Canvas.Rectangle(LabelRect);
+    StringGrid1.Canvas.TextOut(LabelRect.Left + Padding,
+      (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight(Name)) Div 2, Name);
+    offset := LabelRect.Right - aRect.Left + Padding;
+  End;
+
 Begin
   If (aCol = 1) And (aRow > 0) Then Begin // Spalte "Actions"
     // Hintergrund Löschen
@@ -487,9 +511,11 @@ Begin
   End;
   If (aCol = 0) And (aRow > 0) Then Begin
     If high(Graph) < aRow - 1 Then exit; // Graph noch nicht initialisiert
+    StringGrid1.Canvas.Brush.Color := StringGrid1.Color;
+    StringGrid1.Canvas.FillRect(aRect);
     DrawGraphRow(StringGrid1.Canvas, Graph[aRow - 1], aRect);
   End;
-  If (aCol = 2) Then Begin
+  If (aCol = 2) And (aRow > 0) And (aRow < Length(Additionals)) Then Begin
     If StringGrid1.cells[5, aRow] = HeadHash Then Begin
       StringGrid1.canvas.Font.Style := [fsBold];
     End
@@ -497,7 +523,7 @@ Begin
       StringGrid1.canvas.Font.Style := [];
     End;
     // ggf Branch Infos mit rein malen
-    offset := 0;
+    offset := Scale96ToForm(4);
     bc := StringGrid1.canvas.Brush.Color;
     fc := StringGrid1.canvas.Font.Color;
     StringGrid1.canvas.Pen.Color := StringGrid1.canvas.Brush.Color;
@@ -506,18 +532,12 @@ Begin
       // Die Zelle "Löschen"
       If assigned(Additionals[aRow].Branchs) Then Begin
         For j := 0 To high(Additionals[aRow].Branchs) Do Begin
-          StringGrid1.canvas.Brush.Color := Additionals[aRow].Branchs[j].Color;
-          StringGrid1.canvas.Font.Color := clBlack;
-          StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, Additionals[aRow].Branchs[j].Name);
-          offset := offset + StringGrid1.canvas.TextWidth(Additionals[aRow].Branchs[j].Name) + Scale96ToForm(2);
+          DrawRefLabel(Additionals[aRow].Branchs[j].Name, Additionals[aRow].Branchs[j].Color);
         End;
       End;
       If assigned(Additionals[aRow].tags) Then Begin
-        StringGrid1.canvas.Brush.Color := clYellow;
-        StringGrid1.canvas.Font.Color := clBlack;
         For j := 0 To high(Additionals[aRow].tags) Do Begin
-          StringGrid1.canvas.TextOut(aRect.Left + offset, (aRect.Bottom + aRect.Top - StringGrid1.Canvas.TextHeight('8')) Div 2, Additionals[aRow].tags[j]);
-          offset := offset + StringGrid1.canvas.TextWidth(Additionals[aRow].tags[j]) + Scale96ToForm(2);
+          DrawRefLabel(Additionals[aRow].tags[j], $0080FFFF);
         End;
       End;
     End;
@@ -569,13 +589,14 @@ Procedure TForm1.LoadLCL;
   Procedure CalcAdditionals();
   Var
     res: TStringList;
-    i, j: Integer;
+    i, j, index: Integer;
     sa: TStringArray;
-    aBranch, p: String;
+    aBranch, p, hash, name: String;
+    Rows: THashRows;
 
   Begin
     // First get name of Actual Branch by using "git symbolic-ref --short HEAD" or "git branch --show-current"
-    res := RunCommand(ProjectRoot, 'git', ['symbolic-ref', '--short', 'HEAD']);
+    res := RunCommand(ProjectRoot, 'git', ['symbolic-ref', '-q', '--short', 'HEAD']);
     aBranch := trim(res.Text);
     res.free;
     Additionals := Nil;
@@ -587,63 +608,72 @@ Procedure TForm1.LoadLCL;
     form2.ComboBox2.Clear;
     form2.ComboBox3.Clear;
     form2.ComboBox3.Items.Add('FETCH_HEAD');
-    res := RunCommand(ProjectRoot, 'git', ['show-ref', '--heads', '--tags' {, '--dereference'}]);
-    For i := 0 To res.Count - 1 Do Begin
-      If trim(res[i]) <> '' Then Begin
-        sa := trim(res[i]).Split(' ');
-        p := sa[1];
-        For j := 2 To StringGrid1.RowCount - 1 Do Begin
-          If StringGrid1.Cells[5, j] = sa[0] Then Begin
-            If pos('refs/heads/', p) = 1 Then Begin
-              setlength(Additionals[j].Branchs, high(Additionals[j].Branchs) + 2);
-              Additionals[j].Branchs[high(Additionals[j].Branchs)].Name := copy(p, length('refs/heads/') + 1, length(p));
-              form2.ComboBox3.Items.Add(Additionals[j].Branchs[high(Additionals[j].Branchs)].Name);
-              If aBranch = Additionals[j].Branchs[high(Additionals[j].Branchs)].Name Then Begin
-                Additionals[j].Branchs[high(Additionals[j].Branchs)].Color := $000000C8; // Rot
+    Rows := THashRows.Create;
+    Rows.Sorted := true;
+    Try
+      For j := 2 To StringGrid1.RowCount - 1 Do
+        Rows.Add(StringGrid1.Cells[5, j], j);
+      res := RunCommand(ProjectRoot, 'git', ['for-each-ref',
+        '--format=%(objectname)%09%(refname)%09%(*objectname)%09%(symref)',
+        'refs/heads', 'refs/tags', 'refs/remotes']);
+      Try
+        For i := 0 To res.Count - 1 Do Begin
+          sa := res[i].Split(#9);
+          If Length(sa) <> 4 Then
+            raise Exception.Create('Invalid git ref output: ' + res[i]);
+          If sa[3] <> '' Then continue;
+          p := sa[1];
+          hash := sa[0];
+          If sa[2] <> '' Then hash := sa[2];
+          index := Rows.IndexOf(hash);
+          If Pos('refs/tags/', p) = 1 Then Begin
+            name := Copy(p, Length('refs/tags/') + 1, Length(p));
+            form2.ComboBox2.Items.Add(name);
+            If index >= 0 Then Begin
+              j := Rows.Data[index];
+              SetLength(Additionals[j].Tags, Length(Additionals[j].Tags) + 1);
+              Additionals[j].Tags[High(Additionals[j].Tags)] := name;
+            End;
+          End
+          Else Begin
+            If Pos('refs/heads/', p) = 1 Then
+              name := Copy(p, Length('refs/heads/') + 1, Length(p))
+            Else
+              name := Copy(p, Length('refs/remotes/') + 1, Length(p));
+            If Pos('refs/heads/', p) = 1 Then Begin
+              form2.ComboBox3.Items.Add(name);
+              If name = aBranch Then
                 form2.ComboBox3.ItemIndex := form2.ComboBox3.Items.Count - 1;
-              End
-              Else Begin
-                Additionals[j].Branchs[high(Additionals[j].Branchs)].Color := $0000C300; // Grün
-              End;
+            End
+            Else
+              form2.ComboBox3.Items.Add('remotes/' + name);
+            If index >= 0 Then Begin
+              j := Rows.Data[index];
+              SetLength(Additionals[j].Branchs, Length(Additionals[j].Branchs) + 1);
+              Additionals[j].Branchs[High(Additionals[j].Branchs)].Name := name;
+              If Pos('refs/remotes/', p) = 1 Then
+                Additionals[j].Branchs[High(Additionals[j].Branchs)].Color := $00AADDFF
+              Else If name = aBranch Then
+                Additionals[j].Branchs[High(Additionals[j].Branchs)].Color := $0080A0FF
+              Else
+                Additionals[j].Branchs[High(Additionals[j].Branchs)].Color := $0080D080;
             End;
-            If pos('refs/tags/', p) = 1 Then Begin
-              setlength(Additionals[j].tags, high(Additionals[j].tags) + 2);
-              Additionals[j].tags[high(Additionals[j].tags)] := copy(p, length('refs/tags/') + 1, length(p));
-              form2.ComboBox2.Items.Add(Additionals[j].tags[high(Additionals[j].tags)]);
-              form2.ComboBox2.ItemIndex := 0;
-            End;
-            break;
           End;
         End;
+        If form2.ComboBox2.Items.Count > 0 Then form2.ComboBox2.ItemIndex := 0;
+      Finally
+        res.Free;
       End;
+    Finally
+      Rows.Free;
     End;
-    res.free;
-    res := RunCommand(ProjectRoot, 'git', ['ls-remote', 'origin']);
-    For i := 0 To res.Count - 1 Do Begin
-      If trim(res[i]) <> '' Then Begin
-        sa := trim(res[i]).Split(#9);
-        p := sa[1];
-        For j := 2 To StringGrid1.RowCount - 1 Do Begin
-          If StringGrid1.Cells[5, j] = sa[0] Then Begin
-            If pos('refs/heads/', p) = 1 Then Begin
-              setlength(Additionals[j].Branchs, high(Additionals[j].Branchs) + 2);
-              Additionals[j].Branchs[high(Additionals[j].Branchs)].Name := 'origin/' + copy(p, length('refs/heads/') + 1, length(p));
-              Additionals[j].Branchs[high(Additionals[j].Branchs)].Color := $00AADDFF; // Hellbraun
-              form2.ComboBox3.Items.Add('remotes/' + Additionals[j].Branchs[high(Additionals[j].Branchs)].Name);
-            End;
-            break;
-          End;
-        End;
-      End;
-    End;
-    res.free;
   End;
 
 Var
   sl: TStringList;
   aParams: Array Of String;
   sa, sa2: TStringArray;
-  aActions, i, j: Integer;
+  aActions, i, j, Row, Count, LaneCount: Integer;
   s, tmp: String;
   d, FromDate, ToDate: TDateTime;
   first: Boolean;
@@ -658,13 +688,10 @@ Begin
   End;
   HeadHash := GetActualHeadHash(ProjectRoot);
   edit1.text := '';
-  StringGrid1.RowCount := 2;
-  StringGrid1.Cells[2, 1] := 'Working tree changes';
-  StringGrid1.Cells[5, 1] := '0000000000000000000000000000000000000000';
   aParams := Nil;
   (*
    * Command to create debug log streams for Git_Graph test environment:
-   * git --no-pager log --pretty=format:"%H;%P;%s" --all > log.txt
+   * git --no-pager log --date-order --pretty=format:"%H;%P;%s" --all > log.txt
    *)
   tmp := '';
   If ProjectFileFolder <> '' Then Begin
@@ -673,42 +700,44 @@ Begin
   aSingleFile := false;
   If tmp <> '' Then Begin
     aSingleFile := true;
-    setlength(aParams, 7);
-  End
-  Else Begin
-    setlength(aParams, 5);
   End;
+  setlength(aParams, 6);
   aParams[0] := '--no-pager';
   aParams[1] := 'log';
-  aParams[2] := '--date=format:"%d.%m.%Y %H:%M:%S"';
-  aParams[3] := '--pretty=format:"%H;%P;%an;%ad;%s"';
+  aParams[2] := '--date=format:%d.%m.%Y %H:%M:%S';
+  aParams[3] := '--pretty=format:%x01%H%x09%P%x09%an%x09%ad%x09%s';
   aParams[4] := '--name-status';
-  If tmp <> '' Then Begin
-    aParams[5] := '--';
-    aParams[6] := tmp;
-  End;
+  aParams[5] := '--date-order';
   If CheckBox2.Checked Then Begin
     setlength(aParams, high(aParams) + 2);
     aParams[high(aParams)] := '--all';
   End;
+  If tmp <> '' Then Begin
+    setlength(aParams, Length(aParams) + 2);
+    aParams[high(aParams) - 1] := '--';
+    aParams[high(aParams)] := tmp;
+  End;
   sl := RunCommand(ProjectRoot, 'git', aParams);
+  StringGrid1.BeginUpdate;
+  Try
+  Count := 0;
+  For i := 0 To sl.Count - 1 Do
+    If Copy(sl[i], 1, 1) = #1 Then Inc(Count);
+  StringGrid1.RowCount := Count + 2;
+  For j := 0 To StringGrid1.ColCount - 1 Do StringGrid1.Cells[j, 1] := '';
+  StringGrid1.Cells[2, 1] := 'Working tree changes';
+  StringGrid1.Cells[5, 1] := '0000000000000000000000000000000000000000';
+  SetLength(GraphInfo, Count);
+  Row := 1;
+  FromDate := Date;
+  ToDate := Date;
   i := 0;
-  GraphInfo := Nil;
   first := true;
   While i < sl.count Do Begin
-    If pos(';', sl[i]) <> 0 Then Begin
-      s := sl[i];
-      If pos('"', s) = 1 Then Begin
-        delete(s, 1, 1);
-        delete(s, length(s), 1);
-      End;
-      sa := s.Split(';');
-      s := sa[3];
-      If pos('"', s) = 1 Then Begin
-        delete(s, 1, 1);
-        delete(s, length(s), 1);
-      End;
-      sa[3] := s;
+    If Copy(sl[i], 1, 1) = #1 Then Begin
+      sa := Copy(sl[i], 2, Length(sl[i])).Split(#9);
+      If Length(sa) < 5 Then
+        raise Exception.Create('Invalid git log output: ' + sl[i]);
       If first Then Begin
         first := false;
         d := ScanDateTime('DD.MM.YYYY HH:NN:SS', sa[3]);
@@ -720,30 +749,29 @@ Begin
         FromDate := min(FromDate, d);
         ToDate := max(ToDate, d);
       End;
-      StringGrid1.RowCount := StringGrid1.RowCount + 1;
-      setlength(GraphInfo, high(GraphInfo) + 2);
-      GraphInfo[high(GraphInfo)].hash := sa[0];
+      Inc(Row);
+      GraphInfo[Row - 2].hash := sa[0];
       If trim(sa[1]) <> '' Then Begin
         sa2 := trim(sa[1]).Split(' ');
-        setlength(GraphInfo[high(GraphInfo)].ParentsHash, length(sa2));
+        setlength(GraphInfo[Row - 2].ParentsHash, length(sa2));
         For j := 0 To high(sa2) Do Begin
-          GraphInfo[high(GraphInfo)].ParentsHash[j] := sa2[j];
+          GraphInfo[Row - 2].ParentsHash[j] := sa2[j];
         End;
       End
       Else Begin
-        GraphInfo[high(GraphInfo)].ParentsHash := Nil;
+        GraphInfo[Row - 2].ParentsHash := Nil;
       End;
-      StringGrid1.Cells[5, StringGrid1.RowCount - 1] := sa[0]; // Der hash des Commits, so dass wir den nachher auch laden können
-      StringGrid1.Cells[3, StringGrid1.RowCount - 1] := sa[2];
-      StringGrid1.Cells[4, StringGrid1.RowCount - 1] := sa[3];
+      StringGrid1.Cells[5, Row] := sa[0];
+      StringGrid1.Cells[3, Row] := sa[2];
+      StringGrid1.Cells[4, Row] := sa[3];
       s := sa[4];
       For j := 5 To high(sa) Do Begin
-        s := s + ';' + sa[j];
+        s := s + #9 + sa[j];
       End;
-      StringGrid1.Cells[2, StringGrid1.RowCount - 1] := s;
+      StringGrid1.Cells[2, Row] := s;
       inc(i);
       aActions := 0;
-      While (i < sl.count) And (pos(';', sl[i]) = 0) Do Begin // Auslesen der Actions
+      While (i < sl.count) And (Copy(sl[i], 1, 1) <> #1) Do Begin
         s := sl[i];
         s := copy(sl[i], 1, pos(#9, sl[i]));
         If pos('M', s) <> 0 Then aActions := aActions Or BitFileModified;
@@ -752,10 +780,13 @@ Begin
         If pos('R', s) <> 0 Then aActions := aActions Or BitFileRenamed;
         inc(i);
       End;
-      StringGrid1.Cells[1, StringGrid1.RowCount - 1] := inttostr(aActions);
+      StringGrid1.Cells[1, Row] := inttostr(aActions);
     End
-    Else Begin // Sollte eigentlich nicht auftreten
+    Else If Trim(sl[i]) = '' Then Begin
       inc(i);
+    End
+    Else Begin
+      raise Exception.Create('Unexpected git log output: ' + sl[i]);
     End;
   End;
   Graph := CalcGraph(GraphInfo, aSingleFile);
@@ -763,15 +794,23 @@ Begin
   // TODO: Sammeln der Actions eines Branches damit die auch alle Richtig angezeigt werden können
   DateEdit1.Date := FromDate;
   DateEdit2.Date := ToDate;
-  sl.free;
   If FirstLoadLCL Then Begin
     FirstLoadLCL := false;
     StringGrid1.AutoSizeColumns;
   End;
   StringGrid1.ColWidths[2] := min(StringGrid1.ColWidths[2], Form1.Width Div 2);
-  StringGrid1.ColWidths[0] := Scale96ToForm(120);
+  LaneCount := 1;
+  For i := 1 To High(Graph) Do
+    For j := LaneCount To MaxBranches - 1 Do
+      If Graph[i, j].Elements <> [] Then LaneCount := j + 1;
+  StringGrid1.ColWidths[0] := Max(Scale96ToForm(80),
+    LaneCount * StringGrid1.DefaultRowHeight);
   StringGrid1.ColWidths[1] := max(StringGrid1.ColWidths[1], Scale96ToForm(ImageList1.Width * 5));
   StringGrid1.Selection := rect(0, 1, StringGrid1.ColCount - 1, 1); // Die 1. Zeile Anwählen
+  Finally
+    StringGrid1.EndUpdate;
+    sl.Free;
+  End;
   StringGrid1Click(Nil);
 End;
 
