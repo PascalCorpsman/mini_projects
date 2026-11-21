@@ -88,6 +88,7 @@ Const
    *            0.14 - ADD: Convert to shader rendering instead of legacy mode
    *                   FIX: crash, when selected image has width/ height of 0
    *                   ADD: Speedup Floodfill operation
+   *                   FIX: caption was reverted on "New"
    *
    * Known Bugs:
    *            - Ellipsen kleiner 4x4 Pixel werden nicht erzeugt
@@ -353,9 +354,11 @@ Begin
   NewButton.hint := '';
   If form3.ShowModal = mrOK Then Begin
     NewImage(strtointdef(form3.Edit1.Text, fImage.Width), strtointdef(form3.Edit2.Text, fImage.Height));
+    form1.caption := defcaption;
+    Form1CaptionChanged := false;
+    OnClearBackGroundImage();
   End;
   NewButton.hint := s;
-  OnClearBackGroundImage();
 End;
 
 Function TPixelEditor.getChanged: Boolean;
